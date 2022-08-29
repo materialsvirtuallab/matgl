@@ -3,7 +3,7 @@ from torch.nn import Module, ModuleList, Identity, Softplus, Dropout
 from dgl.nn import Set2Set
 
 from .helper import MLP, EdgeSet2Set
-from ..types import *
+from ..types import List, Optional, DGLGraph, Tensor
 
 
 class MEGNet(Module):

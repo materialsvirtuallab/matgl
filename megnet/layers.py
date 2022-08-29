@@ -4,7 +4,7 @@ Implement graph convolution layers for MEGNet.
 
 import torch
 import dgl
-from torch.nn import Module, Softplus, Dropout, ModuleList, Identity
+from torch.nn import Module, Softplus, Dropout, Identity
 import dgl.function as fn
 
 from .types import *

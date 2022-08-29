@@ -2,7 +2,7 @@ import torch
 from torch.nn import Module, Linear, ModuleList, LSTM
 from dgl import broadcast_edges, softmax_edges, sum_edges
 
-from ..types import *
+from ..types import List, Callable, Tensor
 
 
 class MLP(Module):
