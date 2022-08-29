@@ -7,7 +7,7 @@ import dgl
 from torch.nn import Module, Softplus, Dropout, Identity
 import dgl.function as fn
 
-from .types import *
+from .types import List, EdgeBatch, Tensor, Tuple, DGLGraph, Optional
 from .models.helper import MLP
 
 
