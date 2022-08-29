@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import torch as th
 import dgl
-from megnet.layers import MegNetGraphConv, MegNetBlock
+from megnet.layers import MEGNetGraphConv, MEGNetBlock
 from megnet.models import MLP
 
 Graph = namedtuple('Graph', 'graph, graph_attr')
@@ -38,7 +38,7 @@ def test_megnet_layer():
     edge_func = MLP(dims=[2*NDIM+EDIM+GDIM, EDIM])
     node_func = MLP(dims=[EDIM+NDIM+GDIM, NDIM])
     attr_func = MLP(dims=[EDIM+NDIM+GDIM, GDIM])
-    layer = MegNetGraphConv(edge_func, node_func, attr_func)
+    layer = MEGNetGraphConv(edge_func, node_func, attr_func)
 
     # one pass
     edge_feat = batched_graph.edata.pop('edge_feat')
@@ -50,7 +50,7 @@ def test_megnet_layer():
 def test_megnet_block():
     DIM = 5
     N1, N2, N3 = 64, 32, 16
-    block = MegNetBlock(
+    block = MEGNetBlock(
         dims=[5, 10, 13],
         conv_hiddens=[N1, N1, N2],
         skip=False,

@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import torch as th
 import dgl
-from megnet.models import MegNet
+from megnet.models import MEGNet
 
 Graph = namedtuple('Graph', 'graph, graph_attr')
 
@@ -36,7 +36,7 @@ def test_megnet():
     graphs = get_graphs(5, NDIM=DIM, EDIM=DIM, GDIM=DIM)
     batched_graph, attrs = batch(graphs)
 
-    model = MegNet(
+    model = MEGNet(
         in_dim=DIM,
         num_blocks=3,
         hiddens=[N1, N2],

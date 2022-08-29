@@ -7,7 +7,7 @@ from .types import *
 from .models import MLP
 
 
-class MegNetGraphConv(Module):
+class MEGNetGraphConv(Module):
     def __init__(
         self,
         edge_func: Module,
@@ -23,13 +23,13 @@ class MegNetGraphConv(Module):
     @staticmethod
     def from_dims(
         edge_dims: List[int], node_dims: List[int], attr_dims: List[int]
-    ) -> "MegNetGraphConv":
+    ) -> "MEGNetGraphConv":
         # TODO(marcel): Softplus doesnt exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
         edge_update = MLP(edge_dims, Softplus(), activate_last=True)
         node_update = MLP(node_dims, Softplus(), activate_last=True)
         attr_update = MLP(attr_dims, Softplus(), activate_last=True)
-        return MegNetGraphConv(edge_update, node_update, attr_update)
+        return MEGNetGraphConv(edge_update, node_update, attr_update)
 
     def _edge_udf(self, edges: EdgeBatch) -> Tensor:
         vi = edges.src["v"]
@@ -81,7 +81,7 @@ class MegNetGraphConv(Module):
         return edge_feat, node_feat, graph_attr
 
 
-class MegNetBlock(Module):
+class MEGNetBlock(Module):
     def __init__(
         self,
         dims: List[int],
@@ -109,7 +109,7 @@ class MegNetBlock(Module):
         edge_in = 2 * conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM
         node_in = out_dim + conv_dim + conv_dim  # EDIM+NDIM+GDIM
         attr_in = out_dim + out_dim + conv_dim  # EDIM+NDIM+GDIM
-        self.conv = MegNetGraphConv.from_dims(
+        self.conv = MEGNetGraphConv.from_dims(
             edge_dims=[edge_in] + conv_hiddens,
             node_dims=[node_in] + conv_hiddens,
             attr_dims=[attr_in] + conv_hiddens,

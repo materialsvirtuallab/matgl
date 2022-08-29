@@ -2,12 +2,12 @@ import torch
 from torch.nn import Module, ModuleList, Identity, Softplus, Dropout
 from dgl.nn import Set2Set
 
-from ..layers import MegNetBlock
+from ..layers import MEGNetBlock
 from .helper import MLP, EdgeSet2Set
 from ..types import *
 
 
-class MegNet(Module):
+class MEGNet(Module):
     def __init__(
         self,
         in_dim: int,
@@ -39,10 +39,10 @@ class MegNet(Module):
         block_args = dict(conv_hiddens=conv_hiddens, dropout=dropout, skip=True)
         blocks = []
         # first block
-        blocks.append(MegNetBlock(dims=[blocks_in_dim], **block_args))
+        blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))
         # other blocks
         for _ in range(num_blocks - 1):
-            blocks.append(MegNetBlock(dims=[block_out_dim] + hiddens, **block_args))
+            blocks.append(MEGNetBlock(dims=[block_out_dim] + hiddens, **block_args))
         self.blocks = ModuleList(blocks)
 
         s2s_kwargs = dict(n_iters=s2s_num_iters, n_layers=s2s_num_layers)
