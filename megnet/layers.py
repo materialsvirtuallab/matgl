@@ -1,3 +1,7 @@
+"""
+Implement graph convolution layers for MEGNet.
+"""
+
 import torch
 import dgl
 from torch.nn import Module, Softplus, Dropout, ModuleList, Identity
