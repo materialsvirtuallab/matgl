@@ -1,0 +1,10 @@
+pytest
+pytest-cov
+coverage
+coveralls
+pycodestyle
+mypy
+pydocstyle
+flake8
+types-tabulate
+pylint
