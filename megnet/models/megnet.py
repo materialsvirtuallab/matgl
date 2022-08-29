@@ -39,10 +39,10 @@ class MEGNet(Module):
         blocks = []
         from ..layers import MEGNetBlock
         # first block
-        blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))
+        blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))  # type: ignore
         # other blocks
         for _ in range(num_blocks - 1):
-            blocks.append(MEGNetBlock(dims=[block_out_dim] + hiddens, **block_args))
+            blocks.append(MEGNetBlock(dims=[block_out_dim] + hiddens, **block_args))  # type: ignore
         self.blocks = ModuleList(blocks)
 
         s2s_kwargs = dict(n_iters=s2s_num_iters, n_layers=s2s_num_layers)
