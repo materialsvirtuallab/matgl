@@ -59,6 +59,7 @@ class MLP(Module):
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
                 return layer.out_features
+        return None
 
     def forward(self, inputs: Tensor) -> Tensor:
         x = inputs

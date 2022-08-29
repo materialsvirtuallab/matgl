@@ -68,7 +68,7 @@ class MegNetGraphConv(Module):
         edge_feat: Tensor,
         node_feat: Tensor,
         graph_attr: Tensor,
-    ) -> List[Tensor]:
+    ) -> Tuple[Tensor]:
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
@@ -125,7 +125,7 @@ class MegNetBlock(Module):
         edge_feat: Tensor,
         node_feat: Tensor,
         graph_attr: Tensor,
-    ) -> List[Tensor]:
+    ) -> Tuple[Tensor]:
 
         inputs = (edge_feat, node_feat, graph_attr)
         edge_feat = self.edge_func(edge_feat)
