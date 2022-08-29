@@ -1,0 +1,31 @@
+name: Testing - main
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    strategy:
+      max-parallel: 20
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.8, 3.9]
+
+    runs-on: ${{ matrix.os }}
+    env:
+      PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install --quiet -r requirements.txt -r requirements-ci.txt
+        pip install -e .
+    - name: pytest
+      run: |
+        pytest megnet --color=yes
