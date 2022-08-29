@@ -8,7 +8,6 @@ from ..types import *
 
 
 class MegNet(Module):
-
     def __init__(
         self,
         in_dim: int,
@@ -42,23 +41,21 @@ class MegNet(Module):
         # first block
         blocks.append(MegNetBlock(dims=[blocks_in_dim], **block_args))
         # other blocks
-        for _ in range(num_blocks-1):
-            blocks.append(
-                MegNetBlock(dims=[block_out_dim]+hiddens, **block_args)
-            )
+        for _ in range(num_blocks - 1):
+            blocks.append(MegNetBlock(dims=[block_out_dim] + hiddens, **block_args))
         self.blocks = ModuleList(blocks)
 
         s2s_kwargs = dict(n_iters=s2s_num_iters, n_layers=s2s_num_layers)
-        self.edge_s2s = EdgeSet2Set(block_out_dim, **s2s_kwargs) 
+        self.edge_s2s = EdgeSet2Set(block_out_dim, **s2s_kwargs)
         self.node_s2s = Set2Set(block_out_dim, **s2s_kwargs)
 
         self.output_proj = MLP(
             # S2S cats q_star to output producing double the dim
-            dims=[2*2*block_out_dim+block_out_dim]+output_hiddens+[1],
+            dims=[2 * 2 * block_out_dim + block_out_dim] + output_hiddens + [1],
             activation=Softplus(),
-            activate_last=False
+            activate_last=False,
         )
-        
+
         self.dropout = Dropout(dropout) if dropout else None
         # TODO(marcel): should this be an 1D dropout
 

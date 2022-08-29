@@ -6,7 +6,6 @@ from ..types import *
 
 
 class MLP(Module):
-
     def __init__(
         self,
         dims: List[int],
@@ -35,7 +34,7 @@ class MLP(Module):
 
         for layer in self.layers:
             if isinstance(layer, Linear):
-                dims.append(f'{layer.in_features} \u2192 {layer.out_features}')
+                dims.append(f"{layer.in_features} \u2192 {layer.out_features}")
             else:
                 dims.append(layer.__class__.__name__)
 
@@ -71,7 +70,6 @@ class MLP(Module):
 
 
 class EdgeSet2Set(Module):
-
     def __init__(self, input_dim, n_iters, n_layers):
         super().__init__()
         self.input_dim = input_dim
@@ -89,8 +87,10 @@ class EdgeSet2Set(Module):
         with graph.local_scope():
             batch_size = graph.batch_size
 
-            h = (feat.new_zeros((self.n_layers, batch_size, self.input_dim)),
-                 feat.new_zeros((self.n_layers, batch_size, self.input_dim)))
+            h = (
+                feat.new_zeros((self.n_layers, batch_size, self.input_dim)),
+                feat.new_zeros((self.n_layers, batch_size, self.input_dim)),
+            )
 
             q_star = feat.new_zeros(batch_size, self.output_dim)
 
@@ -98,10 +98,10 @@ class EdgeSet2Set(Module):
                 q, h = self.lstm(q_star.unsqueeze(0), h)
                 q = q.view(batch_size, self.input_dim)
                 e = (feat * broadcast_edges(graph, q)).sum(dim=-1, keepdim=True)
-                graph.edata['e'] = e
-                alpha = softmax_edges(graph, 'e')
-                graph.edata['r'] = feat * alpha
-                readout = sum_edges(graph, 'r')
+                graph.edata["e"] = e
+                alpha = softmax_edges(graph, "e")
+                graph.edata["r"] = feat * alpha
+                readout = sum_edges(graph, "r")
                 q_star = torch.cat([q, readout], dim=-1)
 
             return q_star

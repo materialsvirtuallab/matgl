@@ -8,7 +8,6 @@ from .models import MLP
 
 
 class MegNetGraphConv(Module):
-
     def __init__(
         self,
         edge_func: Module,
@@ -23,9 +22,7 @@ class MegNetGraphConv(Module):
 
     @staticmethod
     def from_dims(
-        edge_dims: List[int],
-        node_dims: List[int],
-        attr_dims: List[int]
+        edge_dims: List[int], node_dims: List[int], attr_dims: List[int]
     ) -> "MegNetGraphConv":
         # TODO(marcel): Softplus doesnt exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
@@ -35,32 +32,32 @@ class MegNetGraphConv(Module):
         return MegNetGraphConv(edge_update, node_update, attr_update)
 
     def _edge_udf(self, edges: EdgeBatch) -> Tensor:
-        vi = edges.src['v']
-        vj = edges.dst['v']
-        u = edges.src['u']
-        eij = edges.data.pop('e')
+        vi = edges.src["v"]
+        vj = edges.dst["v"]
+        u = edges.src["u"]
+        eij = edges.data.pop("e")
         inputs = torch.hstack([vi, vj, eij, u])
-        mij = {'mij': self.edge_func(inputs)}
+        mij = {"mij": self.edge_func(inputs)}
         return mij
 
     def edge_update_(self, graph: DGLGraph) -> Tensor:
         graph.apply_edges(self._edge_udf)
-        graph.edata['e'] = graph.edata.pop('mij')
-        return graph.edata['e']
+        graph.edata["e"] = graph.edata.pop("mij")
+        return graph.edata["e"]
 
     def node_update_(self, graph: DGLGraph) -> Tensor:
-        graph.update_all(fn.copy_e('e', 'e'), fn.mean('e', 've'))
-        ve = graph.ndata.pop('ve')
-        v = graph.ndata.pop('v')
-        u = graph.ndata.pop('u')
+        graph.update_all(fn.copy_e("e", "e"), fn.mean("e", "ve"))
+        ve = graph.ndata.pop("ve")
+        v = graph.ndata.pop("v")
+        u = graph.ndata.pop("u")
         inputs = torch.hstack([v, ve, u])
-        graph.ndata['v'] = self.node_func(inputs)
-        return graph.ndata['v']
+        graph.ndata["v"] = self.node_func(inputs)
+        return graph.ndata["v"]
 
     def attr_update_(self, graph: DGLGraph, attrs: Tensor) -> Tensor:
         u = attrs
-        ue = dgl.readout_edges(graph, feat='e', op='mean')
-        uv = dgl.readout_nodes(graph, feat='v', op='mean')
+        ue = dgl.readout_edges(graph, feat="e", op="mean")
+        uv = dgl.readout_nodes(graph, feat="v", op="mean")
         inputs = torch.hstack([u, ue, uv])
         graph_attr = self.attr_func(inputs)
         return graph_attr
@@ -73,9 +70,9 @@ class MegNetGraphConv(Module):
         graph_attr: Tensor,
     ) -> List[Tensor]:
         with graph.local_scope():
-            graph.edata['e'] = edge_feat
-            graph.ndata['v'] = node_feat
-            graph.ndata['u'] = dgl.broadcast_nodes(graph, graph_attr)
+            graph.edata["e"] = edge_feat
+            graph.ndata["v"] = node_feat
+            graph.ndata["u"] = dgl.broadcast_nodes(graph, graph_attr)
 
             edge_feat = self.edge_update_(graph)
             node_feat = self.node_update_(graph)
@@ -85,7 +82,6 @@ class MegNetGraphConv(Module):
 
 
 class MegNetBlock(Module):
-
     def __init__(
         self,
         dims: List[int],
@@ -100,23 +96,23 @@ class MegNetBlock(Module):
         out_dim = conv_hiddens[-1]
 
         mlp_kwargs = {
-            'dims': dims,
-            'activation': Softplus(),
-            'activate_last': True,
-            'bias_last': True,
+            "dims": dims,
+            "activation": Softplus(),
+            "activate_last": True,
+            "bias_last": True,
         }
         self.edge_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
         self.node_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
         self.attr_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
 
         # compute input sizes
-        edge_in = 2*conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM
+        edge_in = 2 * conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM
         node_in = out_dim + conv_dim + conv_dim  # EDIM+NDIM+GDIM
         attr_in = out_dim + out_dim + conv_dim  # EDIM+NDIM+GDIM
         self.conv = MegNetGraphConv.from_dims(
-            edge_dims=[edge_in]+conv_hiddens,
-            node_dims=[node_in]+conv_hiddens,
-            attr_dims=[attr_in]+conv_hiddens,
+            edge_dims=[edge_in] + conv_hiddens,
+            node_dims=[node_in] + conv_hiddens,
+            attr_dims=[attr_in] + conv_hiddens,
         )
 
         self.dropout = Dropout(dropout) if dropout else None
