@@ -1,0 +1,23 @@
+model:
+  DIM: 11
+  N1: 128
+  N2: 64
+  N3: 16
+  num_blocks: 4
+  s2s_num_layers: 5
+  s2s_num_iters: 4
+  device: 'cuda'
+optimizer:
+  lr: 0.0001
+  max_epochs: 100
+data:
+  dataset: 'qm9'
+  batch_size: 128
+  source:
+    label_keys: ['mu']
+    raw_dir: './'
+    force_reload: False
+    verbose: False
+  split:
+    val_size: 1000
+    test_size: 1000

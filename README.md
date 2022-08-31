@@ -3,7 +3,7 @@
 This is a reimplementation of the [MatErials Graph Network (MEGNet)](https://github.com/materialsvirtuallab/megnet)
 and [3-body MEGNet (m3gnet)](https://github.com/materialsvirtuallab/m3gnet) in DGL in an effort to
 improve its extensibility and scalability. The original MEGNet and M3GNet were implemented in TensorFlow. It is a
-collaboration between the Materials Virtual Lab and Intel (Santiago Miret and Marcel Nasar).
+collaboration between the Materials Virtual Lab and Intel Labs (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
 # Status
 
