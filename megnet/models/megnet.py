@@ -1,3 +1,7 @@
+"""
+Implementation of MEGNet model.
+"""
+
 import torch
 from dgl.nn import Set2Set
 from torch.nn import Dropout, Identity, Module, ModuleList, Softplus
