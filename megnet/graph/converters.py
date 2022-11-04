@@ -12,51 +12,41 @@ from dgl import backend as F
 from dgl.transforms import to_bidirected
 
 
-class RBFExpansion(nn.Module):
-    r"""Expand distances between nodes by radial basis functions.
-
-    .. math::
-        \exp(- \gamma * ||d - \mu||^2)
-
-    where :math:`d` is the distance between two nodes and :math:`\mu` helps centralizes
-    the distances. We use multiple centers evenly distributed in the range of
-    :math:`[\text{low}, \text{high}]` with the difference between two adjacent centers
-    being :math:`gap`.
-
-    The number of centers is decided by :math:`(\text{high} - \text{low}) / \text{gap}`.
-    Choosing fewer centers corresponds to reducing the resolution of the filter.
-
-    Parameters
-    ----------
-    low : float
-        Smallest center. Default to 0.
-    high : float
-        Largest center. Default to 4.
-    gap : float
-        Difference between two adjacent centers. :math:`\gamma` will be computed as the
-        reciprocal of gap. Default to 0.1.
-    gamma : float
-        Width of Gaussian function
+class GaussianExpansion(nn.Module):
+    r"""
+    Gaussian Radial Expansion.
+    The bond distance is expanded to a vector of shape [m],
+    where m is the number of Gaussian basis centers
     """
 
     def __init__(
         self,
-        low: float = 0.0,
-        high: float = 4.0,
-        gap: float = 0.2,
-        gamma: Optional[float] = None,
+        initial: float = 0.0,
+        final: float = 4.0,
+        num_centers: int = 20,
+        width: float = 0.5,
     ):
-        super(RBFExpansion, self).__init__()
-
-        num_centers = int(np.ceil((high - low) / gap))
-        self.centers = np.linspace(low, high, num_centers)
+        """
+        Parameters
+        ----------
+        initial : float
+                Location of initial Gaussian basis center.
+        final : float
+                Location of final Gaussian basis center
+        number : int
+                Number of Gaussian Basis functions
+        width : float
+                Width of Gaussian Basis functions
+        """
+        super(GaussianExpansion, self).__init__()
+        self.centers = np.linspace(initial, final, num_centers)
         self.centers = nn.Parameter(
             torch.tensor(self.centers).float(), requires_grad=False
         )
-        if gamma is None:
-            self.gamma = 1.0 / np.diff(self.centers).mean()
+        if width is None:
+            self.width = 1.0 / np.diff(self.centers).mean()
         else:
-            self.gamma = gamma
+            self.width = width
 
     def reset_parameters(self):
         """Reinitialize model parameters."""
@@ -65,30 +55,42 @@ class RBFExpansion(nn.Module):
             self.centers.clone().detach().float(), requires_grad=False
         ).to(device)
 
-    def forward(self, edge_dists):
+    def forward(self, bond_dists):
         """Expand distances.
 
         Parameters
         ----------
-        edge_dists : float32 tensor of shape (E, 1)
-            Distances between end nodes of edges, E for the number of edges.
+        bond_dists :
+            Bond (edge) distances between two atoms (nodes)
 
         Returns
         -------
-        float32 tensor of shape (E, len(self.centers))
-            Expanded distances.
+        A vector of expanded distance with shape [num_centers]
         """
-        radial = edge_dists - self.centers
-        coef = -self.gamma
-        return torch.exp(coef * (radial**2))
+        diff = bond_dists - self.centers
+        return torch.exp(-self.width * (diff**2))
 
 
-class SimpleMolecularGraph:
+class Molecule2Graph:
     """
-    Construct a DGL simple molecular graph with fix radius cutoff
+    Construct a DGL molecular graph with fix radius cutoff
     """
 
-    def process(mols: Molecule, types: list):
+    def __init__(
+        self,
+        cutoff: float = 5.0,
+        initial: float = 0.0,
+        final: float = 4.0,
+        num_centers: int = 20,
+        width: Optional[float] = None,
+    ):
+        self.cutoff = cutoff
+        self.initial = initial
+        self.final = final
+        self.num_centers = num_centers
+        self.width = width
+
+    def process(self, mols: Molecule, types: list):
         """Process information from a set of pymatgen molecules.
         Parameters
         ----------
@@ -121,7 +123,7 @@ class SimpleMolecularGraph:
         N_cumsum = np.concatenate([[0], np.cumsum(N)])
         return N, R, Z, N_cumsum, mol_weights
 
-    def convert(N, R, Z, N_cumsum, mol_weights, idx, rcut):
+    def convert(self, N, R, Z, N_cumsum, mol_weights, idx):
         """Convert a set of molecules into a set of DGL graphs
         Parameters
         ----------
@@ -142,13 +144,18 @@ class SimpleMolecularGraph:
         R = R[N_cumsum[idx] : N_cumsum[idx + 1]]
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
         number_of_bonds = 0
-        dist_converter = RBFExpansion(gamma=0.5)
+        dist_converter = GaussianExpansion(
+            initial=self.initial,
+            final=self.final,
+            num_centers=self.num_centers,
+            width=self.width,
+        )
         for iatom in range(N[idx]):
             for jatom in range(iatom + 1, N[idx]):
-                if dist[iatom][jatom] <= rcut:
+                if dist[iatom][jatom] <= self.cutoff:
                     number_of_bonds = number_of_bonds + 1
         number_of_bonds = number_of_bonds / N[idx]
-        adj = sp.csr_matrix(dist <= rcut) - sp.eye(n_atoms, dtype=np.bool_)
+        adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(n_atoms, dtype=np.bool_)
         adj = adj.tocoo()
         u, v = F.tensor(adj.row), F.tensor(adj.col)
         edge_rbf_list = []
@@ -162,19 +169,3 @@ class SimpleMolecularGraph:
         g.ndata["attr"] = F.tensor(Z[N_cumsum[idx] : N_cumsum[idx + 1]])
         state_attr = [mol_weights[idx], number_of_bonds]
         return g, state_attr
-
-
-# KK:for testing purpose
-# coords = [
-#    [0.000000, 0.000000, 0.000000],
-#    [0.000000, 0.000000, 1.089000],
-#    [1.026719, 0.000000, -0.363000],
-#    [-0.513360, -0.889165, -0.363000],
-#    [-0.513360, 0.889165, -0.363000],
-# ]
-# methane = Molecule(["C", "H", "H", "H", "H"], coords)
-# Molecules = [methane, methane]
-# mol_graph = SimpleMolecularGraph()
-# a, b, c, d, e = SimpleMolecularGraph.process(Molecules, types={"H": 0, "C": 1})
-# graph, state = SimpleMolecularGraph.convert(a, b, c, d, e, 1, 2.0)
-# print(graph, state)
