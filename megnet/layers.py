@@ -2,13 +2,13 @@
 Implement graph convolution layers for MEGNet.
 """
 
-import torch
 import dgl
-from torch.nn import Module, Softplus, Dropout, Identity
 import dgl.function as fn
+import torch
+from torch.nn import Dropout, Identity, Module, Softplus
 
-from .types import List, EdgeBatch, Tensor, Tuple, DGLGraph, Optional
 from .models.helper import MLP
+from .types import DGLGraph, EdgeBatch, List, Optional, Tensor, Tuple
 
 
 class MEGNetGraphConv(Module):
@@ -141,9 +141,9 @@ class MEGNetBlock(Module):
         )
 
         if self.dropout:
-            edge_feat = self.dropout(edge_feat)
-            node_feat = self.dropout(node_feat)
-            graph_attr = self.dropout(graph_attr)
+            edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102
+            node_feat = self.dropout(node_feat)  # pylint: disable=E1102
+            graph_attr = self.dropout(graph_attr)  # pylint: disable=E1102
 
         if self.skip:
             edge_feat = edge_feat + inputs[0]
