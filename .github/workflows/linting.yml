@@ -33,11 +33,12 @@ jobs:
         flake8 --count --show-source --statistics megnet
         # exit-zero treats all errors as warnings.
         flake8 --count --exit-zero --max-complexity=20 --statistics megnet
-    - name: pydocstyle
-      run: |
-        # pip install pydocstyle --upgrade --quiet
-        pydocstyle --count megnet
     - name: pylint
       run: |
         # pip install pylint --upgrade --quiet
         pylint megnet
+    - name: pydocstyle
+      run: |
+        # pip install pydocstyle --upgrade --quiet
+        pydocstyle --count megnet
+

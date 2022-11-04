@@ -84,13 +84,21 @@ class Molecule2Graph:
         num_centers: int = 20,
         width: Optional[float] = None,
     ):
+        """
+        # TODO: Need to document all parameters.
+        :param cutoff:
+        :param initial:
+        :param final:
+        :param num_centers:
+        :param width:
+        """
         self.cutoff = cutoff
         self.initial = initial
         self.final = final
         self.num_centers = num_centers
         self.width = width
 
-    def process(self, mols: Molecule, types: list):
+    def process(self, mols: list[Molecule], types: dict):
         """Process information from a set of pymatgen molecules.
         Parameters
         ----------

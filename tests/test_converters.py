@@ -8,8 +8,8 @@ from megnet.graph.converters import GaussianExpansion, Molecule2Graph
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class ConvertersTest(unittest.TestCase):
-    def test_GaussianExpansion(self):
+class GaussianExpansionTest(unittest.TestCase):
+    def test_call(self):
         bond_dist = 1.0
         dist_converter = GaussianExpansion()
         expanded_dist = dist_converter(bond_dist)
@@ -24,7 +24,8 @@ class ConvertersTest(unittest.TestCase):
             np.allclose(expanded_dist[-1], np.exp(-0.5 * np.power(1.0 - 4.0, 2.0)))
         )
 
-    def test_molecule2graph(self):
+class Molecule2GraphTest(unittest.TestCase):
+    def test_process_convert(self):
         coords = [
             [0.000000, 0.000000, 0.000000],
             [0.000000, 0.000000, 1.089000],
