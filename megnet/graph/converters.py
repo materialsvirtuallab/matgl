@@ -1,15 +1,13 @@
+from __future__ import annotations
+
 import numpy as np
-from pymatgen.core import Lattice, Structure, Molecule
-
 import scipy.sparse as sp
-import dgl
-
 import torch
 import torch.nn as nn
-from typing import Optional
-from dgl.convert import graph as dgl_graph
 from dgl import backend as F
+from dgl.convert import graph as dgl_graph
 from dgl.transforms import to_bidirected
+from pymatgen.core import Molecule
 
 
 class GaussianExpansion(nn.Module):
@@ -24,7 +22,7 @@ class GaussianExpansion(nn.Module):
         initial: float = 0.0,
         final: float = 4.0,
         num_centers: int = 20,
-        width: float = 0.5,
+        width: float | None = 0.5,
     ):
         """
         Parameters
@@ -38,13 +36,13 @@ class GaussianExpansion(nn.Module):
         width : float
                 Width of Gaussian Basis functions
         """
-        super(GaussianExpansion, self).__init__()
+        super().__init__()
         self.centers = np.linspace(initial, final, num_centers)
         self.centers = nn.Parameter(
             torch.tensor(self.centers).float(), requires_grad=False
         )
         if width is None:
-            self.width = 1.0 / np.diff(self.centers).mean()
+            self.width = float(1.0 / np.diff(self.centers).mean())
         else:
             self.width = width
 
@@ -82,7 +80,7 @@ class Molecule2Graph:
         initial: float = 0.0,
         final: float = 4.0,
         num_centers: int = 20,
-        width: Optional[float] = None,
+        width: float | None = None,
     ):
         """
         # TODO: Need to document all parameters.
