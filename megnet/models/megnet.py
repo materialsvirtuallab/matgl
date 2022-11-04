@@ -1,9 +1,9 @@
 import torch
-from torch.nn import Module, ModuleList, Identity, Softplus, Dropout
 from dgl.nn import Set2Set
+from torch.nn import Dropout, Identity, Module, ModuleList, Softplus
 
+from ..types import DGLGraph, List, Optional, Tensor
 from .helper import MLP, EdgeSet2Set
-from ..types import List, Optional, DGLGraph, Tensor
 
 
 class MEGNet(Module):
@@ -38,6 +38,7 @@ class MEGNet(Module):
         block_args = dict(conv_hiddens=conv_hiddens, dropout=dropout, skip=True)
         blocks = []
         from ..layers import MEGNetBlock
+
         # first block
         blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))  # type: ignore
         # other blocks
@@ -83,7 +84,7 @@ class MEGNet(Module):
         vec = torch.hstack([node_vec, edge_vec, graph_attr])
 
         if self.dropout:
-            vec = self.dropout(vec)
+            vec = self.dropout(vec)  # pylint: disable=E1102
 
         output = self.output_proj(vec)
         if self.is_classification:
