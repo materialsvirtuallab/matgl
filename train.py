@@ -10,7 +10,7 @@ from munch import Munch
 
 
 from utils import utils
-from megnet.models import MegNet
+from megnet.models import MEGNet
 from megnet.models.helper import MLP
 from tqdm import tqdm
 
@@ -109,7 +109,7 @@ def run(
     device = torch.device(
         config.model.device if torch.cuda.is_available() else 'cpu')
 
-    model = MegNet(
+    model = MEGNet(
         in_dim=config.model.DIM,
         num_blocks=config.model.num_blocks,
         hiddens=[config.model.N1, config.model.N2],
