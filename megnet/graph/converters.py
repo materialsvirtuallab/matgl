@@ -237,7 +237,7 @@ class Crystal2Graph:
 
         Returns
         -------
-        N: number of atoms in a crystal (int) 
+        N: number of atoms in a molecule (np.array)
         src_id: central atom id (list)
         dst_id: neighbor atom id (list)
         bond_dist: bond distance between central and neighbor atoms (list)
@@ -245,11 +245,12 @@ class Crystal2Graph:
         """
         numerical_tol = 1.0e-8
         Z = []
+        bond_dist = []
         pbc = np.array([1, 1, 1], dtype=int)
         N = cry.num_sites
         lattice_matrix = np.ascontiguousarray(np.array(cry.lattice.matrix), dtype=float)
         cart_coords = np.ascontiguousarray(np.array(cry.cart_coords), dtype=float)
-        src_id, dst_id, images, bond_dist = find_points_in_spheres(
+        center_indices, neighbor_indices, images, distances = find_points_in_spheres(
             cart_coords,
             cart_coords,
             r=self.cutoff,
@@ -257,17 +258,17 @@ class Crystal2Graph:
             lattice=lattice_matrix,
             tol=numerical_tol,
         )
-        exclude_self = (src_id != dst_id) | (
-            bond_dist > numerical_tol
+        exclude_self = (center_indices != neighbor_indices) | (
+            distances > numerical_tol
         )
         for atom_id in range(cry.num_sites):
             Z.append(np.eye(len(types))[types[cry.species[atom_id].symbol]])
         Z = np.array(Z)
         return (
             N,
-            src_id[exclude_self],
-            dst_id[exclude_self],
-            bond_dist[exclude_self],
+            center_indices[exclude_self],
+            neighbor_indices[exclude_self],
+            distances[exclude_self],
             Z,
         )
 
