@@ -127,7 +127,7 @@ class Molecule2Graph:
             g: dgl graph
             state_attr: state features
         """
-        n_atoms = len(mol)
+        natoms = len(mol)
         R = mol.cart_coords
         element_types = self.element_types
         Z = [
@@ -144,11 +144,9 @@ class Molecule2Graph:
             width=self.width,
         )
         dists = mol.distance_matrix.flatten()
-        number_of_bonds = (
-            np.count_nonzero(np.logical_and(dists > 0, dists <= self.cutoff)) / 2
-        )
-        number_of_bonds /= n_atoms
-        adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(n_atoms, dtype=np.bool_)
+        nbonds = (np.count_nonzero(dists <= self.cutoff) - natoms) / 2
+        nbonds /= natoms
+        adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
         adj = adj.tocoo()
         u, v = F.tensor(adj.row), F.tensor(adj.col)
         edge_rbf_list = []
@@ -160,7 +158,7 @@ class Molecule2Graph:
         g = to_bidirected(g)
         g.edata["edge_attr"] = F.tensor(edge_rbf_list)
         g.ndata["attr"] = F.tensor(Z)
-        state_attr = [weight, number_of_bonds]
+        state_attr = [weight, nbonds]
         return g, state_attr
 
 
