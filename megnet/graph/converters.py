@@ -4,7 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
-from dgl import backend as F
+from dgl.backend import tensor
 from dgl.convert import graph as dgl_graph
 from dgl.transforms import to_bidirected
 from pymatgen.core import Element, Molecule, Structure
@@ -148,7 +148,7 @@ class Molecule2Graph:
         nbonds /= natoms
         adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
         adj = adj.tocoo()
-        u, v = F.tensor(adj.row), F.tensor(adj.col)
+        u, v = tensor(adj.row), tensor(adj.col)
         edge_rbf_list = []
         g = dgl_graph((u, v))
         for i in range(g.num_edges()):
@@ -156,8 +156,8 @@ class Molecule2Graph:
             edge_rbf_list += [rbf_dist]
         edge_rbf_list = np.array(edge_rbf_list).astype(np.float64)
         g = to_bidirected(g)
-        g.edata["edge_attr"] = F.tensor(edge_rbf_list)
-        g.ndata["attr"] = F.tensor(Z)
+        g.edata["edge_attr"] = tensor(edge_rbf_list)
+        g.ndata["attr"] = tensor(Z)
         state_attr = [weight, nbonds]
         return g, state_attr
 
@@ -189,7 +189,7 @@ class Crystal2Graph:
         self.num_centers = num_centers
         self.width = width
 
-    def process(self, cry: list[Structure], types: dict):
+    def process(self, cry: Structure, types: dict):
         """Process information from a pymatgen crystal.
         Parameters
         ----------
@@ -252,14 +252,14 @@ class Crystal2Graph:
             width=self.width,
         )
         edge_rbf_list = []
-        u, v = F.tensor(src_id), F.tensor(dst_id)
+        u, v = tensor(src_id), tensor(dst_id)
         g = dgl_graph((u, v))
         for i in range(g.num_edges()):
             rbf_dist = dist_converter(bond_dist[i]).detach().numpy()
             edge_rbf_list += [rbf_dist]
         edge_rbf_list = np.array(edge_rbf_list).astype(np.float64)
-        g.edata["edge_attr"] = F.tensor(edge_rbf_list)
-        g.ndata["attr"] = F.tensor(Z)
+        g.edata["edge_attr"] = tensor(edge_rbf_list)
+        g.ndata["attr"] = tensor(Z)
         state_attr = [0.0, 0.0]
 
         return g, state_attr
