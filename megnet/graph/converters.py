@@ -11,7 +11,7 @@ from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 
-def GetElementDictionary(train_structures):
+def get_element_list(train_structures) -> list:
     """Get the dictionary containing elements in the training set for atomic features
     Paramters
     ---------
@@ -19,26 +19,12 @@ def GetElementDictionary(train_structures):
 
     Returns
     -------
-    elem_dict: dictionary including elements covered in training set
+        elem_dict: List of elements covered in training set
     """
-    element_list = []
-    for structure in train_structures:
-        for atom_id in range(structure.num_sites):
-            element_list.append(structure.species[atom_id].symbol)
-    element_list = list(set(element_list))
-    atomic_number_list = []
-    for element in element_list:
-        atomic_number_list.append(Element(element).Z - 1)
-    atomic_number_list = np.argsort(atomic_number_list)
-    sorted_list = []
-    for sort_id in atomic_number_list:
-        sorted_list.append(element_list[sort_id])
-    elem_dict = {}
-    count = 0
-    for elem_id in sorted_list:
-        elem_dict[elem_id] = count
-        count = count + 1
-    return elem_dict
+    elements = set()
+    for s in train_structures:
+        elements.update(s.composition.get_el_amt_dict().keys())
+    return list(sorted(elements, key=lambda el: Element(el).Z))
 
 
 class GaussianExpansion(nn.Module):

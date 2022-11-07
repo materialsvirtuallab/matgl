@@ -2,13 +2,13 @@ import os
 import unittest
 
 import numpy as np
-from pymatgen.core import Molecule, Structure
+from pymatgen.core import Lattice, Molecule, Structure
 
 from megnet.graph.converters import (
     Crystal2Graph,
     GaussianExpansion,
-    GetElementDictionary,
     Molecule2Graph,
+    get_element_list,
 )
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -164,18 +164,15 @@ class Crystal2GraphTest(unittest.TestCase):
         # check the state features
         self.assertTrue(np.allclose(state, [0.0, 0.0]))
 
-    def test_GetElementDictionary(self):
-        structure_LiFePO4 = Structure.from_file(
-            os.path.join(module_dir, "cifs", "LiFePO4_mp-19017_computed.cif")
+    def test_get_element_list(self):
+        cscl = Structure.from_spacegroup(
+            "Pm-3m", Lattice.cubic(3), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]]
         )
-        structure_BaTiO3 = Structure.from_file(
-            os.path.join(module_dir, "cifs", "BaTiO3_mp-2998_computed.cif")
+        naf = Structure.from_spacegroup(
+            "Pm-3m", Lattice.cubic(3), ["Na", "F"], [[0, 0, 0], [0.5, 0.5, 0.5]]
         )
-        structure = [structure_LiFePO4, structure_BaTiO3]
-        elem_list = GetElementDictionary(structure)
-        self.assertDictEqual(
-            elem_list, {"Li": 0, "O": 1, "P": 2, "Ti": 3, "Fe": 4, "Ba": 5}
-        )
+        elem_list = get_element_list([cscl, naf])
+        self.assertListEqual(elem_list, ["F", "Na", "Cl", "Cs"])
 
 
 if __name__ == "__main__":
