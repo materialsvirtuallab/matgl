@@ -41,7 +41,8 @@ class Molecule2GraphTest(unittest.TestCase):
             [-0.513360, 0.889165, -0.363000],
         ]
         methane = Molecule(["C", "H", "H", "H", "H"], coords)
-        mol_graph = Molecule2Graph(cutoff=1.5)
+        element_types = list(methane.composition.get_el_amt_dict().keys())
+        mol_graph = Molecule2Graph(element_types=element_types, cutoff=1.5)
         # a, b, c, d = mol_graph.process(methane, types={"H": 0, "C": 1})
         graph, state = mol_graph.get_graph(methane)
         # check the number of nodes
@@ -66,7 +67,6 @@ class Molecule2GraphTest(unittest.TestCase):
         # check the shape of state features
         self.assertTrue(np.allclose(len(state), 2))
         # check the value of state features
-        print(state)
         self.assertTrue(np.allclose(state, [3.208492, 0.8]))
 
 

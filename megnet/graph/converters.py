@@ -107,6 +107,7 @@ class Molecule2Graph:
 
     def __init__(
         self,
+        element_types: list,
         cutoff: float = 5.0,
         initial: float = 0.0,
         final: float = 4.0,
@@ -116,12 +117,15 @@ class Molecule2Graph:
         """
         Parameters
         ----------
+        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
+            constructed with the same dimensionality of features.
         cutoff: Cutoff radius for graph representation
         initial: Initial location of center for Gaussian expansion
         final: Final location of center for Gaussian expansion
         num_centers: Number of centers for Gaussian expansion
         width: Width of Gaussian function
         """
+        self.element_types = element_types
         self.cutoff = cutoff
         self.initial = initial
         self.final = final
@@ -139,9 +143,9 @@ class Molecule2Graph:
         """
         n_atoms = len(mol)
         R = mol.cart_coords
-        atom_types = [el.symbol for el in mol.composition]
+        element_types = self.element_types
         Z = [
-            np.eye(len(atom_types))[atom_types.index(site.specie.symbol)]
+            np.eye(len(element_types))[element_types.index(site.specie.symbol)]
             for site in mol
         ]
         Z = np.array(Z)
