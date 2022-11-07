@@ -4,7 +4,6 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
-import dgl
 from dgl import backend as F
 from dgl.convert import graph as dgl_graph
 from dgl.transforms import to_bidirected
@@ -54,7 +53,7 @@ class GaussianExpansion(nn.Module):
         initial: float = 0.0,
         final: float = 4.0,
         num_centers: int = 20,
-        width: float = 0.5,
+        width: None | float = 0.5,
     ):
         """
         Parameters
@@ -129,62 +128,36 @@ class Molecule2Graph:
         self.num_centers = num_centers
         self.width = width
 
-    def process(self, mol: list[Molecule], types: dict):
-        """Process information from a pymatgen molecule.
-        Parameters
-        ----------
-        mol: pymatgen molecule object
-        types: dictionary contains all elements appearing in the dataset
-
-        Returns
-        -------
-        N: number of atoms in a molecule (np.array)
-        R: cartesian coordinate (np.array)
-        Z: atomic number (np.array)
+    def get_graph(self, mol: Molecule):
         """
-        R = []
-        Z = []
-        weights = 0.0
-        R.append(mol.cart_coords)
-        N = mol.num_sites
-        for atom_id in range(mol.num_sites):
-            Z.append(np.eye(len(types))[types[mol.species[atom_id].symbol]])
-            weights = weights + mol.species[atom_id].atomic_mass
-        mol_weights = weights / mol.num_sites
-        weights = 0.0
-        cart_array = np.array(R)
-        R = cart_array.reshape(-1, 3)
+        Get a DGL graph from an input molecule.
+
+        :param mol: pymatgen molecule object
+        :return:
+            g: dgl graph
+            state_attr: state features
+        """
+        n_atoms = len(mol)
+        R = mol.cart_coords
+        atom_types = [el.symbol for el in mol.composition]
+        Z = [
+            np.eye(len(atom_types))[atom_types.index(site.specie.symbol)]
+            for site in mol
+        ]
         Z = np.array(Z)
-        return N, R, Z, mol_weights
-
-    def get_graph(self, N, R, Z, mol_weights):
-        """Convert a molecule into a DGL graph
-        Parameters
-        ----------
-        N: number of atoms in a molecule (int)
-        R: cartesian coordinate in a molecule (np.array)
-        Z: atomic number in a molecule (np.array)
-        mol_weights: molcular weight per atom (np.array)
-
-        Returns
-        -------
-        g: dgl graph
-        state_attr: state features
-        """
-        n_atoms = N
+        weight = mol.composition.weight / len(mol)
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
-        number_of_bonds = 0
         dist_converter = GaussianExpansion(
             initial=self.initial,
             final=self.final,
             num_centers=self.num_centers,
             width=self.width,
         )
-        for iatom in range(n_atoms):
-            for jatom in range(iatom + 1, n_atoms):
-                if dist[iatom][jatom] <= self.cutoff:
-                    number_of_bonds = number_of_bonds + 1
-        number_of_bonds = number_of_bonds / n_atoms
+        dists = mol.distance_matrix.flatten()
+        number_of_bonds = (
+            np.count_nonzero(np.logical_and(dists > 0, dists <= self.cutoff)) / 2
+        )
+        number_of_bonds /= n_atoms
         adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(n_atoms, dtype=np.bool_)
         adj = adj.tocoo()
         u, v = F.tensor(adj.row), F.tensor(adj.col)
@@ -197,7 +170,7 @@ class Molecule2Graph:
         g = to_bidirected(g)
         g.edata["edge_attr"] = F.tensor(edge_rbf_list)
         g.ndata["attr"] = F.tensor(Z)
-        state_attr = [mol_weights, number_of_bonds]
+        state_attr = [weight, number_of_bonds]
         return g, state_attr
 
 
@@ -257,9 +230,7 @@ class Crystal2Graph:
             lattice=lattice_matrix,
             tol=numerical_tol,
         )
-        exclude_self = (src_id != dst_id) | (
-            bond_dist > numerical_tol
-        )
+        exclude_self = (src_id != dst_id) | (bond_dist > numerical_tol)
         for atom_id in range(cry.num_sites):
             Z.append(np.eye(len(types))[types[cry.species[atom_id].symbol]])
         Z = np.array(Z)
@@ -286,7 +257,6 @@ class Crystal2Graph:
         g: dgl graph
         state_attr: state features
         """
-        n_atoms = N
         dist_converter = GaussianExpansion(
             initial=self.initial,
             final=self.final,

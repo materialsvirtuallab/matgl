@@ -2,13 +2,13 @@ import os
 import unittest
 
 import numpy as np
-import torch
 from pymatgen.core import Molecule, Structure
+
 from megnet.graph.converters import (
-    GetElementDictionary,
-    GaussianExpansion,
-    Molecule2Graph,
     Crystal2Graph,
+    GaussianExpansion,
+    GetElementDictionary,
+    Molecule2Graph,
 )
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -42,8 +42,8 @@ class Molecule2GraphTest(unittest.TestCase):
         ]
         methane = Molecule(["C", "H", "H", "H", "H"], coords)
         mol_graph = Molecule2Graph(cutoff=1.5)
-        a, b, c, d = mol_graph.process(methane, types={"H": 0, "C": 1})
-        graph, state = mol_graph.get_graph(a, b, c, d)
+        # a, b, c, d = mol_graph.process(methane, types={"H": 0, "C": 1})
+        graph, state = mol_graph.get_graph(methane)
         # check the number of nodes
         self.assertTrue(np.allclose(graph.num_nodes(), 5))
         # check the number of edges
@@ -53,9 +53,9 @@ class Molecule2GraphTest(unittest.TestCase):
         # check the dst_ids
         self.assertTrue(np.allclose(graph.edges()[1].numpy(), [1, 2, 3, 4, 0, 0, 0, 0]))
         # check the atomic features of atom C
-        self.assertTrue(np.allclose(graph.ndata["attr"][0], [0, 1]))
+        self.assertTrue(np.allclose(graph.ndata["attr"][0], [1, 0]))
         # check the atomic features of atom H
-        self.assertTrue(np.allclose(graph.ndata["attr"][1], [1, 0]))
+        self.assertTrue(np.allclose(graph.ndata["attr"][1], [0, 1]))
         # check the edge features of atom 0 and atom 1
         dist_converter = GaussianExpansion()
         self.assertTrue(
@@ -66,6 +66,7 @@ class Molecule2GraphTest(unittest.TestCase):
         # check the shape of state features
         self.assertTrue(np.allclose(len(state), 2))
         # check the value of state features
+        print(state)
         self.assertTrue(np.allclose(state, [3.208492, 0.8]))
 
 
