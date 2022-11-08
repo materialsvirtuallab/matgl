@@ -1,3 +1,6 @@
+"""
+This module implements tools to convert pymatgen Molecule and Structure objects to DGL graphs.
+"""
 from __future__ import annotations
 
 import numpy as np
@@ -13,13 +16,12 @@ from pymatgen.optimization.neighbors import find_points_in_spheres
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> list[str]:
     """Get the dictionary containing elements in the training set for atomic features
-    Paramters
-    ---------
-    train_structures: pymatgen Molecule/Structure object
 
-    Returns
-    -------
-        elem_dict: List of elements covered in training set
+    Args:
+        train_structures: pymatgen Molecule/Structure object
+
+    Returns:
+        List of elements covered in training set
     """
     elements = set()
     for s in train_structures:
@@ -93,7 +95,7 @@ class Molecule2Graph:
 
     def __init__(
         self,
-        element_types: list,
+        element_types: list[str],
         cutoff: float = 5.0,
         initial: float = 0.0,
         final: float = 4.0,
