@@ -10,6 +10,8 @@ from dgl.transforms import to_bidirected
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
+from ..types import DGLGraph
+
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> list[str]:
     """Get the dictionary containing elements in the training set for atomic features
@@ -117,14 +119,12 @@ class Pmg2Graph:
         self.num_centers = num_centers
         self.width = width
 
-    def get_graph_from_molecule(self, mol: Molecule):
+    def get_graph_from_molecule(self, mol: Molecule) -> tuple[DGLGraph, list]:
         """
         Get a DGL graph from an input molecule.
 
         :param mol: pymatgen molecule object
-        :return:
-            g: dgl graph
-            state_attr: state features
+        :return: (dgl graph, state features)
         """
         natoms = len(mol)
         R = mol.cart_coords
@@ -160,7 +160,7 @@ class Pmg2Graph:
         state_attr = [weight, nbonds]
         return g, state_attr
 
-    def get_graph_from_structure(self, structure: Structure):
+    def get_graph_from_structure(self, structure: Structure) -> tuple[DGLGraph, list]:
         """
         Get a DGL graph from an input Structure.
 
