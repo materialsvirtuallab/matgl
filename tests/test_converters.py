@@ -5,12 +5,7 @@ import numpy as np
 from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
-from megnet.graph.converters import (
-    Crystal2Graph,
-    GaussianExpansion,
-    Molecule2Graph,
-    get_element_list,
-)
+from megnet.graph.converters import GaussianExpansion, Pmg2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -32,8 +27,8 @@ class GaussianExpansionTest(unittest.TestCase):
         )
 
 
-class Molecule2GraphTest(unittest.TestCase):
-    def test_get_graph(self):
+class Pmg2GraphTest(PymatgenTest):
+    def test_get_graph_from_molecule(self):
         coords = [
             [0.000000, 0.000000, 0.000000],
             [0.000000, 0.000000, 1.089000],
@@ -43,8 +38,8 @@ class Molecule2GraphTest(unittest.TestCase):
         ]
         methane = Molecule(["C", "H", "H", "H", "H"], coords)
         element_types = get_element_list([methane])
-        mol_graph = Molecule2Graph(element_types=element_types, cutoff=1.5)
-        graph, state = mol_graph.get_graph(methane)
+        p2g = Pmg2Graph(element_types=element_types, cutoff=1.5)
+        graph, state = p2g.get_graph_from_molecule(methane)
         # check the number of nodes
         self.assertTrue(np.allclose(graph.num_nodes(), 5))
         # check the number of edges
@@ -69,13 +64,11 @@ class Molecule2GraphTest(unittest.TestCase):
         # check the value of state features
         self.assertTrue(np.allclose(state, [3.208492, 0.8]))
 
-
-class Crystal2GraphTest(PymatgenTest):
-    def test_get_graph(self):
+    def test_get_graph_from_structure(self):
         structure_LiFePO4 = self.get_structure("LiFePO4")
         element_types = get_element_list([structure_LiFePO4])
-        cry_graph = Crystal2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = cry_graph.get_graph(structure_LiFePO4)
+        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = p2g.get_graph_from_structure(structure_LiFePO4)
         # check the number of nodes
         self.assertTrue(np.allclose(graph.num_nodes(), structure_LiFePO4.num_sites))
         # check the atomic feature of atom 0
@@ -118,8 +111,8 @@ class Crystal2GraphTest(PymatgenTest):
             "perovskite", ["Ba", "Ti", "O"], a=4.04
         )
         element_types = get_element_list([structure_BaTiO3])
-        cry_graph = Crystal2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = cry_graph.get_graph(structure_BaTiO3)
+        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = p2g.get_graph_from_structure(structure_BaTiO3)
         # check the number of nodes
         self.assertTrue(np.allclose(graph.num_nodes(), structure_BaTiO3.num_sites))
         # check the atomic features of atom 0

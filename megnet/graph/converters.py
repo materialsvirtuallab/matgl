@@ -85,9 +85,9 @@ class GaussianExpansion(nn.Module):
         return torch.exp(-self.width * (diff**2))
 
 
-class Molecule2Graph:
+class Pmg2Graph:
     """
-    Construct a DGL molecular graph with fix radius cutoff
+    Construct a DGL graph from Pymatgen Molecules or Structures.
     """
 
     def __init__(
@@ -117,7 +117,7 @@ class Molecule2Graph:
         self.num_centers = num_centers
         self.width = width
 
-    def get_graph(self, mol: Molecule):
+    def get_graph_from_molecule(self, mol: Molecule):
         """
         Get a DGL graph from an input molecule.
 
@@ -160,43 +160,11 @@ class Molecule2Graph:
         state_attr = [weight, nbonds]
         return g, state_attr
 
-
-class Crystal2Graph:
-    """
-    Construct a DGL crystal graph with fix radius cutoff
-    """
-
-    def __init__(
-        self,
-        element_types: list[str],
-        cutoff: float = 5.0,
-        initial: float = 0.0,
-        final: float = 4.0,
-        num_centers: int = 20,
-        width: float = 0.5,
-    ):
+    def get_graph_from_structure(self, structure: Structure):
         """
-        Parameters:
-        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
-            constructed with the same dimensionality of features.
-        cutoff: Cutoff radius for graph representation
-        initial: Initial location of center for Gaussian expansion
-        final: Final location of center for Gaussian expansion
-        num_centers: Number of centers for Gaussian expansion
-        width: Width of Gaussian function
-        """
-        self.element_types = element_types
-        self.cutoff = cutoff
-        self.initial = initial
-        self.final = final
-        self.num_centers = num_centers
-        self.width = width
+        Get a DGL graph from an input Structure.
 
-    def get_graph(self, cry: list[Structure]):
-        """
-        Get a DGL graph from an input crystal.
-
-        :param cry: pymatgen structure object
+        :param structure: pymatgen structure object
         :return:
             g: dgl graph
             state_attr: state features
@@ -204,15 +172,16 @@ class Crystal2Graph:
 
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
-        N = cry.num_sites
         element_types = self.element_types
         Z = [
             np.eye(len(element_types))[element_types.index(site.specie.symbol)]
-            for site in cry
+            for site in structure
         ]
         Z = np.array(Z)
-        lattice_matrix = np.ascontiguousarray(np.array(cry.lattice.matrix), dtype=float)
-        cart_coords = np.ascontiguousarray(np.array(cry.cart_coords), dtype=float)
+        lattice_matrix = np.ascontiguousarray(
+            np.array(structure.lattice.matrix), dtype=float
+        )
+        cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
         src_id, dst_id, images, bond_dist = find_points_in_spheres(
             cart_coords,
             cart_coords,
