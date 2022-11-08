@@ -3,6 +3,7 @@ import unittest
 
 import numpy as np
 from pymatgen.core import Lattice, Molecule, Structure
+from pymatgen.util.testing import PymatgenTest
 
 from megnet.graph.converters import (
     Crystal2Graph,
@@ -70,12 +71,10 @@ class Molecule2GraphTest(unittest.TestCase):
         self.assertTrue(np.allclose(state, [3.208492, 0.8]))
 
 
-class Crystal2GraphTest(unittest.TestCase):
+class Crystal2GraphTest(PymatgenTest):
     def test_process_convert(self):
-        module_dir = os.path.dirname(os.path.abspath(__file__))
-        structure_LiFePO4 = Structure.from_file(
-            os.path.join(module_dir, "cifs", "LiFePO4_mp-19017_computed.cif")
-        )
+        os.path.dirname(os.path.abspath(__file__))
+        structure_LiFePO4 = self.get_structure("LiFePO4")
         cry_graph = Crystal2Graph(cutoff=4.0)
         a, b, c, d, e = cry_graph.process(
             structure_LiFePO4, {"Li": 0, "O": 1, "P": 2, "Fe": 3}
@@ -94,35 +93,34 @@ class Crystal2GraphTest(unittest.TestCase):
             np.allclose(
                 graph.edata["edge_attr"][0].numpy(),
                 [
-                    3.73113056e-04,
-                    8.42360663e-04,
-                    1.81931420e-03,
-                    3.75896739e-03,
-                    7.42986286e-03,
-                    1.40489815e-02,
-                    2.54132431e-02,
-                    4.39771265e-02,
-                    7.28023350e-02,
-                    1.15296274e-01,
-                    1.74677297e-01,
-                    2.53168255e-01,
-                    3.51021290e-01,
-                    4.65596139e-01,
-                    5.90794742e-01,
-                    7.17158973e-01,
-                    8.32809508e-01,
-                    9.25182521e-01,
-                    9.83242571e-01,
-                    9.99644101e-01,
+                    0.00403916509822011,
+                    0.007947498932480812,
+                    0.014959634281694889,
+                    0.026937847957015038,
+                    0.046404093503952026,
+                    0.07647180557250977,
+                    0.1205584779381752,
+                    0.18182168900966644,
+                    0.26232829689979553,
+                    0.3620729148387909,
+                    0.4780776798725128,
+                    0.6038823127746582,
+                    0.7297223806381226,
+                    0.8435572981834412,
+                    0.9328739047050476,
+                    0.9869219660758972,
+                    0.9988359212875366,
+                    0.9670679569244385,
+                    0.895717978477478,
+                    0.793664813041687,
                 ],
             )
         )
         # check the state features
         self.assertTrue(np.allclose(state, [0.0, 0.0]))
-        structure_BaTiO3 = Structure.from_file(
-            os.path.join(module_dir, "cifs", "BaTiO3_mp-2998_computed.cif")
+        structure_BaTiO3 = Structure.from_prototype(
+            "perovskite", ["Ba", "Ti", "O"], a=4.04
         )
-        cry_graph2 = Crystal2Graph(cutoff=5.0)
         a, b, c, d, e = cry_graph.process(structure_BaTiO3, {"O": 0, "Ti": 1, "Ba": 2})
         graph, state = cry_graph.get_graph(a, b, c, d, e)
         # check the number of nodes
@@ -138,26 +136,26 @@ class Crystal2GraphTest(unittest.TestCase):
             np.allclose(
                 graph.edata["edge_attr"][0].numpy(),
                 [
-                    0.01702178,
-                    0.03036285,
-                    0.05181216,
-                    0.08458085,
-                    0.13208824,
-                    0.19733654,
-                    0.28203458,
-                    0.38561046,
-                    0.50436711,
-                    0.63109708,
-                    0.75543493,
-                    0.86506635,
-                    0.94766164,
-                    0.99313593,
-                    0.99567026,
-                    0.95493513,
-                    0.87616062,
-                    0.76903325,
-                    0.64574027,
-                    0.51870716,
+                    0.002197137800976634,
+                    0.004488740116357803,
+                    0.008772904984652996,
+                    0.016402624547481537,
+                    0.029338326305150986,
+                    0.05020054057240486,
+                    0.08217374235391617,
+                    0.12867948412895203,
+                    0.1927689015865326,
+                    0.27625882625579834,
+                    0.378744900226593,
+                    0.4967397451400757,
+                    0.6232503056526184,
+                    0.7480794191360474,
+                    0.858982503414154,
+                    0.9435663819313049,
+                    0.9915441274642944,
+                    0.996788740158081,
+                    0.9586182832717896,
+                    0.881941556930542,
                 ],
             )
         )
