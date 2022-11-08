@@ -1,6 +1,3 @@
-"""
-This module implements tools to convert pymatgen Molecule and Structure objects to DGL graphs.
-"""
 from __future__ import annotations
 
 import numpy as np
@@ -166,11 +163,12 @@ class Molecule2Graph:
 
 class Crystal2Graph:
     """
-    Convert a crystal structure into a DGL graph
+    Construct a DGL crystal graph with fix radius cutoff
     """
 
     def __init__(
         self,
+        element_types: list[str],
         cutoff: float = 5.0,
         initial: float = 0.0,
         final: float = 4.0,
@@ -179,37 +177,40 @@ class Crystal2Graph:
     ):
         """
         Parameters:
+        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
+            constructed with the same dimensionality of features.
         cutoff: Cutoff radius for graph representation
         initial: Initial location of center for Gaussian expansion
         final: Final location of center for Gaussian expansion
         num_centers: Number of centers for Gaussian expansion
         width: Width of Gaussian function
         """
+        self.element_types = element_types
         self.cutoff = cutoff
         self.initial = initial
         self.final = final
         self.num_centers = num_centers
         self.width = width
 
-    def process(self, cry: Structure, types: dict):
-        """Process information from a pymatgen crystal.
-        Parameters
-        ----------
-        cry: pymatgen structure object
-        types: dictionary contains all elements appearing in the dataset
-
-        Returns
-        -------
-        N: number of atoms in a crystal (int)
-        src_id: central atom id (np.array)
-        dst_id: neighbor atom id (np.array)
-        bond_dist: bond distance between central and neighbor atoms (np.array)
-        Z: atomic number in a crystal (np.array)
+    def get_graph(self, cry: list[Structure]):
         """
+        Get a DGL graph from an input crystal.
+
+        :param cry: pymatgen structure object
+        :return:
+            g: dgl graph
+            state_attr: state features
+        """
+
         numerical_tol = 1.0e-8
-        Z = []
         pbc = np.array([1, 1, 1], dtype=int)
         N = cry.num_sites
+        element_types = self.element_types
+        Z = [
+            np.eye(len(element_types))[element_types.index(site.specie.symbol)]
+            for site in cry
+        ]
+        Z = np.array(Z)
         lattice_matrix = np.ascontiguousarray(np.array(cry.lattice.matrix), dtype=float)
         cart_coords = np.ascontiguousarray(np.array(cry.cart_coords), dtype=float)
         src_id, dst_id, images, bond_dist = find_points_in_spheres(
@@ -221,32 +222,12 @@ class Crystal2Graph:
             tol=numerical_tol,
         )
         exclude_self = (src_id != dst_id) | (bond_dist > numerical_tol)
-        for atom_id in range(cry.num_sites):
-            Z.append(np.eye(len(types))[types[cry.species[atom_id].symbol]])
-        Z = np.array(Z)
-        return (
-            N,
+        src_id, dst_id, bond_dist = (
             src_id[exclude_self],
             dst_id[exclude_self],
             bond_dist[exclude_self],
-            Z,
         )
 
-    def get_graph(self, N, src_id, dst_id, bond_dist, Z):
-        """Convert a crystal into a DGL graph
-        Parameters
-        ----------
-        N: number of atoms in a crystal (int)
-        src_id: central atom id (np.array)
-        dst_id: neighbor atom id (np.array)
-        bond_dist: bond distance between central and neighbor atoms (np.array)
-        Z: atomic number in a crystal (np.array)
-
-        Returns
-        -------
-        g: dgl graph
-        state_attr: state features
-        """
         dist_converter = GaussianExpansion(
             initial=self.initial,
             final=self.final,

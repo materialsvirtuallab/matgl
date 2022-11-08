@@ -33,7 +33,7 @@ class GaussianExpansionTest(unittest.TestCase):
 
 
 class Molecule2GraphTest(unittest.TestCase):
-    def test_process_convert(self):
+    def test_get_graph(self):
         coords = [
             [0.000000, 0.000000, 0.000000],
             [0.000000, 0.000000, 1.089000],
@@ -42,9 +42,8 @@ class Molecule2GraphTest(unittest.TestCase):
             [-0.513360, 0.889165, -0.363000],
         ]
         methane = Molecule(["C", "H", "H", "H", "H"], coords)
-        element_types = list(methane.composition.get_el_amt_dict().keys())
+        element_types = get_element_list([methane])
         mol_graph = Molecule2Graph(element_types=element_types, cutoff=1.5)
-        # a, b, c, d = mol_graph.process(methane, types={"H": 0, "C": 1})
         graph, state = mol_graph.get_graph(methane)
         # check the number of nodes
         self.assertTrue(np.allclose(graph.num_nodes(), 5))
@@ -55,9 +54,9 @@ class Molecule2GraphTest(unittest.TestCase):
         # check the dst_ids
         self.assertTrue(np.allclose(graph.edges()[1].numpy(), [1, 2, 3, 4, 0, 0, 0, 0]))
         # check the atomic features of atom C
-        self.assertTrue(np.allclose(graph.ndata["attr"][0], [1, 0]))
+        self.assertTrue(np.allclose(graph.ndata["attr"][0], [0, 1]))
         # check the atomic features of atom H
-        self.assertTrue(np.allclose(graph.ndata["attr"][1], [0, 1]))
+        self.assertTrue(np.allclose(graph.ndata["attr"][1], [1, 0]))
         # check the edge features of atom 0 and atom 1
         dist_converter = GaussianExpansion()
         self.assertTrue(
@@ -72,14 +71,11 @@ class Molecule2GraphTest(unittest.TestCase):
 
 
 class Crystal2GraphTest(PymatgenTest):
-    def test_process_convert(self):
-        os.path.dirname(os.path.abspath(__file__))
+    def test_get_graph(self):
         structure_LiFePO4 = self.get_structure("LiFePO4")
-        cry_graph = Crystal2Graph(cutoff=4.0)
-        a, b, c, d, e = cry_graph.process(
-            structure_LiFePO4, {"Li": 0, "O": 1, "P": 2, "Fe": 3}
-        )
-        graph, state = cry_graph.get_graph(a, b, c, d, e)
+        element_types = get_element_list([structure_LiFePO4])
+        cry_graph = Crystal2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = cry_graph.get_graph(structure_LiFePO4)
         # check the number of nodes
         self.assertTrue(np.allclose(graph.num_nodes(), structure_LiFePO4.num_sites))
         # check the atomic feature of atom 0
@@ -88,7 +84,7 @@ class Crystal2GraphTest(PymatgenTest):
         self.assertTrue(np.allclose(graph.ndata["attr"][4].numpy(), [0, 0, 0, 1]))
         # check the number of bonds
         self.assertTrue(np.allclose(graph.num_edges(), 704))
-        # check the edge features of bond between atom 0 and 1
+        # check the edge features of bond between atom 0 and 6
         self.assertTrue(
             np.allclose(
                 graph.edata["edge_attr"][0].numpy(),
@@ -121,8 +117,9 @@ class Crystal2GraphTest(PymatgenTest):
         structure_BaTiO3 = Structure.from_prototype(
             "perovskite", ["Ba", "Ti", "O"], a=4.04
         )
-        a, b, c, d, e = cry_graph.process(structure_BaTiO3, {"O": 0, "Ti": 1, "Ba": 2})
-        graph, state = cry_graph.get_graph(a, b, c, d, e)
+        element_types = get_element_list([structure_BaTiO3])
+        cry_graph = Crystal2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = cry_graph.get_graph(structure_BaTiO3)
         # check the number of nodes
         self.assertTrue(np.allclose(graph.num_nodes(), structure_BaTiO3.num_sites))
         # check the atomic features of atom 0
@@ -131,7 +128,7 @@ class Crystal2GraphTest(PymatgenTest):
         self.assertTrue(np.allclose(graph.ndata["attr"][1], [0, 1, 0]))
         # check the number of edges
         self.assertTrue(np.allclose(graph.num_edges(), 76))
-        # check the edge features of bond between atom 0 and 3
+        # check the edge features of bond between atom 0 and 1
         self.assertTrue(
             np.allclose(
                 graph.edata["edge_attr"][0].numpy(),
