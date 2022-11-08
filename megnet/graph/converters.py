@@ -11,7 +11,7 @@ from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 
-def get_element_list(train_structures) -> list:
+def get_element_list(train_structures: list[Structure | Molecule]) -> list[str]:
     """Get the dictionary containing elements in the training set for atomic features
     Paramters
     ---------
