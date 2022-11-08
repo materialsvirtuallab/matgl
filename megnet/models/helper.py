@@ -1,6 +1,8 @@
 """
 Implementations of multi-layer perceptron (MLP) and other helper classes.
 """
+from __future__ import annotations
+
 import torch
 from dgl import broadcast_edges, softmax_edges, sum_edges
 from torch.nn import LSTM, Linear, Module, ModuleList
@@ -16,7 +18,7 @@ class MLP(Module):
     def __init__(
         self,
         dims: List[int],
-        activation: Callable[[Tensor], Tensor] = None,
+        activation: Callable[[Tensor], Tensor] | None = None,
         activate_last: bool = False,
         bias_last: bool = True,
     ) -> None:
