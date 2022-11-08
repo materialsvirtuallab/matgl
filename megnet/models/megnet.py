@@ -11,6 +11,10 @@ from .helper import MLP, EdgeSet2Set
 
 
 class MEGNet(Module):
+    """
+    DGL implementation of MEGNet.
+    """
+
     def __init__(
         self,
         in_dim: int,
@@ -26,6 +30,21 @@ class MEGNet(Module):
         attr_embed: Optional[Module] = None,
         dropout: Optional[float] = None,
     ) -> None:
+        """
+        TODO: Add docs.
+        :param in_dim:
+        :param num_blocks:
+        :param hiddens:
+        :param conv_hiddens:
+        :param s2s_num_layers:
+        :param s2s_num_iters:
+        :param output_hiddens:
+        :param is_classification:
+        :param node_embed:
+        :param edge_embed:
+        :param attr_embed:
+        :param dropout:
+        """
         super().__init__()
 
         self.edge_embed = edge_embed if edge_embed else Identity()
@@ -73,6 +92,14 @@ class MEGNet(Module):
         node_feat: Tensor,
         graph_attr: Tensor,
     ) -> None:
+        """
+        TODO: Add docs.
+        :param graph:
+        :param edge_feat:
+        :param node_feat:
+        :param graph_attr:
+        :return:
+        """
 
         edge_feat = self.edge_encoder(self.edge_embed(edge_feat))
         node_feat = self.node_encoder(self.node_embed(node_feat))

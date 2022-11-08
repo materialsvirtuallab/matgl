@@ -1,11 +1,18 @@
+"""
+Implementations of multi-layer perceptron (MLP) and other helper classes.
+"""
 import torch
-from torch.nn import Module, Linear, ModuleList, LSTM
 from dgl import broadcast_edges, softmax_edges, sum_edges
+from torch.nn import LSTM, Linear, Module, ModuleList
 
-from ..types import List, Callable, Tensor
+from ..types import Callable, List, Tensor
 
 
 class MLP(Module):
+    """
+    An implementation of a multi-layer perception.
+    """
+
     def __init__(
         self,
         dims: List[int],
@@ -13,6 +20,13 @@ class MLP(Module):
         activate_last: bool = False,
         bias_last: bool = True,
     ) -> None:
+        """
+        TODO: Add docs.
+        :param dims:
+        :param activation:
+        :param activate_last:
+        :param bias_last:
+        """
         super().__init__()
         self._depth = len(dims) - 1
         self.layers = ModuleList()
@@ -42,26 +56,38 @@ class MLP(Module):
 
     @property
     def last_linear(self) -> Linear:
+        """
+        TODO: Add docs.
+        :return:
+        """
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
                 return layer
 
     @property
     def depth(self) -> int:
+        """Returns depth of MLP."""
         return self._depth
 
     @property
     def in_features(self) -> int:
+        """Return input features of MLP"""
         return self.layers[0].in_features
 
     @property
     def out_features(self) -> int:
+        """Returns output features of MLP."""
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
                 return layer.out_features
         raise RuntimeError
 
     def forward(self, inputs: Tensor) -> Tensor:
+        """
+        TODO: Add docs.
+        :param inputs:
+        :return:
+        """
         x = inputs
 
         for layer in self.layers:
@@ -71,7 +97,17 @@ class MLP(Module):
 
 
 class EdgeSet2Set(Module):
+    """
+    Implementation of Set2Set.
+    """
+
     def __init__(self, input_dim, n_iters, n_layers):
+        """
+        TODO: Add docs.
+        :param input_dim:
+        :param n_iters:
+        :param n_layers:
+        """
         super().__init__()
         self.input_dim = input_dim
         self.output_dim = 2 * input_dim
@@ -85,6 +121,12 @@ class EdgeSet2Set(Module):
         self.lstm.reset_parameters()
 
     def forward(self, graph, feat):
+        """
+        TODO: Add docs.
+        :param graph:
+        :param feat:
+        :return:
+        """
         with graph.local_scope():
             batch_size = graph.batch_size
 

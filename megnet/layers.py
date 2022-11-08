@@ -12,12 +12,22 @@ from .types import DGLGraph, EdgeBatch, List, Optional, Tensor, Tuple
 
 
 class MEGNetGraphConv(Module):
+    """
+    A MEGNet graph convolution layer in DGL.
+    """
+
     def __init__(
         self,
         edge_func: Module,
         node_func: Module,
         attr_func: Module,
     ) -> None:
+        """
+        TODO: Add docs.
+        :param edge_func:
+        :param node_func:
+        :param attr_func:
+        """
 
         super().__init__()
         self.edge_func = edge_func
@@ -28,6 +38,13 @@ class MEGNetGraphConv(Module):
     def from_dims(
         edge_dims: List[int], node_dims: List[int], attr_dims: List[int]
     ) -> "MEGNetGraphConv":
+        """
+        TODO: Add docs.
+        :param edge_dims:
+        :param node_dims:
+        :param attr_dims:
+        :return:
+        """
         # TODO(marcel): Softplus doesnt exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
         edge_update = MLP(edge_dims, Softplus(), activate_last=True)
@@ -45,11 +62,21 @@ class MEGNetGraphConv(Module):
         return mij
 
     def edge_update_(self, graph: DGLGraph) -> Tensor:
+        """
+        TODO: Add docs.
+        :param graph:
+        :return:
+        """
         graph.apply_edges(self._edge_udf)
         graph.edata["e"] = graph.edata.pop("mij")
         return graph.edata["e"]
 
     def node_update_(self, graph: DGLGraph) -> Tensor:
+        """
+        TODO: Add docs.
+        :param graph:
+        :return:
+        """
         graph.update_all(fn.copy_e("e", "e"), fn.mean("e", "ve"))
         ve = graph.ndata.pop("ve")
         v = graph.ndata.pop("v")
@@ -59,6 +86,12 @@ class MEGNetGraphConv(Module):
         return graph.ndata["v"]
 
     def attr_update_(self, graph: DGLGraph, attrs: Tensor) -> Tensor:
+        """
+        TODO: Add docs.
+        :param graph:
+        :param attrs:
+        :return:
+        """
         u = attrs
         ue = dgl.readout_edges(graph, feat="e", op="mean")
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
@@ -73,6 +106,14 @@ class MEGNetGraphConv(Module):
         node_feat: Tensor,
         graph_attr: Tensor,
     ) -> Tuple[Tensor, Tensor, Tensor]:
+        """
+        TODO: Add docs.
+        :param graph:
+        :param edge_feat:
+        :param node_feat:
+        :param graph_attr:
+        :return:
+        """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
@@ -86,6 +127,10 @@ class MEGNetGraphConv(Module):
 
 
 class MEGNetBlock(Module):
+    """
+    A MEGNet block comprising a sequence of update operations.
+    """
+
     def __init__(
         self,
         dims: List[int],
@@ -93,6 +138,13 @@ class MEGNetBlock(Module):
         dropout: Optional[float] = None,
         skip: bool = True,
     ) -> None:
+        """
+        TODO: Add docs.
+        :param dims:
+        :param conv_hiddens:
+        :param dropout:
+        :param skip:
+        """
         super().__init__()
 
         self.has_dense = len(dims) > 1
@@ -130,6 +182,14 @@ class MEGNetBlock(Module):
         node_feat: Tensor,
         graph_attr: Tensor,
     ) -> Tuple[Tensor, Tensor, Tensor]:
+        """
+        TODO: Add docs.
+        :param graph:
+        :param edge_feat:
+        :param node_feat:
+        :param graph_attr:
+        :return:
+        """
 
         inputs = (edge_feat, node_feat, graph_attr)
         edge_feat = self.edge_func(edge_feat)
