@@ -1,12 +1,15 @@
+"""
+Tools to convert materials representations from Pymatgen and other codes to DGLGraphs.
+"""
 from __future__ import annotations
 
 import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
+from dgl import to_bidirected
 from dgl.backend import tensor
 from dgl.convert import graph as dgl_graph
-from dgl.transforms import to_bidirected
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
