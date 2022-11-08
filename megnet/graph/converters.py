@@ -3,13 +3,12 @@ Tools to convert materials representations from Pymatgen and other codes to DGLG
 """
 from __future__ import annotations
 
+import dgl
 import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
-from dgl import to_bidirected
 from dgl.backend import tensor
-from dgl.convert import graph as dgl_graph
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
@@ -152,12 +151,12 @@ class Pmg2Graph:
         adj = adj.tocoo()
         u, v = tensor(adj.row), tensor(adj.col)
         edge_rbf_list = []
-        g = dgl_graph((u, v))
+        g = dgl.graph((u, v))
         for i in range(g.num_edges()):
             rbf_dist = dist_converter(dist[u[i]][v[i]]).detach().numpy()
             edge_rbf_list += [rbf_dist]
         edge_rbf_list = np.array(edge_rbf_list).astype(np.float64)
-        g = to_bidirected(g)
+        g = dgl.to_bidirected(g)
         g.edata["edge_attr"] = tensor(edge_rbf_list)
         g.ndata["attr"] = tensor(Z)
         state_attr = [weight, nbonds]
@@ -208,7 +207,7 @@ class Pmg2Graph:
         )
         edge_rbf_list = []
         u, v = tensor(src_id), tensor(dst_id)
-        g = dgl_graph((u, v))
+        g = dgl.graph((u, v))
         for i in range(g.num_edges()):
             rbf_dist = dist_converter(bond_dist[i]).detach().numpy()
             edge_rbf_list += [rbf_dist]
