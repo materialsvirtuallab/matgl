@@ -24,10 +24,10 @@ class MLP(Module):
     ) -> None:
         """
         TODO: Add docs.
-        :param dims:
-        :param activation:
-        :param activate_last:
-        :param bias_last:
+        :param dims: Dimensions of each layer of MLP.
+        :param activation: Activation function.
+        :param activate_last: Whether to apply activation to last layer.
+        :param bias_last: Whether to apply bias to last layer.
         """
         super().__init__()
         self._depth = len(dims) - 1
@@ -59,8 +59,7 @@ class MLP(Module):
     @property
     def last_linear(self) -> Linear:
         """
-        TODO: Add docs.
-        :return:
+        :return: The last linear layer.
         """
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
@@ -86,9 +85,10 @@ class MLP(Module):
 
     def forward(self, inputs: Tensor) -> Tensor:
         """
-        TODO: Add docs.
-        :param inputs:
-        :return:
+        Applies all layers in turn.
+
+        :param inputs: Input tensor
+        :return: Output tensor
         """
         x = inputs
 
@@ -105,10 +105,9 @@ class EdgeSet2Set(Module):
 
     def __init__(self, input_dim, n_iters, n_layers):
         """
-        TODO: Add docs.
-        :param input_dim:
-        :param n_iters:
-        :param n_layers:
+        :param input_dim: The size of each input sample.
+        :param n_iters: The number of iterations.
+        :param n_layers: The number of recurrent layers.
         """
         super().__init__()
         self.input_dim = input_dim
@@ -124,9 +123,10 @@ class EdgeSet2Set(Module):
 
     def forward(self, graph, feat):
         """
-        TODO: Add docs.
-        :param graph:
-        :param feat:
+        Defines the computation performed at every call.
+
+        :param graph: Input graph
+        :param feat: Input features.
         :return:
         """
         with graph.local_scope():
