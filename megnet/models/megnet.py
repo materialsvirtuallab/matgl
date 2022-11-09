@@ -1,12 +1,13 @@
 """
 Implementation of MEGNet model.
 """
+from __future__ import annotations
 
+import dgl
 import torch
 from dgl.nn import Set2Set
 from torch.nn import Dropout, Identity, Module, ModuleList, Softplus
 
-from ..types import DGLGraph, List, Optional, Tensor
 from .helper import MLP, EdgeSet2Set
 
 
@@ -19,16 +20,16 @@ class MEGNet(Module):
         self,
         in_dim: int,
         num_blocks: int,
-        hiddens: List[int],
-        conv_hiddens: List[int],
+        hiddens: list[int],
+        conv_hiddens: list[int],
         s2s_num_layers: int,
         s2s_num_iters: int,
-        output_hiddens: List[int],
+        output_hiddens: list[int],
         is_classification: bool = True,
-        node_embed: Optional[Module] = None,
-        edge_embed: Optional[Module] = None,
-        attr_embed: Optional[Module] = None,
-        dropout: Optional[float] = None,
+        node_embed: Module | None = None,
+        edge_embed: Module | None = None,
+        attr_embed: Module | None = None,
+        dropout: float | None = None,
     ) -> None:
         """
         TODO: Add docs.
@@ -87,10 +88,10 @@ class MEGNet(Module):
 
     def forward(
         self,
-        graph: DGLGraph,
-        edge_feat: Tensor,
-        node_feat: Tensor,
-        graph_attr: Tensor,
+        graph: dgl.DGLGraph,
+        edge_feat: torch.Tensor,
+        node_feat: torch.Tensor,
+        graph_attr: torch.Tensor,
     ) -> None:
         """
         TODO: Add docs.

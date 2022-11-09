@@ -3,11 +3,11 @@ Implementations of multi-layer perceptron (MLP) and other helper classes.
 """
 from __future__ import annotations
 
+from typing import Callable
+
 import torch
 from dgl import broadcast_edges, softmax_edges, sum_edges
 from torch.nn import LSTM, Linear, Module, ModuleList
-
-from ..types import Callable, List, Tensor
 
 
 class MLP(Module):
@@ -17,8 +17,8 @@ class MLP(Module):
 
     def __init__(
         self,
-        dims: List[int],
-        activation: Callable[[Tensor], Tensor] | None = None,
+        dims: list[int],
+        activation: Callable[[torch.Tensor], torch.Tensor] | None = None,
         activate_last: bool = False,
         bias_last: bool = True,
     ) -> None:
@@ -83,7 +83,7 @@ class MLP(Module):
                 return layer.out_features
         raise RuntimeError
 
-    def forward(self, inputs: Tensor) -> Tensor:
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         """
         Applies all layers in turn.
 
@@ -103,7 +103,7 @@ class EdgeSet2Set(Module):
     Implementation of Set2Set.
     """
 
-    def __init__(self, input_dim, n_iters, n_layers):
+    def __init__(self, input_dim: int, n_iters: int, n_layers: int):
         """
         :param input_dim: The size of each input sample.
         :param n_iters: The number of iterations.

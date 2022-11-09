@@ -1,6 +1,7 @@
 """
 Implement graph convolution layers for MEGNet.
 """
+from __future__ import annotations
 
 import dgl
 import dgl.function as fn
@@ -8,7 +9,6 @@ import torch
 from torch.nn import Dropout, Identity, Module, Softplus
 
 from .models.helper import MLP
-from .types import DGLGraph, EdgeBatch, List, Optional, Tensor, Tuple
 
 
 class MEGNetGraphConv(Module):
@@ -36,8 +36,8 @@ class MEGNetGraphConv(Module):
 
     @staticmethod
     def from_dims(
-        edge_dims: List[int], node_dims: List[int], attr_dims: List[int]
-    ) -> "MEGNetGraphConv":
+        edge_dims: list[int], node_dims: list[int], attr_dims: list[int]
+    ) -> MEGNetGraphConv:
         """
         TODO: Add docs.
         :param edge_dims:
@@ -52,7 +52,7 @@ class MEGNetGraphConv(Module):
         attr_update = MLP(attr_dims, Softplus(), activate_last=True)
         return MEGNetGraphConv(edge_update, node_update, attr_update)
 
-    def _edge_udf(self, edges: EdgeBatch) -> Tensor:
+    def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> torch.Tensor:
         vi = edges.src["v"]
         vj = edges.dst["v"]
         u = edges.src["u"]
@@ -61,7 +61,7 @@ class MEGNetGraphConv(Module):
         mij = {"mij": self.edge_func(inputs)}
         return mij
 
-    def edge_update_(self, graph: DGLGraph) -> Tensor:
+    def edge_update_(self, graph: dgl.DGLGraph) -> torch.Tensor:
         """
         TODO: Add docs.
         :param graph:
@@ -71,7 +71,7 @@ class MEGNetGraphConv(Module):
         graph.edata["e"] = graph.edata.pop("mij")
         return graph.edata["e"]
 
-    def node_update_(self, graph: DGLGraph) -> Tensor:
+    def node_update_(self, graph: dgl.DGLGraph) -> torch.Tensor:
         """
         TODO: Add docs.
         :param graph:
@@ -85,7 +85,7 @@ class MEGNetGraphConv(Module):
         graph.ndata["v"] = self.node_func(inputs)
         return graph.ndata["v"]
 
-    def attr_update_(self, graph: DGLGraph, attrs: Tensor) -> Tensor:
+    def attr_update_(self, graph: dgl.DGLGraph, attrs: torch.Tensor) -> torch.Tensor:
         """
         TODO: Add docs.
         :param graph:
@@ -101,11 +101,11 @@ class MEGNetGraphConv(Module):
 
     def forward(
         self,
-        graph: DGLGraph,
-        edge_feat: Tensor,
-        node_feat: Tensor,
-        graph_attr: Tensor,
-    ) -> Tuple[Tensor, Tensor, Tensor]:
+        graph: dgl.DGLGraph,
+        edge_feat: torch.Tensor,
+        node_feat: torch.Tensor,
+        graph_attr: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         TODO: Add docs.
         :param graph:
@@ -133,9 +133,9 @@ class MEGNetBlock(Module):
 
     def __init__(
         self,
-        dims: List[int],
-        conv_hiddens: List[int],
-        dropout: Optional[float] = None,
+        dims: list[int],
+        conv_hiddens: list[int],
+        dropout: float | None = None,
         skip: bool = True,
     ) -> None:
         """
@@ -177,11 +177,11 @@ class MEGNetBlock(Module):
 
     def forward(
         self,
-        graph: DGLGraph,
-        edge_feat: Tensor,
-        node_feat: Tensor,
-        graph_attr: Tensor,
-    ) -> Tuple[Tensor, Tensor, Tensor]:
+        graph: dgl.DGLGraph,
+        edge_feat: torch.Tensor,
+        node_feat: torch.Tensor,
+        graph_attr: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         TODO: Add docs.
         :param graph:
