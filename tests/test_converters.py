@@ -160,7 +160,7 @@ class Pmg2GraphTest(PymatgenTest):
             "Pm-3m", Lattice.cubic(3), ["Na", "F"], [[0, 0, 0], [0.5, 0.5, 0.5]]
         )
         elem_list = get_element_list([cscl, naf])
-        self.assertListEqual(elem_list, ["F", "Na", "Cl", "Cs"])
+        self.assertEqual(elem_list, ("F", "Na", "Cl", "Cs"))
 
 
 if __name__ == "__main__":
