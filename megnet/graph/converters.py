@@ -13,19 +13,19 @@ from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 
-def get_element_list(train_structures: list[Structure | Molecule]) -> list[str]:
+def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]:
     """Get the dictionary containing elements in the training set for atomic features
 
     Args:
         train_structures: pymatgen Molecule/Structure object
 
     Returns:
-        List of elements covered in training set
+        Tuple of elements covered in training set
     """
     elements = set()
     for s in train_structures:
         elements.update(s.composition.get_el_amt_dict().keys())
-    return list(sorted(elements, key=lambda el: Element(el).Z))
+    return tuple(sorted(elements, key=lambda el: Element(el).Z))  # type: ignore
 
 
 class GaussianExpansion(nn.Module):
@@ -94,7 +94,7 @@ class Pmg2Graph:
 
     def __init__(
         self,
-        element_types: list[str],
+        element_types: tuple[str],
         cutoff: float = 5.0,
         initial: float = 0.0,
         final: float = 4.0,
@@ -112,7 +112,7 @@ class Pmg2Graph:
         num_centers: Number of centers for Gaussian expansion
         width: Width of Gaussian function
         """
-        self.element_types = element_types
+        self.element_types = tuple(element_types)
         self.cutoff = cutoff
         self.initial = initial
         self.final = final
