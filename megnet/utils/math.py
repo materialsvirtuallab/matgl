@@ -72,11 +72,11 @@ class SphericalBesselFunction:
         self.cutoff = cutoff
         self.smooth = smooth
         if smooth:
-            self.funcs = self.calculate_smooth_symbolic_funcs()
+            self.funcs = self._calculate_smooth_symbolic_funcs()
         else:
             self.funcs = self._calculate_symbolic_funcs()
 
-        self.zeros = SPHERICAL_BESSEL_ROOTS.type(DataType.torch_float)
+        self.zeros = torch.from_numpy(SPHERICAL_BESSEL_ROOTS).type(DataType.torch_float)
         
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> List:
@@ -90,14 +90,14 @@ class SphericalBesselFunction:
         """
         x = sympy.symbols("x")
         funcs = [sympy.expand_func(sympy.functions.special.bessel.jn(i, x)) for i in range(self.max_l + 1)]
-        return [sympy.lambdify(x, func, {'sin': torch.sin, 'cos': torch.cos}) for func in funcs]
+        return [sympy.lambdify(x, func, torch) for func in funcs]
     @lru_cache(maxsize=128)
     def _calculate_smooth_symbolic_funcs(self) -> List:
         return _get_lambda_func(max_n=self.max_n, cutoff=self.cutoff)
-    def __call__(self, r: torch.Tensor) -> torch.Tensor:
+    def __call__(self, r: torch.tensor) -> torch.tensor:
         """
         Args:
-            r: torch.Tensor, distance Tensor, 1D
+            r: torch.tensor, distance tensor, 1D
 
 
         Returns: [n, max_n * max_l] spherical Bessel function results
@@ -107,15 +107,15 @@ class SphericalBesselFunction:
             return self._call_smooth_sbf(r)
         return self._call_sbf(r)
 
-    def _call_smooth_sbf(self, r: torch.Tensor) -> torch.Tensor:
+    def _call_smooth_sbf(self, r: torch.tensor) -> torch.tensor:
         results = [i(r) for i in self.funcs]
-        return torch.transpose(torch.stack(results))
+        return torch.t(torch.stack(results))
     
-    def _call_sbf(self, r: torch.Tensor) -> torch.Tensor:
+    def _call_sbf(self, r: torch.tensor) -> torch.tensor:
         roots = self.zeros[: self.max_l, : self.max_n]
         
         results = []
-        factor = (sqrt(2.0 / self.cutoff**3)).type(DataType.torch_float)
+        factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
         for i in range(self.max_l):
             root = roots[i]
             func = self.funcs[i]
@@ -125,13 +125,13 @@ class SphericalBesselFunction:
             )
         return torch.cat(results, axis=1)
     @staticmethod
-    def rbf_j0(r: torch.Tensor, cutoff: float = 5.0, max_n: int = 3) -> tf.Tensor:
+    def rbf_j0(r: torch.tensor, cutoff: float = 5.0, max_n: int = 3) -> torch.tensor:
         """
         Spherical Bessel function of order 0, ensuring the function value
         vanishes at cutoff
 
         Args:
-            r: torch.Tensor pytorch tensors
+            r: torch.tensor pytorch tensors
             cutoff: float, the cutoff radius
             max_n: int max number of basis
         Returns: basis function expansion using first spherical Bessel function
@@ -148,14 +148,14 @@ def _y00(theta, phi):
         Y_0^0 = \frac{1}{2} \sqrt{\frac{1}{\pi}}
 
     Args:
-        theta: tf.Tensor, the azimuthal angle
-        phi: tf.Tensor, the polar angle
+        theta: torch.tensor, the azimuthal angle
+        phi: torch.tensor, the polar angle
 
     Returns: `Y_0^0` results
 
     """
     dtype = theta.dtype
-    return 0.5 * torch.ones_like(theta) * (sqrt(1.0 / pi)).type(dtype = dtype)
+    return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
 def _conjugate(x):
     return torch.conj(x)
@@ -165,25 +165,26 @@ class Gaussian:
     Gaussian expansion function
     """
 
-    def __init__(self, centers: Union[torch.Tensor, np.ndarray], width: float, **kwargs):
+    def __init__(self, centers: Union[torch.tensor, np.ndarray], width: float, **kwargs):
         """
         Args:
-            centers (torch.Tensor or np.ndarray): Gaussian centers for the
+            centers (torch.tensor or np.ndarray): Gaussian centers for the
                 expansion
             width (float): Gaussian width
             **kwargs:
         """
-        self.centers = np.array(centers)
+        self.centers = torch.tensor(centers)
         self.width = width
 
-    def __call__(self, r: torch.Tensor) -> torch.Tensor:
+    def __call__(self, r: torch.tensor) -> torch.tensor:
         """
         Convert the radial distances into Gaussian functions
         Args:
-            r (torch.Tensor): radial distances
+            r (torch.tensor): radial distances
         Returns: Gaussian expanded vectors
 
         """
+        r = torch.tensor(r)
         return torch.exp(-((r[:, None] - self.centers[None, :]) ** 2) / self.width**2)
 
     
@@ -219,30 +220,30 @@ class SphericalHarmonicsFunction:
         funcs = [i.subs({theta: sympy.acos(costheta)}) for i in funcs]
         self.orig_funcs = [sympy.simplify(i).evalf() for i in funcs]
         results = [
-            sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate, "sin": torch.sin, "cos": torch.cos}]) for i in self.orig_funcs 
+            sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch]) for i in self.orig_funcs 
         ]
         results[0] = _y00
         return results
 
-    def __call__(self, costheta, phi: Optional[tf.Tensor] = None):
+    def __call__(self, costheta, phi: Optional[torch.tensor] = None):
         """
         Args:
-            theta: tf.Tensor, the azimuthal angle
-            phi: tf.Tensor, the polar angle
+            theta: torch.tensor, the azimuthal angle
+            phi: torch.tensor, the polar angle
 
         Returns: [n, m] spherical harmonic results, where n is the number
             of angles. The column is arranged following
             `[Y_0^0, Y_1^{-1}, Y_1^{0}, Y_1^1, Y_2^{-2}, ...]`
         """
-        costheta = costheta.type(dtype=torch.complex64)
-        phi = phi.type(dtype=torch.complex64)
+        costheta = torch.tensor(costheta, dtype=torch.complex64)
+        phi = torch.tensor(phi, dtype=torch.complex64)
         results = torch.stack([func(costheta, phi) for func in self.funcs], axis=1)
         results = results.type(dtype=DataType.torch_float)
         return results
     
 
 def _block_repeat(array, block_size, repeats):
-    col_index = torch.range(torch.shape(array)[1])
+    col_index = torch.arange(array.size()[1])
     indices = []
     start = 0
 
@@ -250,10 +251,10 @@ def _block_repeat(array, block_size, repeats):
         indices.append(torch.tile(col_index[start : start + b], [repeats[i]]))
         start += b
     indices = torch.cat(indices, axis=0)
-    return torch.gather(array, indices, axis=1)
+    return torch.index_select(array, 1, indices)
 
 
-def combine_sbf_shf(sbf: torch.Tensor, shf: torch.Tensor, max_n: int, max_l: int, use_phi: bool):
+def combine_sbf_shf(sbf: torch.tensor, shf: torch.tensor, max_n: int, max_l: int, use_phi: bool):
     """
     Combine the spherical Bessel function and the spherical Harmonics function
     For the spherical Bessel function, the column is ordered by
@@ -266,26 +267,26 @@ def combine_sbf_shf(sbf: torch.Tensor, shf: torch.Tensor, max_n: int, max_l: int
         [m=[0], m=[0], ...] max_l columns
 
     Args:
-        sbf: tf.Tensor spherical bessel function results
-        shf: tf.Tensor spherical harmonics function results
+        sbf: torch.tensor spherical bessel function results
+        shf: torch.tensor spherical harmonics function results
         max_n: int, max number of n
         max_l: int, max number of l
         use_phi: whether to use phi
     Returns:
     """
-    if torch.shape(sbf)[0] == 0:
+    if sbf.size()[0] == 0:
         return sbf
 
     if not use_phi:
-        repeats_sbf = [1] * max_l * max_n
+        repeats_sbf = torch.tensor([1] * max_l * max_n)
         block_size = [1] * max_l
     else:
         # [1, 1, 1, ..., 1, 3, 3, 3, ..., 3, ...]
-        repeats_sbf = np.repeat(2 * np.arange(max_l) + 1, repeats=max_n)
+        repeats_sbf = torch.tensor(np.repeat(2 * np.arange(max_l) + 1, repeats=max_n))
         # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
         block_size = 2 * np.arange(max_l) + 1
         # 2 * tf.range(max_l) + 1
-    expanded_sbf = torch.repeat_interleave(sbf, repeats=repeats_sbf, axis=1)
+    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
     expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
     shape = max_n * max_l
     if use_phi:
@@ -335,7 +336,7 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
     gn = [fnr[:, 0]]
     for i in range(1, max_n):
         gn.append(1 / torch.sqrt(dn[i]) * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1]))
-    print(torch.stack(gn))
+
     return torch.t(torch.stack(gn))
 
 @lru_cache(maxsize=128)
@@ -369,4 +370,4 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
     gnr = [fnr[0]]
     for i in range(1, max_n):
         gnr.append(1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1]))
-    return [sympy.lambdify([r], sympy.simplify(i), {'sin': torch.sin, 'cos': torch.cos}) for i in gnr] 
+    return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr] 

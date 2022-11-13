@@ -19,8 +19,8 @@ class DataType:
     np_float = "float32"
     np_int = "int32"
     #torch_float = tf.keras.mixed_precision.global_policy().compute_dtype
-    torch_float = "float32"
-    torch_int = "int32"
+    torch_float = torch.float32
+    torch_int = torch.int32
 
     @classmethod
     def set_dtype(cls, data_type: str) -> None:

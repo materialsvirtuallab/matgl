@@ -3,12 +3,12 @@ import unittest
 import numpy as np
 import torch
 
-from m3gnet.utils import (
+from megnet.utils.math import (
     Gaussian,
     SphericalBesselFunction,
     SphericalHarmonicsFunction,
     combine_sbf_shf,
-    get_spherical_bessel_roots,
+    SPHERICAL_BESSEL_ROOTS,
     spherical_bessel_roots,
     spherical_bessel_smooth,
 )
@@ -17,7 +17,7 @@ from m3gnet.utils import (
 class TestMath(unittest.TestCase):
     def test_spherical_bessel_roots(self):
         roots = spherical_bessel_roots(max_l=1, max_n=5)
-        roots2 = get_spherical_bessel_roots()
+        roots2 = SPHERICAL_BESSEL_ROOTS
         self.assertTrue(np.allclose(roots2[0, :5], roots.ravel()))
 
     def test_gaussian(self):

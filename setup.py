@@ -7,8 +7,12 @@ info = dict(
     version=VERSION,
     description='MegNet pytorch conversion, testing verion',
 
-    packages=['megnet'],
-
+    packages= find_packages(),
+    package_data={
+        "megnet": ["*.json", "*.md"],
+        "megnet.utils": ["*.npy"],
+    },
+    include_package_data=True,
     install_requires=(
         'torch',
         'dgl',
