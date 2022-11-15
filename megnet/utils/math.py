@@ -6,18 +6,14 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from math import pi
-from typing import List, Optional, Union
+from math import pi, sqrt
 
 import numpy as np
 import sympy
-
-# import tensorflow as tf
 import torch
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
 
-from math import sqrt
 from megnet.config import DataType
 
 CWD = os.path.dirname(os.path.abspath(__file__))
@@ -84,7 +80,7 @@ class SphericalBesselFunction:
         self.zeros = torch.from_numpy(SPHERICAL_BESSEL_ROOTS).type(DataType.torch_float)
 
     @lru_cache(maxsize=128)
-    def _calculate_symbolic_funcs(self) -> List:
+    def _calculate_symbolic_funcs(self) -> list:
         """
         Spherical basis functions based on Rayleigh formula. This function
         generates
@@ -101,7 +97,7 @@ class SphericalBesselFunction:
         return [sympy.lambdify(x, func, torch) for func in funcs]
 
     @lru_cache(maxsize=128)
-    def _calculate_smooth_symbolic_funcs(self) -> List:
+    def _calculate_smooth_symbolic_funcs(self) -> list:
         return _get_lambda_func(max_n=self.max_n, cutoff=self.cutoff)
 
     def __call__(self, r: torch.tensor) -> torch.tensor:
@@ -168,7 +164,7 @@ def _y00(theta, phi):
     Returns: `Y_0^0` results
 
     """
-    dtype = theta.dtype
+    theta.dtype
     return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
 
@@ -181,9 +177,7 @@ class Gaussian:
     Gaussian expansion function
     """
 
-    def __init__(
-        self, centers: Union[torch.tensor, np.ndarray], width: float, **kwargs
-    ):
+    def __init__(self, centers: torch.tensor | np.ndarray, width: float, **kwargs):
         """
         Args:
             centers (torch.tensor or np.ndarray): Gaussian centers for the
@@ -246,7 +240,7 @@ class SphericalHarmonicsFunction:
         results[0] = _y00
         return results
 
-    def __call__(self, costheta, phi: Optional[torch.tensor] = None):
+    def __call__(self, costheta, phi: torch.tensor | None = None):
         """
         Args:
             theta: torch.tensor, the azimuthal angle
@@ -280,6 +274,7 @@ def combine_sbf_shf(
 ):
     """
     Combine the spherical Bessel function and the spherical Harmonics function
+
     For the spherical Bessel function, the column is ordered by
         [n=[0, ..., max_n-1], n=[0, ..., max_n-1], ...], max_l blocks,
 
