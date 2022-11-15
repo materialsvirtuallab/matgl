@@ -22,4 +22,6 @@ setuptools*
 gulptmp_4_1
 .coverage
 .mypy_cache
+.vs
+env
 venv
