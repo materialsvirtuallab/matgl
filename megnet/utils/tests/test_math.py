@@ -42,7 +42,9 @@ class TestMath(unittest.TestCase):
         self.assertTupleEqual(tuple(res2.shape), (10, 3))
 
         shf = SphericalHarmonicsFunction(max_l=3, use_phi=True)
-        res_shf = shf(costheta=np.linspace(-1, 1, 10), phi=np.linspace(0, 2 * np.pi, 10))
+        res_shf = shf(
+            costheta=np.linspace(-1, 1, 10), phi=np.linspace(0, 2 * np.pi, 10)
+        )
 
         self.assertTrue(res_shf.numpy().shape == (10, 9))
         combined = combine_sbf_shf(res, res_shf, max_n=3, max_l=3, use_phi=True)

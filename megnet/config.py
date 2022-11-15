@@ -1,7 +1,9 @@
 """Data types"""
 import numpy as np
-#import tensorflow as tf
+
+# import tensorflow as tf
 import torch
+
 DTYPES = {
     "float32": {"numpy": np.float32, "torch": torch.float32},
     "float16": {"numpy": np.float16, "torch": torch.float16},
@@ -15,10 +17,10 @@ class DataType:
     Tensorflow and numpy data types. Used to choose between float16 and float32
     """
 
-    #np_float = tf.keras.mixed_precision.global_policy().compute_dtype
+    # np_float = tf.keras.mixed_precision.global_policy().compute_dtype
     np_float = "float32"
     np_int = "int32"
-    #torch_float = tf.keras.mixed_precision.global_policy().compute_dtype
+    # torch_float = tf.keras.mixed_precision.global_policy().compute_dtype
     torch_float = torch.float32
     torch_int = torch.int32
 
