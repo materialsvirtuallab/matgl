@@ -164,7 +164,6 @@ def _y00(theta, phi):
     Returns: `Y_0^0` results
 
     """
-    theta.dtype
     return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
 
@@ -214,16 +213,13 @@ class SphericalHarmonicsFunction:
         """
         self.max_l = max_l
         self.use_phi = use_phi
-        self.funcs = self._calculate_symbolic_funcs()
-
-    def _calculate_symbolic_funcs(self):
         funcs = []
         theta, phi = sympy.symbols("theta phi")
         for lval in range(self.max_l):
             if self.use_phi:
                 m_list = range(-lval, lval + 1)
             else:
-                m_list = [0]
+                m_list = [0]  # type: ignore
             for m in m_list:
                 func = sympy.functions.special.spherical_harmonics.Znm(
                     lval, m, theta, phi
@@ -233,12 +229,11 @@ class SphericalHarmonicsFunction:
         costheta = sympy.symbols("costheta")
         funcs = [i.subs({theta: sympy.acos(costheta)}) for i in funcs]
         self.orig_funcs = [sympy.simplify(i).evalf() for i in funcs]
-        results = [
+        self.funcs = [
             sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch])
             for i in self.orig_funcs
         ]
-        results[0] = _y00
-        return results
+        self.funcs[0] = _y00
 
     def __call__(self, costheta, phi: torch.tensor | None = None):
         """
