@@ -1,12 +1,11 @@
-import os, json
+from __future__ import annotations
+
+import json
+import os
 from collections import namedtuple
 from random import seed as python_seed
-from time import sleep
-from typing import Dict, List, Tuple, Union
 
-import numpy as np
 import torch
-import torch.nn as nn
 import yaml
 from dgl.data import QM9EdgeDataset
 from dgl.dataloading import GraphDataLoader
@@ -24,7 +23,7 @@ def prepare_munch_object(path: str) -> Munch:
 
 
 def prepare_config(path: str) -> Munch:
-    root = '/'.join(path.split('/')[:-1])
+    root = "/".join(path.split("/")[:-1])
     config = prepare_munch_object(path)
 
     # for k, v in config.model.items():
@@ -33,7 +32,7 @@ def prepare_config(path: str) -> Munch:
     return config
 
 
-def compute_data_stats(dataset) -> Tuple[torch.Tensor]:
+def compute_data_stats(dataset) -> tuple:
     graphs, targets = zip(*dataset)
     targets = torch.cat(targets)
 
@@ -41,11 +40,11 @@ def compute_data_stats(dataset) -> Tuple[torch.Tensor]:
     num_bond_mean_list = []
 
     for g in graphs:
-        z_mean_list.append(torch.mean(g.ndata['attr']))
+        z_mean_list.append(torch.mean(g.ndata["attr"]))
         temp = 0
         for ii in range(g.num_nodes()):
             temp += len(g.successors(ii))
-        num_bond_mean_list.append(torch.tensor(temp/g.num_nodes()))
+        num_bond_mean_list.append(torch.tensor(temp / g.num_nodes()))
 
     data_std, data_mean = torch.std_mean(targets)
 
@@ -55,10 +54,10 @@ def compute_data_stats(dataset) -> Tuple[torch.Tensor]:
     return data_std, data_mean, data_zmean, num_bond_mean
 
 
-def prepare_data(config: Munch) -> namedtuple:
-    print('## Started data processing ##')
+def prepare_data(config: Munch) -> tuple:
+    print("## Started data processing ##")
 
-    if config.data.dataset == 'qm9':
+    if config.data.dataset == "qm9":
         dataset = QM9EdgeDataset(**config.data.source)
 
     val_size = config.data.split.val_size
@@ -66,11 +65,12 @@ def prepare_data(config: Munch) -> namedtuple:
     train_size = len(dataset) - val_size - test_size
 
     train_data, val_data, test_data = random_split(
-        dataset, [train_size, val_size, test_size])
+        dataset, [train_size, val_size, test_size]
+    )
 
     data_std, data_mean, data_zmean, num_bond_mean = compute_data_stats(train_data)
 
-    data = namedtuple('Data', ['train', 'val', 'test', 'std', 'mean'])
+    data = namedtuple("data", ["train", "val", "test", "std", "mean"])
 
     data.train = train_data
     data.val = val_data
@@ -80,8 +80,7 @@ def prepare_data(config: Munch) -> namedtuple:
     data.z_mean = data_zmean
     data.num_bond_mean = num_bond_mean
 
-
-    print('## Finished data processing ##')
+    print("## Finished data processing ##")
 
     return data
 
@@ -93,8 +92,8 @@ def set_seed(seed: int) -> None:
     dgl_seed(seed)
 
 
-def create_dataloaders(config: Munch, data: namedtuple):
-    dataloaders = namedtuple('Dataloaders', ['train', 'val', 'test'])
+def create_dataloaders(config: Munch, data: tuple):
+    dataloaders = namedtuple("Dataloaders", ["train", "val", "test"])
 
     dataloaders.train = GraphDataLoader(
         data.train,
@@ -102,13 +101,13 @@ def create_dataloaders(config: Munch, data: namedtuple):
         batch_size=config.data.batch_size
         # **config.experiment.train,
     )
-    dataloaders.val = GraphDataLoader(data.val)#, **config.experiment.val)
-    dataloaders.test = GraphDataLoader(data.test)#, **config.experiment.test)
+    dataloaders.val = GraphDataLoader(data.val)  # , **config.experiment.val)
+    dataloaders.test = GraphDataLoader(data.test)  # , **config.experiment.test)
 
     return dataloaders
 
 
-class StreamingJSONWriter(object):
+class StreamingJSONWriter:
     """
     Serialize streaming data to JSON.
 
@@ -118,13 +117,14 @@ class StreamingJSONWriter(object):
     When a new item is added, the file cursor is moved backwards to overwrite
     the list closing bracket.
     """
+
     def __init__(self, filename, encoder=json.JSONEncoder):
         if os.path.exists(filename):
-            self.file = open(filename, 'r+')
-            self.delimeter = ','
+            self.file = open(filename, "r+")
+            self.delimeter = ","
         else:
-            self.file = open(filename, 'w')
-            self.delimeter = '['
+            self.file = open(filename, "w")
+            self.delimeter = "["
         self.encoder = encoder
 
     def dump(self, obj):
@@ -134,9 +134,9 @@ class StreamingJSONWriter(object):
         data = json.dumps(obj, cls=self.encoder)
         close_str = "\n]\n"
         self.file.seek(max(self.file.seek(0, os.SEEK_END) - len(close_str), 0))
-        self.file.write("%s\n    %s%s" % (self.delimeter, data, close_str))
+        self.file.write(f"{self.delimeter}\n    {data}{close_str}")
         self.file.flush()
-        self.delimeter = ','
+        self.delimeter = ","
 
     def close(self):
         self.file.close()
