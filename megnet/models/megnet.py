@@ -88,7 +88,7 @@ class MEGNet(Module):
         # TODO(marcel): should this be an 1D dropout
 
         self.is_classification = is_classification
-        self.graph_transform = graph_transformations or [Identity()] * num_blocks
+        self.graph_transformations = graph_transformations or [Identity()] * num_blocks
 
     def forward(
         self,
