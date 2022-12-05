@@ -8,8 +8,8 @@ import torch
 from dgl.nn import Set2Set
 from torch.nn import Dropout, Identity, Module, ModuleList, Softplus
 
-from ..layers import MEGNetBlock
 from .helper import MLP, EdgeSet2Set
+from .layers import MEGNetBlock
 
 
 class MEGNet(Module):

@@ -8,7 +8,7 @@ import dgl.function as fn
 import torch
 from torch.nn import Dropout, Identity, Module, Softplus
 
-from .models.helper import MLP
+from .helper import MLP
 
 
 class MEGNetGraphConv(Module):
