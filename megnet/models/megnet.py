@@ -8,6 +8,7 @@ import torch
 from dgl.nn import Set2Set
 from torch.nn import Dropout, Identity, Module, ModuleList, Softplus
 
+from ..layers import MEGNetBlock
 from .helper import MLP, EdgeSet2Set
 
 
@@ -64,7 +65,6 @@ class MEGNet(Module):
         block_out_dim = conv_hiddens[-1]
         block_args = dict(conv_hiddens=conv_hiddens, dropout=dropout, skip=True)
         blocks = []
-        from ..layers import MEGNetBlock
 
         # first block
         blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))  # type: ignore

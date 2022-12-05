@@ -1,5 +1,5 @@
 """
-Implement graph convolution layers for MEGNet.
+Graph convolution layer (GCL) implementations.
 """
 from __future__ import annotations
 
@@ -35,9 +35,7 @@ class MEGNetGraphConv(Module):
         self.attr_func = attr_func
 
     @staticmethod
-    def from_dims(
-        edge_dims: list[int], node_dims: list[int], attr_dims: list[int]
-    ) -> MEGNetGraphConv:
+    def from_dims(edge_dims: list[int], node_dims: list[int], attr_dims: list[int]) -> MEGNetGraphConv:
         """
         TODO: Add docs.
         :param edge_dims:
@@ -196,9 +194,7 @@ class MEGNetBlock(Module):
         node_feat = self.node_func(node_feat)
         graph_attr = self.attr_func(graph_attr)
 
-        edge_feat, node_feat, graph_attr = self.conv(
-            graph, edge_feat, node_feat, graph_attr
-        )
+        edge_feat, node_feat, graph_attr = self.conv(graph, edge_feat, node_feat, graph_attr)
 
         if self.dropout:
             edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102

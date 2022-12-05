@@ -3,7 +3,9 @@ Compute three-body indices
 """
 from __future__ import annotations
 
+import dgl
 import numpy as np
+import torch
 
 
 def compute_3body(bond_atom_indices: np.array, n_atoms: np.array):
@@ -64,3 +66,49 @@ def compute_3body(bond_atom_indices: np.array, n_atoms: np.array):
         n_triple_i,
         np.array(n_triple_s, dtype=np.int32),
     )
+
+
+class ThreeBodyInteraction(dgl.Module):
+    """
+    Include 3D interactions to the bond update
+    """
+
+    def __init__(self, update_network_atom: dgl.Module, update_network_bond: dgl.Module, **kwargs):
+        r"""
+        Args:
+            update_network_atom (dgl.Module): Module for updating the atom attributes before merging with 3-body
+                interactions.
+            update_network_bond (dgl.Module): Module for updating the bond information after merging with 3-body
+                interactions
+            **kwargs: Passthrough to dgl.Module superclass.
+        """
+        super().__init__(**kwargs)
+        self.update_network_atom = update_network_atom
+        self.update_network_bond = update_network_bond
+
+    def forward(self, graph: dgl.DGLGraph, three_basis: torch.Tensor, three_cutoff: float, **kwargs) -> dgl.DGLGraph:
+        """
+
+        Args:
+            graph (dgl.DGLGraph): Input graph
+            three_basis (tf.Tensor): three body basis expansion
+            three_cutoff (float): cutoff radius
+            **kwargs:
+        Returns: Updated dgl.DGLGraph
+        """
+        # graph = graph[:]
+        # end_atom_index = tf.gather(graph[Index.BOND_ATOM_INDICES][:, 1], graph[Index.TRIPLE_BOND_INDICES][:, 1])
+        # atoms = self.update_network(graph[Index.ATOMS])
+        # atoms = tf.gather(atoms, end_atom_index)
+        # basis = three_basis * atoms
+        # n_bonds = tf.reduce_sum(graph[Index.N_BONDS])
+        # weights = tf.reshape(tf.gather(three_cutoff, graph[Index.TRIPLE_BOND_INDICES]), (-1, 2))
+        # weights = tf.math.reduce_prod(weights, axis=-1)
+        # basis = basis * weights[:, None]
+        # new_bonds = tf.math.unsorted_segment_sum(
+        #     basis,
+        #     get_segment_indices_from_n(graph[Index.N_TRIPLE_IJ]),
+        #     num_segments=n_bonds,
+        # )
+        # graph[Index.BONDS] = graph[Index.BONDS] + self.update_network2(new_bonds)
+        return graph
