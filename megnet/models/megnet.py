@@ -30,7 +30,7 @@ class MEGNet(Module):
         edge_embed: Module | None = None,
         attr_embed: Module | None = None,
         dropout: float | None = None,
-        graph_transform: list | None = None,
+        graph_transformations: list | None = None,
     ) -> None:
         """
         TODO: Add docs.
@@ -88,7 +88,7 @@ class MEGNet(Module):
         # TODO(marcel): should this be an 1D dropout
 
         self.is_classification = is_classification
-        self.graph_transform = graph_transform or [Identity()] * num_blocks
+        self.graph_transform = graph_transformations or [Identity()] * num_blocks
 
     def forward(
         self,
@@ -106,12 +106,13 @@ class MEGNet(Module):
         :return:
         """
 
+        graph_transformations = self.graph_transformations
         edge_feat = self.edge_encoder(self.edge_embed(edge_feat))
         node_feat = self.node_encoder(self.node_embed(node_feat))
         graph_attr = self.attr_encoder(self.attr_embed(graph_attr))
 
         for i, block in enumerate(self.blocks):
-            graph = self.graph_transform[i](graph)
+            graph = graph_transformations[i](graph)
             output = block(graph, edge_feat, node_feat, graph_attr)
             edge_feat, node_feat, graph_attr = output
 
