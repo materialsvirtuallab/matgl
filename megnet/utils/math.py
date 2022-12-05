@@ -59,9 +59,7 @@ class SphericalBesselFunction:
     Calculate the spherical Bessel function based on sympy + pytorch implementations
     """
 
-    def __init__(
-        self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False
-    ):
+    def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
         """
         Args:
             max_l: int, max order (excluding l)
@@ -90,10 +88,7 @@ class SphericalBesselFunction:
 
         """
         x = sympy.symbols("x")
-        funcs = [
-            sympy.expand_func(sympy.functions.special.bessel.jn(i, x))
-            for i in range(self.max_l + 1)
-        ]
+        funcs = [sympy.expand_func(sympy.functions.special.bessel.jn(i, x)) for i in range(self.max_l + 1)]
         return [sympy.lambdify(x, func, torch) for func in funcs]
 
     @lru_cache(maxsize=128)
@@ -127,9 +122,7 @@ class SphericalBesselFunction:
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
-                func(r[:, None] * root[None, :] / self.cutoff)
-                * factor
-                / torch.abs(func_add1(root[None, :]))
+                func(r[:, None] * root[None, :] / self.cutoff) * factor / torch.abs(func_add1(root[None, :]))
             )
         return torch.cat(results, axis=1)
 
@@ -221,18 +214,13 @@ class SphericalHarmonicsFunction:
             else:
                 m_list = [0]  # type: ignore
             for m in m_list:
-                func = sympy.functions.special.spherical_harmonics.Znm(
-                    lval, m, theta, phi
-                ).expand(func=True)
+                func = sympy.functions.special.spherical_harmonics.Znm(lval, m, theta, phi).expand(func=True)
                 funcs.append(func)
         # replace all theta with cos(theta)
         costheta = sympy.symbols("costheta")
         funcs = [i.subs({theta: sympy.acos(costheta)}) for i in funcs]
         self.orig_funcs = [sympy.simplify(i).evalf() for i in funcs]
-        self.funcs = [
-            sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch])
-            for i in self.orig_funcs
-        ]
+        self.funcs = [sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch]) for i in self.orig_funcs]
         self.funcs[0] = _y00
 
     def __call__(self, costheta, phi: torch.tensor | None = None):
@@ -264,9 +252,7 @@ def _block_repeat(array, block_size, repeats):
     return torch.index_select(array, 1, indices)
 
 
-def combine_sbf_shf(
-    sbf: torch.tensor, shf: torch.tensor, max_n: int, max_l: int, use_phi: bool
-):
+def combine_sbf_shf(sbf: torch.tensor, shf: torch.tensor, max_n: int, max_l: int, use_phi: bool):
     """
     Combine the spherical Bessel function and the spherical Harmonics function
 
@@ -348,11 +334,7 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
     dn = torch.stack(dn)
     gn = [fnr[:, 0]]
     for i in range(1, max_n):
-        gn.append(
-            1
-            / torch.sqrt(dn[i])
-            * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1])
-        )
+        gn.append(1 / torch.sqrt(dn[i]) * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1]))
 
     return torch.t(torch.stack(gn))
 
@@ -380,16 +362,39 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
             * (i + 2)
             / sympy.sqrt(1.0 * (i + 1) ** 2 + (i + 2) ** 2)
             * (
-                sympy.sin(r * (i + 1) * sympy.pi / cutoff)
-                / (r * (i + 1) * sympy.pi / cutoff)
-                + sympy.sin(r * (i + 2) * sympy.pi / cutoff)
-                / (r * (i + 2) * sympy.pi / cutoff)
+                sympy.sin(r * (i + 1) * sympy.pi / cutoff) / (r * (i + 1) * sympy.pi / cutoff)
+                + sympy.sin(r * (i + 2) * sympy.pi / cutoff) / (r * (i + 2) * sympy.pi / cutoff)
             )
         )
 
     gnr = [fnr[0]]
     for i in range(1, max_n):
-        gnr.append(
-            1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1])
-        )
+        gnr.append(1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1]))
     return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr]
+
+
+def polynomial_cutoff(r: torch.tensor, cutoff: float) -> torch.tensor:
+    """
+    Polynomial cutoff function
+    Args:
+        r (tf.Tensor): radius distance tensor
+        cutoff (float): cutoff distance
+
+    Returns: polynomial cutoff functions
+
+    """
+    ratio = r / cutoff
+    return torch.where(r <= cutoff, 1 - 6 * ratio**5 + 15 * ratio**4 - 10 * ratio**3, 0.0)
+
+
+def cosine_cutoff(r: torch.tensor, cutoff: float) -> torch.tensor:
+    """
+    Cosine cutoff function
+    Args:
+        r (tf.Tensor): radius distance tensor
+        cutoff (float): cutoff distance
+
+    Returns: cosine cutoff functions
+
+    """
+    return torch.where(r <= cutoff, torch.math.cos(np.pi * r / cutoff), 0.0)
