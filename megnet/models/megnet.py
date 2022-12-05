@@ -12,6 +12,7 @@ from torch.nn import Dropout, Identity, Module, ModuleList, Softplus
 
 from .helper import MLP, EdgeSet2Set
 
+
 class MEGNet(Module):
     """
     DGL implementation of MEGNet.
@@ -57,23 +58,26 @@ class MEGNet(Module):
 
         dims = [in_dim] + hiddens
 
-        if act =="swish":
-           activation = nn.SiLU()
-        elif act =="sigmoid":
-           activation = nn.Sigmoid()
-        elif act =="tanh":
-           activation = nn.Tanh()
+        if act == "swish":
+            activation = nn.SiLU()
+        elif act == "sigmoid":
+            activation = nn.Sigmoid()
+        elif act == "tanh":
+            activation = nn.Tanh()
         else:
-           raise Exception("Undefined activation type, please try using swish, sigmoid, tanh")
+            raise Exception(
+                "Undefined activation type, please try using swish, sigmoid, tanh"
+            )
 
         self.edge_encoder = MLP(dims, activation, activate_last=True)
         self.node_encoder = MLP(dims, activation, activate_last=True)
         self.attr_encoder = MLP(dims, activation, activate_last=True)
 
-
         blocks_in_dim = hiddens[-1]
         block_out_dim = conv_hiddens[-1]
-        block_args = dict(conv_hiddens=conv_hiddens, dropout=dropout, act=activation, skip=True)
+        block_args = dict(
+            conv_hiddens=conv_hiddens, dropout=dropout, act=activation, skip=True
+        )
         blocks = []
         from ..layers import MEGNetBlock
 

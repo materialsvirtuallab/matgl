@@ -173,7 +173,7 @@ class MEGNetBlock(Module):
             edge_dims=[edge_in] + conv_hiddens,
             node_dims=[node_in] + conv_hiddens,
             attr_dims=[attr_in] + conv_hiddens,
-            activation=self.activation
+            activation=self.activation,
         )
 
         self.dropout = Dropout(dropout) if dropout else None
