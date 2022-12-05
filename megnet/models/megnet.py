@@ -30,6 +30,7 @@ class MEGNet(Module):
         edge_embed: Module | None = None,
         attr_embed: Module | None = None,
         dropout: float | None = None,
+        graph_transform: list | None = None,
     ) -> None:
         """
         TODO: Add docs.
@@ -45,6 +46,8 @@ class MEGNet(Module):
         :param edge_embed:
         :param attr_embed:
         :param dropout:
+        :param graph_transform: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
+            performing the GCL updates.
         """
         super().__init__()
 
@@ -85,6 +88,7 @@ class MEGNet(Module):
         # TODO(marcel): should this be an 1D dropout
 
         self.is_classification = is_classification
+        self.graph_transform = graph_transform or [Identity()] * num_blocks
 
     def forward(
         self,
@@ -106,7 +110,8 @@ class MEGNet(Module):
         node_feat = self.node_encoder(self.node_embed(node_feat))
         graph_attr = self.attr_encoder(self.attr_embed(graph_attr))
 
-        for block in self.blocks:
+        for i, block in enumerate(self.blocks):
+            graph = self.graph_transform[i](graph)
             output = block(graph, edge_feat, node_feat, graph_attr)
             edge_feat, node_feat, graph_attr = output
 
