@@ -70,7 +70,7 @@ def compute_3body(bond_atom_indices: np.array, n_atoms: np.array):
 
 class ThreeBodyInteraction(dgl.Module):
     """
-    Include 3D interactions to the bond update
+    Include 3-body interactions in the bond update
     """
 
     def __init__(self, update_network_atom: dgl.Module, update_network_bond: dgl.Module, **kwargs):

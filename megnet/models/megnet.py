@@ -96,14 +96,14 @@ class MEGNet(Module):
         edge_feat: torch.Tensor,
         node_feat: torch.Tensor,
         graph_attr: torch.Tensor,
-    ) -> None:
+    ):
         """
         TODO: Add docs.
-        :param graph:
-        :param edge_feat:
-        :param node_feat:
-        :param graph_attr:
-        :return:
+        :param graph: Input graph
+        :param edge_feat: Edge features
+        :param node_feat: Node features
+        :param graph_attr: Graph attributes / state features.
+        :return: Prediction
         """
 
         graph_transformations = self.graph_transformations
