@@ -1,14 +1,14 @@
 """
-Implement graph convolution layers for MEGNet.
+Graph convolution layer (GCL) implementations.
 """
 from __future__ import annotations
 
 import dgl
 import dgl.function as fn
 import torch
-from torch.nn import Dropout, Identity, Module, Softplus
+from torch.nn import Dropout, Identity, Module
 
-from .models.helper import MLP
+from .helper import MLP
 
 
 class MEGNetGraphConv(Module):
@@ -23,11 +23,9 @@ class MEGNetGraphConv(Module):
         attr_func: Module,
     ) -> None:
         """
-        TODO: Add docs.
-        :param edge_func:
-        :param node_func:
-        :param attr_func:
-        :param act:
+        :param edge_func: Edge update function.
+        :param node_func: Node update function.
+        :param attr_func: Global state update function.
         """
 
         super().__init__()
@@ -36,14 +34,13 @@ class MEGNetGraphConv(Module):
         self.attr_func = attr_func
 
     @staticmethod
-    def from_dims(
-        edge_dims: list[int], node_dims: list[int], attr_dims: list[int], activation
-    ) -> MEGNetGraphConv:
+    def from_dims(edge_dims: list[int], node_dims: list[int], attr_dims: list[int], activation) -> MEGNetGraphConv:
         """
         TODO: Add docs.
         :param edge_dims:
         :param node_dims:
         :param attr_dims:
+        :param activation:
         :return:
         """
         # TODO(marcel): Softplus doesnt exactly match paper's SoftPlus2
@@ -64,9 +61,10 @@ class MEGNetGraphConv(Module):
 
     def edge_update_(self, graph: dgl.DGLGraph) -> torch.Tensor:
         """
-        TODO: Add docs.
-        :param graph:
-        :return:
+        Perform edge update.
+
+        :param graph: Input graph
+        :return: Output tensor for edges.
         """
         graph.apply_edges(self._edge_udf)
         graph.edata["e"] = graph.edata.pop("mij")
@@ -74,9 +72,10 @@ class MEGNetGraphConv(Module):
 
     def node_update_(self, graph: dgl.DGLGraph) -> torch.Tensor:
         """
-        TODO: Add docs.
-        :param graph:
-        :return:
+        Perform node update.
+
+        :param graph: Input graph
+        :return: Output tensor for nodes.
         """
         graph.update_all(fn.copy_e("e", "e"), fn.mean("e", "ve"))
         ve = graph.ndata.pop("ve")
@@ -88,10 +87,11 @@ class MEGNetGraphConv(Module):
 
     def attr_update_(self, graph: dgl.DGLGraph, attrs: torch.Tensor) -> torch.Tensor:
         """
-        TODO: Add docs.
-        :param graph:
-        :param attrs:
-        :return:
+        Perform attribute (global state) update.
+
+        :param graph: Input graph
+        :param attrs: Input attributes
+        :return: Output tensor for attributes
         """
         u = attrs
         ue = dgl.readout_edges(graph, feat="e", op="mean")
@@ -108,12 +108,13 @@ class MEGNetGraphConv(Module):
         graph_attr: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        TODO: Add docs.
-        :param graph:
-        :param edge_feat:
-        :param node_feat:
-        :param graph_attr:
-        :return:
+        Perform sequence of edge->node->attribute updates.
+
+        :param graph: Input graph
+        :param edge_feat: Edge features
+        :param node_feat: Node features
+        :param graph_attr: Graph attributes (global state)
+        :return: (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
@@ -201,9 +202,7 @@ class MEGNetBlock(Module):
         node_feat = self.node_func(node_feat)
         graph_attr = self.attr_func(graph_attr)
 
-        edge_feat, node_feat, graph_attr = self.conv(
-            graph, edge_feat, node_feat, graph_attr
-        )
+        edge_feat, node_feat, graph_attr = self.conv(graph, edge_feat, node_feat, graph_attr)
 
         if self.dropout:
             edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102

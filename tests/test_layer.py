@@ -4,8 +4,7 @@ import dgl
 import torch as th
 import torch.nn as nn
 
-from megnet.layers import MEGNetBlock, MEGNetGraphConv
-from megnet.models import MLP
+from megnet.models.layers import MLP, MEGNetBlock, MEGNetGraphConv
 
 Graph = namedtuple("Graph", "graph, graph_attr")
 

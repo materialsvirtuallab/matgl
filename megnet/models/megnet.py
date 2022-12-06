@@ -6,11 +6,11 @@ from __future__ import annotations
 import dgl
 import torch
 import torch.nn as nn
-
 from dgl.nn import Set2Set
-from torch.nn import Dropout, Identity, Module, ModuleList, Softplus
+from torch.nn import Dropout, Identity, Module, ModuleList
 
 from .helper import MLP, EdgeSet2Set
+from .layers import MEGNetBlock
 
 
 class MEGNet(Module):
@@ -33,6 +33,7 @@ class MEGNet(Module):
         edge_embed: Module | None = None,
         attr_embed: Module | None = None,
         dropout: float | None = None,
+        graph_transformations: list | None = None,
     ) -> None:
         """
         TODO: Add docs.
@@ -49,6 +50,8 @@ class MEGNet(Module):
         :param edge_embed:
         :param attr_embed:
         :param dropout:
+        :param graph_transform: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
+            performing the GCL updates.
         """
         super().__init__()
 
@@ -65,9 +68,7 @@ class MEGNet(Module):
         elif act == "tanh":
             activation = nn.Tanh()
         else:
-            raise Exception(
-                "Undefined activation type, please try using swish, sigmoid, tanh"
-            )
+            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh")
 
         self.edge_encoder = MLP(dims, activation, activate_last=True)
         self.node_encoder = MLP(dims, activation, activate_last=True)
@@ -75,11 +76,8 @@ class MEGNet(Module):
 
         blocks_in_dim = hiddens[-1]
         block_out_dim = conv_hiddens[-1]
-        block_args = dict(
-            conv_hiddens=conv_hiddens, dropout=dropout, act=activation, skip=True
-        )
+        block_args = dict(conv_hiddens=conv_hiddens, dropout=dropout, act=activation, skip=True)
         blocks = []
-        from ..layers import MEGNetBlock
 
         # first block
         blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))  # type: ignore
@@ -103,6 +101,7 @@ class MEGNet(Module):
         # TODO(marcel): should this be an 1D dropout
 
         self.is_classification = is_classification
+        self.graph_transformations = graph_transformations or [Identity()] * num_blocks
 
     def forward(
         self,
@@ -110,21 +109,23 @@ class MEGNet(Module):
         edge_feat: torch.Tensor,
         node_feat: torch.Tensor,
         graph_attr: torch.Tensor,
-    ) -> None:
+    ):
         """
         TODO: Add docs.
-        :param graph:
-        :param edge_feat:
-        :param node_feat:
-        :param graph_attr:
-        :return:
+        :param graph: Input graph
+        :param edge_feat: Edge features
+        :param node_feat: Node features
+        :param graph_attr: Graph attributes / state features.
+        :return: Prediction
         """
 
+        graph_transformations = self.graph_transformations
         edge_feat = self.edge_encoder(self.edge_embed(edge_feat))
         node_feat = self.node_encoder(self.node_embed(node_feat))
         graph_attr = self.attr_encoder(self.attr_embed(graph_attr))
 
-        for block in self.blocks:
+        for i, block in enumerate(self.blocks):
+            graph = graph_transformations[i](graph)
             output = block(graph, edge_feat, node_feat, graph_attr)
             edge_feat, node_feat, graph_attr = output
 

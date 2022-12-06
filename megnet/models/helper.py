@@ -12,7 +12,7 @@ from torch.nn import LSTM, Linear, Module, ModuleList
 
 class MLP(Module):
     """
-    An implementation of a multi-layer perception.
+    An implementation of a multi-layer perceptron.
     """
 
     def __init__(
