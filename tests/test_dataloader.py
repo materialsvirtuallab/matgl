@@ -5,7 +5,7 @@ import numpy as np
 from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
 
-from megnet.dataloader.MEGNetDataset import MEGNetDataLoader, MEGNetDataset, _collate_fn
+from megnet.dataloader.dataset import MEGNetDataLoader, MEGNetDataset, _collate_fn
 from megnet.graph.converters import Pmg2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))

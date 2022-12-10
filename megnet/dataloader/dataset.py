@@ -8,7 +8,7 @@ import torch
 from dgl.data import DGLDataset
 from dgl.data.utils import load_graphs, save_graphs
 from torch.utils.data import DataLoader
-from tqdm import trange
+from tqdm import tqdm
 
 
 def _collate_fn(batch):
@@ -84,20 +84,18 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(os.getcwd(), filename)
-        return os.path.exists(graph_path)
+        return os.path.exists(filename)
 
     def process(self):
         """
         Convert Pymatgen structure into dgl graphs
         """
-        num_graphs = self.labels.shape[0]
-        self.graphs = []
+        graphs = []
 
-        for idx in trange(num_graphs):
-            structure = self.structures[idx]
+        for structure in tqdm(self.structures):
             graph, state_attr = self.cry_graph.get_graph_from_structure(structure=structure)
-            self.graphs.append(graph)
+            graphs.append(graph)
+        self.graphs = graphs
         return self.graphs
 
     def save(self, filename="dgl_graph.bin"):
@@ -106,9 +104,8 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(os.getcwd(), filename)
         labels_with_key = {self.label_name: self.labels}
-        save_graphs(graph_path, self.graphs, labels_with_key)
+        save_graphs(filename, self.graphs, labels_with_key)
 
     def load(self, filename="dgl_graph.bin"):
         """
@@ -116,8 +113,7 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(os.getcwd(), filename)
-        self.graphs, label_dict = load_graphs(graph_path)
+        self.graphs, label_dict = load_graphs(filename)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
 
     def __getitem__(self, idx):
