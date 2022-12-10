@@ -79,45 +79,45 @@ class MEGNetDataset(DGLDataset):
         self.path = os.getcwd()
         super().__init__(name="MEGNetDataset")
 
-    def has_cache(self):
+    def has_cache(self, filename="dgl_graph.bin"):
         """
         Check if the dgl_graph.bin exists or not
+        Args:
+        :filename: Name of file storing dgl graphs
         """
-        graph_path = str(self.path) + "/dgl_graph.bin"
+        graph_path = os.path.join(self.path, filename)
         return os.path.exists(graph_path)
 
     def process(self):
         """
-        Call _load_graph to convert Pymatgen structure into dgl graphs
-        """
-        self.graphs = self._load_graph()
-
-    def _load_graph(self):
-        """
-        Function for converting Pymatgen structure into dgl graphs
+        Convert Pymatgen structure into dgl graphs
         """
         num_graphs = self.labels.shape[0]
-        graphs = []
+        self.graphs = []
 
         for idx in trange(num_graphs):
             structure = self.structures[idx]
             graph, state_attr = self.cry_graph.get_graph_from_structure(structure=structure)
-            graphs.append(graph)
-        return graphs
+            self.graphs.append(graph)
+        return self.graphs
 
-    def save(self):
+    def save(self, filename="dgl_graph.bin"):
         """
         Save dgl graphs
+        Args:
+        :filename: Name of file storing dgl graphs
         """
-        graph_path = str(self.path) + "/dgl_graph.bin"
+        graph_path = os.path.join(self.path, filename)
         labels_with_key = {self.label_name: self.labels}
         save_graphs(graph_path, self.graphs, labels_with_key)
 
-    def load(self):
+    def load(self, filename="dgl_graph.bin"):
         """
         Load dgl graphs
+        Args:
+        :filename: Name of file storing dgl graphs
         """
-        graph_path = str(self.path) + "/dgl_graph.bin"
+        graph_path = os.path.join(self.path, filename)
         self.graphs, label_dict = load_graphs(graph_path)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
 
