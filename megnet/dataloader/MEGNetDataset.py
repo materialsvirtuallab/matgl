@@ -76,7 +76,6 @@ class MEGNetDataset(DGLDataset):
         self.structures = structures
         self.labels = torch.FloatTensor(labels)
         self.label_name = label_name
-        self.path = os.getcwd()
         super().__init__(name="MEGNetDataset")
 
     def has_cache(self, filename="dgl_graph.bin"):
@@ -85,7 +84,7 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(self.path, filename)
+        graph_path = os.path.join(os.getcwd(), filename)
         return os.path.exists(graph_path)
 
     def process(self):
@@ -107,7 +106,7 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(self.path, filename)
+        graph_path = os.path.join(os.getcwd(), filename)
         labels_with_key = {self.label_name: self.labels}
         save_graphs(graph_path, self.graphs, labels_with_key)
 
@@ -117,7 +116,7 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(self.path, filename)
+        graph_path = os.path.join(os.getcwd(), filename)
         self.graphs, label_dict = load_graphs(graph_path)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
 
