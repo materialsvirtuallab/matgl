@@ -90,12 +90,9 @@ class MEGNetDataset(DGLDataset):
         """
         Convert Pymatgen structure into dgl graphs
         """
-        graphs = []
-
-        for structure in tqdm(self.structures):
-            graph, state_attr = self.cry_graph.get_graph_from_structure(structure=structure)
-            graphs.append(graph)
-        self.graphs = graphs
+        self.graphs = [
+            self.cry_graph.get_graph_from_structure(structure=structure)[0] for structure in tqdm(self.structures)
+        ]
         return self.graphs
 
     def save(self, filename="dgl_graph.bin"):
