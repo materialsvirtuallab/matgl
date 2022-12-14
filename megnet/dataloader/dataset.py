@@ -1,6 +1,8 @@
 """
 Tools to construct a dataloader for DGL grphs
 """
+from __future__ import annotations
+
 import os
 
 import dgl
@@ -78,15 +80,16 @@ class MEGNetDataset(DGLDataset):
         self.label_name = label_name
         super().__init__(name=name)
 
-    def has_cache(self, filename="dgl_graph.bin"):
+    def has_cache(self, filename="dgl_graph.bin") -> bool:
         """
         Check if the dgl_graph.bin exists or not
         Args:
-        :filename: Name of file storing dgl graphs
+            :filename: Name of file storing dgl graphs
+        Returns: True if file exists.
         """
         return os.path.exists(filename)
 
-    def process(self):
+    def process(self) -> list:
         """
         Convert Pymatgen structure into dgl graphs
         """
