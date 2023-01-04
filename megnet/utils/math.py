@@ -398,3 +398,21 @@ def cosine_cutoff(r: torch.tensor, cutoff: float) -> torch.tensor:
 
     """
     return torch.where(r <= cutoff, torch.math.cos(np.pi * r / cutoff), 0.0)
+
+
+def get_segment_indices_from_n(ns: torch.tensor) -> torch.tensor:
+    """
+    Get segment indices from number array. For example if
+    ns = [2, 3], then the function will return [0, 0, 1, 1, 1]
+
+    Args:
+        ns: tf.Tensor, the number of atoms/bonds array
+
+    Returns:
+        object:
+
+    Returns: segment indices tensor
+    """
+    B = ns
+    A = torch.arange(B.size(dim=0))
+    return A.repeat_interleave(B, dim=0)
