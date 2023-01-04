@@ -2,7 +2,6 @@ import os
 import unittest
 
 import numpy as np
-import torch
 from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
@@ -13,15 +12,15 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 class GaussianExpansionTest(unittest.TestCase):
     def test_call(self):
-        bond_dist = torch.tensor([1.0])
+        bond_dist = 1.0
         dist_converter = GaussianExpansion()
         expanded_dist = dist_converter(bond_dist)
         # check the shape of a vector
-        self.assertTrue(np.allclose([expanded_dist.size(dim=0), expanded_dist.size(dim=1)], [1, 20]))
+        self.assertTrue(np.allclose(expanded_dist.shape, [20]))
         # check the first value of expanded distance
-        self.assertTrue(np.allclose(expanded_dist[0][0], np.exp(-0.5 * np.power(1.0 - 0.0, 2.0))))
+        self.assertTrue(np.allclose(expanded_dist[0], np.exp(-0.5 * np.power(1.0 - 0.0, 2.0))))
         # check the last value of expanded distance
-        self.assertTrue(np.allclose(expanded_dist[0][-1], np.exp(-0.5 * np.power(1.0 - 4.0, 2.0))))
+        self.assertTrue(np.allclose(expanded_dist[-1], np.exp(-0.5 * np.power(1.0 - 4.0, 2.0))))
 
 
 class Pmg2GraphTest(PymatgenTest):
@@ -51,7 +50,7 @@ class Pmg2GraphTest(PymatgenTest):
         self.assertTrue(np.allclose(graph.ndata["attr"][1], [1, 0]))
         # check the edge features of atom 0 and atom 1
         dist_converter = GaussianExpansion()
-        self.assertTrue(np.allclose(graph.edata["edge_attr"][0].numpy(), dist_converter(torch.tensor([1.089])).numpy()))
+        self.assertTrue(np.allclose(graph.edata["edge_attr"][0].numpy(), dist_converter(1.089).numpy()))
         # check the shape of state features
         self.assertTrue(np.allclose(len(state), 2))
         # check the value of state features

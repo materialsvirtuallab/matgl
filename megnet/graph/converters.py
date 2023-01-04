@@ -79,7 +79,7 @@ class GaussianExpansion(nn.Module):
         -------
         A vector of expanded distance with shape [num_centers]
         """
-        diff = bond_dists[:, None] - self.centers[None, :]
+        diff = bond_dists - self.centers
         return torch.exp(-self.width * (diff**2))
 
 
@@ -144,13 +144,11 @@ class Pmg2Graph:
         edge_rbf_list = []
         g = dgl.graph((u, v))
         for i in range(g.num_edges()):
-            #            rbf_dist = dist_converter(torch.tensor(dist[u[i]][v[i]])).detach().numpy()
-            rbf_dist = dist[u[i]][v[i]]
+            rbf_dist = dist_converter(dist[u[i]][v[i]]).detach().numpy()
             edge_rbf_list += [rbf_dist]
-        #        edge_rbf_list = np.array(edge_rbf_list).astype(np.float64)
+        edge_rbf_list = np.array(edge_rbf_list).astype(np.float64)
         g = dgl.to_bidirected(g)
-        #        g.edata["edge_attr"] = tensor(edge_rbf_list)
-        g.edata["edge_attr"] = dist_converter(torch.tensor(edge_rbf_list))
+        g.edata["edge_attr"] = tensor(edge_rbf_list)
         g.ndata["attr"] = tensor(Z)
         state_attr = [weight, nbonds]
         return g, state_attr
@@ -193,12 +191,14 @@ class Pmg2Graph:
             num_centers=self.num_centers,
             width=self.width,
         )
+        edge_rbf_list = []
         u, v = tensor(src_id), tensor(dst_id)
         g = dgl.graph((u, v))
-        #        for i in range(g.num_edges()):
-        #            rbf_dist = dist_converter(torch.tensor(bond_dist[i])).detach().numpy()
-        #            edge_rbf_list += [rbf_dist]
-        g.edata["edge_attr"] = dist_converter(torch.tensor(bond_dist))
+        for i in range(g.num_edges()):
+            rbf_dist = dist_converter(bond_dist[i]).detach().numpy()
+            edge_rbf_list += [rbf_dist]
+        edge_rbf_list = np.array(edge_rbf_list).astype(np.float64)
+        g.edata["edge_attr"] = tensor(edge_rbf_list)
         g.ndata["attr"] = tensor(Z)
         state_attr = [0.0, 0.0]
 
