@@ -5,7 +5,7 @@ import numpy as np
 from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
 
-from megnet.dataloader.MEGNetDataset import MEGNetDataLoader, MEGNetDataset, _collate_fn
+from megnet.dataloader.dataset import MEGNetDataLoader, MEGNetDataset, _collate_fn
 from megnet.graph.converters import Pmg2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +19,7 @@ class MEGNetDatasetTest(PymatgenTest):
         label = [-1.0, 2.0]
         element_types = get_element_list([s1, s2])
         cry_graph = Pmg2Graph(element_types=element_types, cutoff=4.0, num_centers=10)
-        dataset = MEGNetDataset(structures=structures, cry_graph=cry_graph, labels=label, label_name="label")
+        dataset = MEGNetDataset(structures=structures, crystal2graph=cry_graph, labels=label, label_name="label")
         g1, label1 = dataset[0]
         g2, label2 = dataset[1]
         self.assertTrue(label1 == label[0])
@@ -35,7 +35,7 @@ class MEGNetDatasetTest(PymatgenTest):
         label = np.zeros(20)
         element_types = get_element_list([s1, s2])
         cry_graph = Pmg2Graph(element_types=element_types, cutoff=4.0, num_centers=10)
-        dataset = MEGNetDataset(structures=structures, cry_graph=cry_graph, labels=label, label_name="label")
+        dataset = MEGNetDataset(structures=structures, crystal2graph=cry_graph, labels=label, label_name="label")
         train_data, val_data, test_data = split_dataset(
             dataset,
             frac_list=[0.8, 0.1, 0.1],

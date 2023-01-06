@@ -1,6 +1,8 @@
 """
 Tools to construct a dataloader for DGL grphs
 """
+from __future__ import annotations
+
 import os
 
 import dgl
@@ -8,7 +10,7 @@ import torch
 from dgl.data import DGLDataset
 from dgl.data.utils import load_graphs, save_graphs
 from torch.utils.data import DataLoader
-from tqdm import trange
+from tqdm import tqdm
 
 
 def _collate_fn(batch):
@@ -64,40 +66,36 @@ class MEGNetDataset(DGLDataset):
     Create a dataset including dgl graphs
     """
 
-    def __init__(self, structures, labels, label_name, cry_graph):
+    def __init__(self, structures, labels, label_name, crystal2graph, name="MEGNETDataset"):
         """
         Args:
         structures: Pymatgen strutcure
         labels: property values
         label: label name
-        cry_graph: Pmg2Graph
+        crystal2graph: Transformer for converting crystals to DGL graphs, e.g., Pmg2Graph.
         """
-        self.cry_graph = cry_graph
+        self.crystal2graph = crystal2graph
         self.structures = structures
         self.labels = torch.FloatTensor(labels)
         self.label_name = label_name
-        super().__init__(name="MEGNetDataset")
+        super().__init__(name=name)
 
-    def has_cache(self, filename="dgl_graph.bin"):
+    def has_cache(self, filename="dgl_graph.bin") -> bool:
         """
         Check if the dgl_graph.bin exists or not
         Args:
-        :filename: Name of file storing dgl graphs
+            :filename: Name of file storing dgl graphs
+        Returns: True if file exists.
         """
-        graph_path = os.path.join(os.getcwd(), filename)
-        return os.path.exists(graph_path)
+        return os.path.exists(filename)
 
-    def process(self):
+    def process(self) -> list:
         """
         Convert Pymatgen structure into dgl graphs
         """
-        num_graphs = self.labels.shape[0]
-        self.graphs = []
-
-        for idx in trange(num_graphs):
-            structure = self.structures[idx]
-            graph, state_attr = self.cry_graph.get_graph_from_structure(structure=structure)
-            self.graphs.append(graph)
+        self.graphs = [
+            self.crystal2graph.get_graph_from_structure(structure=structure)[0] for structure in tqdm(self.structures)
+        ]
         return self.graphs
 
     def save(self, filename="dgl_graph.bin"):
@@ -106,9 +104,8 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(os.getcwd(), filename)
         labels_with_key = {self.label_name: self.labels}
-        save_graphs(graph_path, self.graphs, labels_with_key)
+        save_graphs(filename, self.graphs, labels_with_key)
 
     def load(self, filename="dgl_graph.bin"):
         """
@@ -116,8 +113,7 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(os.getcwd(), filename)
-        self.graphs, label_dict = load_graphs(graph_path)
+        self.graphs, label_dict = load_graphs(filename)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
 
     def __getitem__(self, idx):
