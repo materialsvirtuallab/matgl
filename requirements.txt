@@ -1,6 +1,6 @@
 numpy==1.24.1
 dgl==0.9.1
-torch==1.13.0
+torch==1.13.1
 torchaudio==0.13.0
 torchvision==0.14.0
 pymatgen==2022.11.7
