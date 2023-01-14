@@ -89,16 +89,19 @@ def set_seed(seed: int) -> None:
     dgl_seed(seed)
 
 
-def create_dataloaders(config: Munch, data: tuple):
+def create_dataloaders(config: Munch, data: tuple, use_ddp=False):
     dataloaders = namedtuple("Dataloaders", ["train", "val", "test"])
 
     dataloaders.train = GraphDataLoader(
         data.train,
         pin_memory=False,
+        use_ddp=use_ddp,
         batch_size=config.data.batch_size
         # **config.experiment.train,
     )
-    dataloaders.val = GraphDataLoader(data.val)  # , **config.experiment.val)
+    dataloaders.val = GraphDataLoader(data.val,
+                    use_ddp=use_ddp,
+    )  # , **config.experiment.val)
     dataloaders.test = GraphDataLoader(data.test)  # , **config.experiment.test)
 
     return dataloaders
