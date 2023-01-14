@@ -1,6 +1,8 @@
 """
 Tools to construct a dataloader for DGL grphs
 """
+from __future__ import annotations
+
 import os
 
 import dgl
@@ -64,34 +66,35 @@ class MEGNetDataset(DGLDataset):
     Create a dataset including dgl graphs
     """
 
-    def __init__(self, structures, labels, label_name, cry_graph):
+    def __init__(self, structures, labels, label_name, crystal2graph, name="MEGNETDataset"):
         """
         Args:
         structures: Pymatgen strutcure
         labels: property values
         label: label name
-        cry_graph: Pmg2Graph
+        crystal2graph: Transformer for converting crystals to DGL graphs, e.g., Pmg2Graph.
         """
-        self.cry_graph = cry_graph
+        self.crystal2graph = crystal2graph
         self.structures = structures
         self.labels = torch.FloatTensor(labels)
         self.label_name = label_name
-        super().__init__(name="MEGNetDataset")
+        super().__init__(name=name)
 
-    def has_cache(self, filename="dgl_graph.bin"):
+    def has_cache(self, filename="dgl_graph.bin") -> bool:
         """
         Check if the dgl_graph.bin exists or not
         Args:
-        :filename: Name of file storing dgl graphs
+            :filename: Name of file storing dgl graphs
+        Returns: True if file exists.
         """
         return os.path.exists(filename)
 
-    def process(self):
+    def process(self) -> list:
         """
         Convert Pymatgen structure into dgl graphs
         """
         self.graphs = [
-            self.cry_graph.get_graph_from_structure(structure=structure)[0] for structure in tqdm(self.structures)
+            self.crystal2graph.get_graph_from_structure(structure=structure)[0] for structure in tqdm(self.structures)
         ]
         return self.graphs
 
