@@ -202,8 +202,5 @@ if __name__ == "__main__":
 
     args = argparser.parse_args()
     set_seed(args.seed)
-#    config = prepare_config(f'./configs/{args.config_name}.yaml')
-#    data = prepare_data(config)
     print(args)
     mp.spawn(run, args=[args], nprocs=args.n_gpus)
-#    mp.spawn(run, args=(args, config, data), nprocs=args.n_gpus)
