@@ -71,11 +71,45 @@ def compute_3body(g):
     return l_g, triple_bond_indices, n_triple_ij, n_triple_i, np.array(n_triple_s, dtype=np.int32)
 
 
+def compute_pair_vector_and_distance(g):
+    """
+    Calculate bond vectors and distances using dgl graphs
+
+    Args:
+    g: DGL graph
+
+    Returns:
+    bond_vec (torch.tensor): bond distance between two atoms
+    bond_dist (torch.tensor): vector from src node to dst node
+    """
+    atom_pos = g.ndata["pos"]
+    bond_vec = torch.zeros(g.num_edges(), 3)
+    bond_dist = torch.zeros(g.num_edges())
+    for i in range(g.num_edges()):
+        bond_vec[i, :] = (
+            atom_pos[g.edges()[1][i], :]
+            + torch.sum(torch.squeeze(g.edata["pbc_offset"][i][:] * g.edata["lattice"][i][:, None]), dim=0)
+            - atom_pos[g.edges()[0][i], :]
+        )
+    bond_dist = torch.norm(bond_vec, dim=1)
+    return bond_vec, bond_dist
+
+
 def compute_theta_and_phi(edges):
+    """
+    Calculate bond angle Theta and Phi using dgl graphs
+
+    Args:
+    g: DGL graph
+
+    Returns:
+    cos_theta: torch.tensor
+    phi: torch.tensor
+    triple_bond_lengths (torch.tensor):
+    """
     vec1 = edges.src["bond_vec"]
     vec2 = edges.dst["bond_vec"]
     cosine_theta = torch.sum(vec1 * vec2, dim=1) / (torch.norm(vec1, dim=1) * torch.norm(vec2, dim=1))
-    edges.src["bond_dist"]
     return {
         "cos_theta": cosine_theta,
         "phi": torch.zeros_like(cosine_theta),

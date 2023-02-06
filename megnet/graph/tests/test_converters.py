@@ -5,7 +5,7 @@ import numpy as np
 from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
-from m3gnet.graph.converters import Pmg2Graph, get_element_list
+from megnet.graph.converters import Pmg2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,8 +41,6 @@ class Pmg2GraphTest(PymatgenTest):
         self.assertTrue(np.allclose(state, [3.208492, 0.8]))
         # check the position of atom 0
         self.assertTrue(np.allclose(graph.ndata["pos"][0], [0.000000, 0.000000, 0.000000]))
-        # check the position vector from atom 0 to atom 1
-        self.assertTrue(np.allclose(graph.edata["bond_vec"][0], [0.000000, 0.000000, 1.0890]))
 
     def test_get_graph_from_structure(self):
         structure_LiFePO4 = self.get_structure("LiFePO4")
@@ -75,12 +73,10 @@ class Pmg2GraphTest(PymatgenTest):
         self.assertTrue(np.allclose(state, [0.0, 0.0]))
         # check the position of atom 0
         self.assertTrue(np.allclose(graph.ndata["pos"][0], [0.0, 0.0, 0.0]))
-        # check the bond vector from node 0 to image atom 6
-        self.assertTrue(np.allclose(graph.edata["bond_vec"][0], [-2.0200, -2.0200, -2.0200]))
         # check the pbc offset from node 0 to image atom 6
         self.assertTrue(np.allclose(graph.edata["pbc_offset"][0], [-1, -1, -1]))
         # cheeck the lattice vector
-        self.assertTrue(np.allclose(graph.ndata["lattice"][0], [[4.04, 0.0, 0.0], [0.0, 4.04, 0.0], [0.0, 0.0, 4.04]]))
+        self.assertTrue(np.allclose(graph.edata["lattice"][0], [[4.04, 0.0, 0.0], [0.0, 4.04, 0.0], [0.0, 0.0, 4.04]]))
         # check the volume
         self.assertTrue(np.allclose(graph.ndata["volume"][0], [65.939264]))
 

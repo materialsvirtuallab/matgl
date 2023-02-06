@@ -11,8 +11,10 @@ from math import pi, sqrt
 import numpy as np
 import sympy
 import torch
+import torch.nn as nn
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
+from torch_scatter import scatter
 
 from megnet.config import DataType
 
@@ -23,6 +25,61 @@ Precomputed Spherical Bessel function roots in a 2D array with dimension [128, 1
 order l Spherical Bessel function is the `[l, n]` entry.
 """
 SPHERICAL_BESSEL_ROOTS = np.load(os.path.join(CWD, "sb_roots.npy"))
+
+
+class GaussianExpansion(nn.Module):
+    r"""
+    Gaussian Radial Expansion.
+    The bond distance is expanded to a vector of shape [m],
+    where m is the number of Gaussian basis centers
+    """
+
+    def __init__(
+        self,
+        initial: float = 0.0,
+        final: float = 4.0,
+        num_centers: int = 20,
+        width: None | float = 0.5,
+    ):
+        """
+        Parameters
+        ----------
+        initial : float
+                Location of initial Gaussian basis center.
+        final : float
+                Location of final Gaussian basis center
+        number : int
+                Number of Gaussian Basis functions
+        width : float
+                Width of Gaussian Basis functions
+        """
+        super().__init__()
+        self.centers = np.linspace(initial, final, num_centers)
+        self.centers = nn.Parameter(torch.tensor(self.centers).float(), requires_grad=False)
+        if width is None:
+            self.width = float(1.0 / np.diff(self.centers).mean())
+        else:
+            self.width = width
+
+    def reset_parameters(self):
+        """Reinitialize model parameters."""
+        device = self.centers.device
+        self.centers = nn.Parameter(self.centers.clone().detach().float(), requires_grad=False).to(device)
+
+    def forward(self, bond_dists):
+        """Expand distances.
+
+        Parameters
+        ----------
+        bond_dists :
+            Bond (edge) distances between two atoms (nodes)
+
+        Returns
+        -------
+        A vector of expanded distance with shape [num_centers]
+        """
+        diff = bond_dists[:, None] - self.centers[None, :]
+        return torch.exp(-self.width * (diff**2))
 
 
 @lru_cache(maxsize=128)
@@ -164,34 +221,6 @@ def _conjugate(x):
     return torch.conj(x)
 
 
-class Gaussian:
-    """
-    Gaussian expansion function
-    """
-
-    def __init__(self, centers: torch.tensor | np.ndarray, width: float, **kwargs):
-        """
-        Args:
-            centers (torch.tensor or np.ndarray): Gaussian centers for the
-                expansion
-            width (float): Gaussian width
-            **kwargs:
-        """
-        self.centers = torch.tensor(centers)
-        self.width = width
-
-    def __call__(self, r: torch.tensor) -> torch.tensor:
-        """
-        Convert the radial distances into Gaussian functions
-        Args:
-            r (torch.tensor): radial distances
-        Returns: Gaussian expanded vectors
-
-        """
-        r = torch.tensor(r)
-        return torch.exp(-((r[:, None] - self.centers[None, :]) ** 2) / self.width**2)
-
-
 class SphericalHarmonicsFunction:
     """
     Spherical Harmonics function
@@ -252,7 +281,7 @@ def _block_repeat(array, block_size, repeats):
     return torch.index_select(array, 1, indices)
 
 
-def combine_sbf_shf(sbf: torch.tensor, shf: torch.tensor, max_n: int, max_l: int, use_phi: bool):
+def combine_sbf_shf(sbf: torch.tensor, shf: torch.tensor, max_n: int, max_l: int, use_phi: bool, use_smooth: bool):
     """
     Combine the spherical Bessel function and the spherical Harmonics function
 
@@ -373,28 +402,115 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
     return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr]
 
 
-def polynomial_cutoff(r: torch.tensor, cutoff: float) -> torch.tensor:
+def get_segment_indices_from_n(ns: torch.tensor) -> torch.tensor:
     """
-    Polynomial cutoff function
+    Get segment indices from number array. For example if
+    ns = [2, 3], then the function will return [0, 0, 1, 1, 1]
+
     Args:
-        r (tf.Tensor): radius distance tensor
-        cutoff (float): cutoff distance
+        ns: torch.tensor, the number of atoms/bonds array
 
-    Returns: polynomial cutoff functions
+    Returns:
+        object:
 
+    Returns: segment indices tensor
     """
-    ratio = r / cutoff
-    return torch.where(r <= cutoff, 1 - 6 * ratio**5 + 15 * ratio**4 - 10 * ratio**3, 0.0)
+    B = ns
+    A = torch.arange(B.size(dim=0))
+    return A.repeat_interleave(B, dim=0)
 
 
-def cosine_cutoff(r: torch.tensor, cutoff: float) -> torch.tensor:
+def get_range_indices_from_n(ns: torch.tensor) -> torch.tensor:
     """
-    Cosine cutoff function
+    Give ns = [2, 3], return [0, 1, 0, 1, 2]
     Args:
-        r (tf.Tensor): radius distance tensor
-        cutoff (float): cutoff distance
+        ns: torch.tensor, the number of atoms/bonds array
 
-    Returns: cosine cutoff functions
+    Returns: range indices
+    """
+    max_n = torch.max(ns)
+    n = ns.size(dim=0)
+    n_range = torch.arange(max_n)
+    matrix = n_range.tile(
+        [n, 1],
+    )
+    mask = torch.arange(max_n)[None, :] < ns[:, None]
+
+    #    return matrix[mask]
+    return torch.masked_select(matrix, mask)
+
+
+def unsorted_segment_fraction(data, segment_ids, num_segments):
+    """
+    Segment fraction
+    Args:
+        data (torch.tensor): original data
+        segment_ids (torch.tensor): segment ids
+        num_segments (torch.tensor): number of segments
+    Returns:
+        data (torch.tensor): data after fraction
+    """
+    segment_sum = scatter(data, segment_ids, dim=0, reduce="sum")
+    sums = torch.gather(segment_sum, 0, segment_ids)
+    data = torch.div(data, sums)
+    return data
+
+
+def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
+    """
+    Unsorted segment softmax with optional weights
+    Args:
+        data (tf.Tensor): original data
+        segment_ids (tf.Tensor): tensor segment ids
+        num_segments (int): number of segments
+    Returns: tf.Tensor
+    """
+    if weights is None:
+        weights = torch.ones(1)
+    segment_max = scatter(data, segment_ids, dim=0, reduce="max")
+    maxes = torch.gather(segment_max, 0, segment_ids)
+    data -= maxes
+    exp = torch.exp(data) * torch.squeeze(weights)
+    softmax = torch.div(exp, torch.gather(scatter(exp, segment_ids, dim=0, reduce="sum"), 0, segment_ids))
+    return softmax
+
+
+def repeat_with_n(ns: torch.tensor, n: torch.tensor) -> torch.tensor:
+    """
+    Repeat the first dimension according to n array.
+    Args:
+        ns (torch.tensor): tensor
+        n (torch.tensor): a list of replications
+
+    Returns: repeated tensor
 
     """
-    return torch.where(r <= cutoff, torch.math.cos(np.pi * r / cutoff), 0.0)
+    return torch.repeat_interleave(ns, n, dim=0)
+
+
+def broadcast_states_to_bonds(g, state_feat):
+    """
+    Broadcast state attributes of shape [Ns, Nstate] to
+    bond attributes shape [Nb, Nstate]
+    Args:
+        g: DGL graph
+        state_feat: state_feature
+
+    Returns: broadcasted state attributes
+
+    """
+    return state_feat.repeat((g.num_edges(), 1))
+
+
+def broadcast_states_to_atoms(g, state_feat):
+    """
+    Broadcast state attributes of shape [Ns, Nstate] to
+    bond attributes shape [Nb, Nstate]
+    Args:
+        g: DGL graph
+        state_feat: state_feature
+
+    Returns: broadcasted state attributes
+
+    """
+    return state_feat.repeat((g.num_nodes(), 1))
