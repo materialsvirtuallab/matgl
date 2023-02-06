@@ -203,7 +203,7 @@ class M3GNetBlock(Module):
         num_state_feats: None,
         conv_hiddens: list[int],
         activation: Module,
-        include_states: bool = None,
+        include_states: bool = False,
         dropout: float | None = None,
     ) -> None:
         """

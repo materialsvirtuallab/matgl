@@ -10,10 +10,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from munch import Munch
 from tqdm import tqdm
+from utils import utils
 
 from megnet.models import MEGNet
 from megnet.models.helper import MLP
-from utils import utils
 
 
 def train(

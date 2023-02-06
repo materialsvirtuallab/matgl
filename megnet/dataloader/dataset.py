@@ -76,7 +76,7 @@ class MEGNetDataset(DGLDataset):
         structures,
         labels,
         label_name,
-        crystal2graph,
+        converter,
         initial=0.0,
         final=5.0,
         num_centers=20,
@@ -88,13 +88,13 @@ class MEGNetDataset(DGLDataset):
         structures: Pymatgen strutcure
         labels: property values
         label: label name
-        crystal2graph: Transformer for converting crystals to DGL graphs, e.g., Pmg2Graph.
+        converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
         initial: initial distance for Gaussian expansions
         final: final distance for Gaussian expansions
         num_centers: number of Gaussian functions
         width: width of Gaussian functions
         """
-        self.crystal2graph = crystal2graph
+        self.converter = converter
         self.structures = structures
         self.labels = torch.FloatTensor(labels)
         self.label_name = label_name
