@@ -120,11 +120,11 @@ class M3GNet(nn.Module):
             degree_rbf = max_n * max_l
         layer = M3GNetBlock(
             degree=degree_rbf,
+            activation=self.activation,
+            conv_hiddens=[units, units],
             num_node_feats=num_node_feats,
             num_edge_feats=num_edge_feats,
             num_state_feats=num_state_feats,
-            conv_hiddens=[units, units],
-            activation=self.activation,
             include_states=include_states,
         )
         self.graph_layers = []

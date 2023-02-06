@@ -6,10 +6,11 @@ from __future__ import annotations
 import dgl
 import torch
 import torch.nn as nn
-from m3gnet.layers.core import MLP, GatedMLP
-from m3gnet.utils.maths import broadcast_states_to_bonds
 from torch.nn import Dropout, Module
 from torch_scatter import scatter_sum
+
+from megnet.layers.core import MLP, GatedMLP
+from megnet.utils.maths import broadcast_states_to_bonds
 
 
 class M3GNetGraphConv(Module):
@@ -198,11 +199,11 @@ class M3GNetBlock(Module):
     def __init__(
         self,
         degree: int,
+        activation: Module,
+        conv_hiddens: list[int],
         num_node_feats: int,
         num_edge_feats: int,
-        num_state_feats: None,
-        conv_hiddens: list[int],
-        activation: Module,
+        num_state_feats: int | None = None,
         include_states: bool = False,
         dropout: float | None = None,
     ) -> None:

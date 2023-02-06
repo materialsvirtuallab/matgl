@@ -105,11 +105,11 @@ class TestGraphConv(unittest.TestCase):
         self.g1.edata["edge_feat"] = edge_feat
         graph_conv = M3GNetBlock(
             degree=3 * 3,
+            activation=nn.SiLU(),
+            conv_hiddens=[32, 16],
             num_node_feats=num_node_feats,
             num_edge_feats=num_edge_feats,
             num_state_feats=num_state_feats,
-            conv_hiddens=[32, 16],
-            activation=nn.SiLU(),
             include_states=True,
         )
         edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
