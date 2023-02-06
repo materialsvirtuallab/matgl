@@ -1,5 +1,5 @@
 numpy==1.24.2
-dgl==0.9.1
+dgl==1.0.0
 torch==1.13.1
 torchaudio==0.13.1
 torchvision==0.14.1
