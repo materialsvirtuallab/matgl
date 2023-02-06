@@ -1,6 +1,8 @@
 """
 Tools to construct a dataloader for DGL grphs
 """
+from __future__ import annotations
+
 import os
 
 import dgl
@@ -69,15 +71,30 @@ class MEGNetDataset(DGLDataset):
     Create a dataset including dgl graphs
     """
 
-    def __init__(self, structures, labels, label_name, converter, initial, final, num_centers, width):
+    def __init__(
+        self,
+        structures,
+        labels,
+        label_name,
+        crystal2graph,
+        initial=0.0,
+        final=5.0,
+        num_centers=20,
+        width=0.5,
+        name="MEGNETDataset",
+    ):
         """
         Args:
         structures: Pymatgen strutcure
         labels: property values
         label: label name
-        converter: Pmg2Graph converter
+        crystal2graph: Transformer for converting crystals to DGL graphs, e.g., Pmg2Graph.
+        initial: initial distance for Gaussian expansions
+        final: final distance for Gaussian expansions
+        num_centers: number of Gaussian functions
+        width: width of Gaussian functions
         """
-        self.converter = converter
+        self.crystal2graph = crystal2graph
         self.structures = structures
         self.labels = torch.FloatTensor(labels)
         self.label_name = label_name
@@ -85,18 +102,18 @@ class MEGNetDataset(DGLDataset):
         self.final = final
         self.num_centers = num_centers
         self.width = width
-        super().__init__(name="MEGNetDataset")
+        super().__init__(name=name)
 
-    def has_cache(self, filename="dgl_graph.bin"):
+    def has_cache(self, filename="dgl_graph.bin") -> bool:
         """
         Check if the dgl_graph.bin exists or not
         Args:
-        :filename: Name of file storing dgl graphs
+            :filename: Name of file storing dgl graphs
+        Returns: True if file exists.
         """
-        graph_path = os.path.join(os.getcwd(), filename)
-        return os.path.exists(graph_path)
+        return os.path.exists(filename)
 
-    def process(self):
+    def process(self) -> list:
         """
         Convert Pymatgen structure into dgl graphs
         """
@@ -127,9 +144,8 @@ class MEGNetDataset(DGLDataset):
         :filename: Name of file storing dgl graphs
         :filename_graph_attr: Name of file storing graph attrs
         """
-        graph_path = os.path.join(os.getcwd(), filename)
         labels_with_key = {self.label_name: self.labels}
-        save_graphs(graph_path, self.graphs, labels_with_key)
+        save_graphs(filename, self.graphs, labels_with_key)
         torch.save(self.graph_attr, filename_graph_attr)
 
     def load(self, filename="dgl_graph.bin", filename_graph_attr="graph_attr.pt"):
@@ -138,8 +154,7 @@ class MEGNetDataset(DGLDataset):
         Args:
         :filename: Name of file storing dgl graphs
         """
-        graph_path = os.path.join(os.getcwd(), filename)
-        self.graphs, label_dict = load_graphs(graph_path)
+        self.graphs, label_dict = load_graphs(filename)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
         self.graph_attr = torch.load("graph_attr.pt")
 
