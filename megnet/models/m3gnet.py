@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from dgl.nn import Set2Set
+from torch_scatter import scatter
 
 from megnet.graph.compute import (
     compute_pair_vector_and_distance,
@@ -21,6 +22,7 @@ from megnet.layers.embedding_block import EmbeddingBlock
 from megnet.layers.graph_conv import M3GNetBlock
 from megnet.layers.readout_block import ReduceReadOut, WeightedReadOut
 from megnet.layers.three_body import SphericalBesselWithHarmonics, ThreeBodyInteractions
+from megnet.utils.maths import get_segment_indices_from_n
 
 
 class M3GNet(nn.Module):
@@ -140,14 +142,15 @@ class M3GNet(nn.Module):
                 else:
                     readout_feats = 2 * num_node_feats
             else:
-                self.atom_readout = ReduceReadOut("mean", field="atoms")
+                self.atom_readout = ReduceReadOut("mean", field="node_feat")
                 if include_states:
                     readout_feats = num_node_feats + num_state_feats
                 else:
                     readout_feats = num_node_feats
             dims_final_layer = [readout_feats] + [units, units] + [num_targets]
             self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False)
-            self.sigmoid = nn.Sigmoid()
+            if task_type == "classification":
+                self.sigmoid = nn.Sigmoid()
 
         else:
             if task_type == "classification":
@@ -204,22 +207,24 @@ class M3GNet(nn.Module):
             edge_feat_new, node_feat_new, state_feat_new = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
             node_feat, edge_feat, state_feat = node_feat_new, edge_feat_new, state_feat_new
 
+        g.ndata["node_feat"] = node_feat
+        g.edata["edge_feat"] = edge_feat
+
         if self.is_intensive:
-            if self.readout == "set2set":
-                node_vec = self.atom_readout(g, g.ndata["node_feat"])
-            else:
-                node_vec = self.atom_readout(g)
+            node_vec = self.atom_readout(g)
             if self.include_states:
                 vec = torch.hsatack([node_vec, state_feat])
             else:
                 vec = node_vec
             output = self.final_layer(vec)
-            if self.is_classification:
+            if self.task_type == "classification":
                 output = self.sigmoid(output)
         else:
-            g.ndata["node_feat"] = node_feat
             atomic_properties = self.final_layer(g)
-            output = torch.sum(atomic_properties, 0)
+            segment_index = get_segment_indices_from_n(g.batch_num_nodes())
+            output = scatter(atomic_properties, segment_index, dim=0, reduce="sum", dim_size=g.batch_size)
         output = output * self.std + self.mean
+        property_offset = property_offset.reshape(property_offset.size(dim=0), -1)
+        #        output = output.reshape(-1,)
         output += property_offset
         return output

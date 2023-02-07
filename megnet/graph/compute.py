@@ -117,32 +117,35 @@ def compute_theta_and_phi(edges):
     }
 
 
-def create_line_graph(g, threebody_cutoff: float | None = None):
+def create_line_graph(g_batched, threebody_cutoff: float | None = None):
     """
     Calculate the three body indices from pair atom indices
 
     Args:
-        g: DGL graph
+        g_batched: Batched DGL graph
         threebody_cutoff (float): cutoff for three-body interactions
 
     Returns:
         l_g: DGL graph containing three body information from graph
     """
+    g_unbatched = dgl.unbatch(g_batched)
+    l_g_unbatched = []
+    for g in g_unbatched:
+        bond_atom_indices = g.edges()
+        n_bond = bond_atom_indices[0].size(dim=0)
+        if n_bond > 0 and threebody_cutoff is not None:
+            valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
+            src_id_with_three_body = bond_atom_indices[0][valid_three_body]
+            dst_id_with_three_body = bond_atom_indices[1][valid_three_body]
+            graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
+            graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
+            graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
+            graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+        else:
+            np.arange(n_bond)
+        if graph_with_three_body.edata["bond_dist"].size(dim=0) > 0:
+            l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
+            l_g_unbatched.append(l_g)
 
-    bond_atom_indices = g.edges()
-    n_bond = bond_atom_indices[0].size(dim=0)
-    if n_bond > 0 and threebody_cutoff is not None:
-        valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
-        np.where(valid_three_body)[0]
-        np.arange(n_bond)[valid_three_body]
-        src_id_with_three_body = bond_atom_indices[0][valid_three_body]
-        dst_id_with_three_body = bond_atom_indices[1][valid_three_body]
-        graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
-        graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-        graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-        graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
-    else:
-        np.arange(n_bond)
-    if graph_with_three_body.edata["bond_dist"].size(dim=0) > 0:
-        l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
-    return l_g
+    l_g_batched = dgl.batch(l_g_unbatched)
+    return l_g_batched

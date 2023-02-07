@@ -200,7 +200,7 @@ class SphericalBesselFunction:
         return sqrt(2.0 / cutoff) * torch.sin(n * pi / cutoff * r) / r
 
 
-def _y00(theta, phi):
+def _y00(theta, phi) -> torch.tensor:
     r"""
     Spherical Harmonics with `l=m=0`
 
@@ -217,7 +217,7 @@ def _y00(theta, phi):
     return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
 
-def _conjugate(x):
+def _conjugate(x) -> torch.tensor:
     return torch.conj(x)
 
 
@@ -252,7 +252,7 @@ class SphericalHarmonicsFunction:
         self.funcs = [sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch]) for i in self.orig_funcs]
         self.funcs[0] = _y00
 
-    def __call__(self, costheta, phi: torch.tensor | None = None):
+    def __call__(self, costheta, phi: torch.tensor | None = None) -> torch.tensor:
         """
         Args:
             theta: torch.tensor, the azimuthal angle

@@ -25,6 +25,20 @@ class TestM3GNet(unittest.TestCase):
         total_energy = model(self.g1, self.state1)
         self.assertListEqual([total_energy.size(dim=0)], [1])
 
+    def test_model_intensive(self):
+        model = M3GNet(element_types=self.element_types, is_intensive=True)
+        total_energy = model(self.g1, self.state1)
+        self.assertListEqual([total_energy.size(dim=0)], [1])
+
+    def test_model_intensive_with_classification(self):
+        model = M3GNet(
+            element_types=self.element_types,
+            is_intensive=True,
+            task_type="classification",
+        )
+        total_energy = model(self.g1, self.state1)
+        self.assertListEqual([total_energy.size(dim=0)], [1])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,7 @@ import unittest
 import dgl
 import numpy as np
 import torch
+
 from m3gnet.utils.maths import (
     SPHERICAL_BESSEL_ROOTS,
     GaussianExpansion,
