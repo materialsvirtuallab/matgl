@@ -23,8 +23,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        pip install --upgrade setuptools>=58.0.3
-        pip install --upgrade pip
         pip install --quiet -r requirements.txt -r requirements-ci.txt
         pip install -e .
     - name: pytest
