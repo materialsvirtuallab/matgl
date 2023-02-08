@@ -28,4 +28,4 @@ jobs:
         pip install -e .
     - name: pytest
       run: |
-        pytest tests --color=yes
+        pytest megnet --color=yes
