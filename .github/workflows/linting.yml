@@ -25,20 +25,15 @@ jobs:
         pip install --quiet -r requirements-ci.txt
     - name: mypy
       run: |
-        pip install --upgrade pip
-        # pip install mypy --upgrade --quiet
         mypy megnet
     - name: flake8
       run: |
-        # pip install flake8-black --upgrade --quiet
         flake8 --count --show-source --statistics megnet
         # exit-zero treats all errors as warnings.
         flake8 --count --exit-zero --max-complexity=20 --statistics megnet
     - name: pylint
       run: |
-        # pip install pylint --upgrade --quiet
         pylint megnet
     - name: pydocstyle
       run: |
-        # pip install pydocstyle --upgrade --quiet
         pydocstyle --count megnet
