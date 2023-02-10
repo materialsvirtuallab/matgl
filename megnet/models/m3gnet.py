@@ -1,7 +1,7 @@
 """
 The core m3gnet model
 """
-from typing import Optional
+from __future__ import annotations
 
 import numpy as np
 import torch
@@ -35,7 +35,7 @@ class M3GNet(nn.Module):
         element_types,
         num_node_feats: int = 16,
         num_edge_feats: int = 16,
-        num_state_feats: int = None,
+        num_state_feats: int | None = None,
         max_n: int = 3,
         max_l: int = 3,
         n_blocks: int = 3,
@@ -44,10 +44,10 @@ class M3GNet(nn.Module):
         threebody_cutoff: float = 4.0,
         activation: str = "swish",
         include_states: bool = False,
-        state_embedding_dim: float = None,
+        state_embedding_dim: int | None = None,
         mean: float = 0.0,
         std: float = 1.0,
-        element_refs: Optional[np.ndarray] = None,
+        element_refs: np.ndarray | None = None,
         is_intensive: bool = True,
         readout: str = "weighted_atom",
         task_type: str = "regression",

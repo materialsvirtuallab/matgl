@@ -3,6 +3,7 @@ M3GNet potentials
 """
 from __future__ import annotations
 
+import dgl
 import torch
 import torch.nn as nn
 from torch.autograd import grad
@@ -32,7 +33,9 @@ class Potential(nn.Module):
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
 
-    def forward(self, g, graph_attr) -> torch.tensor:
+    def forward(
+        self, g: dgl.DGLGraph, graph_attr: torch.tensor
+    ) -> tuple[torch.tensor, torch.tensor, torch.tensor, torch.tensor]:
         """
         Args:
         g: DGL graph

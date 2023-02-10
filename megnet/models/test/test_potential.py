@@ -11,7 +11,7 @@ from megnet.models.potential import Potential
 class TestPotential(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0025, 0.0, 0.0], [0.5, 0.5, 0.5]])
         s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
         Molecule(["C", "O"], [[0, 0, 0], [1.1, 0, 0]])
 

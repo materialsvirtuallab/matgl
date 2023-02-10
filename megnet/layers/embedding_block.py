@@ -1,6 +1,8 @@
 """
 Embedding node, edge and optional state attributes
 """
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 
@@ -14,12 +16,12 @@ class EmbeddingBlock(nn.Module):
 
     def __init__(
         self,
-        num_node_feats: int = None,
-        num_edge_feats: int = None,
-        num_state_feats: int = None,
+        num_node_feats: int,
+        num_edge_feats: int,
+        num_state_feats: int | None = None,
         include_states: bool = False,
-        num_state_types: int = None,
-        state_embedding_dim: int = None,
+        num_state_types: int | None = None,
+        state_embedding_dim: int | None = None,
         activation: str = "swish",
     ):
         """

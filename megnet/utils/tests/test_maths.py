@@ -46,14 +46,14 @@ class TestMath(unittest.TestCase):
         res_shf = shf(costheta=np.linspace(-1, 1, 10), phi=np.linspace(0, 2 * np.pi, 10))
 
         self.assertTrue(res_shf.numpy().shape == (10, 9))
-        combined = combine_sbf_shf(res, res_shf, max_n=3, max_l=3, use_phi=True)
+        combined = combine_sbf_shf(res, res_shf, max_n=3, max_l=3, use_phi=True, use_smooth=False)
 
         self.assertTrue(combined.shape == (10, 27))
 
         res_shf2 = SphericalHarmonicsFunction(max_l=3, use_phi=False)(
             costheta=np.linspace(-1, 1, 10), phi=np.linspace(0, 2 * np.pi, 10)
         )
-        combined = combine_sbf_shf(res, res_shf2, max_n=3, max_l=3, use_phi=False)
+        combined = combine_sbf_shf(res, res_shf2, max_n=3, max_l=3, use_phi=False, use_smooth=False)
 
         self.assertTrue(combined.shape == (10, 9))
         rdf = spherical_bessel_smooth(r, cutoff=5.0, max_n=3)
