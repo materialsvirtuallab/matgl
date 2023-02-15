@@ -61,17 +61,17 @@ class ReduceReadOut(nn.Module):
         self.op = op
         self.field = field
 
-    def forward(self, graph):
+    def forward(self, g):
         """
         Args:
-            graph: DGL graph
+            g: DGL graph
         Returns:
             torch.tensor
         """
         if self.field == "node_feat":
-            reduced_tensor = dgl.readout_nodes(graph, feat="node_feat", op=self.op)
+            reduced_tensor = dgl.readout_nodes(g, feat="node_feat", op=self.op)
         elif self.field == "edge_feat":
-            reduced_tensor = dgl.readout_edges(graph, feat="edge_feat", op=self.op)
+            reduced_tensor = dgl.readout_edges(g, feat="edge_feat", op=self.op)
         return reduced_tensor
 
 
@@ -97,11 +97,21 @@ class WeightedReadOut(nn.Module):
         )
 
     def forward(self, g):
+        """
+        Args:
+            g: DGL graph
+        Returns:
+            atomic_prperties: torch.tensor
+        """
         atomic_properties = self.gated(g.ndata["node_feat"])
         return atomic_properties
 
 
 class WeightedReadOutPair(nn.Module):
+    """
+    Feed the average of atomic features i and j into weighted readout layer.
+    """
+
     def __init__(self, in_feats, dims, num_targets, activation=None):
         super().__init__()
         self.in_feats = in_feats

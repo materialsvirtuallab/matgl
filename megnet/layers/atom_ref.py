@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 from pymatgen.core import Molecule, Structure
 from torch_scatter import scatter
+from typing import List
+import dgl
 
 from megnet.utils.maths import get_segment_indices_from_n
 
@@ -18,7 +20,7 @@ class AtomRef(nn.Module):
     def __init__(
         self,
         property_offset: np.array,  # type: ignore # noqa: F821
-    ):
+    ) -> None:
         """
         Parameters:
         -----------
@@ -28,7 +30,7 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(property_offset)
         self.max_z = self.property_offset.size(dim=0)
 
-    def get_feature_matrix(self, structs_or_graphs, element_list):
+    def get_feature_matrix(self, structs_or_graphs: List, element_list: tuple[str]) -> np.array:
         """
         Get the number of atoms for different elements in the structure
 
@@ -51,7 +53,7 @@ class AtomRef(nn.Module):
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, structs_or_graphs, element_list, properties):
+    def fit(self, structs_or_graphs: List, element_list: tuple[str], properties: np.array) -> bool:
         """
         Fit the elemental reference values for the properties
 
@@ -66,7 +68,7 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(self.property_offset)
         return True
 
-    def forward(self, g, state_attr=None):
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor = None) -> torch.tensor:
         """
         Get the total property offset for a system
 

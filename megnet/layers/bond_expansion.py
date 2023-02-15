@@ -1,6 +1,7 @@
 """
 Generate bond features based on spherical bessel functions or gaussian expansion
 """
+import torch
 import torch.nn as nn
 
 from megnet.utils.maths import GaussianExpansion, SphericalBesselFunction
@@ -22,7 +23,7 @@ class BondExpansion(nn.Module):
         final: float = 5.0,
         num_centers: int = 100,
         width: float = 0.5,
-    ):
+    ) -> None:
         """
         Parameters:
         ----------
@@ -55,15 +56,15 @@ class BondExpansion(nn.Module):
         else:
             raise Exception("undefined rbf_type, please use SphericalBessel or Gaussian instead.")
 
-    def forward(self, bond_dist):
+    def forward(self, bond_dist: torch.tensor) -> torch.tensor:
         """
         Forward
 
         Args:
-        g: dgl graph
+        bond_dist: Bond distance
 
         Return:
-        g.edata["rbf"]: basis function values for each edge
+        bond_basis: Radial basis functions
         """
         bond_basis = self.rbf(bond_dist)
         return bond_basis

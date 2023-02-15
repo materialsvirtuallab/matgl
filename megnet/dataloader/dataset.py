@@ -10,7 +10,7 @@ import torch
 from dgl.data import DGLDataset
 from dgl.data.utils import load_graphs, save_graphs
 from pymatgen.core import Structure
-from torch.utils.data import DataLoader
+from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
 from megnet.graph.compute import compute_pair_vector_and_distance
@@ -28,7 +28,7 @@ def _collate_fn(batch):
     return g, labels, graph_attr
 
 
-def MEGNetDataLoader(train_data, val_data, test_data, collate_fn, batch_size, num_workers):
+def MEGNetDataLoader(train_data, val_data, test_data, collate_fn, batch_size, num_workers, use_ddp: bool = False):
     """
     Dataloader for MEGNet training
     Args:
@@ -37,16 +37,17 @@ def MEGNetDataLoader(train_data, val_data, test_data, collate_fn, batch_size, nu
     test_data: testing data
     collate_fn:
     """
-    train_loader = DataLoader(
+    train_loader = GraphDataLoader(
         train_data,
         batch_size=batch_size,
         shuffle=True,
         collate_fn=collate_fn,
         num_workers=num_workers,
         pin_memory=True,
+        use_ddp=use_ddp,
     )
 
-    val_loader = DataLoader(
+    val_loader = GraphDataLoader(
         val_data,
         batch_size=batch_size,
         shuffle=False,
@@ -55,7 +56,7 @@ def MEGNetDataLoader(train_data, val_data, test_data, collate_fn, batch_size, nu
         pin_memory=True,
     )
 
-    test_loader = DataLoader(
+    test_loader = GraphDataLoader(
         test_data,
         batch_size=batch_size,
         shuffle=False,
@@ -153,6 +154,7 @@ class MEGNetDataset(DGLDataset):
         Load dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
+        :filename: Name of file storing state attrs
         """
         self.graphs, label_dict = load_graphs(filename)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)

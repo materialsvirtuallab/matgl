@@ -61,10 +61,8 @@ class ThreeBodyInteractions(nn.Module):
     def __init__(self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs):
         """
         Args:
-            update_network (tf.keras.layers.Layer): keras layer for update
-                the atom attributes before merging with 3d interactions
-            update_network_bond (tf.keras.layers.Layer): keras layer for update
-                the bond information after merging with 3d interactions
+            update_network_atom: MLP for node features in Eq.2
+            update_network_bond: Gated-MLP for edge features in Eq.3
             **kwargs:
         """
         super().__init__(**kwargs)
@@ -73,12 +71,14 @@ class ThreeBodyInteractions(nn.Module):
 
     def forward(
         self, graph, line_graph, three_basis: torch.tensor, three_cutoff: float, node_feat, edge_feat, **kwargs
-    ) -> List:
+    ) -> torch.tensor:
         """
         Args:
-            graph (list): graph list representation
-            three_basis (tf.Tensor): three body basis expansion
-            three_cutoff (float): cutoff radius
+            graph: dgl graph
+            three_basis: three body basis expansion
+            three_cutoff: cutoff radius
+            node_feat: node features
+            edge_feat: edge features
             **kwargs:
         Returns:
         """

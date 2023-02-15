@@ -100,9 +100,7 @@ class MLP(nn.Module):
 
 class GatedMLP(nn.Module):
     """
-    Note
-    ----
-    m3gnet.layers._core.GatedMLP
+    An implementation of a Gated multi-layer perceptron.
     """
 
     def __init__(
@@ -115,8 +113,8 @@ class GatedMLP(nn.Module):
         """
         :param in_feats: Dimension of input features.
         :param dims: Architecture of neural networks.
-        :param activate_last: Whether to apply activation to last layer.
-        :param bias_last: Whether to apply bias to last layer.
+        :param activate_last: Whether applying activation to last layer or not.
+        :param bias_last: Whether applying bias to last layer or not.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -139,7 +137,7 @@ class GatedMLP(nn.Module):
                 self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Sigmoid())
 
-    def forward(self, inputs):
+    def forward(self, inputs: torch.tensor) -> torch.tensor:
         return self.layers(inputs) * self.gates(inputs)
 
 
@@ -148,7 +146,7 @@ class EdgeSet2Set(Module):
     Implementation of Set2Set.
     """
 
-    def __init__(self, input_dim: int, n_iters: int, n_layers: int):
+    def __init__(self, input_dim: int, n_iters: int, n_layers: int) -> None:
         """
         :param input_dim: The size of each input sample.
         :param n_iters: The number of iterations.
@@ -166,7 +164,7 @@ class EdgeSet2Set(Module):
         """Reinitialize learnable parameters."""
         self.lstm.reset_parameters()
 
-    def forward(self, g, feat):
+    def forward(self, g: dgl.DGLGraph, feat: torch.tensor) -> torch.tensor:
         """
         Defines the computation performed at every call.
 

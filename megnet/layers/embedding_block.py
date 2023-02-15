@@ -52,16 +52,18 @@ class EmbeddingBlock(nn.Module):
         if num_state_types and state_embedding_dim is not None:
             self.state_embedding = nn.Embedding(num_state_types, state_embedding_dim)
 
-    def forward(self, node_attr, edge_attr, state_attr):
+    def forward(self, node_attr: torch.tensor, edge_attr: torch.tensor, state_attr: torch.tensor):
         """
         Output embedded features
 
         Args:
-        g: dgl graph
+        node_attr: node attribute
+        edge_attr: edge attribute
         state_attr: state attribute
 
         Returns:
-        g: dgl graph includeing node, edge embedded features
+        node_feat: embedded node features
+        edge_feat: embedded edge features
         state_feat: embedded state features
         """
         node_embed = MLP([node_attr.shape[-1], self.num_node_feats], activation=self.activation)
