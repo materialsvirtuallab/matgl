@@ -55,7 +55,7 @@ class GaussianExpansion(nn.Module):
         """
         super().__init__()
         self.centers = np.linspace(initial, final, num_centers)
-        self.centers = nn.Parameter(torch.tensor(self.centers).float(), requires_grad=False)
+        self.centers = nn.Parameter(torch.tensor(self.centers).float(), requires_grad=False)  # type: ignore
         if width is None:
             self.width = float(1.0 / np.diff(self.centers).mean())
         else:

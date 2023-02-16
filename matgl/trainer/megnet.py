@@ -50,11 +50,11 @@ def train_one_step(
         loss.backward()
         optimizer.step()
 
-        avg_loss += loss.detach()
+        avg_loss += loss.detach()  # type: ignore
 
     stop = default_timer()
 
-    avg_loss = avg_loss.cpu().item() / len(dataloader)
+    avg_loss = avg_loss.cpu().item() / len(dataloader)  # type: ignore
     epoch_time = stop - start
 
     return avg_loss, epoch_time
@@ -66,7 +66,7 @@ def validate_one_step(
     loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
     data_std: torch.Tensor,
     data_mean: torch.Tensor,
-    dataloader: namedtuple,
+    dataloader: tuple,
 ):
     avg_loss = 0
 
@@ -87,11 +87,11 @@ def validate_one_step(
 
             loss = loss_function(data_mean + pred * data_std, labels)
 
-            avg_loss += loss
+            avg_loss += loss  # type: ignore
 
     stop = default_timer()
 
-    avg_loss = avg_loss.cpu().item() / len(dataloader)
+    avg_loss = avg_loss.cpu().item() / len(dataloader)  # type: ignore
     epoch_time = stop - start
 
     return avg_loss, epoch_time
@@ -148,10 +148,10 @@ class MEGNetTrainer:
         num_epochs: int,
         train_loss_func: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
         val_loss_func: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
-        data_std: torch.tensor,
-        data_mean: torch.tensor,
-        train_loader: namedtuple,
-        val_loader: namedtuple,
+        data_std: torch.Tensor,
+        data_mean: torch.Tensor,
+        train_loader: tuple,
+        val_loader: tuple,
         logger_name: str,
     ) -> None:
         path = os.getcwd()
