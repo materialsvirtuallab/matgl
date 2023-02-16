@@ -28,4 +28,4 @@ jobs:
         pip install -e .
     - name: pytest
       run: |
-        pytest mgnn --color=yes
+        pytest matgl --color=yes

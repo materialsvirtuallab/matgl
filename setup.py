@@ -4,14 +4,13 @@ import numpy
 VERSION = "0.1.0.dev"
 
 setup(
-    name="mgnn",
+    name="matgl",
     version=VERSION,
     author="Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Shyue Ping Ong",
     author_email="ongsp@eng.ucsd.edu",
     maintainer="Shyue Ping Ong",
     maintainer_email="ongsp@eng.ucsd.edu",
-    description="MGNN is a reimplementation of MatErials Graph Network (MEGNet) and Materials 3-body Graph Networks "
-    "(M3GNet) in Deep Graph Library (DGL).",
+    description="MatGL (Materials Graph Library) is a framework for graph deep learning for materials science. ",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     keywords=[
@@ -27,8 +26,8 @@ setup(
     ],
     packages=find_packages(),
     package_data={
-        "mgnn": ["*.json", "*.md"],
-        "mgnn.utils": ["*.npy"],
+        "matgl": ["*.json", "*.md"],
+        "matgl.utils": ["*.npy"],
     },
     include_package_data=True,
     install_requires=(
