@@ -69,9 +69,7 @@ class ThreeBodyInteractions(nn.Module):
         self.update_network_atom = update_network_atom
         self.update_network_bond = update_network_bond
 
-    def forward(
-        self, graph, line_graph, three_basis: torch.tensor, three_cutoff: float, node_feat, edge_feat, **kwargs
-    ) -> torch.tensor:
+    def forward(self, graph, line_graph, three_basis, three_cutoff: float, node_feat, edge_feat, **kwargs):
         """
         Args:
             graph: dgl graph

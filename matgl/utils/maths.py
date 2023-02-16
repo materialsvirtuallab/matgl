@@ -152,7 +152,7 @@ class SphericalBesselFunction:
     def _calculate_smooth_symbolic_funcs(self) -> list:
         return _get_lambda_func(max_n=self.max_n, cutoff=self.cutoff)
 
-    def __call__(self, r: torch.tensor) -> torch.tensor:
+    def __call__(self, r):
         """
         Args:
             r: torch.tensor, distance tensor, 1D
@@ -165,11 +165,11 @@ class SphericalBesselFunction:
             return self._call_smooth_sbf(r)
         return self._call_sbf(r)
 
-    def _call_smooth_sbf(self, r: torch.tensor) -> torch.tensor:
+    def _call_smooth_sbf(self, r):
         results = [i(r) for i in self.funcs]
         return torch.t(torch.stack(results))
 
-    def _call_sbf(self, r: torch.tensor) -> torch.tensor:
+    def _call_sbf(self, r):
         roots = self.zeros[: self.max_l, : self.max_n]
 
         results = []
@@ -184,7 +184,7 @@ class SphericalBesselFunction:
         return torch.cat(results, axis=1)
 
     @staticmethod
-    def rbf_j0(r: torch.tensor, cutoff: float = 5.0, max_n: int = 3) -> torch.tensor:
+    def rbf_j0(r, cutoff: float = 5.0, max_n: int = 3):
         """
         Spherical Bessel function of order 0, ensuring the function value
         vanishes at cutoff
@@ -200,7 +200,7 @@ class SphericalBesselFunction:
         return sqrt(2.0 / cutoff) * torch.sin(n * pi / cutoff * r) / r
 
 
-def _y00(theta, phi) -> torch.tensor:
+def _y00(theta, phi):
     r"""
     Spherical Harmonics with `l=m=0`
 
@@ -217,7 +217,7 @@ def _y00(theta, phi) -> torch.tensor:
     return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
 
-def _conjugate(x) -> torch.tensor:
+def _conjugate(x):
     return torch.conj(x)
 
 
@@ -252,7 +252,7 @@ class SphericalHarmonicsFunction:
         self.funcs = [sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch]) for i in self.orig_funcs]
         self.funcs[0] = _y00
 
-    def __call__(self, costheta, phi: torch.tensor | None = None) -> torch.tensor:
+    def __call__(self, costheta, phi=None):
         """
         Args:
             theta: torch.tensor, the azimuthal angle
@@ -281,7 +281,7 @@ def _block_repeat(array, block_size, repeats):
     return torch.index_select(array, 1, indices)
 
 
-def combine_sbf_shf(sbf: torch.tensor, shf: torch.tensor, max_n: int, max_l: int, use_phi: bool, use_smooth: bool):
+def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool, use_smooth: bool):
     """
     Combine the spherical Bessel function and the spherical Harmonics function
 
@@ -312,7 +312,7 @@ def combine_sbf_shf(sbf: torch.tensor, shf: torch.tensor, max_n: int, max_l: int
         # [1, 1, 1, ..., 1, 3, 3, 3, ..., 3, ...]
         repeats_sbf = torch.tensor(np.repeat(2 * np.arange(max_l) + 1, repeats=max_n))
         # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
-        block_size = 2 * np.arange(max_l) + 1
+        block_size = 2 * np.arange(max_l) + 1  # type: ignore
         # 2 * tf.range(max_l) + 1
     expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
     expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
@@ -360,7 +360,7 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
     dn = [torch.tensor(1.0)]
     for i in range(1, max_n):
         dn.append(1 - en[0, i] / dn[-1])
-    dn = torch.stack(dn)
+    dn = torch.stack(dn)  # type: ignore
     gn = [fnr[:, 0]]
     for i in range(1, max_n):
         gn.append(1 / torch.sqrt(dn[i]) * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1]))
@@ -402,7 +402,7 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
     return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr]
 
 
-def get_segment_indices_from_n(ns: torch.tensor) -> torch.tensor:
+def get_segment_indices_from_n(ns):
     """
     Get segment indices from number array. For example if
     ns = [2, 3], then the function will return [0, 0, 1, 1, 1]
@@ -420,7 +420,7 @@ def get_segment_indices_from_n(ns: torch.tensor) -> torch.tensor:
     return A.repeat_interleave(B, dim=0)
 
 
-def get_range_indices_from_n(ns: torch.tensor) -> torch.tensor:
+def get_range_indices_from_n(ns):
     """
     Give ns = [2, 3], return [0, 1, 0, 1, 2]
     Args:
@@ -475,7 +475,7 @@ def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
     return softmax
 
 
-def repeat_with_n(ns: torch.tensor, n: torch.tensor) -> torch.tensor:
+def repeat_with_n(ns, n):
     """
     Repeat the first dimension according to n array.
     Args:

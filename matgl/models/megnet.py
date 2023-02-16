@@ -62,11 +62,11 @@ class MEGNet(Module):
         dims = [in_dim] + hiddens
 
         if act == "swish":
-            activation = nn.SiLU()
+            activation = nn.SiLU()  # type: ignore
         elif act == "sigmoid":
-            activation = nn.Sigmoid()
+            activation = nn.Sigmoid()  # type: ignore
         elif act == "tanh":
-            activation = nn.Tanh()
+            activation = nn.Tanh()  # type: ignore
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh")
 

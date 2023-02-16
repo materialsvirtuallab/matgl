@@ -50,13 +50,13 @@ class BondExpansion(nn.Module):
         self.rbf_type = rbf_type
 
         if rbf_type == "SphericalBessel":
-            self.rbf = SphericalBesselFunction(max_l, max_n, cutoff, smooth)
+            self.rbf = SphericalBesselFunction(max_l, max_n, cutoff, smooth)  # type: ignore
         elif rbf_type == "Gaussian":
-            self.rbf = GaussianExpansion(initial, final, num_centers, width)
+            self.rbf = GaussianExpansion(initial, final, num_centers, width)  # type: ignore
         else:
             raise Exception("undefined rbf_type, please use SphericalBessel or Gaussian instead.")
 
-    def forward(self, bond_dist: torch.tensor) -> torch.tensor:
+    def forward(self, bond_dist):
         """
         Forward
 

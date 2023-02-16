@@ -37,11 +37,11 @@ class EmbeddingBlock(nn.Module):
         super().__init__()
 
         if activation == "swish":
-            self.activation = nn.SiLU()
+            self.activation = nn.SiLU()  # type: ignore
         elif activation == "sigmoid":
-            self.activation = nn.Sigmoid()
+            self.activation = nn.Sigmoid()  # type: ignore
         elif activation == "tanh":
-            self.activation = nn.Tanh()
+            self.activation = nn.Tanh()  # type: ignore
         self.include_states = include_states
         self.num_state_types = num_state_types
         self.num_node_feats = num_node_feats
@@ -50,9 +50,9 @@ class EmbeddingBlock(nn.Module):
         self.state_embedding_dim = state_embedding_dim
 
         if num_state_types and state_embedding_dim is not None:
-            self.state_embedding = nn.Embedding(num_state_types, state_embedding_dim)
+            self.state_embedding = nn.Embedding(num_state_types, state_embedding_dim)  # type: ignore
 
-    def forward(self, node_attr: torch.tensor, edge_attr: torch.tensor, state_attr: torch.tensor):
+    def forward(self, node_attr, edge_attr, state_attr):
         """
         Output embedded features
 

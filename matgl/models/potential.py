@@ -34,8 +34,8 @@ class Potential(nn.Module):
         self.calc_hessian = calc_hessian
 
     def forward(
-        self, g: dgl.DGLGraph, graph_attr: torch.tensor
-    ) -> tuple[torch.tensor, torch.tensor, torch.tensor, torch.tensor]:
+        self, g: dgl.DGLGraph, graph_attr
+    ) -> tuple:
         """
         Args:
         g: DGL graph
@@ -72,7 +72,7 @@ class Potential(nn.Module):
                     if tmp is not None:
                         hessian[iatom] = tmp.view(-1)
         if self.calc_stresses:
-            grads = grad(
+            grads = grad(  # type: ignore
                 total_energies,
                 g.edata["bond_vec"],
                 grad_outputs=torch.ones_like(total_energies),

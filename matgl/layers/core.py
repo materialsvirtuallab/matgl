@@ -38,12 +38,12 @@ class MLP(nn.Module):
                 self.layers.append(Linear(in_dim, out_dim, bias=True))
 
                 if activation is not None:
-                    self.layers.append(activation)
+                    self.layers.append(activation)  # type: ignore
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
 
                 if activation is not None and activate_last:
-                    self.layers.append(activation)
+                    self.layers.append(activation)  # type: ignore
 
     def __repr__(self):
         dims = []
@@ -57,13 +57,14 @@ class MLP(nn.Module):
         return f'MLP({", ".join(dims)})'
 
     @property
-    def last_linear(self) -> Linear:
+    def last_linear(self) -> Linear | None:
         """
         :return: The last linear layer.
         """
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
                 return layer
+        return None
 
     @property
     def depth(self) -> int:
@@ -83,7 +84,7 @@ class MLP(nn.Module):
                 return layer.out_features
         raise RuntimeError
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, inputs):
         """
         Applies all layers in turn.
 
@@ -137,7 +138,7 @@ class GatedMLP(nn.Module):
                 self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Sigmoid())
 
-    def forward(self, inputs: torch.tensor) -> torch.tensor:
+    def forward(self, inputs):
         return self.layers(inputs) * self.gates(inputs)
 
 
@@ -164,7 +165,7 @@ class EdgeSet2Set(Module):
         """Reinitialize learnable parameters."""
         self.lstm.reset_parameters()
 
-    def forward(self, g: dgl.DGLGraph, feat: torch.tensor) -> torch.tensor:
+    def forward(self, g, feat):
         """
         Defines the computation performed at every call.
 

@@ -25,8 +25,8 @@ class M3GNetGraphConv(Module):
         edge_weight_func: Module,
         node_update_func: Module,
         node_weight_func: Module,
-        attr_update_func: Module,
-    ) -> None:
+        attr_update_func: Module | None,
+    ):
         """
         Paramters:
         include_states (bood): Whether including state
@@ -47,7 +47,12 @@ class M3GNetGraphConv(Module):
 
     @staticmethod
     def from_dims(
-        degree, include_states, edge_dims: list[int], node_dims: list[int], attr_dims: list[int], activation: Module
+        degree,
+        include_states,
+        edge_dims: list[int],
+        node_dims: list[int],
+        attr_dims: list[int] | None,
+        activation: Module,
     ) -> M3GNetGraphConv:
         """
         M3GNetGraphConv initialization
@@ -69,14 +74,14 @@ class M3GNetGraphConv(Module):
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
         if include_states:
-            attr_update_func = MLP(attr_dims, activation, activate_last=True)
+            attr_update_func = MLP(attr_dims, activation, activate_last=True)  # type: ignore
         else:
-            attr_update_func = None
+            attr_update_func = None  # type: ignore
         return M3GNetGraphConv(
             include_states, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
         )
 
-    def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> torch.Tensor:
+    def _edge_udf(self, edges: dgl.udf.EdgeBatch):
         """
         Edge update functions
 
@@ -156,7 +161,7 @@ class M3GNetGraphConv(Module):
         u = attrs
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
         inputs = torch.hstack([u, uv])
-        graph_attr = self.attr_update_func(inputs)
+        graph_attr = self.attr_update_func(inputs)  # type: ignore
         return graph_attr
 
     def forward(
@@ -223,15 +228,15 @@ class M3GNetBlock(Module):
 
         # compute input sizes
         if include_states:
-            edge_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # 2*NDIM+EDIM+GDIM  # type: ignore
-            node_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # 2*NDIM+EDIM+GDIM  # type: ignore
-            attr_in = num_node_feats + num_state_feats  # NDIM+GDIM
+            edge_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
+            node_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
+            attr_in = num_node_feats + num_state_feats  # type: ignore
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_states,
                 edge_dims=[edge_in] + conv_hiddens + [num_edge_feats],
                 node_dims=[node_in] + conv_hiddens + [num_node_feats],
-                attr_dims=[attr_in] + conv_hiddens + [num_state_feats],
+                attr_dims=[attr_in] + conv_hiddens + [num_state_feats],  # type: ignore
                 activation=self.activation,
             )
         else:
@@ -242,7 +247,7 @@ class M3GNetBlock(Module):
                 include_states,
                 edge_dims=[edge_in] + conv_hiddens + [num_edge_feats],
                 node_dims=[node_in] + conv_hiddens + [num_node_feats],
-                attr_dims=None,
+                attr_dims=None,  # type: ignore
                 activation=self.activation,
             )
 
@@ -251,10 +256,10 @@ class M3GNetBlock(Module):
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_feat: torch.Tensor,
-        node_feat: torch.Tensor,
-        graph_feat: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        edge_feat,
+        node_feat,
+        graph_feat,
+    ) -> tuple:
         """
         :param graph: DGL graph
         :param edge_feat: Edge features

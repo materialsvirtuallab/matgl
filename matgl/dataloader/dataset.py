@@ -114,7 +114,7 @@ class MEGNetDataset(DGLDataset):
         """
         return os.path.exists(filename)
 
-    def process(self) -> list:
+    def process(self) -> tuple:
         """
         Convert Pymatgen structure into dgl graphs
         """
@@ -134,7 +134,7 @@ class MEGNetDataset(DGLDataset):
             graph.edata["edge_attr"] = bond_expansion(bond_dist)
             self.graphs.append(graph)
             self.graph_attr.append(state_attr)
-        self.graph_attr = torch.tensor(self.graph_attr)
+        self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
 
         return self.graphs, self.graph_attr
 

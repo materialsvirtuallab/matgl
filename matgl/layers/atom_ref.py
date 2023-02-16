@@ -30,7 +30,7 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(property_offset)
         self.max_z = self.property_offset.size(dim=0)
 
-    def get_feature_matrix(self, structs_or_graphs: List, element_list: tuple[str]) -> np.array:
+    def get_feature_matrix(self, structs_or_graphs: List, element_list: tuple[str]) -> np.typing.NDArray:
         """
         Get the number of atoms for different elements in the structure
 
@@ -52,7 +52,7 @@ class AtomRef(nn.Module):
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, structs_or_graphs: List, element_list: tuple[str], properties: np.array) -> bool:
+    def fit(self, structs_or_graphs: List, element_list: tuple[str], properties: np.typing.NDArray) -> bool:
         """
         Fit the elemental reference values for the properties
 
@@ -67,7 +67,7 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(self.property_offset)
         return True
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor = None) -> torch.tensor:
+    def forward(self, g: dgl.DGLGraph, state_attr=None):
         """
         Get the total property offset for a system
 
@@ -87,7 +87,7 @@ class AtomRef(nn.Module):
                 index = get_segment_indices_from_n(g.batch_num_nodes())
                 offset_batched = scatter(offset, index, reduce="sum")
                 offset_batched_with_state.append(offset_batched)
-            offset_batched_with_state = torch.stack(offset_batched_with_state)
+            offset_batched_with_state = torch.stack(offset_batched_with_state)  # type: ignore
             return offset_batched_with_state[state_attr]
         else:
             property_offset_batched = self.property_offset.repeat(g.num_nodes(), 1)
