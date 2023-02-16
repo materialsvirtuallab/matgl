@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 
 
-from megnet.models.megnet import MEGNet
+from matgl.models.megnet import MEGNet
 
 from tqdm import tqdm
 
