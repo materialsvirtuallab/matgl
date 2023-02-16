@@ -29,3 +29,20 @@ exclude = '''
   )/
 )
 '''
+
+
+[tool.mypy]
+ignore_missing_imports = true
+exclude = [
+     '^.*/tests/.*\.py$'
+]
+
+
+[[tool.mypy.overrides]]
+module = [
+    "dgl",
+    "torch",
+    "pymatgen"
+]
+
+ignore_missing_imports = true
