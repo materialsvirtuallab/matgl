@@ -4,7 +4,7 @@ coverage
 coveralls
 pycodestyle
 mypy
-pydocstyle
+pydocstyle[toml]
 flake8
 types-tabulate
 pylint
