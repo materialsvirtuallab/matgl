@@ -1,22 +1,19 @@
 """
 MEGNet Trainer
 """
-import argparse, json
+import json
 from collections import namedtuple
 from timeit import default_timer
 from typing import Callable
-import numpy as np
-from typing import Dict, List, Tuple, Union
 
 import os
 import torch
 import torch.nn as nn
 
-import dgl
 
 from megnet.models.megnet import MEGNet
 
-from tqdm import tqdm, trange
+from tqdm import tqdm
 
 
 def train_one_step(
