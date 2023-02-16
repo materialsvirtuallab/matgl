@@ -12,8 +12,8 @@ from munch import Munch
 from tqdm import tqdm
 from utils import utils
 
-from megnet.models import MEGNet
-from megnet.models.helper import MLP
+from mgnn.models import MEGNet
+from mgnn.models.helper import MLP
 
 
 def train(
