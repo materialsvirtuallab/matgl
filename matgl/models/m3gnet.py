@@ -84,11 +84,11 @@ class M3GNet(nn.Module):
         self.rbf_type = rbf_type
         self.use_phi = use_phi
         if activation == "swish":
-            self.activation = nn.SiLU()
+            self.activation = nn.SiLU()  # type: ignore
         elif activation == "tanh":
-            self.activation = nn.Tanh()
+            self.activation = nn.Tanh()  # type: ignore
         elif activation == "sigmoid":
-            self.activation = nn.Sigmoid()
+            self.activation = nn.Sigmoid()  # type: ignore
 
         self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=self.rbf_type, smooth=use_smooth)
 
@@ -138,13 +138,13 @@ class M3GNet(nn.Module):
             if readout == "set2set":
                 self.atom_readout = Set2Set(num_node_feats, n_iters=num_s2s_steps, n_layers=num_s2s_layers)
                 if include_states:
-                    readout_feats = 2 * num_node_feats + num_state_feats
+                    readout_feats = 2 * num_node_feats + num_state_feats  # type: ignore
                 else:
                     readout_feats = 2 * num_node_feats
             else:
                 self.atom_readout = ReduceReadOut("mean", field="node_feat")
                 if include_states:
-                    readout_feats = num_node_feats + num_state_feats
+                    readout_feats = num_node_feats + num_state_feats  # type: ignore
                 else:
                     readout_feats = num_node_feats
             dims_final_layer = [readout_feats] + [units, units] + [num_targets]
@@ -155,7 +155,7 @@ class M3GNet(nn.Module):
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
-            self.final_layer = WeightedReadOut(in_feats=num_node_feats, dims=[units, units], num_targets=num_targets)
+            self.final_layer = WeightedReadOut(in_feats=num_node_feats, dims=[units, units], num_targets=num_targets)  # type: ignore
         if element_refs is None:
             element_refs = torch.zeros(len(element_types))
             self.element_ref_calc = AtomRef(property_offset=element_refs)
@@ -176,7 +176,7 @@ class M3GNet(nn.Module):
         self.std = std
         self.element_refs = element_refs
 
-    def forward(self, g, state_attr) -> torch.tensor:
+    def forward(self, g, state_attr):
         """
         Args:
             graph (list): list repr of a MaterialGraph
@@ -213,7 +213,7 @@ class M3GNet(nn.Module):
         if self.is_intensive:
             node_vec = self.atom_readout(g)
             if self.include_states:
-                vec = torch.hsatack([node_vec, state_feat])
+                vec = torch.hstack([node_vec, state_feat])
             else:
                 vec = node_vec
             output = self.final_layer(vec)

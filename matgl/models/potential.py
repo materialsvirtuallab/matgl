@@ -53,7 +53,6 @@ class Potential(nn.Module):
         total_energies = self.model(g, graph_attr)
 
         if self.calc_forces:
-
             grads = grad(
                 total_energies,
                 g.ndata["pos"],
@@ -73,7 +72,6 @@ class Potential(nn.Module):
                     if tmp is not None:
                         hessian[iatom] = tmp.view(-1)
         if self.calc_stresses:
-
             grads = grad(
                 total_energies,
                 g.edata["bond_vec"],

@@ -121,7 +121,6 @@ class TestCompute(unittest.TestCase):
         np.testing.assert_array_almost_equal(np.sort(d), np.sort(d2))
 
     def test_compute_angle(self):
-
         bv, bd = compute_pair_vector_and_distance(self.g1)
         self.g1.edata["bond_vec"] = bv
         self.g1.edata["bond_dist"] = bd

@@ -44,7 +44,6 @@ class AtomRef(nn.Module):
         n = len(structs_or_graphs)
         features = np.zeros(shape=(n, self.max_z))
         for i, s in enumerate(structs_or_graphs):
-
             if isinstance(s, (Structure, Molecule)):
                 atomic_numbers = [element_list.index(site.specie.symbol) for site in s.sites]
             else:
