@@ -23,15 +23,15 @@ jobs:
         pip install --quiet -r requirements-ci.txt
     - name: mypy
       run: |
-        mypy megnet
+        mypy mgnn
     - name: flake8
       run: |
-        flake8 --count --show-source --statistics megnet
+        flake8 --count --show-source --statistics mgnn
         # exit-zero treats all errors as warnings.
-        flake8 --count --exit-zero --max-complexity=20 --statistics megnet
+        flake8 --count --exit-zero --max-complexity=20 --statistics mgnn
     - name: pylint
       run: |
-        pylint megnet
+        pylint mgnn
     - name: pydocstyle
       run: |
-        pydocstyle --count megnet
+        pydocstyle --count mgnn
