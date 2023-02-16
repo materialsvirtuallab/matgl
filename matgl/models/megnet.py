@@ -10,7 +10,7 @@ from dgl.nn import Set2Set
 from torch.nn import Dropout, Identity, Module, ModuleList
 
 from matgl.layers.core import MLP, EdgeSet2Set
-from .layers import MEGNetBlock
+from matgl.layers.graph_conv import MEGNetBlock
 
 
 class MEGNet(Module):

@@ -33,9 +33,7 @@ class Potential(nn.Module):
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
 
-    def forward(
-        self, g: dgl.DGLGraph, graph_attr
-    ) -> tuple:
+    def forward(self, g: dgl.DGLGraph, graph_attr) -> tuple:
         """
         Args:
         g: DGL graph

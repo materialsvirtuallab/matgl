@@ -57,10 +57,8 @@ class Pmg2Graph:
         natoms = len(mol)
         R = mol.cart_coords
         element_types = self.element_types
-        Z = [np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in mol]
-        Z = np.array(Z)
-        atomic_number = [site.specie.Z for site in mol]
-        atomic_number = np.array(atomic_number)
+        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in mol])
+        atomic_number = np.array([site.specie.Z for site in mol])
         weight = mol.composition.weight / len(mol)
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
         dists = mol.distance_matrix.flatten()
@@ -93,8 +91,7 @@ class Pmg2Graph:
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        Z = [np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure]
-        Z = np.array(Z)
+        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
         atomic_number = np.array([site.specie.Z for site in structure])
         lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
         volume = structure.volume
