@@ -1,10 +1,10 @@
 # Introduction
 
-Mathematical graphs are a natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep
-learning models have been shown to consistently deliver exceptional performance as surrogate models for the prediction
-of materials properties.
+MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
+representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown 
+to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
 
-This repository is a unified reimplementation of the [3-body MatErials Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
+In this repository, we have reimplemented the [3-body MatErials Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
 and its predecessors, [MEGNet](https://github.com/materialsvirtuallab/megnet) using the [Deep Graph Library (DGL)](https://www.dgl.ai).
 The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
 implemented in TensorFlow.
@@ -14,15 +14,7 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 
 # Status
 
-At the present moment, only the simpler MEGNet architecture has been implemented. The implementation has been
-extensively tested. It is reasonably robust and performs several times faster than the original TF implementation.
-
-The plan is to complete implementation of M3GNet by end of 2022.
-
-For users wishing to use the pre-trained models, we recommend you check out the official [MEGNet](https://github.com/materialsvirtuallab/megnet)
-and [M3GNet](https://github.com/materialsvirtuallab/m3gnet) implementations. For new users wishing to train new MEGNet
-models, we welcome you to use this DGL implementation. Any contributions, e.g., code improvements or issue reports, are
-very welcome!
+Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
 
 # References
 

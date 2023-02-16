@@ -40,10 +40,10 @@ class DataType:
         else:
             raise ValueError("Data type not known, choose '16' or '32'")
 
-        cls.np_float = DTYPES[float_key]["numpy"]
-        cls.torch_float = DTYPES[float_key]["torch"]
-        cls.np_int = DTYPES[int_key]["numpy"]
-        cls.torch_int = DTYPES[int_key]["torch"]
+        cls.np_float = DTYPES[float_key]["numpy"]  # type: ignore
+        cls.torch_float = DTYPES[float_key]["torch"]  # type: ignore
+        cls.np_int = DTYPES[int_key]["numpy"]  # type: ignore
+        cls.torch_int = DTYPES[int_key]["torch"]  # type: ignore
 
 
 def set_global_dtypes(data_type) -> None:
