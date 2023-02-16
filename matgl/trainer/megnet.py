@@ -26,7 +26,7 @@ def train_one_step(
     loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
     data_std: torch.Tensor,
     data_mean: torch.Tensor,
-    dataloader: namedtuple,
+    dataloader,
 ):
     model.train()
 

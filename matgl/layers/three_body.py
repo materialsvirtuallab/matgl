@@ -88,10 +88,10 @@ class ThreeBodyInteractions(nn.Module):
         atoms = torch.squeeze(atoms[end_atom_index])
         basis = three_basis * atoms
         torch.tensor(graph.num_edges())
-        three_cutoff = torch.unsqueeze(three_cutoff, dim=1)
-        weights = torch.reshape(three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2))
-        weights = torch.prod(weights, axis=-1)
-        weights = basis * weights[:, None]
+        # three_cutoff = torch.unsqueeze(three_cutoff, dim=1)
+        # weights = torch.reshape(three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2))
+        # weights = torch.prod(weights, axis=-1)
+        # weights = basis * weights[:, None]
         new_bonds = scatter(
             basis.to(torch.float32),
             get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),

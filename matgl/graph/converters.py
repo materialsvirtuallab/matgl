@@ -95,8 +95,7 @@ class Pmg2Graph:
         element_types = self.element_types
         Z = [np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure]
         Z = np.array(Z)
-        atomic_number = [site.specie.Z for site in structure]
-        atomic_number = np.array(atomic_number)
+        atomic_number = np.array([site.specie.Z for site in structure])
         lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
         volume = structure.volume
         cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)

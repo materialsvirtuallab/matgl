@@ -223,8 +223,8 @@ class M3GNetBlock(Module):
 
         # compute input sizes
         if include_states:
-            edge_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # 2*NDIM+EDIM+GDIM
-            node_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # 2*NDIM+EDIM+GDIM
+            edge_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # 2*NDIM+EDIM+GDIM  # type: ignore
+            node_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # 2*NDIM+EDIM+GDIM  # type: ignore
             attr_in = num_node_feats + num_state_feats  # NDIM+GDIM
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
