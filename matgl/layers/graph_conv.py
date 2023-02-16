@@ -4,25 +4,14 @@ Graph convolution layer (GCL) implementations.
 from __future__ import annotations
 
 import dgl
+import dgl.function as fn
 import torch
 import torch.nn as nn
-from torch.nn import Dropout, Module
+from torch.nn import Dropout, Module, Identity
 from torch_scatter import scatter_sum
 
 from matgl.layers.core import MLP, GatedMLP
 from matgl.utils.maths import broadcast_states_to_bonds
-
-"""
-Graph convolution layer (GCL) implementations.
-"""
-from __future__ import annotations
-
-import dgl
-import dgl.function as fn
-import torch
-from torch.nn import Dropout, Identity, Module
-
-from matgl.layers.core import MLP
 
 
 class MEGNetGraphConv(Module):
