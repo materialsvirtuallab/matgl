@@ -7,6 +7,7 @@ from timeit import default_timer
 from typing import Callable
 
 import os
+import shutil
 import torch
 import torch.nn as nn
 
@@ -27,7 +28,7 @@ def train_one_step(
 ):
     model.train()
 
-    avg_loss = 0
+    avg_loss = 0.0
 
     start = default_timer()
 
@@ -50,11 +51,11 @@ def train_one_step(
         loss.backward()
         optimizer.step()
 
-        avg_loss += loss.detach()  # type: ignore
+        avg_loss += loss.detach()
 
     stop = default_timer()
 
-    avg_loss = avg_loss.cpu().item() / len(dataloader)  # type: ignore
+    avg_loss = avg_loss.cpu().item() / len(dataloader)
     epoch_time = stop - start
 
     return avg_loss, epoch_time
@@ -66,7 +67,7 @@ def validate_one_step(
     loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
     data_std: torch.Tensor,
     data_mean: torch.Tensor,
-    dataloader: tuple,
+    dataloader: namedtuple,
 ):
     avg_loss = 0
 
@@ -87,11 +88,11 @@ def validate_one_step(
 
             loss = loss_function(data_mean + pred * data_std, labels)
 
-            avg_loss += loss  # type: ignore
+            avg_loss += loss
 
     stop = default_timer()
 
-    avg_loss = avg_loss.cpu().item() / len(dataloader)  # type: ignore
+    avg_loss = avg_loss.cpu().item() / len(dataloader)
     epoch_time = stop - start
 
     return avg_loss, epoch_time
@@ -148,10 +149,10 @@ class MEGNetTrainer:
         num_epochs: int,
         train_loss_func: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
         val_loss_func: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
-        data_std: torch.Tensor,
-        data_mean: torch.Tensor,
-        train_loader: tuple,
-        val_loader: tuple,
+        data_std: torch.tensor,
+        data_mean: torch.tensor,
+        train_loader: namedtuple,
+        val_loader: namedtuple,
         logger_name: str,
     ) -> None:
         path = os.getcwd()
@@ -159,10 +160,10 @@ class MEGNetTrainer:
         outpath = os.path.join(path, "BestModel")
         checkpath = os.path.join(path, "CheckPoints")
         if os.path.exists(outpath):
-            os.remove(outpath)
+            shutil.rmtree(outpath)
         os.mkdir(outpath)
         if os.path.exists(checkpath):
-            os.remove(checkpath)
+            shutil.rmtree(checkpath)
         os.mkdir(checkpath)
         logger = StreamingJSONWriter(filename=logger_name)
         print("## Training started ##")

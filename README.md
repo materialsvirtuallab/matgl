@@ -1,7 +1,7 @@
 # Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
-representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown 
+representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
 to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
 
 In this repository, we have reimplemented the [3-body MatErials Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
