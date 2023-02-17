@@ -2,7 +2,6 @@
 MEGNet Trainer
 """
 import json
-from collections import namedtuple
 from timeit import default_timer
 from typing import Callable
 
@@ -155,7 +154,7 @@ class MEGNetTrainer:
         logger_name: str,
     ) -> None:
         path = os.getcwd()
-        ## Set a path for best model and checkpoints
+        # Set a path for best model and checkpoints
         outpath = os.path.join(path, "BestModel")
         checkpath = os.path.join(path, "CheckPoints")
         if os.path.exists(outpath):

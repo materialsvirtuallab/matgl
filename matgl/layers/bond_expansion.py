@@ -1,7 +1,6 @@
 """
 Generate bond features based on spherical bessel functions or gaussian expansion
 """
-import torch
 import torch.nn as nn
 
 from matgl.utils.maths import GaussianExpansion, SphericalBesselFunction
