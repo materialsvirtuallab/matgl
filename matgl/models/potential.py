@@ -66,7 +66,7 @@ class Potential(nn.Module):
                 s = r.size(0)
                 hessian = total_energies.new_zeros((s, s))
                 for iatom in range(s):
-                    tmp = grad([r[iatom]], g.ndata["pos"], retain_graph=(iatom < s))[0]
+                    tmp = grad([r[iatom]], g.ndata["pos"], retain_graph=iatom < s)[0]
                     if tmp is not None:
                         hessian[iatom] = tmp.view(-1)
         if self.calc_stresses:

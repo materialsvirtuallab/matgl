@@ -155,7 +155,9 @@ class M3GNet(nn.Module):
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
-            self.final_layer = WeightedReadOut(in_feats=num_node_feats, dims=[units, units], num_targets=num_targets)  # type: ignore
+            self.final_layer = WeightedReadOut(
+                in_feats=num_node_feats, dims=[units, units], num_targets=num_targets  # type: ignore
+            )
         if element_refs is None:
             element_refs = torch.zeros(len(element_types))  # type: ignore
             self.element_ref_calc = AtomRef(property_offset=element_refs)
