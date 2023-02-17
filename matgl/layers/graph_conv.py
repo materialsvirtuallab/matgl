@@ -7,7 +7,7 @@ import dgl
 import dgl.function as fn
 import torch
 import torch.nn as nn
-from torch.nn import Dropout, Module, Identity
+from torch.nn import Dropout, Identity, Module
 from torch_scatter import scatter_sum
 
 from matgl.layers.core import MLP, GatedMLP

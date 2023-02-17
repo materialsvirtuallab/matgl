@@ -1,18 +1,18 @@
 """
 MEGNet Trainer
 """
+from __future__ import annotations
+
 import json
+import os
 from timeit import default_timer
 from typing import Callable
 
-import os
 import torch
 import torch.nn as nn
-
+from tqdm import tqdm
 
 from matgl.models.megnet import MEGNet
-
-from tqdm import tqdm
 
 
 def train_one_step(

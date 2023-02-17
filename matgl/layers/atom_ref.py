@@ -1,13 +1,16 @@
 """
 atomic energy offset. Used for predicting extensive properties.
 """
+from __future__ import annotations
+
+from typing import List
+
+import dgl
 import numpy as np
 import torch
 import torch.nn as nn
 from pymatgen.core import Molecule, Structure
 from torch_scatter import scatter
-from typing import List
-import dgl
 
 from matgl.utils.maths import get_segment_indices_from_n
 

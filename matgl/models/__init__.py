@@ -2,6 +2,7 @@
 Package containing model implementations.
 """
 
-# flake8: noqa
+from __future__ import annotations
 
+# flake8: noqa
 from .megnet import *

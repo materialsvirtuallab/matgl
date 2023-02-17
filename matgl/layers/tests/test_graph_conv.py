@@ -1,7 +1,10 @@
-import unittest
+from __future__ import annotations
 
-import numpy as np
+import unittest
+from collections import namedtuple
+
 import dgl
+import numpy as np
 import torch
 import torch.nn as nn
 from pymatgen.core.structure import Lattice, Structure
@@ -15,11 +18,14 @@ from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers.bond_expansion import BondExpansion
 from matgl.layers.cutoff_functions import polynomial_cutoff
 from matgl.layers.embedding_block import EmbeddingBlock
-from matgl.layers.graph_conv import MLP, M3GNetBlock, M3GNetGraphConv, MEGNetBlock, MEGNetGraphConv
+from matgl.layers.graph_conv import (
+    MLP,
+    M3GNetBlock,
+    M3GNetGraphConv,
+    MEGNetBlock,
+    MEGNetGraphConv,
+)
 from matgl.layers.three_body import SphericalBesselWithHarmonics
-
-from collections import namedtuple
-
 
 Graph = namedtuple("Graph", "graph, graph_attr")
 

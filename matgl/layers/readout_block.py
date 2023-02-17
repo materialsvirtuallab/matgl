@@ -2,6 +2,8 @@
 Readout layer for M3GNet
 """
 
+from __future__ import annotations
+
 import dgl
 import torch
 import torch.nn as nn

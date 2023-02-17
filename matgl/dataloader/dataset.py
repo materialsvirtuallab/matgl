@@ -9,8 +9,8 @@ import dgl
 import torch
 from dgl.data import DGLDataset
 from dgl.data.utils import load_graphs, save_graphs
-from pymatgen.core import Structure
 from dgl.dataloading import GraphDataLoader
+from pymatgen.core import Structure
 from tqdm import trange
 
 from matgl.graph.compute import compute_pair_vector_and_distance
