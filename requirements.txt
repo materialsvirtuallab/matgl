@@ -1,6 +1,6 @@
 numpy==1.24.2
 dgl==1.0.1
-torch==1.13.1
+torch==2.0.0
 torchaudio==0.13.1
 torchvision==0.14.1
 torch-scatter==2.1.0
