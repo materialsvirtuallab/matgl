@@ -3,5 +3,5 @@ dgl==1.0.1
 torch==2.0.0
 torchaudio==2.0.1
 torchvision==0.14.1
-torch-scatter==2.1.0
+torch-scatter==2.1.1
 pymatgen==2023.3.10
