@@ -4,7 +4,7 @@ Tools to construct a dataloader for DGL grphs
 from __future__ import annotations
 
 import os
-
+import numpy as np
 import dgl
 import torch
 from dgl.data import DGLDataset
@@ -13,7 +13,7 @@ from pymatgen.core import Structure
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
-from matgl.graph.compute import compute_pair_vector_and_distance
+from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
 from matgl.layers.bond_expansion import BondExpansion
 
 
@@ -28,7 +28,29 @@ def _collate_fn(batch):
     return g, labels, graph_attr
 
 
-def MEGNetDataLoader(train_data, val_data, test_data, collate_fn, batch_size, num_workers, use_ddp: bool = False):
+def _collate_fn_efs(batch):
+    """
+    Merge a list of dgl graphs to form a batch
+    """
+    graphs, line_graphs, graph_attr, energies, forces, stresses = map(list, zip(*batch))
+    g = dgl.batch(graphs)
+    l_g = dgl.batch(line_graphs)
+    e = torch.tensor(energies, dtype=torch.float32)
+    f = torch.vstack(forces)
+    s = torch.vstack(stresses)
+    graph_attr = torch.stack(graph_attr)
+    return g, l_g, graph_attr, e, f, s
+
+
+def MGLDataLoader(
+    train_data: dgl.data.utils.Subset,
+    val_data: dgl.data.utils.Subset,
+    test_data: dgl.data.utils.Subset,
+    collate_fn: function,
+    batch_size: int,
+    num_workers: int,
+    use_ddp: bool = False,
+):
     """
     Dataloader for MEGNet training
     Args:
@@ -74,15 +96,15 @@ class MEGNetDataset(DGLDataset):
 
     def __init__(
         self,
-        structures,
-        labels,
-        label_name,
-        converter,
-        initial=0.0,
-        final=5.0,
-        num_centers=20,
-        width=0.5,
-        name="MEGNETDataset",
+        structures: list,
+        labels: list,
+        label_name: str,
+        converter: Pmg2Graph,
+        initial: float = 0.0,
+        final: float = 5.0,
+        num_centers: int = 20,
+        width: float = 0.5,
+        name: str = "MEGNETDataset",
     ):
         """
         Args:
@@ -105,7 +127,7 @@ class MEGNetDataset(DGLDataset):
         self.width = width
         super().__init__(name=name)
 
-    def has_cache(self, filename="dgl_graph.bin") -> bool:
+    def has_cache(self, filename: str = "dgl_graph.bin") -> bool:
         """
         Check if the dgl_graph.bin exists or not
         Args:
@@ -138,7 +160,7 @@ class MEGNetDataset(DGLDataset):
 
         return self.graphs, self.graph_attr
 
-    def save(self, filename="dgl_graph.bin", filename_graph_attr="graph_attr.pt"):
+    def save(self, filename: str = "dgl_graph.bin", filename_graph_attr: str = "graph_attr.pt"):
         """
         Save dgl graphs
         Args:
@@ -149,7 +171,7 @@ class MEGNetDataset(DGLDataset):
         save_graphs(filename, self.graphs, labels_with_key)
         torch.save(self.graph_attr, filename_graph_attr)
 
-    def load(self, filename="dgl_graph.bin", filename_graph_attr="graph_attr.pt"):
+    def load(self, filename: str = "dgl_graph.bin", filename_graph_attr: str = "graph_attr.pt"):
         """
         Load dgl graphs
         Args:
@@ -160,11 +182,145 @@ class MEGNetDataset(DGLDataset):
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
         self.graph_attr = torch.load("graph_attr.pt")
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         """
         Get graph and label with idx
         """
         return self.graphs[idx], self.labels[idx], self.graph_attr[idx]
+
+    def __len__(self):
+        """
+        Get size of dataset
+        """
+        return len(self.graphs)
+
+
+class M3GNetDataset(DGLDataset):
+    """
+    Create a dataset including dgl graphs
+    """
+
+    def __init__(
+        self,
+        structures: list,
+        energies: list,
+        forces: list,
+        stresses: list,
+        converter: Pmg2Graph,
+        threebody_cutoff: float,
+        name="M3GNETDataset",
+    ):
+        """
+        Args:
+        structures: Pymatgen strutcure
+        labels: property values
+        label: label name
+        converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
+        initial: initial distance for Gaussian expansions
+        final: final distance for Gaussian expansions
+        num_centers: number of Gaussian functions
+        width: width of Gaussian functions
+        """
+        self.converter = converter
+        self.structures = structures
+        self.energies = energies
+        self.forces = forces
+        self.threebody_cutoff = threebody_cutoff
+        if stresses is None:
+            self.stresses = np.zeros(len(self.energies))
+        else:
+            self.stresses = stresses
+        super().__init__(name=name)
+
+    def has_cache(self, filename: str = "dgl_graph.bin") -> bool:
+        """
+        Check if the dgl_graph.bin exists or not
+        Args:
+            :filename: Name of file storing dgl graphs
+        Returns: True if file exists.
+        """
+        return os.path.exists(filename)
+
+    def process(self) -> tuple:
+        """
+        Convert Pymatgen structure into dgl graphs
+        """
+        num_graphs = len(self.energies)
+        self.graphs = []
+        self.line_graphs = []
+        self.graph_attr = []
+        for idx in trange(num_graphs):
+            structure = self.structures[idx]
+            if isinstance(structure, Structure):
+                graph, state_attr = self.converter.get_graph_from_structure(structure=structure)
+            else:
+                graph, state_attr = self.converter.get_graph_from_molecule(mol=structure)
+            self.graphs.append(graph)
+            self.graph_attr.append(state_attr)
+            bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
+            graph.edata["bond_vec"] = bond_vec
+            graph.edata["bond_dist"] = bond_dist
+            line_graph = create_line_graph(graph, self.threebody_cutoff)
+            line_graph.ndata.pop("bond_vec")
+            line_graph.ndata.pop("bond_dist")
+            line_graph.ndata.pop("pbc_offset")
+            self.line_graphs.append(line_graph)
+        self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
+
+        return self.graphs, self.line_graphs, self.graph_attr
+
+    def save(
+        self,
+        filename: str = "dgl_graph.bin",
+        filename_line_graph: str = "dgl_line_graph.bin",
+        filename_graph_attr: str = "graph_attr.pt",
+    ):
+        """
+        Save dgl graphs
+        Args:
+        :filename: Name of file storing dgl graphs
+        :filename_graph_attr: Name of file storing graph attrs
+        """
+        labels_with_key = {"energies": self.energies, "forces": self.forces, "stresses": self.stresses}
+        save_graphs(filename, self.graphs)
+        save_graphs(filename_line_graph, self.line_graphs)
+        torch.save(self.graph_attr, filename_graph_attr)
+        with open("labels.json", "w") as file:
+            file.write("".join(str(labels_with_key).split("\n")))
+
+    def load(
+        self,
+        filename: str = "dgl_graph.bin",
+        filename_line_graph: str = "dgl_line_graph.bin",
+        filename_graph_attr: str = "graph_attr.pt",
+    ):
+        """
+        Load dgl graphs
+        Args:
+        :filename: Name of file storing dgl graphs
+        :filename: Name of file storing state attrs
+        """
+        self.graphs = load_graphs(filename)
+        self.line_graphs = load_graphs(filename_line_graphs)
+        with open("labels.json") as file:
+            labels = json.load(file)
+        self.energies = labels["energies"]
+        self.forces = labels["forces"]
+        self.stresses = labels["stresses"]
+        self.graph_attr = torch.load("graph_attr.pt")
+
+    def __getitem__(self, idx: int):
+        """
+        Get graph and label with idx
+        """
+        return (
+            self.graphs[idx],
+            self.line_graphs[idx],
+            self.graph_attr[idx],
+            self.energies[idx],
+            torch.tensor(self.forces[idx]),
+            torch.tensor(self.stresses[idx]),
+        )
 
     def __len__(self):
         """

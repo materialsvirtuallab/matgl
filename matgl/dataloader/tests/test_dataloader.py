@@ -2,18 +2,19 @@ import os
 import unittest
 
 import numpy as np
+import torch
 from dgl.data.utils import split_dataset
 from pymatgen.core import Molecule
 from pymatgen.util.testing import PymatgenTest
 
-from matgl.dataloader.dataset import MEGNetDataLoader, MEGNetDataset, _collate_fn
+from matgl.dataloader.dataset import MGLDataLoader, MEGNetDataset, _collate_fn, _collate_fn_efs, M3GNetDataset
 from matgl.graph.converters import Pmg2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class MEGNetDatasetTest(PymatgenTest):
-    def test_MEGNetDataset(self):
+class TestDataset(PymatgenTest):
+    def test_megnet_dataset(self):
         s1 = self.get_structure("LiFePO4")
         s2 = self.get_structure("BaNiO3")
         structures = [s1, s2]
@@ -29,7 +30,7 @@ class MEGNetDatasetTest(PymatgenTest):
         self.assertTrue(g2.num_edges() == cry_graph.get_graph_from_structure(s2)[0].num_edges())
         self.assertTrue(g2.num_nodes() == cry_graph.get_graph_from_structure(s2)[0].num_nodes())
 
-    def test_MEGNetDataset_for_mol(self):
+    def test_megnet_dataset_for_mol(self):
         coords = [
             [0.000000, 0.000000, 0.000000],
             [0.000000, 0.000000, 1.089000],
@@ -53,7 +54,34 @@ class MEGNetDatasetTest(PymatgenTest):
         self.assertTrue(g2.num_edges() == mol_graph.get_graph_from_molecule(methane)[0].num_edges())
         self.assertTrue(g2.num_nodes() == mol_graph.get_graph_from_molecule(methane)[0].num_nodes())
 
-    def test_MEGNetDataLoader(self):
+    def test_m3gnet_dataset(self):
+        s1 = self.get_structure("LiFePO4")
+        s2 = self.get_structure("BaNiO3")
+        structures = [s1, s2]
+        energies = [-1.0, 2.0]
+        forces = [np.zeros((28, 3)).tolist(), np.zeros((10, 3)).tolist()]
+        stresses = [np.zeros((3, 3)).tolist(), np.zeros((3, 3)).tolist()]
+        element_types = get_element_list([s1, s2])
+        cry_graph = Pmg2Graph(element_types=element_types, cutoff=4.0)
+        dataset = M3GNetDataset(
+            structures=structures,
+            converter=cry_graph,
+            threebody_cutoff=4.0,
+            energies=energies,
+            forces=forces,
+            stresses=stresses,
+        )
+        g1, l_g1, state1, energies_g1, forces_g1, stresses_g1 = dataset[0]
+        g2, l_g2, state2, energies_g2, forces_g2, stresses_g2 = dataset[1]
+        self.assertTrue(energies_g1 == energies[0])
+        self.assertTrue(g1.num_edges() == cry_graph.get_graph_from_structure(s1)[0].num_edges())
+        self.assertTrue(g1.num_nodes() == cry_graph.get_graph_from_structure(s1)[0].num_nodes())
+        self.assertTrue(g2.num_edges() == cry_graph.get_graph_from_structure(s2)[0].num_edges())
+        self.assertTrue(g2.num_nodes() == cry_graph.get_graph_from_structure(s2)[0].num_nodes())
+        self.assertTrue(np.shape(forces_g1)[0], 28)
+        self.assertTrue(np.shape(forces_g2)[0], 10)
+
+    def test_megnet_dataloader(self):
         s1 = self.get_structure("LiFePO4")
         s2 = self.get_structure("BaNiO3")
         structures = [s1, s1, s1, s1, s1, s1, s1, s1, s1, s1, s2, s2, s2, s2, s2, s2, s2, s2, s2, s2]
@@ -67,12 +95,12 @@ class MEGNetDatasetTest(PymatgenTest):
             shuffle=True,
             random_state=42,
         )
-        train_loader, val_loader, test_loader = MEGNetDataLoader(train_data, val_data, test_data, _collate_fn, 2, 1)
+        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn, 2, 1)
         self.assertTrue(len(train_loader) == 8)
         self.assertTrue(len(val_loader) == 1)
         self.assertTrue(len(test_loader) == 1)
 
-    def test_MEGNetDataLoader_for_mol(self):
+    def test_megnet_dataloader_for_mol(self):
         coords = [
             [0.000000, 0.000000, 0.000000],
             [0.000000, 0.000000, 1.089000],
@@ -92,8 +120,39 @@ class MEGNetDatasetTest(PymatgenTest):
             shuffle=True,
             random_state=42,
         )
-        train_loader, val_loader, test_loader = MEGNetDataLoader(train_data, val_data, test_data, _collate_fn, 2, 1)
+        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn, 2, 1)
         self.assertTrue(len(train_loader) == 3)
+        self.assertTrue(len(val_loader) == 1)
+        self.assertTrue(len(test_loader) == 1)
+
+    def test_m3gnet_dataloader(self):
+        s1 = self.get_structure("LiFePO4")
+        s2 = self.get_structure("BaNiO3")
+        structures = [s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2]
+        energies = np.zeros(20)
+        f1 = np.zeros((28, 3)).tolist()
+        f2 = np.zeros((10, 3)).tolist()
+        s = np.zeros((3, 3)).tolist()
+        forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
+        stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
+        element_types = get_element_list([s1, s2])
+        cry_graph = Pmg2Graph(element_types=element_types, cutoff=4.0)
+        dataset = M3GNetDataset(
+            structures=structures,
+            converter=cry_graph,
+            threebody_cutoff=4.0,
+            energies=energies,
+            forces=forces,
+            stresses=stresses,
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn_efs, 2, 1)
+        self.assertTrue(len(train_loader) == 8)
         self.assertTrue(len(val_loader) == 1)
         self.assertTrue(len(test_loader) == 1)
 

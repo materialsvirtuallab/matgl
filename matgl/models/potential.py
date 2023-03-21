@@ -4,9 +4,11 @@ M3GNet potentials
 from __future__ import annotations
 
 import dgl
+import dgl.function as fn
 import torch
 import torch.nn as nn
 from torch.autograd import grad
+from matgl.graph.compute import compute_pair_vector_and_distance
 
 
 class Potential(nn.Module):
@@ -32,8 +34,11 @@ class Potential(nn.Module):
         self.calc_forces = calc_forces
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
+        self.graph_converter = model.graph_converter
 
-    def forward(self, g: dgl.DGLGraph, graph_attr) -> tuple:
+    def forward(
+        self, g: dgl.DGLGraph, graph_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None
+    ) -> tuple:
         """
         Args:
         g: DGL graph
@@ -47,22 +52,19 @@ class Potential(nn.Module):
         hessian = torch.zeros(1)
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
-
-        total_energies = self.model(g, graph_attr)
-
+        total_energies = self.model(g=g, state_attr=graph_attr, l_g=l_g)
         if self.calc_forces:
             grads = grad(
                 total_energies,
-                g.ndata["pos"],
+                [g.ndata["pos"], g.edata["bond_vec"]],
                 grad_outputs=torch.ones_like(total_energies),
                 create_graph=True,
                 retain_graph=True,
-            )[0]
+            )
 
-            forces = -grads
-
+            forces = -grads[0]
             if self.calc_hessian:
-                r = -grads.view(-1)
+                r = -grads[0].view(-1)
                 s = r.size(0)
                 hessian = total_energies.new_zeros((s, s))
                 for iatom in range(s):
@@ -70,14 +72,27 @@ class Potential(nn.Module):
                     if tmp is not None:
                         hessian[iatom] = tmp.view(-1)
         if self.calc_stresses:
-            grads = grad(  # type: ignore
-                total_energies,
-                g.edata["bond_vec"],
-                grad_outputs=torch.ones_like(total_energies),
-                create_graph=True,
-                retain_graph=True,
-            )
-            f_ij = -grads[0]
-            stresses = -1 * (160.21766208 * torch.matmul(g.edata["bond_vec"].T, f_ij) / g.ndata["volume"][0])
+            f_ij = -grads[1]
+            stresses = []
+            count_edge = 0
+            count_node = 0
+            for graph_id in range(g.batch_size):
+                num_edges = g.batch_num_edges()[graph_id]
+                num_nodes = 0
+                stresses.append(
+                    -1
+                    * (
+                        160.21766208
+                        * torch.matmul(
+                            g.edata["bond_vec"][count_edge : count_edge + num_edges].T,
+                            f_ij[count_edge : count_edge + num_edges],
+                        )
+                        / g.ndata["volume"][count_node + num_nodes]
+                    )
+                )
+                count_edge = count_edge + num_edges
+                num_nodes = g.batch_num_nodes()[graph_id]
+                count_node = count_node + num_nodes
+            stresses = torch.cat(stresses)
 
         return total_energies, forces, stresses, hessian

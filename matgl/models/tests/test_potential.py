@@ -7,6 +7,8 @@ from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.models.m3gnet import M3GNet
 from matgl.models.potential import Potential
 
+import torch
+
 
 class TestPotential(unittest.TestCase):
     @classmethod
@@ -25,7 +27,7 @@ class TestPotential(unittest.TestCase):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model, calc_hessian=True)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([e.size(dim=0)], [1])
+        self.assertListEqual([torch.numel(e)], [1])
         self.assertListEqual([f.size(dim=0), f.size(dim=1)], [2, 3])
         self.assertListEqual([s.size(dim=0), s.size(dim=1)], [3, 3])
         self.assertListEqual([h.size(dim=0), h.size(dim=1)], [6, 6])
@@ -34,7 +36,7 @@ class TestPotential(unittest.TestCase):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([e.size(dim=0)], [1])
+        self.assertListEqual([torch.numel(e)], [1])
         self.assertListEqual([f.size(dim=0), f.size(dim=1)], [2, 3])
         self.assertListEqual([s.size(dim=0), s.size(dim=1)], [3, 3])
         self.assertListEqual([h.size(dim=0)], [1])
@@ -43,7 +45,7 @@ class TestPotential(unittest.TestCase):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model, calc_stresses=False)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([e.size(dim=0)], [1])
+        self.assertListEqual([torch.numel(e)], [1])
         self.assertListEqual([f.size(dim=0), f.size(dim=1)], [2, 3])
         self.assertListEqual([s.size(dim=0)], [1])
         self.assertListEqual([h.size(dim=0)], [1])
@@ -52,7 +54,7 @@ class TestPotential(unittest.TestCase):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model, calc_forces=False, calc_stresses=False)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([e.size(dim=0)], [1])
+        self.assertListEqual([torch.numel(e)], [1])
         self.assertListEqual([f.size(dim=0)], [1])
         self.assertListEqual([s.size(dim=0)], [1])
         self.assertListEqual([h.size(dim=0)], [1])

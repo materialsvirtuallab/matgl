@@ -16,13 +16,16 @@ class EmbeddingBlock(nn.Module):
 
     def __init__(
         self,
+        degree_rbf: int,
+        activation: nn.Module,
         num_node_feats: int,
         num_edge_feats: int,
+        num_node_types: int | None = None,
         num_state_feats: int | None = None,
         include_states: bool = False,
         num_state_types: int | None = None,
         state_embedding_dim: int | None = None,
-        activation: str = "swish",
+        device: torch.device | None = None,
     ):
         """
         Parameters:
@@ -36,21 +39,25 @@ class EmbeddingBlock(nn.Module):
         """
         super().__init__()
 
-        if activation == "swish":
-            self.activation = nn.SiLU()  # type: ignore
-        elif activation == "sigmoid":
-            self.activation = nn.Sigmoid()  # type: ignore
-        elif activation == "tanh":
-            self.activation = nn.Tanh()  # type: ignore
         self.include_states = include_states
         self.num_state_types = num_state_types
         self.num_node_feats = num_node_feats
         self.num_edge_feats = num_edge_feats
         self.num_state_feats = num_state_feats
+        self.num_node_types = num_node_types
         self.state_embedding_dim = state_embedding_dim
-
+        self.activation = activation
+        self.device = device
         if num_state_types and state_embedding_dim is not None:
-            self.state_embedding = nn.Embedding(num_state_types, state_embedding_dim)  # type: ignore
+            self.state_embedding = nn.Embedding(num_state_types, state_embedding_dim, device=device)  # type: ignore
+        if num_node_types is not None:
+            self.node_embedding = nn.Embedding(num_node_types, num_node_feats, device=device)
+        self.edge_embedding = MLP(
+            [degree_rbf, self.num_edge_feats],
+            activation=activation,
+            activate_last=True,
+            device=self.device,
+        )
 
     def forward(self, node_attr, edge_attr, state_attr):
         """
@@ -66,17 +73,23 @@ class EmbeddingBlock(nn.Module):
         edge_feat: embedded edge features
         state_feat: embedded state features
         """
-        node_embed = MLP([node_attr.shape[-1], self.num_node_feats], activation=self.activation)
-        edge_embed = MLP([edge_attr.shape[-1], self.num_edge_feats], activation=self.activation)
-        node_feat = node_embed(node_attr.to(torch.float32))
-        edge_feat = edge_embed(edge_attr.to(torch.float32))
+
+        if self.num_node_types is not None:
+            node_feat = self.node_embedding(node_attr)
+        else:
+            node_embed = MLP([node_attr.shape[-1], self.num_node_feats], activation=self.activation, device=self.device)
+            node_feat = node_embed(node_attr.to(torch.float32))
+
+        edge_feat = self.edge_embedding(edge_attr.to(torch.float32))
         if self.include_states is True:
             if self.num_state_types and self.state_embedding_dim is not None:
                 state_feat = self.state_embedding(state_attr)
                 state_feat = self.activation(state_feat)
             else:
                 state_attr = torch.unsqueeze(state_attr, 0)
-                state_embed = MLP([state_attr.shape[-1], self.num_state_feats], activation=self.activation)
+                state_embed = MLP(
+                    [state_attr.shape[-1], self.num_state_feats], activation=self.activation, device=self.device
+                )
                 state_feat = state_embed(state_attr.to(torch.float32))
         else:
             state_feat = None

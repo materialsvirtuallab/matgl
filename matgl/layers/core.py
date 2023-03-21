@@ -22,6 +22,7 @@ class MLP(nn.Module):
         activation: Callable[[torch.Tensor], torch.Tensor] | None = None,
         activate_last: bool = False,
         bias_last: bool = True,
+        device: torch.device | None = None,
     ) -> None:
         """
         :param dims: Dimensions of each layer of MLP.
@@ -35,12 +36,12 @@ class MLP(nn.Module):
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
-                self.layers.append(Linear(in_dim, out_dim, bias=True))
+                self.layers.append(Linear(in_dim, out_dim, bias=True, device=device))
 
                 if activation is not None:
                     self.layers.append(activation)  # type: ignore
             else:
-                self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
+                self.layers.append(Linear(in_dim, out_dim, bias=bias_last, device=device))
 
                 if activation is not None and activate_last:
                     self.layers.append(activation)  # type: ignore
@@ -92,7 +93,6 @@ class MLP(nn.Module):
         :return: Output tensor
         """
         x = inputs
-
         for layer in self.layers:
             x = layer(x)
 
@@ -110,6 +110,7 @@ class GatedMLP(nn.Module):
         dims: list[int],
         activate_last: bool = True,
         use_bias: bool = True,
+        device: torch.device | None = None,
     ):
         """
         :param in_feats: Dimension of input features.
@@ -127,18 +128,18 @@ class GatedMLP(nn.Module):
         self.activate_last = activate_last
         for i, (in_dim, out_dim) in enumerate(zip(self.dims[:-1], self.dims[1:])):
             if i < self._depth - 1:
-                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
-                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias, device=device))
+                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias, device=device))
                 self.layers.append(nn.SiLU())
                 self.gates.append(nn.SiLU())
             else:
-                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias, device=device))
                 if self.activate_last:
                     self.layers.append(nn.SiLU())
-                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
+                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias, device=device))
                 self.gates.append(nn.Sigmoid())
 
-    def forward(self, inputs):
+    def forward(self, inputs: torch.tensor):
         return self.layers(inputs) * self.gates(inputs)
 
 
@@ -165,7 +166,7 @@ class EdgeSet2Set(Module):
         """Reinitialize learnable parameters."""
         self.lstm.reset_parameters()
 
-    def forward(self, g, feat):
+    def forward(self, g: dgl.DGLGraph, feat: torch.tensor):
         """
         Defines the computation performed at every call.
 

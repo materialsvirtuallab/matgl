@@ -20,11 +20,11 @@ from matgl.layers.three_body import SphericalBesselWithHarmonics, ThreeBodyInter
 class TestThreeBody(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.01, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        mol = Molecule(["C", "O"], [[0, 0, 0], [1.1, 0, 0]])
+        cls.s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        mol = Molecule(["C", "O"], [[0, 0, 0], [1.0, 0, 0]])
 
         element_types = get_element_list([cls.s])
-        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
+        p2g = Pmg2Graph(element_types=element_types, cutoff=5.0)
         graph, state = p2g.get_graph_from_structure(cls.s)
         cls.g1 = graph
         cls.state1 = state
@@ -64,28 +64,41 @@ class TestThreeBody(unittest.TestCase):
         self.assertListEqual([three_body_basis.size(dim=0), three_body_basis.size(dim=1)], [364, 27])
 
     def test_three_body_interactions(self):
-        bond_dist = self.g1.edata["bond_dist"]
-        bond_dist.requires_grad = True
-        three_body_cutoff = polynomial_cutoff(bond_dist, 4.0)
-        bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
-        bond_basis = bond_expansion(bond_dist)
-        sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
+        device = torch.device("cpu")
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
+        bond_expansion = BondExpansion(
+            max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False, device=device
+        )
+        bond_basis = bond_expansion(self.g1.edata["bond_dist"])
+        self.g1.edata["rbf"] = bond_basis
+        sb_and_sh = SphericalBesselWithHarmonics(
+            max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False, device=device
+        )
         three_body_basis = sb_and_sh(self.g1, l_g1)
+        three_body_cutoff = polynomial_cutoff(self.g1.edata["bond_dist"], 4.0)
         max_n = 3
         max_l = 3
         num_node_feats = 16
         num_edge_feats = 16
         state_attr = torch.tensor([0.0, 0.0])
-        embedding = EmbeddingBlock(num_node_feats=num_node_feats, num_edge_feats=num_edge_feats)
+        embedding = EmbeddingBlock(
+            degree_rbf=9,
+            num_node_feats=num_node_feats,
+            num_edge_feats=num_edge_feats,
+            activation=nn.SiLU(),
+            device=device,
+        )
+
         node_attr = self.g1.ndata["attr"]
-        node_attr.requires_grad = True
-        node_feat, edge_feat, state_feat = embedding(node_attr, bond_basis, state_attr)
+        edge_attr = self.g1.edata["rbf"]
+        node_feat, edge_feat, state_feat = embedding(node_attr, edge_attr, state_attr)
         degree = max_n * max_l
         three_body_interactions = ThreeBodyInteractions(
-            update_network_atom=MLP(dims=[num_node_feats, degree], activation=nn.Sigmoid()),
-            update_network_bond=GatedMLP(in_feats=degree, dims=[num_edge_feats], use_bias=False),
+            update_network_atom=MLP(
+                dims=[num_node_feats, degree], activation=nn.Sigmoid(), activate_last=True, device=device
+            ),
+            update_network_bond=GatedMLP(in_feats=degree, dims=[num_edge_feats], use_bias=False, device=device),
         )
         edge_feat_updated = three_body_interactions(
             self.g1, l_g1, three_body_basis, three_body_cutoff, node_feat, edge_feat
