@@ -46,7 +46,7 @@ class MEGNetGraphConv(Module):
         :param activation:
         :return:
         """
-        # TODO(marcel): Softplus doesnt exactly match paper's SoftPlus2
+        # TODO(marcel): Softplus doesn't exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
         edge_update = MLP(edge_dims, activation, activate_last=True)
         node_update = MLP(node_dims, activation, activate_last=True)
@@ -174,9 +174,9 @@ class MEGNetBlock(Module):
         node_in = out_dim + conv_dim + conv_dim  # EDIM+NDIM+GDIM
         attr_in = out_dim + out_dim + conv_dim  # EDIM+NDIM+GDIM
         self.conv = MEGNetGraphConv.from_dims(
-            edge_dims=[edge_in] + conv_hiddens,
-            node_dims=[node_in] + conv_hiddens,
-            attr_dims=[attr_in] + conv_hiddens,
+            edge_dims=[edge_in, *conv_hiddens],
+            node_dims=[node_in, *conv_hiddens],
+            attr_dims=[attr_in, *conv_hiddens],
             activation=self.activation,
         )
 
@@ -235,8 +235,8 @@ class M3GNetGraphConv(Module):
         attr_update_func: Module | None,
     ):
         """
-        Paramters:
-        include_states (bood): Whether including state
+        Parameters:
+        include_states (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
@@ -280,10 +280,7 @@ class M3GNetGraphConv(Module):
 
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
-        if include_states:
-            attr_update_func = MLP(attr_dims, activation, activate_last=True)  # type: ignore
-        else:
-            attr_update_func = None  # type: ignore
+        attr_update_func = MLP(attr_dims, activation, activate_last=True) if include_states else None  # type: ignore
         return M3GNetGraphConv(
             include_states, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
         )
@@ -305,10 +302,7 @@ class M3GNetGraphConv(Module):
         eij = edges.data.pop("e")
         rbf = edges.data["rbf"]
         rbf = rbf.float()
-        if self.include_states:
-            inputs = torch.hstack([vi, vj, eij, u])
-        else:
-            inputs = torch.hstack([vi, vj, eij])
+        inputs = torch.hstack([vi, vj, eij, u]) if self.include_states else torch.hstack([vi, vj, eij])
         mij = {"mij": self.edge_update_func(inputs) * self.edge_weight_func(rbf)}
         return mij
 
@@ -441,9 +435,9 @@ class M3GNetBlock(Module):
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_states,
-                edge_dims=[edge_in] + conv_hiddens + [num_edge_feats],
-                node_dims=[node_in] + conv_hiddens + [num_node_feats],
-                attr_dims=[attr_in] + conv_hiddens + [num_state_feats],  # type: ignore
+                edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
+                node_dims=[node_in, *conv_hiddens, num_node_feats],
+                attr_dims=[attr_in, *conv_hiddens, num_state_feats],  # type: ignore
                 activation=self.activation,
             )
         else:
@@ -452,8 +446,8 @@ class M3GNetBlock(Module):
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_states,
-                edge_dims=[edge_in] + conv_hiddens + [num_edge_feats],
-                node_dims=[node_in] + conv_hiddens + [num_node_feats],
+                edge_dims=[edge_in, *conv_hiddens] + [num_edge_feats],
+                node_dims=[node_in, *conv_hiddens] + [num_node_feats],
                 attr_dims=None,  # type: ignore
                 activation=self.activation,
             )
