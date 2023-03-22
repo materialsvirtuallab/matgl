@@ -74,7 +74,7 @@ class GaussianExpansion(nn.Module):
         bond_dists :
             Bond (edge) distances between two atoms (nodes)
 
-        Returns
+        Returns:
         -------
         A vector of expanded distance with shape [num_centers]
         """
@@ -238,10 +238,7 @@ class SphericalHarmonicsFunction:
         funcs = []
         theta, phi = sympy.symbols("theta phi")
         for lval in range(self.max_l):
-            if self.use_phi:
-                m_list = range(-lval, lval + 1)
-            else:
-                m_list = [0]  # type: ignore
+            m_list = range(-lval, lval + 1) if self.use_phi else [0]  # type: ignore
             for m in m_list:
                 func = sympy.functions.special.spherical_harmonics.Znm(lval, m, theta, phi).expand(func=True)
                 funcs.append(func)
@@ -423,6 +420,7 @@ def get_segment_indices_from_n(ns):
 def get_range_indices_from_n(ns):
     """
     Give ns = [2, 3], return [0, 1, 0, 1, 2]
+
     Args:
         ns: torch.tensor, the number of atoms/bonds array
 
@@ -478,6 +476,7 @@ def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
 def repeat_with_n(ns, n):
     """
     Repeat the first dimension according to n array.
+
     Args:
         ns (torch.tensor): tensor
         n (torch.tensor): a list of replications
@@ -492,6 +491,7 @@ def broadcast_states_to_bonds(g, state_feat):
     """
     Broadcast state attributes of shape [Ns, Nstate] to
     bond attributes shape [Nb, Nstate]
+
     Args:
         g: DGL graph
         state_feat: state_feature
@@ -506,6 +506,7 @@ def broadcast_states_to_atoms(g, state_feat):
     """
     Broadcast state attributes of shape [Ns, Nstate] to
     bond attributes shape [Nb, Nstate]
+
     Args:
         g: DGL graph
         state_feat: state_feature

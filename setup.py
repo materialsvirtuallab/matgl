@@ -1,5 +1,7 @@
-from setuptools import find_packages, setup
+from __future__ import annotations
+
 import numpy
+from setuptools import find_packages, setup
 
 VERSION = "0.1.0.dev"
 

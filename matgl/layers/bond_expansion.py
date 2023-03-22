@@ -37,7 +37,6 @@ class BondExpansion(nn.Module):
         final (float): final point for gaussian expansion
         width (float): width of gaussian function
         """
-
         super().__init__()
 
         self.max_n = max_n

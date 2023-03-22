@@ -30,7 +30,6 @@ class MEGNetGraphConv(Module):
         :param node_func: Node update function.
         :param attr_func: Global state update function.
         """
-
         super().__init__()
         self.edge_func = edge_func
         self.node_func = node_func
@@ -199,7 +198,6 @@ class MEGNetBlock(Module):
         :param graph_attr:
         :return:
         """
-
         inputs = (edge_feat, node_feat, graph_attr)
         edge_feat = self.edge_func(edge_feat)
         node_feat = self.node_func(node_feat)
@@ -243,7 +241,6 @@ class M3GNetGraphConv(Module):
         node_weight_func (Module): Weight function for radieal basis functions (Eq. 5)
         attr_update_func (Module): Update function for state feats (Eq. 6)
         """
-
         super().__init__()
         self.include_states = include_states
         self.edge_update_func = edge_update_func
@@ -330,7 +327,6 @@ class M3GNetGraphConv(Module):
         Returns:
         node_update: node features update
         """
-
         eij = graph.edata["e"]
         src_id = graph.edges()[0]
         vi = graph.ndata["v"][src_id]
@@ -356,7 +352,7 @@ class M3GNetGraphConv(Module):
         graph: DGL graph
         attrs: graph features
 
-        Returns
+        Returns:
         state_update: state_features update
         """
         u = attrs
@@ -468,7 +464,6 @@ class M3GNetBlock(Module):
         :param graph_attr: State features
         :return: A tuple of updated features
         """
-
         edge_feat, node_feat, graph_feat = self.conv(graph, edge_feat, node_feat, graph_feat)
 
         if self.dropout:

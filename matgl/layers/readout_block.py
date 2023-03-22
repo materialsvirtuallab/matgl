@@ -28,7 +28,6 @@ class Set2SetReadOut(nn.Module):
             num_steps (int): number of LSTM steps
             field (str): the field of MaterialGraph to perform the readout
         """
-
         super().__init__()
         self.field = field
         self.num_steps = num_steps

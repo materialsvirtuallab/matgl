@@ -118,7 +118,6 @@ class MEGNet(Module):
         :param graph_attr: Graph attributes / state features.
         :return: Prediction
         """
-
         graph_transformations = self.graph_transformations
         edge_feat = self.edge_encoder(self.edge_embed(edge_feat))
         node_feat = self.node_encoder(self.node_embed(node_feat))

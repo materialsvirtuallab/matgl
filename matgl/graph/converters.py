@@ -87,7 +87,6 @@ class Pmg2Graph:
             g: DGL graph
             state_attr: state features
         """
-
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
