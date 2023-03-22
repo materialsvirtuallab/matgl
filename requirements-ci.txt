@@ -6,3 +6,4 @@ mypy
 types-tabulate
 pre-commit
 ruff
+black
