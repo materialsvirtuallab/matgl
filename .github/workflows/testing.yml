@@ -23,6 +23,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        pip install torch --upgrade
         pip install --quiet -r requirements.txt -r requirements-ci.txt
         pip install -e .
     - name: pytest
