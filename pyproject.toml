@@ -104,7 +104,7 @@ addopts = "-x --durations=30 --quiet -rxXs --color=yes -p no:warnings"
 ignore_missing_imports = true
 explicit_package_bases = true
 no_implicit_optional = false
-exclude = ['tests']
+exclude = ['tests', 'examples']
 
 [[tool.mypy.overrides]]
 module = ["tabulate.*", "requests.*"]

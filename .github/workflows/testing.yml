@@ -24,6 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install torch --upgrade
+        pip install torch-scatter --upgrade
         pip install --quiet -r requirements.txt -r requirements-ci.txt
         pip install -e .
     - name: pytest
