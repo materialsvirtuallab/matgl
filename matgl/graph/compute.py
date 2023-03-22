@@ -35,7 +35,7 @@ def compute_3body(g):
 
     start = 0
     cs = 0
-    for i, n in enumerate(n_bond_per_atom):
+    for n in n_bond_per_atom:
         if n > 0:
             """
             triple_bond_indices is generated from all pair permutations of atom indices. The

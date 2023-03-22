@@ -1,5 +1,6 @@
-# type: ignore
+from __future__ import annotations
 
+# type: ignore
 import argparse
 from collections import namedtuple
 from timeit import default_timer
@@ -96,7 +97,6 @@ def run(
     config: Munch,
     data: namedtuple,
 ):
-
     g_sample = data.train[0][0]
 
     node_feat = torch.hstack((g_sample.ndata["attr"], g_sample.ndata["pos"]))
