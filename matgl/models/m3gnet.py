@@ -131,7 +131,7 @@ class M3GNet(nn.Module):
         )
         self.graph_layers = []
 
-        for i in range(n_blocks):
+        for _ in range(n_blocks):
             self.graph_layers.append(layer)
 
         if is_intensive:
