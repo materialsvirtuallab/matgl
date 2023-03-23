@@ -517,3 +517,14 @@ def broadcast_states_to_atoms(g, state_feat):
 
     """
     return state_feat.repeat((g.num_nodes(), 1))
+
+
+def unsorted_segment_sum(data: torch.tensor, segment_ids: torch.tensor, num_segments: torch.tensor):
+    """Custom PyTorch version of 'unsorted_segment_sum' in Tensorflow.
+    Copy from [EGNN](https://github.com/vgsatorras/egnn).
+    """
+    result_shape = (num_segments, data.size(1))
+    result = data.new_full(result_shape, 0)  # Init empty result tensor.
+    segment_ids = segment_ids.unsqueeze(-1).expand(-1, data.size(1))
+    result.scatter_add_(0, segment_ids, data)
+    return result
