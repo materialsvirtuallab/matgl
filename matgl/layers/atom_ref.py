@@ -3,8 +3,6 @@ atomic energy offset. Used for predicting extensive properties.
 """
 from __future__ import annotations
 
-from typing import List
-
 import dgl
 import numpy as np
 import torch
@@ -22,7 +20,7 @@ class AtomRef(nn.Module):
 
     def __init__(
         self,
-        property_offset: np.array,  # type: ignore # noqa: F821
+        property_offset: np.array,  # type: ignore
     ) -> None:
         """
         Parameters:
@@ -33,7 +31,7 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(property_offset)
         self.max_z = self.property_offset.size(dim=0)
 
-    def get_feature_matrix(self, structs_or_graphs: List, element_list: tuple[str]) -> np.typing.NDArray:
+    def get_feature_matrix(self, structs_or_graphs: list, element_list: tuple[str]) -> np.typing.NDArray:
         """
         Get the number of atoms for different elements in the structure
 
@@ -55,7 +53,7 @@ class AtomRef(nn.Module):
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, structs_or_graphs: List, element_list: tuple[str], properties: np.typing.NDArray) -> bool:
+    def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> bool:
         """
         Fit the elemental reference values for the properties
 

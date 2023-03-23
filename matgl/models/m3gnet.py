@@ -104,10 +104,7 @@ class M3GNet(nn.Module):
         self.basis_expansion = SphericalBesselWithHarmonics(
             max_n=max_n, max_l=max_l, cutoff=cutoff, use_phi=use_phi, use_smooth=use_smooth
         )
-        if use_phi:
-            degree = max_n * max_l * max_l
-        else:
-            degree = max_n * max_l
+        degree = max_n * max_l * max_l if use_phi else max_n * max_l
 
         self.three_body_interactions = [
             ThreeBodyInteractions(
@@ -116,10 +113,7 @@ class M3GNet(nn.Module):
             )
             for _ in range(n_blocks)
         ]
-        if use_smooth:
-            degree_rbf = max_n
-        else:
-            degree_rbf = max_n * max_l
+        degree_rbf = max_n if use_smooth else max_n * max_l
         layer = M3GNetBlock(
             degree=degree_rbf,
             activation=self.activation,
@@ -131,22 +125,18 @@ class M3GNet(nn.Module):
         )
         self.graph_layers = []
 
-        for i in range(n_blocks):
+        for _ in range(n_blocks):
             self.graph_layers.append(layer)
 
         if is_intensive:
-            if readout == "set2set":
-                self.atom_readout = Set2Set(num_node_feats, n_iters=num_s2s_steps, n_layers=num_s2s_layers)
-                if include_states:
-                    readout_feats = 2 * num_node_feats + num_state_feats  # type: ignore
-                else:
-                    readout_feats = 2 * num_node_feats
-            else:
-                self.atom_readout = ReduceReadOut("mean", field="node_feat")
-                if include_states:
-                    readout_feats = num_node_feats + num_state_feats  # type: ignore
-                else:
-                    readout_feats = num_node_feats
+            self.atom_readout = (
+                Set2Set(num_node_feats, n_iters=num_s2s_steps, n_layers=num_s2s_layers)
+                if readout == "set2set"
+                else ReduceReadOut("mean", field="node_feat")
+            )
+            readout_feats = (
+                2 * num_node_feats + num_state_feats if include_states else 2 * num_node_feats  # type: ignore
+            )
             dims_final_layer = [readout_feats] + [units, units] + [num_targets]
             self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False)
             if task_type == "classification":
@@ -186,7 +176,6 @@ class M3GNet(nn.Module):
         Returns:
 
         """
-
         bv, bd = compute_pair_vector_and_distance(g)
         g.edata["bond_vec"] = bv
         g.edata["bond_dist"] = bd
@@ -214,10 +203,7 @@ class M3GNet(nn.Module):
 
         if self.is_intensive:
             node_vec = self.atom_readout(g)
-            if self.include_states:
-                vec = torch.hstack([node_vec, state_feat])
-            else:
-                vec = node_vec
+            vec = torch.hstack([node_vec, state_feat]) if self.include_states else node_vec
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)

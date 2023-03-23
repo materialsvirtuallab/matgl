@@ -96,7 +96,7 @@ def validate_one_step(
     return avg_loss, epoch_time
 
 
-class StreamingJSONWriter(object):
+class StreamingJSONWriter:
     """
     Serialize streaming data to JSON.
 
@@ -123,7 +123,7 @@ class StreamingJSONWriter(object):
         data = json.dumps(obj, cls=self.encoder)
         close_str = "\n]\n"
         self.file.seek(max(self.file.seek(0, os.SEEK_END) - len(close_str), 0))
-        self.file.write("%s\n    %s%s" % (self.delimeter, data, close_str))
+        self.file.write(f"{self.delimeter}\n    {data}{close_str}")
         self.file.flush()
         self.delimeter = ","
 

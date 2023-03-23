@@ -59,7 +59,7 @@ class MEGNet(Module):
         self.node_embed = node_embed if node_embed else Identity()
         self.attr_embed = attr_embed if attr_embed else Identity()
 
-        dims = [in_dim] + hiddens
+        dims = [in_dim, *hiddens]
 
         if act == "swish":
             activation = nn.SiLU()  # type: ignore
@@ -76,23 +76,23 @@ class MEGNet(Module):
 
         blocks_in_dim = hiddens[-1]
         block_out_dim = conv_hiddens[-1]
-        block_args = dict(conv_hiddens=conv_hiddens, dropout=dropout, act=activation, skip=True)
+        block_args = {"conv_hiddens": conv_hiddens, "dropout": dropout, "act": activation, "skip": True}
         blocks = []
 
         # first block
         blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))  # type: ignore
         # other blocks
         for _ in range(num_blocks - 1):
-            blocks.append(MEGNetBlock(dims=[block_out_dim] + hiddens, **block_args))  # type: ignore
+            blocks.append(MEGNetBlock(dims=[block_out_dim, *hiddens], **block_args))  # type: ignore
         self.blocks = ModuleList(blocks)
 
-        s2s_kwargs = dict(n_iters=s2s_num_iters, n_layers=s2s_num_layers)
+        s2s_kwargs = {"n_iters": s2s_num_iters, "n_layers": s2s_num_layers}
         self.edge_s2s = EdgeSet2Set(block_out_dim, **s2s_kwargs)
         self.node_s2s = Set2Set(block_out_dim, **s2s_kwargs)
 
         self.output_proj = MLP(
             # S2S cats q_star to output producing double the dim
-            dims=[2 * 2 * block_out_dim + block_out_dim] + output_hiddens + [1],
+            dims=[2 * 2 * block_out_dim + block_out_dim, *output_hiddens, 1],
             activation=activation,
             activate_last=False,
         )
@@ -118,7 +118,6 @@ class MEGNet(Module):
         :param graph_attr: Graph attributes / state features.
         :return: Prediction
         """
-
         graph_transformations = self.graph_transformations
         edge_feat = self.edge_encoder(self.edge_embed(edge_feat))
         node_feat = self.node_encoder(self.node_embed(node_feat))

@@ -28,14 +28,13 @@ class Set2SetReadOut(nn.Module):
             num_steps (int): number of LSTM steps
             field (str): the field of MaterialGraph to perform the readout
         """
-
         super().__init__()
         self.field = field
         self.num_steps = num_steps
         self.num_layers = num_layers
 
     def forward(self, g):
-        s2s_kwargs = dict(n_iters=self.num_steps, n_layers=self.num_layers)
+        s2s_kwargs = {"n_iters": self.num_steps, "n_layers": self.num_layers}
         if self.field == "node_feat":
             in_feats = g.ndata["node_feat"].size(dim=1)
             set2set = Set2Set(in_feats, **s2s_kwargs)
@@ -91,7 +90,7 @@ class WeightedReadOut(nn.Module):
         """
         super().__init__()
         self.in_feats = in_feats
-        self.dims = [in_feats] + dims + [num_targets]
+        self.dims = [in_feats, *dims, num_targets]
         self.gated = GatedMLP(
             in_feats=in_feats,
             dims=self.dims,
@@ -119,7 +118,7 @@ class WeightedReadOutPair(nn.Module):
         self.in_feats = in_feats
         self.activation = activation
         self.num_targets = num_targets
-        self.dims = dims + [num_targets]
+        self.dims = [*dims, num_targets]
         self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False)
 
     def forward(self, g):

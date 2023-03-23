@@ -21,17 +21,16 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --quiet -r requirements-ci.txt
+    - name: ruff
+      run: |
+        ruff --version
+        ruff check . --ignore 'D,SIM'
+    - name: black
+      run: |
+        black --version
+        black --check --diff --color matgl
     - name: mypy
       run: |
+        mypy --version
+        rm -rf .mypy_cache
         mypy matgl
-    - name: flake8
-      run: |
-        flake8 --count --show-source --statistics matgl
-        # exit-zero treats all errors as warnings.
-        flake8 --count --exit-zero --max-complexity=20 --statistics matgl
-    - name: pylint
-      run: |
-        pylint matgl
-    - name: pydocstyle
-      run: |
-        pydocstyle --count matgl

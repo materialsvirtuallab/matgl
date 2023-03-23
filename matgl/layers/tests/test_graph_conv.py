@@ -139,9 +139,9 @@ class TestGraphConv(unittest.TestCase):
         conv = M3GNetGraphConv.from_dims(
             degree=degree,
             include_states=True,
-            edge_dims=[edge_in] + conv_hiddens + [num_edge_feats],
-            node_dims=[node_in] + conv_hiddens + [num_node_feats],
-            attr_dims=[state_in] + conv_hiddens + [num_state_feats],
+            edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
+            node_dims=[node_in, *conv_hiddens, num_node_feats],
+            attr_dims=[state_in, *conv_hiddens, num_state_feats],
             activation=nn.SiLU(),
         )
         edge_feat_new, node_feat_new, state_feat_new = conv(self.g1, edge_feat, node_feat, state_feat)

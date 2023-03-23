@@ -119,7 +119,7 @@ class GatedMLP(nn.Module):
         """
         super().__init__()
         self.in_feats = in_feats
-        self.dims = [in_feats] + dims
+        self.dims = [in_feats, *dims]
         self._depth = len(dims)
         self.layers = nn.Sequential()
         self.gates = nn.Sequential()
