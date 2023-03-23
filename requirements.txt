@@ -4,3 +4,4 @@ torch==1.13.1
 torchaudio==0.13.1
 torchvision==0.14.1
 pymatgen==2023.1.30
+ase==3.22.1
