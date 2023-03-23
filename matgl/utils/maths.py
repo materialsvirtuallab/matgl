@@ -14,7 +14,6 @@ import torch
 import torch.nn as nn
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
-from torch_scatter import scatter
 
 from matgl.config import DataType
 
@@ -443,39 +442,23 @@ def get_range_indices_from_n(ns):
     return torch.masked_select(matrix, mask)
 
 
-def unsorted_segment_fraction(data, segment_ids, num_segments):
-    """
-    Segment fraction
-    Args:
-        data (torch.tensor): original data
-        segment_ids (torch.tensor): segment ids
-        num_segments (torch.tensor): number of segments
-    Returns:
-        data (torch.tensor): data after fraction
-    """
-    segment_sum = scatter(data, segment_ids, dim=0, reduce="sum")
-    sums = torch.gather(segment_sum, 0, segment_ids)
-    data = torch.div(data, sums)
-    return data
-
-
-def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
-    """
-    Unsorted segment softmax with optional weights
-    Args:
-        data (tf.Tensor): original data
-        segment_ids (tf.Tensor): tensor segment ids
-        num_segments (int): number of segments
-    Returns: tf.Tensor
-    """
-    if weights is None:
-        weights = torch.ones(1)
-    segment_max = scatter(data, segment_ids, dim=0, reduce="max")
-    maxes = torch.gather(segment_max, 0, segment_ids)
-    data -= maxes
-    exp = torch.exp(data) * torch.squeeze(weights)
-    softmax = torch.div(exp, torch.gather(scatter(exp, segment_ids, dim=0, reduce="sum"), 0, segment_ids))
-    return softmax
+# def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
+#    """
+#    Unsorted segment softmax with optional weights
+#    Args:
+#        data (tf.Tensor): original data
+#        segment_ids (tf.Tensor): tensor segment ids
+#        num_segments (int): number of segments
+#    Returns: tf.Tensor
+#    """
+#    if weights is None:
+#        weights = torch.ones(1)
+#    segment_max = scatter(data, segment_ids, dim=0, reduce="max")
+#    maxes = torch.gather(segment_max, 0, segment_ids)
+#    data -= maxes
+#    exp = torch.exp(data) * torch.squeeze(weights)
+#    softmax = torch.div(exp, torch.gather(scatter(exp, segment_ids, dim=0, reduce="sum"), 0, segment_ids))
+#    return softmax
 
 
 def repeat_with_n(ns, n):
@@ -528,3 +511,19 @@ def unsorted_segment_sum(data: torch.tensor, segment_ids: torch.tensor, num_segm
     segment_ids = segment_ids.unsqueeze(-1).expand(-1, data.size(1))
     result.scatter_add_(0, segment_ids, data)
     return result
+
+
+def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num_segments: torch.tensor):
+    """
+    Segment fraction
+    Args:
+        data (torch.tensor): original data
+        segment_ids (torch.tensor): segment ids
+        num_segments (torch.tensor): number of segments
+    Returns:
+        data (torch.tensor): data after fraction
+    """
+    segment_sum = unsorted_segment_sum(data, segment_ids, num_segments)
+    sums = torch.gather(segment_sum, 0, segment_ids)
+    data = torch.div(data, sums)
+    return data
