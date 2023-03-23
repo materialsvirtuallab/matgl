@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from pymatgen.core import Molecule, Structure
-from torch_scatter import scatter
 from typing import List
 import dgl
 

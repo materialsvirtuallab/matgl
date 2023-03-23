@@ -8,7 +8,6 @@ import dgl.function as fn
 import torch
 import torch.nn as nn
 from torch.nn import Dropout, Module, Identity
-from torch_scatter import scatter_sum
 
 from matgl.layers.core import MLP, GatedMLP
 from matgl.utils.maths import broadcast_states_to_bonds
