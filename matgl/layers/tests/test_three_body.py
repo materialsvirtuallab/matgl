@@ -4,7 +4,7 @@ import unittest
 
 import torch
 import torch.nn as nn
-from pymatgen.core.structure import Lattice, Molecule, Structure
+from pymatgen.core.structure import Lattice, Structure
 
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
@@ -23,7 +23,6 @@ class TestThreeBody(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        mol = Molecule(["C", "O"], [[0, 0, 0], [1.0, 0, 0]])
 
         element_types = get_element_list([cls.s])
         p2g = Pmg2Graph(element_types=element_types, cutoff=5.0)
@@ -33,12 +32,6 @@ class TestThreeBody(unittest.TestCase):
         bond_vec, bond_dist = compute_pair_vector_and_distance(cls.g1)
         cls.g1.edata["bond_dist"] = bond_dist
         cls.g1.edata["bond_vec"] = bond_vec
-
-        element_types = get_element_list([mol])
-        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph_from_molecule(mol)
-        cls.g2 = graph
-        cls.state2 = state
 
     def test_spherical_bessel_with_harmonics(self):
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)

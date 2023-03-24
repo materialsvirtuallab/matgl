@@ -27,7 +27,7 @@ def train_one_step(
 ):
     model.train()
 
-    avg_loss = 0.0
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
 
@@ -68,7 +68,7 @@ def validate_one_step(
     data_mean: torch.Tensor,
     dataloader: tuple,
 ):
-    avg_loss = 0
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
 

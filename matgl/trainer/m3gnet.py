@@ -63,10 +63,10 @@ def train_one_step(
 ):
     potential.model.train()
 
-    mae_e = 0.0
-    mae_f = 0.0
-    mae_s = 0.0
-    avg_loss = 0.0
+    mae_e = torch.zeros(1)
+    mae_f = torch.zeros(1)
+    mae_s = torch.zeros(1)
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
     for g, l_g, attrs, energies, forces, stresses in tqdm(dataloader):
@@ -130,10 +130,10 @@ def validate_one_step(
     stress_weight: float | None,
     dataloader: tuple,
 ):
-    mae_e = 0.0
-    mae_f = 0.0
-    mae_s = 0.0
-    avg_loss = 0.0
+    mae_e = torch.zeros(1)
+    mae_f = torch.zeros(1)
+    mae_s = torch.zeros(1)
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
 
