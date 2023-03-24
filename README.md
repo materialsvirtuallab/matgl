@@ -4,8 +4,8 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials. 
 representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
 to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
 
-In this repository, we have reimplemented the [3-body MatErials Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
-and its predecessors, [MEGNet](https://github.com/materialsvirtuallab/megnet) using the [Deep Graph Library (DGL)](https://www.dgl.ai).
+In this repository, we have reimplemented the [MatErials 3-body Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
+and its predecessor, [MEGNet](https://github.com/materialsvirtuallab/megnet) using the [Deep Graph Library (DGL)](https://www.dgl.ai).
 The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
 implemented in TensorFlow.
 
@@ -20,15 +20,15 @@ Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures hav
 
 Please cite the following works:
 
-- MEGNET
-    ```txt
-    Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-    Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
-    ```
 - M3GNet
     ```txt
     Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
     2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
+    ```
+- MEGNET
+    ```txt
+    Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
+    Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
     ```
 
 # Acknowledgements
