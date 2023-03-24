@@ -11,7 +11,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from matgl.graph.compute import compute_pair_vector_and_distance, compute_theta_and_phi, create_line_graph
+from matgl.graph.compute import (
+    compute_pair_vector_and_distance,
+    compute_theta_and_phi,
+    create_line_graph,
+)
 from matgl.graph.converters import Pmg2Graph
 from matgl.layers.atom_ref import AtomRef
 from matgl.layers.bond_expansion import BondExpansion
@@ -300,7 +304,7 @@ class M3GNet(nn.Module):
         g.edata["edge_feat"] = num_edge_feats
         if self.is_intensive:
             node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, state_feat]) if self.include_states else node_vec
+            vec = torch.hstack([node_vec, state_attr]) if self.include_states else node_vec
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)

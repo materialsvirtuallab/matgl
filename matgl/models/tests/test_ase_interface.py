@@ -1,22 +1,23 @@
+from __future__ import annotations
+
 import unittest
 
-import numpy as np
-from pymatgen.core.structure import Lattice, Molecule, Structure
+from pymatgen.core.structure import Lattice, Structure
+from pymatgen.io.ase import AseAtomsAdaptor
 
-from matgl.graph.converters import Pmg2Graph, get_element_list
+from matgl.graph.converters import get_element_list
+from matgl.models.ase_interface import M3GNetCalculator
 from matgl.models.m3gnet import M3GNet
 from matgl.models.potential import Potential
-from matgl.models.ase_interface import M3GNetCalculator, Relaxer, MolecularDynamics
-from pymatgen.io.ase import AseAtomsAdaptor
 
 
 class TestAseInterface(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        cls.element_types = get_element_list([s])
+        cls.element_types = get_element_list([s])  # type: ignore
         adaptor = AseAtomsAdaptor()
-        cls.s_ase = adaptor.get_atoms(s)
+        cls.s_ase = adaptor.get_atoms(s)  # type: ignore
 
     def test_M3GNetCalculator(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)

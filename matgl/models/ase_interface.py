@@ -2,11 +2,12 @@
 Dynamics calculations using M3GNet
 """
 
+from __future__ import annotations
+
 import contextlib
 import io
 import pickle
 import sys
-from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -14,7 +15,7 @@ from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
 from ase.io import Trajectory
-from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
+from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.optimize.bfgs import BFGS
 from ase.optimize.bfgslinesearch import BFGSLineSearch
@@ -27,7 +28,6 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from .potential import Potential
-from .m3gnet import M3GNet
 
 OPTIMIZERS = {
     "FIRE": FIRE,
@@ -73,9 +73,9 @@ class M3GNetCalculator(Calculator):
 
     def calculate(
         self,
-        atoms: Optional[Atoms] = None,
-        properties: Optional[list] = None,
-        system_changes: Optional[list] = None,
+        atoms: Atoms | None = None,
+        properties: list | None = None,
+        system_changes: list | None = None,
     ):
         """
         Args:
@@ -115,7 +115,7 @@ class Relaxer:
         self,
         potential: Potential = None,
         graph_attr: torch.tensor = None,
-        optimizer: Union[Optimizer, str] = "FIRE",
+        optimizer: Optimizer | str = "FIRE",
         relax_cell: bool = True,
         stress_weight: float = 0.01,
     ):
@@ -139,7 +139,9 @@ class Relaxer:
             optimizer_obj = optimizer
 
         self.opt_class: Optimizer = optimizer_obj
-        self.calculator = M3GNetCalculator(potential=potential, graph_attr=graph_attr, stress_weight=stress_weight)
+        self.calculator = M3GNetCalculator(
+            potential=potential, graph_attr=graph_attr, stress_weight=stress_weight  # type: ignore
+        )
         self.relax_cell = relax_cell
         self.potential = potential
         self.ase_adaptor = AseAtomsAdaptor()
@@ -261,11 +263,11 @@ class MolecularDynamics:
         temperature: int = 300,
         timestep: float = 1.0,
         pressure: float = 1.01325 * units.bar,
-        taut: Optional[float] = None,
-        taup: Optional[float] = None,
-        compressibility_au: Optional[float] = None,
-        trajectory: Optional[Union[str, Trajectory]] = None,
-        logfile: Optional[str] = None,
+        taut: float | None = None,
+        taup: float | None = None,
+        compressibility_au: float | None = None,
+        trajectory: str | Trajectory | None = None,
+        logfile: str | None = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
     ):

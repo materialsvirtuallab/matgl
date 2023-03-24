@@ -1,24 +1,29 @@
+from __future__ import annotations
+
 import os
 import unittest
 
 import numpy as np
 import torch
 import torch.nn.functional as F
-
 from dgl.data.utils import split_dataset
-from pymatgen.core import Molecule
 from pymatgen.util.testing import PymatgenTest
-
-from matgl.dataloader.dataset import MGLDataLoader, MEGNetDataset, M3GNetDataset, _collate_fn, _collate_fn_efs
-from matgl.graph.converters import Pmg2Graph, get_element_list
-from matgl.trainer.megnet import MEGNetTrainer
-from matgl.trainer.m3gnet import M3GNetTrainer
-from matgl.models.megnet import MEGNet
-from matgl.models.m3gnet import M3GNet
-from matgl.models.potential import Potential
-
-from matgl.layers.core import MLP
 from torch.optim.lr_scheduler import ExponentialLR
+
+from matgl.dataloader.dataset import (
+    M3GNetDataset,
+    MEGNetDataset,
+    MGLDataLoader,
+    _collate_fn,
+    _collate_fn_efs,
+)
+from matgl.graph.converters import Pmg2Graph, get_element_list
+from matgl.layers.core import MLP
+from matgl.models.m3gnet import M3GNet
+from matgl.models.megnet import MEGNet
+from matgl.models.potential import Potential
+from matgl.trainer.m3gnet import M3GNetTrainer
+from matgl.trainer.megnet import MEGNetTrainer
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

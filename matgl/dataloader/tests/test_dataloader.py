@@ -8,7 +8,13 @@ from dgl.data.utils import split_dataset
 from pymatgen.core import Molecule
 from pymatgen.util.testing import PymatgenTest
 
-from matgl.dataloader.dataset import M3GNetDataset, MEGNetDataset, MGLDataLoader, _collate_fn, _collate_fn_efs
+from matgl.dataloader.dataset import (
+    M3GNetDataset,
+    MEGNetDataset,
+    MGLDataLoader,
+    _collate_fn,
+    _collate_fn_efs,
+)
 from matgl.graph.converters import Pmg2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))

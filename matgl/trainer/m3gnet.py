@@ -4,20 +4,16 @@ M3GNet Trainer
 from __future__ import annotations
 
 import json
-from collections import namedtuple
-from timeit import default_timer
-from typing import Callable
-
 import os
 import shutil
+from timeit import default_timer
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-from matgl.models.m3gnet import M3GNet
-from matgl.models.potential import Potential
-
 from tqdm import tqdm
+
+from matgl.models.potential import Potential
 
 
 def loss_fn(
@@ -61,7 +57,7 @@ def train_one_step(
     train_loss: nn.Module,
     energy_weight: float,
     force_weight: float,
-    dataloader: namedtuple,
+    dataloader: tuple,
     stress_weight: float | None = None,
     max_norm: float | None = None,
 ):
@@ -94,8 +90,8 @@ def train_one_step(
             energy_weight=energy_weight,
             force_weight=force_weight,
             stress_weight=stress_weight,
-            labels=labels,
-            preds=preds,
+            labels=labels,  # type: ignore
+            preds=preds,  # type: ignore
             num_atoms=num_atoms,
         )
 
@@ -132,7 +128,7 @@ def validate_one_step(
     energy_weight: float,
     force_weight: float,
     stress_weight: float | None,
-    dataloader: namedtuple,
+    dataloader: tuple,
 ):
     mae_e = 0.0
     mae_f = 0.0
@@ -162,8 +158,8 @@ def validate_one_step(
             energy_weight=energy_weight,
             force_weight=force_weight,
             stress_weight=stress_weight,
-            labels=labels,
-            preds=preds,
+            labels=labels,  # type: ignore
+            preds=preds,  # type: ignore
             num_atoms=num_atoms,
         )
 
@@ -187,7 +183,7 @@ def validate_one_step(
     return avg_loss, mae_e, mae_f, mae_s, epoch_time
 
 
-class StreamingJSONWriter(object):
+class StreamingJSONWriter:
     """
     Serialize streaming data to JSON.
 
@@ -214,7 +210,7 @@ class StreamingJSONWriter(object):
         data = json.dumps(obj, cls=self.encoder)
         close_str = "\n]\n"
         self.file.seek(max(self.file.seek(0, os.SEEK_END) - len(close_str), 0))
-        self.file.write("%s\n    %s%s" % (self.delimeter, data, close_str))
+        self.file.write(f"{self.delimeter}\n    {data}{close_str}")
         self.file.flush()
         self.delimeter = ","
 
@@ -244,8 +240,8 @@ class M3GNetTrainer:
         val_loss: nn.Module,
         energy_weight: float,
         force_weight: float,
-        train_loader: namedtuple,
-        val_loader: namedtuple,
+        train_loader: tuple,
+        val_loader: tuple,
         logger_name: str,
         stress_weight: float | None = None,
         max_norm: float | None = None,

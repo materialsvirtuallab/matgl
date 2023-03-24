@@ -101,7 +101,9 @@ class ThreeBodyInteractions(nn.Module):
         atoms = torch.squeeze(atoms[end_atom_index])
         basis = three_basis * atoms
         three_cutoff = torch.unsqueeze(three_cutoff, dim=1)
-        weights = torch.reshape(three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2))
+        weights = torch.reshape(
+            three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2)  # type: ignore
+        )
         weights = torch.prod(weights, axis=-1)
         weights = basis * weights[:, None]
         #        new_bonds = unsorted_segment_sum(
