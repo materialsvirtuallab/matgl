@@ -1,3 +1,9 @@
+[![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.
+com/materialsvirtuallab/matgl/blob/main/LICENSE)
+[![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
+[![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
+[![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
+
 # Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
@@ -15,6 +21,30 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 # Status
 
 Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
+
+## M3GNet
+
+![M3GNet schematic](assets/m3gnet_schematic.png)
+
+[M3GNet](https://www.nature.com/articles/s43588-022-00349-3) is a new materials graph neural network architecture that
+incorporates 3-body interactions. A key difference with prior materials graph implementations such as
+[MEGNet](https://github.com/materialsvirtuallab/megnet) is the addition of the coordinates for atoms and the 3×3
+lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and stresses via
+auto-differentiation.
+
+As a framework, M3GNet has diverse applications, including:
+
+- **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
+  machine learning interatomic potentials (ML-IAPs). However, a key feature of a graph representation is its
+  flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
+  *universal IAP* that can work across the entire periodic table of the elements by training on relaxations performed
+  in the [Materials Project](http://materialsproject.org).
+- **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
+  surrogate models for property predictions, achieving in many cases accuracies that better or similar to other
+  state-of-the-art ML models.
+
+For detailed performance benchmarks, please refer to the publication in the [References](#references) section. The
+API documentation is available via the [Github Page](http://materialsvirtuallab.github.io/matgl).
 
 # References
 
