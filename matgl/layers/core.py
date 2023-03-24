@@ -22,7 +22,7 @@ class MLP(nn.Module):
         activation: Callable[[torch.Tensor], torch.Tensor] | None = None,
         activate_last: bool = False,
         bias_last: bool = True,
-        device: str | None = None,
+        device: str = "cpu",
     ) -> None:
         """
         :param dims: Dimensions of each layer of MLP.
@@ -111,7 +111,7 @@ class GatedMLP(nn.Module):
         dims: list[int],
         activate_last: bool = True,
         use_bias: bool = True,
-        device: str | None = None,
+        device: str = "cpu",
     ):
         """
         :param in_feats: Dimension of input features.
