@@ -20,7 +20,7 @@ from matgl.graph.converters import Pmg2Graph, get_element_list
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class TestDataset(PymatgenTest):
+class DatasetTest(PymatgenTest):
     def test_megnet_dataset(self):
         s1 = self.get_structure("LiFePO4")
         s2 = self.get_structure("BaNiO3")
@@ -162,6 +162,14 @@ class TestDataset(PymatgenTest):
         self.assertTrue(len(train_loader) == 8)
         self.assertTrue(len(val_loader) == 1)
         self.assertTrue(len(test_loader) == 1)
+
+    @classmethod
+    def tearDownClass(cls):
+        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "graph_attr.pt", "labels.json"):
+            try:
+                os.remove(fn)
+            except FileNotFoundError:
+                pass
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import unittest
 
 import numpy as np
@@ -152,6 +153,16 @@ class M3GNetTrainerTest(PymatgenTest):
             val_loader=val_loader,
             logger_name="test_trainer.json",
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "graph_attr.pt", "labels.json", "test_trainer.json"):
+            try:
+                os.remove(fn)
+            except FileNotFoundError:
+                pass
+        shutil.rmtree("BestModel")
+        shutil.rmtree("CheckPoints")
 
 
 if __name__ == "__main__":
