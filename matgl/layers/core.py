@@ -22,7 +22,7 @@ class MLP(nn.Module):
         activation: Callable[[torch.Tensor], torch.Tensor] | None = None,
         activate_last: bool = False,
         bias_last: bool = True,
-        device: torch.device | None = None,
+        device: str | None = None,
     ) -> None:
         """
         :param dims: Dimensions of each layer of MLP.
@@ -31,6 +31,7 @@ class MLP(nn.Module):
         :param bias_last: Whether to apply bias to last layer.
         """
         super().__init__()
+        device = torch.device(device)
         self._depth = len(dims) - 1
         self.layers = ModuleList()
 
@@ -110,7 +111,7 @@ class GatedMLP(nn.Module):
         dims: list[int],
         activate_last: bool = True,
         use_bias: bool = True,
-        device: torch.device | None = None,
+        device: str | None = None,
     ):
         """
         :param in_feats: Dimension of input features.
@@ -119,6 +120,7 @@ class GatedMLP(nn.Module):
         :param bias_last: Whether applying bias to last layer or not.
         """
         super().__init__()
+        device = torch.device(device)
         self.in_feats = in_feats
         self.dims = [in_feats, *dims]
         self._depth = len(dims)

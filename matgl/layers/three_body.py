@@ -22,9 +22,7 @@ class SphericalBesselWithHarmonics(nn.Module):
     Expansion of basis using Spherical Bessel and Harmonics
     """
 
-    def __init__(
-        self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool, device=torch.device("cpu")
-    ):
+    def __init__(self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool, device="cpu"):
         """
         :param max_n: Degree of radial basis functions
         :param max_l: Degree of angular basis functions
@@ -40,7 +38,7 @@ class SphericalBesselWithHarmonics(nn.Module):
         self.cutoff = cutoff
         self.use_phi = use_phi
         self.use_smooth = use_smooth
-        self.device = device
+        self.device = torch.device(device)
 
         # retrieve formulas
         self.shf = SphericalHarmonicsFunction(self.max_l, self.use_phi)
@@ -106,9 +104,6 @@ class ThreeBodyInteractions(nn.Module):
         )
         weights = torch.prod(weights, axis=-1)
         weights = basis * weights[:, None]
-        #        new_bonds = unsorted_segment_sum(
-        #            basis.to(torch.float32), get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]), graph.num_edges()
-        #        )
         new_bonds = scatter_sum(
             basis.to(torch.float32),
             segment_ids=get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),

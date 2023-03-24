@@ -34,7 +34,7 @@ class MEGNet(Module):
         attr_embed: Module | None = None,
         dropout: float | None = None,
         graph_transformations: list | None = None,
-        device=torch.device("cpu"),
+        device: str = "cpu",
     ) -> None:
         """
         TODO: Add docs.

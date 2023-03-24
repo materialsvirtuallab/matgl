@@ -66,7 +66,7 @@ class M3GNet(nn.Module):
         num_s2s_steps: int = 3,
         num_s2s_layers: int = 3,
         field: str = "node_feat",
-        device=torch.device("cpu"),
+        device="cpu",
         include_states: bool = False,
         element_refs: np.ndarray | None = None,
         activation: str = "swish",
@@ -178,17 +178,11 @@ class M3GNet(nn.Module):
             input_feats = num_node_feats if field == "node_feat" else num_edge_feats
             if readout_type == "set2set":
                 self.readout = Set2SetReadOut(num_steps=num_s2s_steps, num_layers=num_s2s_layers, field=field)
-                if include_states:
-                    readout_feats = 2 * input_feats + num_state_feats  # type: ignore
-                else:
-                    readout_feats = 2 * input_feats
+                readout_feats = 2 * input_feats + num_state_feats if include_states else 2 * input_feats  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field, device=device)
+                readout_feats = input_feats + num_state_feats if include_states else input_feats  # type: ignore
 
-                if include_states:
-                    readout_feats = input_feats + num_state_feats  # type: ignore
-                else:
-                    readout_feats = input_feats
             dims_final_layer = [readout_feats] + [units, units] + [num_targets]
             self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False, device=device)
             if task_type == "classification":
