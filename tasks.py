@@ -2,6 +2,7 @@
 Pyinvoke tasks.py file for automating releases and admin stuff.
 """
 
+from __future__ import annotations
 
 import glob
 import json
