@@ -25,7 +25,7 @@ class EmbeddingBlock(nn.Module):
         include_states: bool = False,
         num_state_types: int | None = None,
         state_embedding_dim: int | None = None,
-        device: torch.device | None = None,
+        device: str = "cpu",
     ):
         """
         Parameters:
@@ -38,7 +38,7 @@ class EmbeddingBlock(nn.Module):
         activation (str): activation function type
         """
         super().__init__()
-
+        device = torch.device(device)
         self.include_states = include_states
         self.num_state_types = num_state_types
         self.num_node_feats = num_node_feats
@@ -56,7 +56,7 @@ class EmbeddingBlock(nn.Module):
             [degree_rbf, self.num_edge_feats],
             activation=activation,
             activate_last=True,
-            device=self.device,
+            device=device,
         )
 
     def forward(self, node_attr, edge_attr, state_attr):
