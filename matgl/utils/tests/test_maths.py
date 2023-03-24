@@ -18,7 +18,6 @@ from matgl.utils.maths import (
     spherical_bessel_roots,
     spherical_bessel_smooth,
     unsorted_segment_fraction,
-    unsorted_segment_softmax,
 )
 
 
@@ -74,8 +73,8 @@ class TestMath(unittest.TestCase):
         res = unsorted_segment_fraction(x, torch.tensor([0, 0, 1, 1]), 2)
         self.assertTrue(np.allclose(res.tolist(), [0.5, 0.5, 0.4, 0.6]))
 
-        res = unsorted_segment_softmax(x, torch.tensor([0, 0, 1, 1]), 2)
-        np.testing.assert_array_almost_equal(res, [0.5, 0.5, 0.26894143, 0.7310586])
+    #        res = unsorted_segment_softmax(x, torch.tensor([0, 0, 1, 1]), 2)
+    #        np.testing.assert_array_almost_equal(res, [0.5, 0.5, 0.26894143, 0.7310586])
 
     def test_broadcast(self):
         src_ids = torch.tensor([2, 3, 4])

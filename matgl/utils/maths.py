@@ -502,15 +502,28 @@ def broadcast_states_to_atoms(g, state_feat):
     return state_feat.repeat((g.num_nodes(), 1))
 
 
-def unsorted_segment_sum(data: torch.tensor, segment_ids: torch.tensor, num_segments: torch.tensor):
-    """Custom PyTorch version of 'unsorted_segment_sum' in Tensorflow.
-    Copy from [EGNN](https://github.com/vgsatorras/egnn).
+def scatter_sum(input_tensor: torch.tensor, segment_ids: torch.tensor, num_segments: int, dim: int) -> torch.tensor:
     """
-    result_shape = (num_segments, data.size(1))
-    result = data.new_full(result_shape, 0)  # Init empty result tensor.
-    segment_ids = segment_ids.unsqueeze(-1).expand(-1, data.size(1))
-    result.scatter_add_(0, segment_ids, data)
-    return result
+    Scatter sum operation along the specified dimension. Modified from the
+    torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
+
+    Args:
+        input_tensor (torch.Tensor): The input tensor to be scattered.
+        segment_ids (torch.Tensor): Segment ID for each element in the input tensor.
+        num_segments (int): The number of segments.
+        dim (int): The dimension along which the scatter sum operation is performed (default: -1).
+
+    Returns:
+        resulting tensor
+    """
+    segment_ids = broadcast(segment_ids, input_tensor, dim)
+    size = list(input_tensor.size())
+    if segment_ids.numel() == 0:
+        size[dim] = 0
+    else:
+        size[dim] = num_segments
+    output = torch.zeros(size, dtype=input_tensor.dtype, device=input_tensor.device)
+    return output.scatter_add_(dim, segment_ids, input_tensor)
 
 
 def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num_segments: torch.tensor):
@@ -523,7 +536,29 @@ def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num
     Returns:
         data (torch.tensor): data after fraction
     """
-    segment_sum = unsorted_segment_sum(data, segment_ids, num_segments)
+    segment_sum = scatter_sum(input_tensor=data, segment_ids=segment_ids, dim=0, num_segments=num_segments)
     sums = torch.gather(segment_sum, 0, segment_ids)
     data = torch.div(data, sums)
     return data
+
+
+def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int):
+    """
+    Broadcast input tensor along a given dimension to match the shape of the target tensor.
+    Modified from torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
+    Args:
+        input_tensor: The tensor to broadcast.
+        target_tensor: The tensor whose shape to match.
+        dim: The dimension along which to broadcast.
+    Returns:
+        resulting inout tensor after broadcasting
+    """
+    if input_tensor.dim() == 1:
+        for _ in range(0, dim):
+            input_tensor = input_tensor.unsqueeze(0)
+    for _ in range(input_tensor.dim(), target_tensor.dim()):
+        input_tensor = input_tensor.unsqueeze(-1)
+    target_shape = list(target_tensor.shape)
+    target_shape[dim] = input_tensor.shape[dim]
+    input_tensor = input_tensor.expand(target_shape)
+    return input_tensor

@@ -13,7 +13,7 @@ from matgl.utils.maths import (
     SphericalHarmonicsFunction,
     combine_sbf_shf,
     get_segment_indices_from_n,
-    unsorted_segment_sum,
+    scatter_sum,
 )
 
 
@@ -104,8 +104,14 @@ class ThreeBodyInteractions(nn.Module):
         weights = torch.reshape(three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2))
         weights = torch.prod(weights, axis=-1)
         weights = basis * weights[:, None]
-        new_bonds = unsorted_segment_sum(
-            basis.to(torch.float32), get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]), graph.num_edges()
+        #        new_bonds = unsorted_segment_sum(
+        #            basis.to(torch.float32), get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]), graph.num_edges()
+        #        )
+        new_bonds = scatter_sum(
+            basis.to(torch.float32),
+            segment_ids=get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),
+            num_segments=graph.num_edges(),
+            dim=0,
         )
         edge_feat_updated = edge_feat + self.update_network_bond(new_bonds)
         return edge_feat_updated
