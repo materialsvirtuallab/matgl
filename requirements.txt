@@ -4,4 +4,4 @@ torch==2.0.0
 torchaudio==2.0.1
 torchvision==0.15.1
 torch-scatter==2.1.1
-pymatgen==2023.3.10
+pymatgen==2023.3.23
