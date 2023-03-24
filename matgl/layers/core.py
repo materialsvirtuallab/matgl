@@ -7,7 +7,7 @@ from typing import Callable
 
 import torch
 import torch.nn as nn
-from dgl import broadcast_edges, softmax_edges, sum_edges
+from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
 from torch.nn import LSTM, Linear, Module, ModuleList
 
 
@@ -166,7 +166,7 @@ class EdgeSet2Set(Module):
         """Reinitialize learnable parameters."""
         self.lstm.reset_parameters()
 
-    def forward(self, g: dgl.DGLGraph, feat: torch.tensor):
+    def forward(self, g: DGLGraph, feat: torch.tensor):
         """
         Defines the computation performed at every call.
 

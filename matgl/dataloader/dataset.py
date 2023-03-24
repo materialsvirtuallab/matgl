@@ -3,7 +3,9 @@ Tools to construct a dataloader for DGL grphs
 """
 from __future__ import annotations
 
+import json
 import os
+from typing import Callable
 
 import dgl
 import numpy as np
@@ -47,7 +49,7 @@ def MGLDataLoader(
     train_data: dgl.data.utils.Subset,
     val_data: dgl.data.utils.Subset,
     test_data: dgl.data.utils.Subset,
-    collate_fn: function,
+    collate_fn: Callable,
     batch_size: int,
     num_workers: int,
     use_ddp: bool = False,
@@ -100,7 +102,7 @@ class MEGNetDataset(DGLDataset):
         structures: list,
         labels: list,
         label_name: str,
-        converter: Pmg2Graph,
+        converter,
         initial: float = 0.0,
         final: float = 5.0,
         num_centers: int = 20,
@@ -206,8 +208,8 @@ class M3GNetDataset(DGLDataset):
         structures: list,
         energies: list,
         forces: list,
-        stresses: list,
-        converter: Pmg2Graph,
+        stresses: None | list,
+        converter,
         threebody_cutoff: float,
         name="M3GNETDataset",
     ):
@@ -227,10 +229,7 @@ class M3GNetDataset(DGLDataset):
         self.energies = energies
         self.forces = forces
         self.threebody_cutoff = threebody_cutoff
-        if stresses is None:
-            self.stresses = np.zeros(len(self.energies))
-        else:
-            self.stresses = stresses
+        self.stresses = np.zeros(len(self.energies)) if stresses is None else stresses
         super().__init__(name=name)
 
     def has_cache(self, filename: str = "dgl_graph.bin") -> bool:
@@ -302,7 +301,7 @@ class M3GNetDataset(DGLDataset):
         :filename: Name of file storing state attrs
         """
         self.graphs = load_graphs(filename)
-        self.line_graphs = load_graphs(filename_line_graphs)
+        self.line_graphs = load_graphs(filename_line_graph)
         with open("labels.json") as file:
             labels = json.load(file)
         self.energies = labels["energies"]

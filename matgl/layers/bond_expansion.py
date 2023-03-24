@@ -3,6 +3,7 @@ Generate bond features based on spherical bessel functions or gaussian expansion
 """
 from __future__ import annotations
 
+import torch
 import torch.nn as nn
 
 from matgl.utils.maths import GaussianExpansion, SphericalBesselFunction
@@ -24,7 +25,7 @@ class BondExpansion(nn.Module):
         final: float = 5.0,
         num_centers: int = 100,
         width: float = 0.5,
-        device=torch.device("cpu"),
+        device="cpu",
     ) -> None:
         """
         Parameters:
@@ -39,6 +40,7 @@ class BondExpansion(nn.Module):
         width (float): width of gaussian function
         device (torch.device): cpu, cuda, etc...
         """
+        device = torch.device(device)
         super().__init__()
 
         self.max_n = max_n
