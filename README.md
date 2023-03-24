@@ -24,7 +24,7 @@ Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures hav
 
 ## M3GNet
 
-![M3GNet schematic](assets/M3GNet_schematic.png)
+<img src="assets/M3GNet_schematic.png"  width="50%">
 
 [M3GNet](https://www.nature.com/articles/s43588-022-00349-3) is a new materials graph neural network architecture that
 incorporates 3-body interactions. A key difference with prior materials graph implementations such as
