@@ -40,7 +40,6 @@ class BondExpansion(nn.Module):
         width (float): width of gaussian function
         device (torch.device): cpu, cuda, etc...
         """
-        device = torch.device(device)
         super().__init__()
 
         self.max_n = max_n

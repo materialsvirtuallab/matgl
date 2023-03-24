@@ -36,7 +36,7 @@ class MEGNetGraphConv(Module):
 
     @staticmethod
     def from_dims(
-        edge_dims: list[int], node_dims: list[int], attr_dims: list[int], activation: Module, device=torch.device("cpu")
+        edge_dims: list[int], node_dims: list[int], attr_dims: list[int], activation: Module, device: str = "cpu"
     ) -> MEGNetGraphConv:
         """
         TODO: Add docs.
@@ -48,6 +48,7 @@ class MEGNetGraphConv(Module):
         """
         # TODO(marcel): Softplus doesn't exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
+        device = torch.device(device)
         edge_update = MLP(edge_dims, activation, activate_last=True, device=device)
         node_update = MLP(node_dims, activation, activate_last=True, device=device)
         attr_update = MLP(attr_dims, activation, activate_last=True, device=device)
@@ -143,7 +144,7 @@ class MEGNetBlock(Module):
         act: Module,
         dropout: float | None = None,
         skip: bool = True,
-        device=torch.device("cpu"),
+        device: str = "cpu",
     ) -> None:
         """
         TODO: Add docs.
@@ -154,7 +155,7 @@ class MEGNetBlock(Module):
         :param skip:
         """
         super().__init__()
-
+        device = torch.device(device)
         self.has_dense = len(dims) > 1
         self.activation = act
         conv_dim = dims[-1]
@@ -261,7 +262,7 @@ class M3GNetGraphConv(Module):
         node_dims: list[int],
         attr_dims: list[int] | None,
         activation: Module,
-        device=torch.device("cpu"),
+        device="cpu",
     ) -> M3GNetGraphConv:
         """
         M3GNetGraphConv initialization
@@ -282,10 +283,9 @@ class M3GNetGraphConv(Module):
 
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:], device=device)
         node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False, device=device)
-        if include_states:
-            attr_update_func = MLP(attr_dims, activation, activate_last=True).to(device)  # type: ignore
-        else:
-            attr_update_func = None  # type: ignore
+        attr_update_func = (
+            MLP(attr_dims, activation, activate_last=True).to(device) if include_states else None  # type: ignore
+        )
         return M3GNetGraphConv(
             include_states, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
         )
@@ -418,7 +418,7 @@ class M3GNetBlock(Module):
         num_state_feats: int | None = None,
         include_states: bool = False,
         dropout: float | None = None,
-        device=torch.device("cpu"),
+        device: str = "cpu",
     ) -> None:
         """
         :param degree: Dimension of radial basis functions
