@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Introduction &#8212; matgl  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <p>[<img alt="GitHub license" src="https://img.shields.io/github/license/materialsvirtuallab/matgl" />](https://github.
+com/materialsvirtuallab/matgl/blob/main/LICENSE)
+<a class="reference external" href="https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg"><img alt="Linting" src="https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg" /></a>
+<a class="reference external" href="https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg"><img alt="Testing" src="https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg" /></a>
+<a class="reference external" href="https://pepy.tech/project/matgl"><img alt="Downloads" src="https://pepy.tech/badge/matgl" /></a></p>
+<section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h1>
+<p>MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
+representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
+to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.</p>
+<p>In this repository, we have reimplemented the <a class="reference external" href="https://github.com/materialsvirtuallab/m3gnet">MatErials 3-body Graph Network (m3gnet)</a>
+and its predecessor, <a class="reference external" href="https://github.com/materialsvirtuallab/megnet">MEGNet</a> using the <a class="reference external" href="https://www.dgl.ai">Deep Graph Library (DGL)</a>.
+The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
+implemented in TensorFlow.</p>
+<p>This effort is a collaboration between the <a class="reference external" href="http://materialsvirtuallab.org">Materials Virtual Lab</a> and Intel Labs
+(Santiago Miret, Marcel Nassar, Carmelo Gonzales).</p>
+</section>
+<section id="status">
+<h1>Status<a class="headerlink" href="#status" title="Permalink to this heading">¶</a></h1>
+<p>Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!</p>
+<section id="m3gnet">
+<h2>M3GNet<a class="headerlink" href="#m3gnet" title="Permalink to this heading">¶</a></h2>
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/M3GNet_schematic.png"  width="50%">
+<p><a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">M3GNet</a> is a new materials graph neural network architecture that
+incorporates 3-body interactions. A key difference with prior materials graph implementations such as
+<a class="reference external" href="https://github.com/materialsvirtuallab/megnet">MEGNet</a> is the addition of the coordinates for atoms and the 3×3
+lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and stresses via
+auto-differentiation.</p>
+<p>As a framework, M3GNet has diverse applications, including:</p>
+<ul class="simple">
+<li><p><strong>Interatomic potential development.</strong> With the same training data, M3GNet performs similarly to state-of-the-art
+machine learning interatomic potentials (ML-IAPs). However, a key feature of a graph representation is its
+flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
+<em>universal IAP</em> that can work across the entire periodic table of the elements by training on relaxations performed
+in the <a class="reference external" href="http://materialsproject.org">Materials Project</a>.</p></li>
+<li><p><strong>Surrogate models for property predictions.</strong> Like the previous MEGNet architecture, M3GNet can be used to develop
+surrogate models for property predictions, achieving in many cases accuracies that better or similar to other
+state-of-the-art ML models.</p></li>
+</ul>
+<p>For detailed performance benchmarks, please refer to the publication in the <span class="xref myst">References</span> section. The
+API documentation is available via the <a class="reference external" href="http://materialsvirtuallab.github.io/matgl">Github Page</a>.</p>
+</section>
+</section>
+<section id="references">
+<h1>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h1>
+<p>Please cite the following works:</p>
+<ul>
+<li><p>M3GNet</p>
+<div class="highlight-txt notranslate"><div class="highlight"><pre><span></span>Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
+2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
+</pre></div>
+</div>
+</li>
+<li><p>MEGNET</p>
+<div class="highlight-txt notranslate"><div class="highlight"><pre><span></span>Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
+Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="acknowledgements">
+<h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this heading">¶</a></h1>
+<p>This work was primarily supported by the Materials Project, funded by the U.S. Department of Energy, Office of Science,
+Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.
+DE-AC02-05-CH11231: Materials Project program KC23MP. This work used the Expanse supercomputing cluster at the Extreme
+Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation grant number
+ACI-1548562.</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">matgl</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Materials Virtual Lab.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

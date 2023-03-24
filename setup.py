@@ -1,19 +1,32 @@
 from __future__ import annotations
 
+import os
+import re
+
 import numpy
 from setuptools import find_packages, setup
 
-VERSION = "0.1.0.dev"
+this_dir = os.path.abspath(os.path.dirname(__file__))
+
+with open(os.path.join(this_dir, "README.md"), encoding="utf-8") as f:
+    long_description = f.read()
+
+with open("matgl/__init__.py", encoding="utf-8") as fd:
+    for line in fd.readlines():
+        m = re.search('__version__ = "(.*)"', line)
+        if m:
+            version = m.group(1)
+            break
 
 setup(
     name="matgl",
-    version=VERSION,
+    version=version,
     author="Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Shyue Ping Ong",
     author_email="ongsp@eng.ucsd.edu",
     maintainer="Shyue Ping Ong",
     maintainer_email="ongsp@eng.ucsd.edu",
     description="MatGL (Materials Graph Library) is a framework for graph deep learning for materials science. ",
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     keywords=[
         "materials",
