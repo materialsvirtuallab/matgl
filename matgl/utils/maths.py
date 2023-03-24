@@ -14,7 +14,6 @@ import torch
 import torch.nn as nn
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
-from torch_scatter import scatter
 
 from matgl.config import DataType
 
@@ -116,7 +115,9 @@ class SphericalBesselFunction:
     Calculate the spherical Bessel function based on sympy + pytorch implementations
     """
 
-    def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
+    def __init__(
+        self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False, device: torch.device | None = None
+    ):
         """
         Args:
             max_l: int, max order (excluding l)
@@ -133,6 +134,7 @@ class SphericalBesselFunction:
             self.funcs = self._calculate_symbolic_funcs()
 
         self.zeros = torch.from_numpy(SPHERICAL_BESSEL_ROOTS).type(DataType.torch_float)
+        self.device = device
 
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> list:
@@ -173,9 +175,9 @@ class SphericalBesselFunction:
         roots = self.zeros[: self.max_l, : self.max_n]
 
         results = []
-        factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
+        factor = torch.tensor(sqrt(2.0 / self.cutoff**3)).to(self.device)
         for i in range(self.max_l):
-            root = roots[i]
+            root = roots[i].to(self.device)
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
@@ -275,7 +277,7 @@ def _block_repeat(array, block_size, repeats):
         indices.append(torch.tile(col_index[start : start + b], [repeats[i]]))
         start += b
     indices = torch.cat(indices, axis=0)
-    return torch.index_select(array, 1, indices)
+    return torch.index_select(array, 1, indices.to(array.device))
 
 
 def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool, use_smooth: bool):
@@ -311,7 +313,7 @@ def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool, use_smooth:
         # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
         block_size = 2 * np.arange(max_l) + 1  # type: ignore
         # 2 * tf.range(max_l) + 1
-    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
+    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf.to(sbf.device), 1)
     expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
     shape = max_n * max_l
     if use_phi:
@@ -413,7 +415,7 @@ def get_segment_indices_from_n(ns):
     Returns: segment indices tensor
     """
     B = ns
-    A = torch.arange(B.size(dim=0))
+    A = torch.arange(B.size(dim=0)).to(B.device)
     return A.repeat_interleave(B, dim=0)
 
 
@@ -438,39 +440,23 @@ def get_range_indices_from_n(ns):
     return torch.masked_select(matrix, mask)
 
 
-def unsorted_segment_fraction(data, segment_ids, num_segments):
-    """
-    Segment fraction
-    Args:
-        data (torch.tensor): original data
-        segment_ids (torch.tensor): segment ids
-        num_segments (torch.tensor): number of segments
-    Returns:
-        data (torch.tensor): data after fraction
-    """
-    segment_sum = scatter(data, segment_ids, dim=0, reduce="sum")
-    sums = torch.gather(segment_sum, 0, segment_ids)
-    data = torch.div(data, sums)
-    return data
-
-
-def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
-    """
-    Unsorted segment softmax with optional weights
-    Args:
-        data (tf.Tensor): original data
-        segment_ids (tf.Tensor): tensor segment ids
-        num_segments (int): number of segments
-    Returns: tf.Tensor
-    """
-    if weights is None:
-        weights = torch.ones(1)
-    segment_max = scatter(data, segment_ids, dim=0, reduce="max")
-    maxes = torch.gather(segment_max, 0, segment_ids)
-    data -= maxes
-    exp = torch.exp(data) * torch.squeeze(weights)
-    softmax = torch.div(exp, torch.gather(scatter(exp, segment_ids, dim=0, reduce="sum"), 0, segment_ids))
-    return softmax
+# def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
+#    """
+#    Unsorted segment softmax with optional weights
+#    Args:
+#        data (tf.Tensor): original data
+#        segment_ids (tf.Tensor): tensor segment ids
+#        num_segments (int): number of segments
+#    Returns: tf.Tensor
+#    """
+#    if weights is None:
+#        weights = torch.ones(1)
+#    segment_max = scatter(data, segment_ids, dim=0, reduce="max")
+#    maxes = torch.gather(segment_max, 0, segment_ids)
+#    data -= maxes
+#    exp = torch.exp(data) * torch.squeeze(weights)
+#    softmax = torch.div(exp, torch.gather(scatter(exp, segment_ids, dim=0, reduce="sum"), 0, segment_ids))
+#    return softmax
 
 
 def repeat_with_n(ns, n):
@@ -515,3 +501,65 @@ def broadcast_states_to_atoms(g, state_feat):
 
     """
     return state_feat.repeat((g.num_nodes(), 1))
+
+
+def scatter_sum(input_tensor: torch.tensor, segment_ids: torch.tensor, num_segments: int, dim: int) -> torch.tensor:
+    """
+    Scatter sum operation along the specified dimension. Modified from the
+    torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
+
+    Args:
+        input_tensor (torch.Tensor): The input tensor to be scattered.
+        segment_ids (torch.Tensor): Segment ID for each element in the input tensor.
+        num_segments (int): The number of segments.
+        dim (int): The dimension along which the scatter sum operation is performed (default: -1).
+
+    Returns:
+        resulting tensor
+    """
+    segment_ids = broadcast(segment_ids, input_tensor, dim)
+    size = list(input_tensor.size())
+    if segment_ids.numel() == 0:
+        size[dim] = 0
+    else:
+        size[dim] = num_segments
+    output = torch.zeros(size, dtype=input_tensor.dtype, device=input_tensor.device)
+    return output.scatter_add_(dim, segment_ids, input_tensor)
+
+
+def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num_segments: torch.tensor):
+    """
+    Segment fraction
+    Args:
+        data (torch.tensor): original data
+        segment_ids (torch.tensor): segment ids
+        num_segments (torch.tensor): number of segments
+    Returns:
+        data (torch.tensor): data after fraction
+    """
+    segment_sum = scatter_sum(input_tensor=data, segment_ids=segment_ids, dim=0, num_segments=num_segments)
+    sums = torch.gather(segment_sum, 0, segment_ids)
+    data = torch.div(data, sums)
+    return data
+
+
+def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int):
+    """
+    Broadcast input tensor along a given dimension to match the shape of the target tensor.
+    Modified from torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
+    Args:
+        input_tensor: The tensor to broadcast.
+        target_tensor: The tensor whose shape to match.
+        dim: The dimension along which to broadcast.
+    Returns:
+        resulting inout tensor after broadcasting
+    """
+    if input_tensor.dim() == 1:
+        for _ in range(0, dim):
+            input_tensor = input_tensor.unsqueeze(0)
+    for _ in range(input_tensor.dim(), target_tensor.dim()):
+        input_tensor = input_tensor.unsqueeze(-1)
+    target_shape = list(target_tensor.shape)
+    target_shape[dim] = input_tensor.shape[dim]
+    input_tensor = input_tensor.expand(target_shape)
+    return input_tensor

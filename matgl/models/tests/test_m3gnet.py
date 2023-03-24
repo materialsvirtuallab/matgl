@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
+import torch
 from pymatgen.core.structure import Lattice, Molecule, Structure
 
 from matgl.graph.converters import Pmg2Graph, get_element_list
@@ -24,13 +25,13 @@ class TestM3GNet(unittest.TestCase):
 
     def test_model(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False, element_refs=np.array([-0.5, -1.0]))
-        total_energy = model(self.g1, self.state1)
-        self.assertListEqual([total_energy.size(dim=0)], [1])
+        output = model(g=self.g1)
+        self.assertListEqual([torch.numel(output)], [1])
 
     def test_model_intensive(self):
         model = M3GNet(element_types=self.element_types, is_intensive=True)
-        total_energy = model(self.g1, self.state1)
-        self.assertListEqual([total_energy.size(dim=0)], [1])
+        output = model(g=self.g1)
+        self.assertListEqual([torch.numel(output)], [1])
 
     def test_model_intensive_with_classification(self):
         model = M3GNet(
@@ -38,8 +39,15 @@ class TestM3GNet(unittest.TestCase):
             is_intensive=True,
             task_type="classification",
         )
-        total_energy = model(self.g1, self.state1)
-        self.assertListEqual([total_energy.size(dim=0)], [1])
+        output = model(g=self.g1)
+        self.assertListEqual([torch.numel(output)], [1])
+
+    def test_model_intensive_set2set_classification(self):
+        model = M3GNet(
+            element_types=self.element_types, is_intensive=True, task_type="classification", readout_type="set2set"
+        )
+        output = model(g=self.g1)
+        self.assertListEqual([torch.numel(output)], [1])
 
 
 if __name__ == "__main__":

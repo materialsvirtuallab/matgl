@@ -16,13 +16,14 @@ from matgl.layers.embedding_block import EmbeddingBlock
 class TestCoreAndEmbedding(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.s1 = Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
+        cls.s1 = Structure(Lattice.cubic(4.0), ["Mo", "Mo"], [[0.0, 0, 0], [0.5, 0.5, 0.5]])
         Structure(Lattice.cubic(3), ["Mo", "Fe"], [[0, 0, 0], [0.5, 0.5, 0.5]])
         element_types = get_element_list([cls.s1])
         p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
         graph, state = p2g.get_graph_from_structure(cls.s1)
         cls.g1 = graph
         cls.state1 = state
+
         bond_vec, bond_dist = compute_pair_vector_and_distance(cls.g1)
         cls.g1.edata["bond_dist"] = bond_dist
 
@@ -30,7 +31,7 @@ class TestCoreAndEmbedding(unittest.TestCase):
 
     def test_mlp(self):
         layer = MLP(dims=[10, 3], activation=nn.SiLU())
-        out = layer(self.x)
+        out = layer(self.x).double()
         self.assertListEqual([out.size()[0], out.size()[1]], [4, 3])
 
     def test_gated_mlp(self):
@@ -45,11 +46,15 @@ class TestCoreAndEmbedding(unittest.TestCase):
         bond_basis = bond_expansion(bond_dist)
         # include state features
         embed = EmbeddingBlock(
-            num_node_feats=16, num_edge_feats=16, num_state_feats=16, include_states=True, activation="swish"
+            degree_rbf=9,
+            num_node_feats=16,
+            num_edge_feats=16,
+            num_state_feats=16,
+            include_states=True,
+            activation=nn.SiLU(),
         )
         graph_attr = torch.tensor([1.0, 2.0])
         node_attr = self.g1.ndata["attr"]
-        node_attr.requires_grad = True
         edge_attr = bond_basis
         node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, graph_attr)
 
@@ -58,23 +63,29 @@ class TestCoreAndEmbedding(unittest.TestCase):
         self.assertListEqual([state_feat.size(dim=0), state_feat.size(dim=1)], [1, 16])
         # include state embedding
         embed2 = EmbeddingBlock(
+            degree_rbf=9,
             num_node_feats=16,
             num_edge_feats=16,
             include_states=True,
             state_embedding_dim=32,
             num_state_types=2,
-            activation="swish",
+            activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed2(node_attr, edge_attr, torch.tensor([1]))
         self.assertListEqual([state_feat.size(dim=0), state_feat.size(dim=1)], [1, 32])
         # include state features
         embed3 = EmbeddingBlock(
-            num_node_feats=16, num_edge_feats=16, num_state_feats=16, include_states=True, activation="swish"
+            degree_rbf=9,
+            num_node_feats=16,
+            num_edge_feats=16,
+            num_state_feats=16,
+            include_states=True,
+            activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed3(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         self.assertListEqual([state_feat.size(dim=0), state_feat.size(dim=1)], [1, 16])
         # without any state feature
-        embed4 = EmbeddingBlock(num_node_feats=16, num_edge_feats=16, activation="swish")
+        embed4 = EmbeddingBlock(degree_rbf=9, num_node_feats=16, num_edge_feats=16, activation=nn.SiLU())
         node_feat, edge_feat, state_feat = embed4(
             node_attr, edge_attr, torch.tensor([0.0, 0.0])
         )  # this will be default value

@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 
-def compute_3body(g):
+def compute_3body(g: dgl.DGLGraph):
     """
     Calculate the three body indices from pair atom indices
 
@@ -25,13 +25,13 @@ def compute_3body(g):
     bond_atom_indices = g.edges()
     n_atoms = [g.num_nodes()]
     n_atoms_total = np.sum(g.num_nodes())
-    first_col = bond_atom_indices[0].numpy().reshape(-1, 1)
-    all_indices = np.arange(n_atoms_total).reshape(1, -1)
-    n_bond_per_atom = np.count_nonzero(first_col == all_indices, axis=0)
+    first_col = bond_atom_indices[0].reshape(-1, 1)
+    all_indices = torch.arange(n_atoms_total).reshape(1, -1)
+    n_bond_per_atom = torch.count_nonzero(first_col == all_indices.to(g.device), dim=0)
     n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
-    n_triple = np.sum(n_triple_i)
-    n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
-    triple_bond_indices = np.empty(shape=(n_triple, 2), dtype=np.int32)
+    n_triple = torch.sum(n_triple_i)
+    n_triple_ij = (n_bond_per_atom - 1).repeat_interleave(n_bond_per_atom)
+    triple_bond_indices = torch.empty((n_triple, 2), dtype=torch.int64)
 
     start = 0
     cs = 0
@@ -47,11 +47,11 @@ def compute_3body(g):
                 triple_bond_indices[index] = [start + j, start + k]
             ```
             """
-            r = np.arange(n)
-            x, y = np.meshgrid(r, r)
-            c = np.stack([y.ravel(), x.ravel()], axis=1)
+            r = torch.arange(n)
+            x, y = torch.meshgrid(r, r)
+            c = torch.stack([y.ravel(), x.ravel()], dim=1)
             final = c[c[:, 0] != c[:, 1]]
-            triple_bond_indices[start : start + (n * (n - 1)), :] = final + cs
+            triple_bond_indices[start : start + (n * (n - 1)), :] = final.to(g.device) + cs
             start += n * (n - 1)
             cs += n
 
@@ -59,19 +59,21 @@ def compute_3body(g):
     i = 0
     for n in n_atoms:
         j = i + n
-        n_triple_s.append(np.sum(n_triple_i[i:j]))
+        n_triple_s.append(torch.sum(n_triple_i[i:j]))
         i = j
 
-    src_id, dst_id = torch.tensor(triple_bond_indices[:, 0]), torch.tensor(triple_bond_indices[:, 1])
+    src_id, dst_id = (triple_bond_indices[:, 0], triple_bond_indices[:, 1])
     l_g = dgl.graph((src_id, dst_id))
+    l_g = l_g.to(g.device)
     l_g.ndata["bond_dist"] = g.edata["bond_dist"]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"]
-    l_g.ndata["n_triple_ij"] = torch.tensor(n_triple_ij)
-    return l_g, triple_bond_indices, n_triple_ij, n_triple_i, np.array(n_triple_s, dtype=np.int32)
+    l_g.ndata["n_triple_ij"] = n_triple_ij
+    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64)
+    return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
 
 
-def compute_pair_vector_and_distance(g):
+def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     """
     Calculate bond vectors and distances using dgl graphs
 
@@ -82,16 +84,16 @@ def compute_pair_vector_and_distance(g):
     bond_vec (torch.tensor): bond distance between two atoms
     bond_dist (torch.tensor): vector from src node to dst node
     """
-    atom_pos = g.ndata["pos"]
-    bond_vec = torch.zeros(g.num_edges(), 3)
-    bond_dist = torch.zeros(g.num_edges())
+    bond_vec = torch.zeros(g.num_edges(), 3).to(g.device)
+    bond_dist = torch.zeros(g.num_edges()).to(g.device)
     for i in range(g.num_edges()):
         bond_vec[i, :] = (
-            atom_pos[g.edges()[1][i], :]
+            g.ndata["pos"][g.edges()[1][i], :]
             + torch.sum(torch.squeeze(g.edata["pbc_offset"][i][:] * g.edata["lattice"][i][:, None]), dim=0)
-            - atom_pos[g.edges()[0][i], :]
+            - g.ndata["pos"][g.edges()[0][i], :]
         )
     bond_dist = torch.norm(bond_vec, dim=1)
+
     return bond_vec, bond_dist
 
 
@@ -117,7 +119,7 @@ def compute_theta_and_phi(edges):
     }
 
 
-def create_line_graph(g_batched, threebody_cutoff: float | None = None):
+def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
     """
     Calculate the three body indices from pair atom indices
 
@@ -141,8 +143,6 @@ def create_line_graph(g_batched, threebody_cutoff: float | None = None):
             graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
             graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
             graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
-        else:
-            np.arange(n_bond)
         if graph_with_three_body.edata["bond_dist"].size(dim=0) > 0:
             l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
             l_g_unbatched.append(l_g)

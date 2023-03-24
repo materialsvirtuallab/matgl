@@ -4,15 +4,16 @@ Three-Body interaction implementations.
 
 from __future__ import annotations
 
+import dgl
 import torch
 import torch.nn as nn
-from torch_scatter import scatter
 
 from matgl.utils.maths import (
     SphericalBesselFunction,
     SphericalHarmonicsFunction,
     combine_sbf_shf,
     get_segment_indices_from_n,
+    scatter_sum,
 )
 
 
@@ -21,7 +22,9 @@ class SphericalBesselWithHarmonics(nn.Module):
     Expansion of basis using Spherical Bessel and Harmonics
     """
 
-    def __init__(self, max_n, max_l, cutoff, use_smooth, use_phi):
+    def __init__(
+        self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool, device=torch.device("cpu")
+    ):
         """
         :param max_n: Degree of radial basis functions
         :param max_l: Degree of angular basis functions
@@ -37,13 +40,16 @@ class SphericalBesselWithHarmonics(nn.Module):
         self.cutoff = cutoff
         self.use_phi = use_phi
         self.use_smooth = use_smooth
+        self.device = device
 
         # retrieve formulas
         self.shf = SphericalHarmonicsFunction(self.max_l, self.use_phi)
         if self.use_smooth:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth)
+            self.sbf = SphericalBesselFunction(
+                self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth, device
+            )
         else:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth)
+            self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth, device)
 
     def forward(self, graph, line_graph):
         sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
@@ -69,7 +75,16 @@ class ThreeBodyInteractions(nn.Module):
         self.update_network_atom = update_network_atom
         self.update_network_bond = update_network_bond
 
-    def forward(self, graph, line_graph, three_basis, three_cutoff: float, node_feat, edge_feat, **kwargs):
+    def forward(
+        self,
+        graph: dgl.DGLGraph,
+        line_graph: dgl.DGLGraph,
+        three_basis: torch.tensor,
+        three_cutoff: float,
+        node_feat: torch.tensor,
+        edge_feat: torch.tensor,
+        **kwargs,
+    ):
         """
         Args:
             graph: dgl graph
@@ -85,17 +100,18 @@ class ThreeBodyInteractions(nn.Module):
         end_atom_index = torch.unsqueeze(end_atom_index, 1)
         atoms = torch.squeeze(atoms[end_atom_index])
         basis = three_basis * atoms
-        torch.tensor(graph.num_edges())
-        # three_cutoff = torch.unsqueeze(three_cutoff, dim=1)
-        # weights = torch.reshape(three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2))
-        # weights = torch.prod(weights, axis=-1)
-        # weights = basis * weights[:, None]
-        new_bonds = scatter(
+        three_cutoff = torch.unsqueeze(three_cutoff, dim=1)
+        weights = torch.reshape(three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2))
+        weights = torch.prod(weights, axis=-1)
+        weights = basis * weights[:, None]
+        #        new_bonds = unsorted_segment_sum(
+        #            basis.to(torch.float32), get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]), graph.num_edges()
+        #        )
+        new_bonds = scatter_sum(
             basis.to(torch.float32),
-            get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),
+            segment_ids=get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),
+            num_segments=graph.num_edges(),
             dim=0,
-            reduce="sum",
-            dim_size=graph.num_edges(),
         )
         edge_feat_updated = edge_feat + self.update_network_bond(new_bonds)
         return edge_feat_updated

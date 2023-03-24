@@ -34,6 +34,7 @@ class MEGNet(Module):
         attr_embed: Module | None = None,
         dropout: float | None = None,
         graph_transformations: list | None = None,
+        device=torch.device("cpu"),
     ) -> None:
         """
         TODO: Add docs.
@@ -70,9 +71,9 @@ class MEGNet(Module):
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh")
 
-        self.edge_encoder = MLP(dims, activation, activate_last=True)
-        self.node_encoder = MLP(dims, activation, activate_last=True)
-        self.attr_encoder = MLP(dims, activation, activate_last=True)
+        self.edge_encoder = MLP(dims, activation, activate_last=True, device=device)
+        self.node_encoder = MLP(dims, activation, activate_last=True, device=device)
+        self.attr_encoder = MLP(dims, activation, activate_last=True, device=device)
 
         blocks_in_dim = hiddens[-1]
         block_out_dim = conv_hiddens[-1]
@@ -95,6 +96,7 @@ class MEGNet(Module):
             dims=[2 * 2 * block_out_dim + block_out_dim, *output_hiddens, 1],
             activation=activation,
             activate_last=False,
+            device=device,
         )
 
         self.dropout = Dropout(dropout) if dropout else None

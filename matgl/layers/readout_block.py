@@ -52,7 +52,7 @@ class ReduceReadOut(nn.Module):
     This could be summing up the atoms or bonds, or taking the mean, etc.
     """
 
-    def __init__(self, op="mean", field="node_feat"):
+    def __init__(self, op="mean", field="node_feat", device=torch.device("cpu")):
         super().__init__()
         """
         Parameters:
@@ -81,7 +81,7 @@ class WeightedReadOut(nn.Module):
     Feed node features into Gated MLP as readout.
     """
 
-    def __init__(self, in_feats, dims, num_targets):
+    def __init__(self, in_feats: int, dims: list[int], num_targets: int, device: torch.device):
         """
         Parameters:
            in_feats: input features (nodes)
@@ -90,12 +90,8 @@ class WeightedReadOut(nn.Module):
         """
         super().__init__()
         self.in_feats = in_feats
-        self.dims = [in_feats, *dims, num_targets]
-        self.gated = GatedMLP(
-            in_feats=in_feats,
-            dims=self.dims,
-            activate_last=False,
-        )
+        self.dims = [in_feats, *dims] + [num_targets]
+        self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False, device=device)
 
     def forward(self, g):
         """

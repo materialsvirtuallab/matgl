@@ -17,13 +17,14 @@ class BondExpansion(nn.Module):
         self,
         max_l: int = 3,
         max_n: int = 3,
-        cutoff: float = 4.0,
+        cutoff: float = 5.0,
         rbf_type: str = "SphericalBessel",
         smooth: bool = False,
         initial: float = 0.0,
         final: float = 5.0,
         num_centers: int = 100,
         width: float = 0.5,
+        device=torch.device("cpu"),
     ) -> None:
         """
         Parameters:
@@ -36,6 +37,7 @@ class BondExpansion(nn.Module):
         initial (float): initial point for gaussian expansion
         final (float): final point for gaussian expansion
         width (float): width of gaussian function
+        device (torch.device): cpu, cuda, etc...
         """
         super().__init__()
 
@@ -50,13 +52,13 @@ class BondExpansion(nn.Module):
         self.rbf_type = rbf_type
 
         if rbf_type == "SphericalBessel":
-            self.rbf = SphericalBesselFunction(max_l, max_n, cutoff, smooth)  # type: ignore
+            self.rbf = SphericalBesselFunction(max_l, max_n, cutoff, smooth, device)  # type: ignore
         elif rbf_type == "Gaussian":
             self.rbf = GaussianExpansion(initial, final, num_centers, width)  # type: ignore
         else:
             raise Exception("undefined rbf_type, please use SphericalBessel or Gaussian instead.")
 
-    def forward(self, bond_dist):
+    def forward(self, bond_dist: torch.tensor):
         """
         Forward
 

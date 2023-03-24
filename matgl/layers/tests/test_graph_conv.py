@@ -121,10 +121,12 @@ class TestGraphConv(unittest.TestCase):
         node_attr = self.g1.ndata["attr"]
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
+            degree_rbf=9,
             num_node_feats=num_node_feats,
             num_edge_feats=num_edge_feats,
             num_state_feats=num_state_feats,
             include_states=True,
+            activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embedding(node_attr, bond_basis, state_attr)
         node_dim = node_feat.shape[-1]
@@ -163,10 +165,12 @@ class TestGraphConv(unittest.TestCase):
         num_state_feats = 64
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
+            degree_rbf=9,
             num_node_feats=num_node_feats,
             num_edge_feats=num_edge_feats,
             num_state_feats=num_state_feats,
             include_states=True,
+            activation=nn.SiLU(),
         )
         node_attr = self.g1.ndata["attr"]
         edge_attr = bond_basis
