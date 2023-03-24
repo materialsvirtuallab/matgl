@@ -32,8 +32,33 @@
 
           <div class="body" role="main">
             
-  <section id="matgl-layers-cutoff-functions-module">
-<h1>matgl.layers.cutoff_functions module<a class="headerlink" href="#matgl-layers-cutoff-functions-module" title="Permalink to this heading">¶</a></h1>
+  <section id="module-matgl.layers.cutoff_functions">
+<span id="matgl-layers-cutoff-functions-module"></span><h1>matgl.layers.cutoff_functions module<a class="headerlink" href="#module-matgl.layers.cutoff_functions" title="Permalink to this heading">¶</a></h1>
+<p>Cutoff functions for constructing M3GNet potentials.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.layers.cutoff_functions.cosine_cutoff">
+<span class="sig-prename descclassname"><span class="pre">matgl.layers.cutoff_functions.</span></span><span class="sig-name descname"><span class="pre">cosine_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#matgl.layers.cutoff_functions.cosine_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cosine cutoff function
+Args:</p>
+<blockquote>
+<div><p>r (torch.tensor): radius distance tensor
+cutoff (float): cutoff distance</p>
+</div></blockquote>
+<p>Returns: cosine cutoff functions</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.layers.cutoff_functions.polynomial_cutoff">
+<span class="sig-prename descclassname"><span class="pre">matgl.layers.cutoff_functions.</span></span><span class="sig-name descname"><span class="pre">polynomial_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.cutoff_functions.polynomial_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polynomial cutoff function
+Args:</p>
+<blockquote>
+<div><p>r (torch.tensor): radius distance tensor
+cutoff (float): cutoff distance</p>
+</div></blockquote>
+<p>Returns: polynomial cutoff functions</p>
+</dd></dl>
+
 </section>
 
 

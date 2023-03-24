@@ -32,8 +32,72 @@
 
           <div class="body" role="main">
             
-  <section id="matgl-graph-converters-module">
-<h1>matgl.graph.converters module<a class="headerlink" href="#matgl-graph-converters-module" title="Permalink to this heading">¶</a></h1>
+  <section id="module-matgl.graph.converters">
+<span id="matgl-graph-converters-module"></span><h1>matgl.graph.converters module<a class="headerlink" href="#module-matgl.graph.converters" title="Permalink to this heading">¶</a></h1>
+<p>Tools to convert materials representations from Pymatgen and other codes to DGLGraphs.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.graph.converters.Pmg2Graph">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.graph.converters.</span></span><span class="sig-name descname"><span class="pre">Pmg2Graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.converters.Pmg2Graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Construct a DGL graph from Pymatgen Molecules or Structures, ASE atoms is also added.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.converters.Pmg2Graph.get_graph_from_atoms">
+<span class="sig-name descname"><span class="pre">get_graph_from_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Atoms</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dgl.heterograph.DGLGraph</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.graph.converters.Pmg2Graph.get_graph_from_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a DGL graph from an input Structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>structure</strong> – pymatgen structure object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>g: DGL graph
+state_attr: state features</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.converters.Pmg2Graph.get_graph_from_molecule">
+<span class="sig-name descname"><span class="pre">get_graph_from_molecule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Molecule</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dgl.heterograph.DGLGraph</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.graph.converters.Pmg2Graph.get_graph_from_molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a DGL graph from an input molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> – pymatgen molecule object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(dgl graph, state features)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.converters.Pmg2Graph.get_graph_from_structure">
+<span class="sig-name descname"><span class="pre">get_graph_from_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Structure</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dgl.heterograph.DGLGraph</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.graph.converters.Pmg2Graph.get_graph_from_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a DGL graph from an input Structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>structure</strong> – pymatgen structure object</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>g: DGL graph
+state_attr: state features</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.graph.converters.get_element_list">
+<span class="sig-prename descclassname"><span class="pre">matgl.graph.converters.</span></span><span class="sig-name descname"><span class="pre">get_element_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_structures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Structure</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Molecule</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.graph.converters.get_element_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the dictionary containing elements in the training set for atomic features</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>train_structures: pymatgen Molecule/Structure object</p>
+</dd>
+<dt>Returns:</dt><dd><p>Tuple of elements covered in training set</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
