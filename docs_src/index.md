@@ -42,8 +42,11 @@ As a framework, M3GNet has diverse applications, including:
   surrogate models for property predictions, achieving in many cases accuracies that better or similar to other
   state-of-the-art ML models.
 
-For detailed performance benchmarks, please refer to the publication in the [References](#references) section. The
-API documentation is available via the [Github Page](http://materialsvirtuallab.github.io/matgl).
+For detailed performance benchmarks, please refer to the publication in the [References](#references) section. 
+
+# Additional information
+- [Documentation Page](http://materialsvirtuallab.github.io/matgl) 
+- [API documentation](https://materialsvirtuallab.github.io/matgl/modules.html)
 
 # References
 
