@@ -60,7 +60,6 @@ class TestCompute(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.s1 = Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
-        cls.s2 = Structure(Lattice.cubic(3), ["Mo", "Fe"], [[0, 0, 0], [0.5, 0.5, 0.5]])
         element_types = get_element_list([cls.s1])
         p2g = Pmg2Graph(element_types=element_types, cutoff=5.0)
         graph, state = p2g.get_graph_from_structure(cls.s1)

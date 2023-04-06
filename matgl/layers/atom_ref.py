@@ -65,13 +65,13 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(self.property_offset)
         return True
 
-    def forward(self, g: dgl.DGLGraph, state_attr=None):
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None):
         """
         Get the total property offset for a system
 
         Args:
         g: a batch of dgl graphs
-        state_attr: state label
+        state_attr: state attributes
 
         Returns:
         offset_per_graph:

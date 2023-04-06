@@ -13,7 +13,6 @@ from matgl.dataloader.dataset import (
     MEGNetDataset,
     MGLDataLoader,
     _collate_fn,
-    _collate_fn_efs,
 )
 from matgl.graph.converters import Pmg2Graph, get_element_list
 
@@ -102,7 +101,14 @@ class DatasetTest(PymatgenTest):
             shuffle=True,
             random_state=42,
         )
-        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn, 2, 1)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=_collate_fn,
+            batch_size=2,
+            num_workers=1,
+        )
         self.assertTrue(len(train_loader) == 8)
         self.assertTrue(len(val_loader) == 1)
         self.assertTrue(len(test_loader) == 1)
@@ -127,7 +133,14 @@ class DatasetTest(PymatgenTest):
             shuffle=True,
             random_state=42,
         )
-        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn, 2, 1)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=_collate_fn,
+            batch_size=2,
+            num_workers=1,
+        )
         self.assertTrue(len(train_loader) == 3)
         self.assertTrue(len(val_loader) == 1)
         self.assertTrue(len(test_loader) == 1)
@@ -158,7 +171,14 @@ class DatasetTest(PymatgenTest):
             shuffle=True,
             random_state=42,
         )
-        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn_efs, 2, 1)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=_collate_fn,
+            batch_size=2,
+            num_workers=1,
+        )
         self.assertTrue(len(train_loader) == 8)
         self.assertTrue(len(val_loader) == 1)
         self.assertTrue(len(test_loader) == 1)

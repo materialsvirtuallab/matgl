@@ -39,7 +39,9 @@ def test_megnet():
     batched_graph, attrs = batch(graphs)
 
     model = MEGNet(
-        in_dim=DIM,
+        node_embedding_dim=DIM,
+        edge_embedding_dim=DIM,
+        attr_embedding_dim=DIM,
         num_blocks=3,
         hiddens=[N1, N2],
         conv_hiddens=[N1, N1, N2],

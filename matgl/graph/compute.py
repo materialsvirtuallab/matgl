@@ -97,12 +97,12 @@ def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     return bond_vec, bond_dist
 
 
-def compute_theta_and_phi(edges):
+def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     """
     Calculate bond angle Theta and Phi using dgl graphs
 
     Args:
-    g: DGL graph
+    edges: DGL graph edges
 
     Returns:
     cos_theta: torch.tensor

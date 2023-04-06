@@ -9,6 +9,7 @@ import torch.nn as nn
 from dgl.nn import Set2Set
 from torch.nn import Dropout, Identity, Module, ModuleList
 
+from matgl.layers.activations import SoftPlus2
 from matgl.layers.core import MLP, EdgeSet2Set
 from matgl.layers.graph_conv import MEGNetBlock
 
@@ -20,7 +21,9 @@ class MEGNet(Module):
 
     def __init__(
         self,
-        in_dim: int,
+        node_embedding_dim: int,
+        edge_embedding_dim: int,
+        attr_embedding_dim: int,
         num_blocks: int,
         hiddens: list[int],
         conv_hiddens: list[int],
@@ -32,9 +35,10 @@ class MEGNet(Module):
         node_embed: Module | None = None,
         edge_embed: Module | None = None,
         attr_embed: Module | None = None,
+        include_states: bool = False,
         dropout: float | None = None,
         graph_transformations: list | None = None,
-        device: str = "cpu",
+        device: torch.device | None = None,
     ) -> None:
         """
         TODO: Add docs.
@@ -60,7 +64,9 @@ class MEGNet(Module):
         self.node_embed = node_embed if node_embed else Identity()
         self.attr_embed = attr_embed if attr_embed else Identity()
 
-        dims = [in_dim, *hiddens]
+        node_dims = [node_embedding_dim, *hiddens]
+        edge_dims = [edge_embedding_dim, *hiddens]
+        attr_dims = [attr_embedding_dim, *hiddens]
 
         if act == "swish":
             activation = nn.SiLU()  # type: ignore
@@ -68,16 +74,24 @@ class MEGNet(Module):
             activation = nn.Sigmoid()  # type: ignore
         elif act == "tanh":
             activation = nn.Tanh()  # type: ignore
+        elif act == "softplus2":
+            activation = SoftPlus2()  # type: ignore
         else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh")
+            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2")
 
-        self.edge_encoder = MLP(dims, activation, activate_last=True, device=device)
-        self.node_encoder = MLP(dims, activation, activate_last=True, device=device)
-        self.attr_encoder = MLP(dims, activation, activate_last=True, device=device)
+        self.edge_encoder = MLP(edge_dims, activation, activate_last=True, device=device)
+        self.node_encoder = MLP(node_dims, activation, activate_last=True, device=device)
+        self.attr_encoder = MLP(attr_dims, activation, activate_last=True, device=device)
 
         blocks_in_dim = hiddens[-1]
         block_out_dim = conv_hiddens[-1]
-        block_args = {"conv_hiddens": conv_hiddens, "dropout": dropout, "act": activation, "skip": True}
+        block_args = {
+            "conv_hiddens": conv_hiddens,
+            "dropout": dropout,
+            "act": activation,
+            "skip": True,
+            "device": device,
+        }
         blocks = []
 
         # first block
@@ -104,6 +118,7 @@ class MEGNet(Module):
 
         self.is_classification = is_classification
         self.graph_transformations = graph_transformations or [Identity()] * num_blocks
+        self.include_states = include_states
 
     def forward(
         self,
@@ -123,7 +138,10 @@ class MEGNet(Module):
         graph_transformations = self.graph_transformations
         edge_feat = self.edge_encoder(self.edge_embed(edge_feat))
         node_feat = self.node_encoder(self.node_embed(node_feat))
-        graph_attr = self.attr_encoder(self.attr_embed(graph_attr))
+        if self.include_states:
+            graph_attr = self.attr_embed(graph_attr)
+        else:
+            graph_attr = self.attr_encoder(self.attr_embed(graph_attr))
 
         for i, block in enumerate(self.blocks):
             graph = graph_transformations[i](graph)
