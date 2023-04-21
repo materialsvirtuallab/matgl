@@ -103,6 +103,9 @@ class MEGNetGraphConv(Module):
         u = attrs
         ue = dgl.readout_edges(graph, feat="e", op="mean")
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
+        ue = torch.squeeze(ue)
+        uv = torch.squeeze(uv)
+        u = torch.squeeze(u)
         inputs = torch.hstack([u, ue, uv])
         graph_attr = self.attr_func(inputs)
         return graph_attr

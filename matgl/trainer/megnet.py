@@ -7,7 +7,6 @@ import json
 import os
 import shutil
 from timeit import default_timer
-from typing import Callable
 
 import torch
 import torch.nn as nn
@@ -20,7 +19,7 @@ def train_one_step(
     model: nn.Module,
     device: torch.device,
     optimizer: torch.optim.Optimizer,
-    loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+    loss_function: nn.Module,
     data_std: torch.Tensor,
     data_mean: torch.Tensor,
     dataloader,
@@ -63,7 +62,7 @@ def train_one_step(
 def validate_one_step(
     model: nn.Module,
     device: torch.device,
-    loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+    loss_function: nn.Module,
     data_std: torch.Tensor,
     data_mean: torch.Tensor,
     dataloader: tuple,
@@ -147,8 +146,8 @@ class MEGNetTrainer:
         self,
         device: torch.device,
         num_epochs: int,
-        train_loss_func: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
-        val_loss_func: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+        train_loss_func: nn.Module,
+        val_loss_func: nn.Module,
         data_std: torch.tensor,
         data_mean: torch.tensor,
         train_loader: tuple,
@@ -181,18 +180,18 @@ class MEGNetTrainer:
             val_loss, val_time = validate_one_step(self.model, device, val_loss_func, data_std, data_mean, val_loader)
 
             self.scheduler.step()
+            print(
+                f"Epoch: {epoch + 1:03} Train Loss: {train_loss:.4f} "
+                f"Val Loss: {val_loss:.4f} Train Time: {train_time:.2f} s. "
+                f"Val Time: {val_time:.2f} s."
+            )
             if val_loss < best_val_loss:
-                print(
-                    f"Epoch: {epoch + 1:03} Train Loss: {train_loss:.4f} "
-                    f"Val Loss: {val_loss:.4f} Train Time: {train_time:.2f} s. "
-                    f"Val Time: {val_time:.2f} s."
-                )
-
                 torch.save(
                     {
                         "epoch": epoch + 1,
-                        "model_state_dict": self.model.state_dict(),
+                        "model": self.model.as_dict(),
                         "optimizer_state_dict": self.optimizer.state_dict(),
+                        "scheduler_state_dict": self.scheduler.state_dict(),
                         "loss": val_loss,
                     },
                     checkpath + "/%05d" % (epoch + 1) + "-%6.5f" % (val_loss) + ".pt",
@@ -208,6 +207,6 @@ class MEGNetTrainer:
 
                 logger.dump(log_dict)
                 best_val_loss = val_loss
-                torch.save(self.model.state_dict(), outpath + "/best-model.pt")
-
+                torch.save({"model": self.model.as_dict()}, outpath + "/best-model.pt")
+        logger.close()
         print("## Training finished ##")

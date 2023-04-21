@@ -3,6 +3,9 @@ Implementation of MEGNet model.
 """
 from __future__ import annotations
 
+import logging
+import os
+
 import dgl
 import torch
 import torch.nn as nn
@@ -12,6 +15,16 @@ from torch.nn import Dropout, Identity, Module, ModuleList
 from matgl.layers.activations import SoftPlus2
 from matgl.layers.core import MLP, EdgeSet2Set
 from matgl.layers.graph_conv import MEGNetBlock
+
+logger = logging.getLogger(__file__)
+CWD = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_NAME = "megnet"
+
+MODEL_PATHS = {
+    "MP-2018.6.1-Eform": os.path.join(CWD, "..", "..", "pretrained", "MP-2018.6.1-Eform"),
+    "MP-2019.4.1-BandGap": os.path.join(CWD, "..", "..", "pretrained", "MP-2019.4.1-BandGap"),
+}
 
 
 class MEGNet(Module):
@@ -38,7 +51,12 @@ class MEGNet(Module):
         include_states: bool = False,
         dropout: float | None = None,
         graph_transformations: list | None = None,
+        element_types: list | None = None,
+        cutoff: float | None = None,
+        data_mean: torch.tensor | None = None,
+        data_std: torch.tensor | None = None,
         device: torch.device | None = None,
+        **kwargs,
     ) -> None:
         """
         TODO: Add docs.
@@ -58,7 +76,21 @@ class MEGNet(Module):
         :param graph_transform: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
             performing the GCL updates.
         """
+
+        # Store MEGNet model args for loading trained model
+        self.model_args = {k: v for k, v in locals().items() if k not in ["self", "__class__", "kwargs"]}
+        self.model_args.update(kwargs)
+
         super().__init__()
+
+        if element_types is not None:
+            self.element_types = element_types
+        if cutoff is not None:
+            self.cutoff = cutoff
+        if data_mean is not None:
+            self.data_mean = data_mean
+        if data_std is not None:
+            self.data_std = data_std
 
         self.edge_embed = edge_embed if edge_embed else Identity()
         self.node_embed = node_embed if node_embed else Identity()
@@ -120,6 +152,55 @@ class MEGNet(Module):
         self.graph_transformations = graph_transformations or [Identity()] * num_blocks
         self.include_states = include_states
 
+    def as_dict(self):
+        out = {"state_dict": self.state_dict(), "model_args": self.model_args}
+        return out
+
+    @classmethod
+    def from_dict(cls, dict, **kwargs):
+        """
+        build a MEGNet from a saved dictionary
+        """
+        # check if cuda is available
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # check if mps is available
+        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        dict["model_args"]["device"] = device
+        model = MEGNet(**dict["model_args"])
+        model.load_state_dict(dict["state_dict"], **kwargs)
+        return model
+
+    @classmethod
+    def from_dir(cls, path, **kwargs):
+        """
+        build a MEGNet from a saved directory
+        """
+        file_name = os.path.join(path, MODEL_NAME + ".pt")
+        if torch.cuda.is_available() is False:
+            state = torch.load(file_name, map_location=torch.device("cpu"))
+        else:
+            state = torch.load(file_name)
+        print(state["model"])
+        model = MEGNet.from_dict(state["model"], **kwargs)
+        return model
+
+    @classmethod
+    def load(cls, model_dir: str = "MP-2018.6.1-Eform") -> MEGNet:
+        """
+        Load the model weights from pre-trained model (megnet.pt)
+        Args:
+            model_dir (str): directory for saved model. Defaults to "MP-2018.6.1-Eform".
+
+        Returns: MEGNet object.
+        """
+        if model_dir in MODEL_PATHS:
+            return cls.from_dir(MODEL_PATHS[model_dir])
+
+        if os.path.isdir(model_dir) and "megnet.pt" in os.listdir(model_dir):
+            return cls.from_dir(model_dir)
+
+        raise ValueError(f"{model_dir} not found in available pretrained {list(MODEL_PATHS.keys())}")
+
     def forward(
         self,
         graph: dgl.DGLGraph,
@@ -151,6 +232,10 @@ class MEGNet(Module):
         node_vec = self.node_s2s(graph, node_feat)
         edge_vec = self.edge_s2s(graph, edge_feat)
 
+        node_vec = torch.squeeze(node_vec)
+        edge_vec = torch.squeeze(edge_vec)
+        graph_attr = torch.squeeze(graph_attr)
+
         vec = torch.hstack([node_vec, edge_vec, graph_attr])
 
         if self.dropout:
@@ -160,4 +245,34 @@ class MEGNet(Module):
         if self.is_classification:
             output = torch.sigmoid(output)
 
+        return output
+
+
+class MEGNetCalculator(nn.Module):
+    """
+    MEGNet Calculator
+    Params:
+    model (MEGNet): MEGNet model
+    data_mean (torch.tensor): the average of training data
+    data_std (torch.tensor): the standard deviation of training data
+    """
+
+    def __init__(self, model: MEGNet, data_std: torch.tensor | None = None, data_mean: torch.tensor | None = None):
+        super().__init__()
+        self.model = model
+        self.data_mean = data_mean
+        self.data_std = data_std
+
+    def forward(self, g: dgl.DGLGraph, attrs: torch.tensor):
+        """
+        Args:
+        g (dgl.DGLGraph): dgl graph
+        attrs (torch.tensor): graph attributes
+        Returns:
+        output (torch.tensor): output property
+        """
+        output = (
+            self.data_std * self.model(g, g.edata["edge_attr"].float(), g.ndata["node_type"].long(), attrs)
+            + self.data_mean
+        )
         return output
