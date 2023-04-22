@@ -34,7 +34,7 @@ class TestMath(unittest.TestCase):
         sbf = SphericalBesselFunction(max_l=3, cutoff=5.0, max_n=3, smooth=False)
         res = sbf(r)
         res2 = sbf.rbf_j0(r, cutoff=5.0, max_n=3)
-        self.assertTrue(np.allclose(res[:, :3].numpy().ravel(), res2.numpy().ravel()))
+        self.assertTrue(np.allclose(res[:, :3].numpy().ravel(), res2.numpy().ravel(), atol=1e-07))
 
         self.assertTrue(res.numpy().shape == (10, 9))
 

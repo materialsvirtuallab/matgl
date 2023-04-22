@@ -25,7 +25,7 @@ class EmbeddingBlock(nn.Module):
         include_states: bool = False,
         num_state_types: int | None = None,
         state_embedding_dim: int | None = None,
-        device: str = "cpu",
+        device: torch.device | None = None,
     ):
         """
         Parameters:
@@ -38,7 +38,6 @@ class EmbeddingBlock(nn.Module):
         activation (str): activation function type
         """
         super().__init__()
-        device = torch.device(device)
         self.include_states = include_states
         self.num_state_types = num_state_types
         self.num_node_feats = num_node_feats
@@ -84,7 +83,6 @@ class EmbeddingBlock(nn.Module):
         if self.include_states is True:
             if self.num_state_types and self.state_embedding_dim is not None:
                 state_feat = self.state_embedding(state_attr)
-                state_feat = self.activation(state_feat)
             else:
                 state_attr = torch.unsqueeze(state_attr, 0)
                 state_embed = MLP(

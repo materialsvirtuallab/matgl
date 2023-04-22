@@ -115,7 +115,9 @@ class SphericalBesselFunction:
     Calculate the spherical Bessel function based on sympy + pytorch implementations
     """
 
-    def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False, device: str = "cpu"):
+    def __init__(
+        self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False, device: torch.device | None = None
+    ):
         """
         Args:
             max_l: int, max order (excluding l)
@@ -132,7 +134,7 @@ class SphericalBesselFunction:
             self.funcs = self._calculate_symbolic_funcs()
 
         self.zeros = torch.from_numpy(SPHERICAL_BESSEL_ROOTS).type(DataType.torch_float)
-        self.device = torch.device(device)
+        self.device = device
 
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> list:

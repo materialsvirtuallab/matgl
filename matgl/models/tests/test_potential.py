@@ -23,6 +23,12 @@ class TestPotential(unittest.TestCase):
         cls.g1 = graph
         cls.state1 = state
 
+        s2 = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[-0.0025, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        s2.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
+        graph, state = p2g.get_graph_from_structure(s2)
+        cls.g2 = graph
+        cls.state2 = state
+
     def test_potential_efsh(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model, calc_hessian=True)
@@ -36,6 +42,9 @@ class TestPotential(unittest.TestCase):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model)
         e, f, s, h = ff(self.g1, self.state1)
+        print(e, f, s)
+        e, f, s, h = ff(self.g2, self.state2)
+        print(e, f, s)
         self.assertListEqual([torch.numel(e)], [1])
         self.assertListEqual([f.size(dim=0), f.size(dim=1)], [2, 3])
         self.assertListEqual([s.size(dim=0), s.size(dim=1)], [3, 3])

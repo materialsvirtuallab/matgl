@@ -17,6 +17,7 @@ from pymatgen.core import Structure
 from tqdm import trange
 
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
+from matgl.graph.converters import Pmg2Graph
 from matgl.layers.bond_expansion import BondExpansion
 
 
@@ -48,11 +49,11 @@ def _collate_fn_efs(batch):
 def MGLDataLoader(
     train_data: dgl.data.utils.Subset,
     val_data: dgl.data.utils.Subset,
-    test_data: dgl.data.utils.Subset,
     collate_fn: Callable,
     batch_size: int,
     num_workers: int,
     use_ddp: bool = False,
+    test_data: dgl.data.utils.Subset | None = None,
 ):
     """
     Dataloader for MEGNet training
@@ -80,16 +81,18 @@ def MGLDataLoader(
         num_workers=num_workers,
         pin_memory=True,
     )
-
-    test_loader = GraphDataLoader(
-        test_data,
-        batch_size=batch_size,
-        shuffle=False,
-        collate_fn=collate_fn,
-        num_workers=num_workers,
-        pin_memory=True,
-    )
-    return train_loader, val_loader, test_loader
+    if test_data is not None:
+        test_loader = GraphDataLoader(
+            test_data,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=collate_fn,
+            num_workers=num_workers,
+            pin_memory=True,
+        )
+        return train_loader, val_loader, test_loader
+    else:
+        return train_loader, val_loader
 
 
 class MEGNetDataset(DGLDataset):
@@ -108,6 +111,7 @@ class MEGNetDataset(DGLDataset):
         num_centers: int = 20,
         width: float = 0.5,
         name: str = "MEGNETDataset",
+        graph_labels: list | None = None,
     ):
         """
         Args:
@@ -128,6 +132,8 @@ class MEGNetDataset(DGLDataset):
         self.final = final
         self.num_centers = num_centers
         self.width = width
+        self.graph_labels = graph_labels
+
         super().__init__(name=name)
 
     def has_cache(self, filename: str = "dgl_graph.bin") -> bool:
@@ -159,7 +165,10 @@ class MEGNetDataset(DGLDataset):
             graph.edata["edge_attr"] = bond_expansion(bond_dist)
             self.graphs.append(graph)
             self.graph_attr.append(state_attr)
-        self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
+        if self.graph_labels is not None:
+            self.graph_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+        else:
+            self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
 
         return self.graphs, self.graph_attr
 
@@ -209,9 +218,10 @@ class M3GNetDataset(DGLDataset):
         energies: list,
         forces: list,
         stresses: None | list,
-        converter,
+        converter: Pmg2Graph,
         threebody_cutoff: float,
         name="M3GNETDataset",
+        graph_labels: list | None = None,
     ):
         """
         Args:
@@ -230,6 +240,7 @@ class M3GNetDataset(DGLDataset):
         self.forces = forces
         self.threebody_cutoff = threebody_cutoff
         self.stresses = np.zeros(len(self.energies)) if stresses is None else stresses
+        self.graph_labels = graph_labels
         super().__init__(name=name)
 
     def has_cache(self, filename: str = "dgl_graph.bin") -> bool:
@@ -265,7 +276,10 @@ class M3GNetDataset(DGLDataset):
             line_graph.ndata.pop("bond_dist")
             line_graph.ndata.pop("pbc_offset")
             self.line_graphs.append(line_graph)
-        self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
+        if self.graph_labels is not None:
+            self.graph_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+        else:
+            self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
 
         return self.graphs, self.line_graphs, self.graph_attr
 

@@ -66,7 +66,7 @@ class M3GNet(nn.Module):
         num_s2s_steps: int = 3,
         num_s2s_layers: int = 3,
         field: str = "node_feat",
-        device="cpu",
+        device: torch.device | None = None,
         include_states: bool = False,
         element_refs: np.ndarray | None = None,
         activation: str = "swish",
@@ -180,7 +180,7 @@ class M3GNet(nn.Module):
                 self.readout = Set2SetReadOut(num_steps=num_s2s_steps, num_layers=num_s2s_layers, field=field)
                 readout_feats = 2 * input_feats + num_state_feats if include_states else 2 * input_feats  # type: ignore
             else:
-                self.readout = ReduceReadOut("mean", field=field, device=device)
+                self.readout = ReduceReadOut("mean", field=field)
                 readout_feats = input_feats + num_state_feats if include_states else input_feats  # type: ignore
 
             dims_final_layer = [readout_feats] + [units, units] + [num_targets]
@@ -252,7 +252,7 @@ class M3GNet(nn.Module):
 
         raise ValueError(f"{model_dir} not found in available pretrained {list(MODEL_PATHS.keys())}")
 
-    def forward(self, g: dgl.Graph, state_attr: torch.tensor | None = None, l_g: dgl.Graph | None = None):
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.
 
         Parameters
@@ -291,7 +291,7 @@ class M3GNet(nn.Module):
             num_edge_feats = self.three_body_interactions[i](
                 g, l_g, three_body_basis, three_body_cutoff, num_node_feats, num_edge_feats
             )
-            num_edge_feats, num_node_feats, num_state_feat = self.graph_layers[i](
+            num_edge_feats, num_node_feats, num_state_feats = self.graph_layers[i](
                 g, num_edge_feats, num_node_feats, num_state_feats
             )
         g.ndata["node_feat"] = num_node_feats

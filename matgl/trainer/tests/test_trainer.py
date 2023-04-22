@@ -6,6 +6,7 @@ import unittest
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
@@ -44,19 +45,28 @@ class MEGNetTrainerTest(PymatgenTest):
             shuffle=True,
             random_state=42,
         )
-        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn, 2, 1)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=_collate_fn,
+            batch_size=2,
+            num_workers=1,
+        )
 
         g_sample, label_sample, attr_sample = dataset[0]
 
-        node_feat = g_sample.ndata["attr"]
+        node_feat = g_sample.ndata["node_type"]
         edge_feat = g_sample.edata["edge_attr"]
         attrs = attr_sample
-        node_embed = MLP([node_feat.shape[-1], 16], activation=None)
+        node_embed = nn.Embedding(node_feat.shape[-1], 16)
         edge_embed = MLP([edge_feat.shape[-1], 16], activation=None)
         attr_embed = MLP([attrs.shape[-1], 16], activation=None)
 
         model = MEGNet(
-            in_dim=16,
+            node_embedding_dim=16,
+            edge_embedding_dim=16,
+            attr_embedding_dim=16,
             num_blocks=3,
             hiddens=[64, 32],
             conv_hiddens=[64, 64, 32],
@@ -70,6 +80,7 @@ class MEGNetTrainerTest(PymatgenTest):
         )
 
         optimizer = torch.optim.Adam(model.parameters(), lr=1.0e-3)
+        scheduler = ExponentialLR(optimizer, gamma=0.9)
 
         train_loss_function = F.mse_loss
         validate_loss_function = F.l1_loss
@@ -82,6 +93,7 @@ class MEGNetTrainerTest(PymatgenTest):
         trainer = MEGNetTrainer(
             model=model,
             optimizer=optimizer,
+            scheduler=scheduler,
         )
 
         trainer.train(
@@ -124,7 +136,14 @@ class M3GNetTrainerTest(PymatgenTest):
             shuffle=True,
             random_state=42,
         )
-        train_loader, val_loader, test_loader = MGLDataLoader(train_data, val_data, test_data, _collate_fn_efs, 2, 0)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=_collate_fn_efs,
+            batch_size=2,
+            num_workers=1,
+        )
         model = M3GNet(
             element_types=element_types,
             is_intensive=False,

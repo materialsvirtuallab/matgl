@@ -20,6 +20,7 @@ def loss_fn(
     loss: nn.Module,
     energy_weight: float,
     force_weight: float,
+    device: torch.device,
     labels: tuple[torch.tensor, torch.tensor, torch.tensor],
     preds: tuple[torch.tensor, torch.tensor, torch.tensor],
     num_atoms: int,
@@ -38,7 +39,7 @@ def loss_fn(
         s_mae = F.l1_loss(s_target, preds[2])
         total_loss = energy_weight * e_loss + force_weight * f_loss + stress_weight * s_loss
     else:
-        s_mae = torch.zeros(1)
+        s_mae = torch.zeros(1, device=device)
         total_loss = energy_weight * e_loss + force_weight * f_loss
     total_loss = total_loss.to(torch.float)
     results = {
@@ -63,10 +64,10 @@ def train_one_step(
 ):
     potential.model.train()
 
-    mae_e = torch.zeros(1)
-    mae_f = torch.zeros(1)
-    mae_s = torch.zeros(1)
-    avg_loss = torch.zeros(1)
+    mae_e = torch.zeros(1, device=device)
+    mae_f = torch.zeros(1, device=device)
+    mae_s = torch.zeros(1, device=device)
+    avg_loss = torch.zeros(1, device=device)
 
     start = default_timer()
     for g, l_g, attrs, energies, forces, stresses in tqdm(dataloader):
@@ -93,6 +94,7 @@ def train_one_step(
             labels=labels,  # type: ignore
             preds=preds,  # type: ignore
             num_atoms=num_atoms,
+            device=device,
         )
 
         results["total_loss"].backward()
@@ -130,10 +132,10 @@ def validate_one_step(
     stress_weight: float | None,
     dataloader: tuple,
 ):
-    mae_e = torch.zeros(1)
-    mae_f = torch.zeros(1)
-    mae_s = torch.zeros(1)
-    avg_loss = torch.zeros(1)
+    mae_e = torch.zeros(1, device=device)
+    mae_f = torch.zeros(1, device=device)
+    mae_s = torch.zeros(1, device=device)
+    avg_loss = torch.zeros(1, device=device)
 
     start = default_timer()
 
@@ -161,6 +163,7 @@ def validate_one_step(
             labels=labels,  # type: ignore
             preds=preds,  # type: ignore
             num_atoms=num_atoms,
+            device=device,
         )
 
         mae_e += results["energy_MAE"].detach()

@@ -45,7 +45,7 @@ class TestReadOut(unittest.TestCase):
         node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         self.g1.ndata["node_feat"] = node_feat
         self.g1.edata["edge_feat"] = edge_feat
-        read_out = WeightedReadOut(in_feats=16, dims=[32, 32], num_targets=4, device=torch.device("cpu"))
+        read_out = WeightedReadOut(in_feats=16, dims=[32, 32], num_targets=4)
         atomic_properties = read_out(self.g1)
         self.assertListEqual([atomic_properties.size(dim=0), atomic_properties.size(dim=1)], [2, 4])
 

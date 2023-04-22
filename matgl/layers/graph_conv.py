@@ -36,7 +36,11 @@ class MEGNetGraphConv(Module):
 
     @staticmethod
     def from_dims(
-        edge_dims: list[int], node_dims: list[int], attr_dims: list[int], activation: Module, device: str = "cpu"
+        edge_dims: list[int],
+        node_dims: list[int],
+        attr_dims: list[int],
+        activation: Module,
+        device: torch.device | None = None,
     ) -> MEGNetGraphConv:
         """
         TODO: Add docs.
@@ -48,7 +52,6 @@ class MEGNetGraphConv(Module):
         """
         # TODO(marcel): Softplus doesn't exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
-        device = torch.device(device)
         edge_update = MLP(edge_dims, activation, activate_last=True, device=device)
         node_update = MLP(node_dims, activation, activate_last=True, device=device)
         attr_update = MLP(attr_dims, activation, activate_last=True, device=device)
@@ -100,6 +103,9 @@ class MEGNetGraphConv(Module):
         u = attrs
         ue = dgl.readout_edges(graph, feat="e", op="mean")
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
+        ue = torch.squeeze(ue)
+        uv = torch.squeeze(uv)
+        u = torch.squeeze(u)
         inputs = torch.hstack([u, ue, uv])
         graph_attr = self.attr_func(inputs)
         return graph_attr
@@ -144,7 +150,7 @@ class MEGNetBlock(Module):
         act: Module,
         dropout: float | None = None,
         skip: bool = True,
-        device: str = "cpu",
+        device: torch.device | None = None,
     ) -> None:
         """
         TODO: Add docs.
@@ -155,7 +161,6 @@ class MEGNetBlock(Module):
         :param skip:
         """
         super().__init__()
-        device = torch.device(device)
         self.has_dense = len(dims) > 1
         self.activation = act
         conv_dim = dims[-1]
@@ -262,7 +267,7 @@ class M3GNetGraphConv(Module):
         node_dims: list[int],
         attr_dims: list[int] | None,
         activation: Module,
-        device="cpu",
+        device: torch.device | None = None,
     ) -> M3GNetGraphConv:
         """
         M3GNetGraphConv initialization
@@ -349,8 +354,6 @@ class M3GNetGraphConv(Module):
             inputs = torch.hstack([vi, vj, eij])
         graph.edata["mess"] = self.node_update_func(inputs) * self.node_weight_func(rbf)
         graph.update_all(fn.copy_e("mess", "mess"), fn.sum("mess", "ve"))
-        #        num_nodes = graph.num_nodes()
-        #        node_update = scatter_sum(mess_from_edge_to_node, index=src_id, dim=0, dim_size=num_nodes)
         node_update = graph.ndata.pop("ve")
         return node_update
 
@@ -418,7 +421,7 @@ class M3GNetBlock(Module):
         num_state_feats: int | None = None,
         include_states: bool = False,
         dropout: float | None = None,
-        device: str = "cpu",
+        device: torch.device | None = None,
     ) -> None:
         """
         :param degree: Dimension of radial basis functions
