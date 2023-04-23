@@ -1,4 +1,4 @@
-# Simple training of formation energy from material projects (version:mp.2018.6.1.json)
+# Prediction of bandgap for a FCC Cu crystal from pretrained model (version:mp.2019.4.1.json)
 # Author: Tsz Wai Ko (Kenko)
 # Email: t1ko@ucsd.edu
 
@@ -15,7 +15,7 @@ from matgl.graph.converters import get_element_list, Pmg2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers.bond_expansion import BondExpansion
 
-# define the current path
+# define the current working directory
 path = os.getcwd()
 
 # define the device, either "cuda" or "cpu"

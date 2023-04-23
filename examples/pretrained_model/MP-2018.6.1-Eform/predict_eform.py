@@ -1,4 +1,4 @@
-# Simple training of formation energy from material projects (version:mp.2018.6.1.json)
+# Prediction of formation energy for a FCC crystal from pretrained model (version:mp.2018.6.1.json)
 # Author: Tsz Wai Ko (Kenko)
 # Email: t1ko@ucsd.edu
 
@@ -12,11 +12,9 @@ from pymatgen.core import Element, Structure
 from matgl.graph.converters import get_element_list, Pmg2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.models.megnet import MEGNet, MEGNetCalculator
-
-# from matgl.utils.predictors import MEGNetCalculator
 from matgl.layers.bond_expansion import BondExpansion
 
-# define the CWD path
+# define the current working directory
 path = os.getcwd()
 # define the device, either "cuda" or "cpu"
 device = torch.device("cpu")
