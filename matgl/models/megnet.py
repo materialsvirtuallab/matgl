@@ -51,7 +51,7 @@ class MEGNet(Module):
         include_states: bool = False,
         dropout: float | None = None,
         graph_transformations: list | None = None,
-        element_types: list | None = None,
+        element_types: tuple[str] | None = None,
         cutoff: float | None = None,
         data_mean: torch.tensor | None = None,
         data_std: torch.tensor | None = None,
