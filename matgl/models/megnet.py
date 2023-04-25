@@ -180,7 +180,6 @@ class MEGNet(Module):
             state = torch.load(file_name, map_location=torch.device("cpu"))
         else:
             state = torch.load(file_name)
-        print(state["model"])
         model = MEGNet.from_dict(state["model"], **kwargs)
         return model
 

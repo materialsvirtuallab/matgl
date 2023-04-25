@@ -4,6 +4,7 @@ M3GNet Trainer
 from __future__ import annotations
 
 import json
+import logging
 import os
 import shutil
 from timeit import default_timer
@@ -14,6 +15,8 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from matgl.models.potential import Potential
+
+logger = logging.getLogger("m3gnet_trainer")
 
 
 def loss_fn(
@@ -259,8 +262,8 @@ class M3GNetTrainer:
         if os.path.exists(checkpath):
             shutil.rmtree(checkpath)
         os.mkdir(checkpath)
-        logger = StreamingJSONWriter(filename=logger_name)
-        print("## Training started ##")
+        jsonlogger = StreamingJSONWriter(filename=logger_name)
+        logger.info("## Training started ##")
         best_val_loss = 1000.0
         for epoch in tqdm(range(num_epochs)):
             avg_loss_train, train_energies_mae, train_forces_mae, train_stresses_mae, train_time = train_one_step(
@@ -284,7 +287,7 @@ class M3GNetTrainer:
                 dataloader=val_loader,
             )
             self.scheduler.step()
-            print(
+            logger.info(
                 f"Epoch: {epoch + 1:03} Train Loss: {avg_loss_train:.4f} "
                 f"Val Loss: {avg_loss_val:.4f} Train Time: {train_time:.2f} s. "
                 f"Val Time: {val_time:.2f} s."
@@ -313,8 +316,8 @@ class M3GNetTrainer:
                     "val_time": val_time,
                 }
 
-                logger.dump(log_dict)
+                jsonlogger.dump(log_dict)
                 best_val_loss = avg_loss_val
                 torch.save({"model": self.potential.model.as_dict()}, outpath + "/m3gnet.pt")
-        logger.close()
-        print("## Training finished ##")
+        jsonlogger.close()
+        logger.info("## Training finished ##")

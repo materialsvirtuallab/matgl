@@ -88,7 +88,6 @@ class MEGNetTrainerTest(PymatgenTest):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         model = model.to(device)
-        print(model)
 
         trainer = MEGNetTrainer(
             model=model,
@@ -148,8 +147,6 @@ class M3GNetTrainerTest(PymatgenTest):
             element_types=element_types,
             is_intensive=False,
         )
-
-        print(model)
 
         ff = Potential(model=model)
         optimizer = torch.optim.Adam(ff.model.parameters(), lr=1.0e-3)

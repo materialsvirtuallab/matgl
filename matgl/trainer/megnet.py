@@ -4,6 +4,7 @@ MEGNet Trainer
 from __future__ import annotations
 
 import json
+import logging
 import os
 import shutil
 from timeit import default_timer
@@ -13,6 +14,8 @@ import torch.nn as nn
 from tqdm import tqdm
 
 from matgl.models.megnet import MEGNet
+
+logger = logging.getLogger("megnet_trainer")
 
 
 def train_one_step(
@@ -164,8 +167,8 @@ class MEGNetTrainer:
         if os.path.exists(checkpath):
             shutil.rmtree(checkpath)
         os.mkdir(checkpath)
-        logger = StreamingJSONWriter(filename=logger_name)
-        print("## Training started ##")
+        jsonlog = StreamingJSONWriter(filename=logger_name)
+        logger.info("## Training started ##")
         best_val_loss = 1000.0
         for epoch in tqdm(range(num_epochs)):
             train_loss, train_time = train_one_step(
@@ -180,7 +183,7 @@ class MEGNetTrainer:
             val_loss, val_time = validate_one_step(self.model, device, val_loss_func, data_std, data_mean, val_loader)
 
             self.scheduler.step()
-            print(
+            logger.info(
                 f"Epoch: {epoch + 1:03} Train Loss: {train_loss:.4f} "
                 f"Val Loss: {val_loss:.4f} Train Time: {train_time:.2f} s. "
                 f"Val Time: {val_time:.2f} s."
@@ -205,8 +208,8 @@ class MEGNetTrainer:
                     "val_time": val_time,
                 }
 
-                logger.dump(log_dict)
+                jsonlog.dump(log_dict)
                 best_val_loss = val_loss
                 torch.save({"model": self.model.as_dict()}, outpath + "/best-model.pt")
-        logger.close()
-        print("## Training finished ##")
+        jsonlog.close()
+        logger.info("## Training finished ##")
