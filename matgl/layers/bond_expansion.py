@@ -25,7 +25,7 @@ class BondExpansion(nn.Module):
         final: float = 5.0,
         num_centers: int = 100,
         width: float = 0.5,
-        device="cpu",
+        device: torch.device | None = None,
     ) -> None:
         """
         Parameters:
