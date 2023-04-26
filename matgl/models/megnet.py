@@ -10,9 +10,13 @@ import dgl
 import torch
 import torch.nn as nn
 from dgl.nn import Set2Set
+from pymatgen.core import Structure
 from torch.nn import Dropout, Identity, Module, ModuleList
 
+from matgl.graph.compute import compute_pair_vector_and_distance
+from matgl.graph.converters import Pmg2Graph
 from matgl.layers.activations import SoftPlus2
+from matgl.layers.bond_expansion import BondExpansion
 from matgl.layers.core import MLP, EdgeSet2Set
 from matgl.layers.graph_conv import MEGNetBlock
 
@@ -52,9 +56,10 @@ class MEGNet(Module):
         dropout: float | None = None,
         graph_transformations: list | None = None,
         element_types: tuple[str] | None = None,
-        cutoff: float | None = None,
         data_mean: torch.tensor | None = None,
         data_std: torch.tensor | None = None,
+        graph_converter: Pmg2Graph | None = None,
+        bond_expansion: BondExpansion | None = None,
         device: torch.device | None = None,
         **kwargs,
     ) -> None:
@@ -85,8 +90,10 @@ class MEGNet(Module):
 
         if element_types is not None:
             self.element_types = element_types
-        if cutoff is not None:
-            self.cutoff = cutoff
+        if graph_converter is not None:
+            self.graph_converter = graph_converter
+        if bond_expansion is not None:
+            self.bond_expansion = bond_expansion
         if data_mean is not None:
             self.data_mean = data_mean
         if data_std is not None:
@@ -180,8 +187,7 @@ class MEGNet(Module):
             state = torch.load(file_name, map_location=torch.device("cpu"))
         else:
             state = torch.load(file_name)
-        print(state["model"])
-        model = MEGNet.from_dict(state["model"], **kwargs)
+        model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
         return model
 
     @classmethod
@@ -255,24 +261,48 @@ class MEGNetCalculator(nn.Module):
     model (MEGNet): MEGNet model
     data_mean (torch.tensor): the average of training data
     data_std (torch.tensor): the standard deviation of training data
+    device (torch.device): cpu or cuda
     """
 
-    def __init__(self, model: MEGNet, data_std: torch.tensor | None = None, data_mean: torch.tensor | None = None):
+    def __init__(
+        self,
+        model: MEGNet,
+        data_std: torch.tensor | None = None,
+        data_mean: torch.tensor | None = None,
+        device: torch.device | None = None,
+    ):
         super().__init__()
         self.model = model
-        self.data_mean = data_mean
-        self.data_std = data_std
+        self.device = device
+        if data_mean is None:
+            self.data_mean = model.data_mean
+        if data_std is None:
+            self.data_std = model.data_std
 
-    def forward(self, g: dgl.DGLGraph, attrs: torch.tensor):
+    def forward(self, structure: Structure, attrs: torch.tensor | None = None):
         """
         Args:
-        g (dgl.DGLGraph): dgl graph
+        structure (Structure): Pymatgen structure
         attrs (torch.tensor): graph attributes
         Returns:
         output (torch.tensor): output property
         """
+        g, attrs_default = self.model.graph_converter.get_graph_from_structure(structure)
+        if attrs is None:
+            attrs = torch.tensor(attrs_default)
+
+        bond_vec, bond_dist = compute_pair_vector_and_distance(g)
+        g.edata["edge_attr"] = self.model.bond_expansion(bond_dist)
+
+        self.model = self.model.to(self.device)
+        g = g.to(self.device)
+        g.edata["edge_attr"] = g.edata["edge_attr"].to(self.device)
+        g.ndata["node_type"] = g.ndata["node_type"].to(self.device)
+        attrs = attrs.to(self.device)
+
         output = (
             self.data_std * self.model(g, g.edata["edge_attr"].float(), g.ndata["node_type"].long(), attrs)
             + self.data_mean
         )
+
         return output

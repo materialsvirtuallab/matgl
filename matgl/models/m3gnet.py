@@ -231,7 +231,6 @@ class M3GNet(nn.Module):
         """
         file_name = os.path.join(path, MODEL_NAME + ".pt")
         state = torch.load(file_name)
-        print(state["model"])
         model = M3GNet.from_dict(state["model"], **kwargs)
         return model
 
