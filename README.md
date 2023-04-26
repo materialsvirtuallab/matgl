@@ -3,6 +3,15 @@
 [![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 
+# Table of Contents
+* [Introduction](#introduction)
+* [Status](#status)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Documentation](#documentation)
+* [References](#references)
+
+<a name="introduction"></a>
 # Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
@@ -17,6 +26,7 @@ implemented in TensorFlow.
 This effort is a collaboration between the [Materials Virtual Lab](http://materialsvirtuallab.org) and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
+<a name="status"></a>
 # Status
 
 Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
@@ -44,10 +54,55 @@ As a framework, M3GNet has diverse applications, including:
 
 For detailed performance benchmarks, please refer to the publication in the [References](#references) section.
 
+
+<a name="installation"></a>
+# Installation
+
+Matgl can be installed via pip for the latest stable version:
+
+```bash
+pip install matgl
+```
+
+For the latest dev version, please clone this repo and install using:
+
+```bash
+python setup.py -e .
+```
+
+
+<a name="usage"></a>
+# Usage
+
+The pre-trained MEGNet models for the Materials Project formation energy and band gap are now available. The following
+is an example of a prediction of the formation energy for CsCl.
+
+```python
+from pymatgen.core import Element, Structure, Lattice
+from matgl.models.megnet import MEGNet, MEGNetCalculator
+
+# Let's set the device first. Either "cuda" or "cpu"
+device = torch.device("cpu")
+
+# load the pre-trained MEGNet model. By default, it is the formation energy model.
+model = MEGNet.load()
+# This is the structure obtained from the Materials Project.
+struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
+# define MEGNet calculator
+predictor = MEGNetCalculator(model=model, device=device)
+eform = predictor.predict_structure(struct)
+print(f"The predicted formation energy for CsCl is {float(eform.numpy()):5f} eV/atom")
+```
+
+A full example is in [here](examples/Using%20MEGNet%20Pre-trained%20Models%20for%20Property%20Predictions.ipynb).
+
+
+<a name="documentation"></a>
 # Additional information
 - [Documentation Page](http://materialsvirtuallab.github.io/matgl)
 - [API documentation](https://materialsvirtuallab.github.io/matgl/modules.html)
 
+<a name="references"></a>
 # References
 
 Please cite the following works:
