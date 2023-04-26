@@ -78,19 +78,18 @@ The pre-trained MEGNet models for the Materials Project formation energy and ban
 is an example of a prediction of the formation energy for CsCl.
 
 ```python
-from pymatgen.core import Element, Structure, Lattice
+from pymatgen.core import Structure, Lattice
 from matgl.models.megnet import MEGNet, MEGNetCalculator
 
 # Let's set the device first. Either "cuda" or "cpu"
 device = torch.device("cpu")
 
 # load the pre-trained MEGNet model. By default, it is the formation energy model.
-model = MEGNet.load()
+model = MEGNet.load(device=device)
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
 # define MEGNet calculator
-predictor = MEGNetCalculator(model=model, device=device)
-eform = predictor.predict_structure(struct)
+eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):5f} eV/atom.")
 ```
 
