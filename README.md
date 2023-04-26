@@ -91,7 +91,7 @@ struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [
 # define MEGNet calculator
 predictor = MEGNetCalculator(model=model, device=device)
 eform = predictor.predict_structure(struct)
-print(f"The predicted formation energy for CsCl is {float(eform.numpy()):5f} eV/atom")
+print(f"The predicted formation energy for CsCl is {float(eform.numpy()):5f} eV/atom.")
 ```
 
 A full example is in [here](examples/Using%20MEGNet%20Pre-trained%20Models%20for%20Property%20Predictions.ipynb).

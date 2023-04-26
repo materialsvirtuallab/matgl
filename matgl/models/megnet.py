@@ -168,21 +168,20 @@ class MEGNet(Module):
         return out
 
     @classmethod
-    def from_dict(cls, dict, **kwargs):
+    def from_dict(cls, dict, device: torch.device | None = None, **kwargs):
         """
         build a MEGNet from a saved dictionary
         """
-        # check if cuda is available
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # check if mps is available
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+        if device is None:
+            # check if cuda is available
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dict["model_args"]["device"] = device
         model = MEGNet(**dict["model_args"])
         model.load_state_dict(dict["state_dict"], **kwargs)
         return model
 
     @classmethod
-    def from_dir(cls, path, **kwargs):
+    def from_dir(cls, path, device: torch.device | None = None, **kwargs):
         """
         build a MEGNet from a saved directory
         """
@@ -191,11 +190,11 @@ class MEGNet(Module):
             state = torch.load(file_name, map_location=torch.device("cpu"))
         else:
             state = torch.load(file_name)
-        model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
+        model = MEGNet.from_dict(state["model"], strict=False, device=device, **kwargs)
         return model
 
     @classmethod
-    def load(cls, model_dir: str = "MP-2018.6.1-Eform") -> MEGNet:
+    def load(cls, model_dir: str = "MP-2018.6.1-Eform", device: torch.device | None = None) -> MEGNet:
         """
         Load the model weights from pre-trained model (megnet.pt)
         Args:
@@ -204,10 +203,10 @@ class MEGNet(Module):
         Returns: MEGNet object.
         """
         if model_dir in MODEL_PATHS:
-            return cls.from_dir(MODEL_PATHS[model_dir])
+            return cls.from_dir(MODEL_PATHS[model_dir], device=device)
 
         if os.path.isdir(model_dir) and "megnet.pt" in os.listdir(model_dir):
-            return cls.from_dir(model_dir)
+            return cls.from_dir(model_dir, device=device)
 
         raise ValueError(f"{model_dir} not found in available pretrained {list(MODEL_PATHS.keys())}")
 
@@ -257,61 +256,6 @@ class MEGNet(Module):
 
         return output
 
-
-class MEGNetCalculator(Module):
-    """
-    MEGNet Calculator
-    Params:
-    model (MEGNet): MEGNet model
-    data_mean (torch.tensor): the average of training data
-    data_std (torch.tensor): the standard deviation of training data
-    device (torch.device): cpu or cuda
-    """
-
-    def __init__(
-        self,
-        model: MEGNet,
-        data_std: torch.tensor | None = None,
-        data_mean: torch.tensor | None = None,
-        device: torch.device | None = None,
-    ):
-        super().__init__()
-        if data_mean is None:
-            self.data_mean = model.data_mean
-        else:
-            self.data_mean = data_mean
-        if data_std is None:
-            self.data_std = model.data_std
-        else:
-            self.data_std = data_std
-        if device is None:
-            self.device = model.device
-        else:
-            self.device = device
-
-        self.model = model.to(self.device)
-
-    def forward(self, graph: dgl.DGLGraph, attrs: torch.tensor | None = None):
-        """
-        Args:
-            graph (dgl.DGLGraph): DGL graph
-            attrs (torch.tensor): graph attributes
-        Returns:
-            output (torch.tensor): output property
-        """
-        graph = graph.to(self.device)  # type: ignore
-        graph.edata["edge_attr"] = graph.edata["edge_attr"].to(self.device)
-        graph.ndata["node_type"] = graph.ndata["node_type"].to(self.device)
-        if attrs is not None:
-            attrs = attrs.to(self.device)
-
-        output = (
-            self.data_std * self.model(graph, graph.edata["edge_attr"].float(), graph.ndata["node_type"].long(), attrs)
-            + self.data_mean
-        )
-
-        return output
-
     def predict_structure(self, structure: Structure, attrs: torch.tensor | None = None):
         """
         Convenience method to directly predict property from structure.
@@ -321,10 +265,21 @@ class MEGNetCalculator(Module):
         Returns:
             output (torch.tensor): output property
         """
-        g, attrs_default = self.model.graph_converter.get_graph_from_structure(structure)
+        g, attrs_default = self.graph_converter.get_graph_from_structure(structure)
         if attrs is None:
             attrs = torch.tensor(attrs_default)
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
-        g.edata["edge_attr"] = self.model.bond_expansion(bond_dist)
-        return self.forward(g, attrs).detach()
+        g.edata["edge_attr"] = self.bond_expansion(bond_dist)
+        g = g.to(self.device)  # type: ignore
+        g.edata["edge_attr"] = g.edata["edge_attr"].to(self.device)
+        g.ndata["node_type"] = g.ndata["node_type"].to(self.device)
+        attrs = attrs.to(self.device)
+
+        data_mean = self.data_mean
+        data_std = self.data_std
+
+        self.to(self.device)
+        output = data_std * self.__call__(g, g.edata["edge_attr"], g.ndata["node_type"], attrs) + data_mean
+
+        return output.detach()
