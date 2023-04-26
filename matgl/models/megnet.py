@@ -258,7 +258,7 @@ class MEGNet(Module):
         return output
 
 
-class MEGNetCalculator(nn.Module):
+class MEGNetCalculator(Module):
     """
     MEGNet Calculator
     Params:
@@ -276,7 +276,6 @@ class MEGNetCalculator(nn.Module):
         device: torch.device | None = None,
     ):
         super().__init__()
-        self.model = model
         if data_mean is None:
             self.data_mean = model.data_mean
         else:
@@ -289,7 +288,8 @@ class MEGNetCalculator(nn.Module):
             self.device = model.device
         else:
             self.device = device
-        self.model.to(device)
+
+        self.model = model.to(self.device)
 
     def forward(self, graph: dgl.DGLGraph, attrs: torch.tensor | None = None):
         """

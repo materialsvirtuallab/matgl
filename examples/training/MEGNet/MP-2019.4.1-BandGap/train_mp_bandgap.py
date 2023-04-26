@@ -18,17 +18,16 @@ import pandas as pd
 import dgl
 import math
 
-from matgl.dataloader.dataset import MEGNetDataset, _collate_fn, MGLDataLoader
-from dgl.dataloading import GraphDataLoader
-from matgl.models import MEGNet
-from matgl.layers.core import MLP
 from tqdm import tqdm, trange
 
-## Import megnet related modules
+# Import megnet related modules
 from pymatgen.core import Element, Structure
 from matgl.graph.converters import get_element_list, Pmg2Graph
+from matgl.layers.bond_expansion import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from matgl.trainer.megnet import MEGNetTrainer
+from matgl.dataloader.dataset import MEGNetDataset, _collate_fn, MGLDataLoader
+from matgl.models import MEGNet
 
 ALL_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
 TRAIN_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
@@ -163,6 +162,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # define the embedding layer for nodel and state attributes
 node_embed = nn.Embedding(len(elem_list), 16, device=device)
 attr_embed = nn.Embedding(len(ALL_FIDELITIES), 16, device=device)
+# define the bond expansion
+bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_centers=100, width=0.5, device=device)
+
 # define the achitecture of multi-fidelity MEGNet model
 model = MEGNet(
     node_embedding_dim=16,
@@ -179,6 +181,8 @@ model = MEGNet(
     attr_embedding_dim=16,
     act="softplus2",
     device=device,
+    graph_converter=cry_graph,
+    bond_expansion=bond_expansion,
 )
 
 
@@ -199,7 +203,7 @@ def xavier_init(model):
 xavier_init(model)
 # setup the optimizer and scheduler
 optimizer = torch.optim.AdamW(model.parameters(), lr=1.0e-3, weight_decay=1.0e-2, amsgrad=True)
-scheduler = CosineAnnealingLR(optimizer, T_max=2000 * 10, eta_min=1.0e-4)
+scheduler = CosineAnnealingLR(optimizer, T_max=1000 * 10, eta_min=1.0e-4)
 
 # define the loss functions
 train_loss_function = F.l1_loss
@@ -214,7 +218,7 @@ model = model.to(device)
 
 print(model)
 
-# setup the MEGNet trainer
+# setup the MEGNetTrainer
 trainer = MEGNetTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
