@@ -15,7 +15,7 @@ import torch.nn as nn
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
 
-from matgl.config import DataType
+from matgl.config import DEFAULT_DEVICE, DataType
 
 CWD = os.path.dirname(os.path.abspath(__file__))
 
@@ -115,9 +115,7 @@ class SphericalBesselFunction:
     Calculate the spherical Bessel function based on sympy + pytorch implementations
     """
 
-    def __init__(
-        self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False, device: torch.device | None = None
-    ):
+    def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
         """
         Args:
             max_l: int, max order (excluding l)
@@ -134,7 +132,6 @@ class SphericalBesselFunction:
             self.funcs = self._calculate_symbolic_funcs()
 
         self.zeros = torch.from_numpy(SPHERICAL_BESSEL_ROOTS).type(DataType.torch_float)
-        self.device = device
 
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> list:
@@ -175,9 +172,9 @@ class SphericalBesselFunction:
         roots = self.zeros[: self.max_l, : self.max_n]
 
         results = []
-        factor = torch.tensor(sqrt(2.0 / self.cutoff**3)).to(self.device)
+        factor = torch.tensor(sqrt(2.0 / self.cutoff**3)).to(DEFAULT_DEVICE)
         for i in range(self.max_l):
-            root = roots[i].to(self.device)
+            root = roots[i].to(DEFAULT_DEVICE)
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(

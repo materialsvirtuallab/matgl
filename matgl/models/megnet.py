@@ -13,6 +13,7 @@ from dgl.nn import Set2Set
 from pymatgen.core import Structure
 from torch.nn import Dropout, Identity, Module, ModuleList
 
+from matgl.config import DEFAULT_DEVICE
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
 from matgl.layers.activations import SoftExponential, SoftPlus2
@@ -60,7 +61,6 @@ class MEGNet(Module):
         data_std: torch.tensor | None = None,
         graph_converter: Pmg2Graph | None = None,
         bond_expansion: BondExpansion | None = None,
-        device: torch.device | None = None,
         **kwargs,
     ) -> None:
         """
@@ -98,8 +98,6 @@ class MEGNet(Module):
             self.data_mean = data_mean
         if data_std is not None:
             self.data_std = data_std
-        if device is not None:
-            self.device = device
 
         self.edge_embed = edge_embed if edge_embed else Identity()
         self.node_embed = node_embed if node_embed else Identity()
@@ -122,9 +120,9 @@ class MEGNet(Module):
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
-        self.edge_encoder = MLP(edge_dims, activation, activate_last=True, device=device)
-        self.node_encoder = MLP(node_dims, activation, activate_last=True, device=device)
-        self.attr_encoder = MLP(attr_dims, activation, activate_last=True, device=device)
+        self.edge_encoder = MLP(edge_dims, activation, activate_last=True)
+        self.node_encoder = MLP(node_dims, activation, activate_last=True)
+        self.attr_encoder = MLP(attr_dims, activation, activate_last=True)
 
         blocks_in_dim = hiddens[-1]
         block_out_dim = conv_hiddens[-1]
@@ -133,7 +131,6 @@ class MEGNet(Module):
             "dropout": dropout,
             "act": activation,
             "skip": True,
-            "device": device,
         }
         blocks = []
 
@@ -153,7 +150,6 @@ class MEGNet(Module):
             dims=[2 * 2 * block_out_dim + block_out_dim, *output_hiddens, 1],
             activation=activation,
             activate_last=False,
-            device=device,
         )
 
         self.dropout = Dropout(dropout) if dropout else None
@@ -168,33 +164,29 @@ class MEGNet(Module):
         return out
 
     @classmethod
-    def from_dict(cls, dict, device: torch.device | None = None, **kwargs):
+    def from_dict(cls, dict, **kwargs):
         """
         build a MEGNet from a saved dictionary
         """
-        if device is None:
-            # check if cuda is available
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        dict["model_args"]["device"] = device
         model = MEGNet(**dict["model_args"])
         model.load_state_dict(dict["state_dict"], **kwargs)
         return model
 
     @classmethod
-    def from_dir(cls, path, device: torch.device | None = None, **kwargs):
+    def from_dir(cls, path, **kwargs):
         """
         build a MEGNet from a saved directory
         """
         file_name = os.path.join(path, MODEL_NAME + ".pt")
         if torch.cuda.is_available() is False:
-            state = torch.load(file_name, map_location=torch.device("cpu"))
+            state = torch.load(file_name, map_location=DEFAULT_DEVICE)
         else:
             state = torch.load(file_name)
-        model = MEGNet.from_dict(state["model"], strict=False, device=device, **kwargs)
+        model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
         return model
 
     @classmethod
-    def load(cls, model_dir: str = "MP-2018.6.1-Eform", device: torch.device | None = None) -> MEGNet:
+    def load(cls, model_dir: str = "MP-2018.6.1-Eform") -> MEGNet:
         """
         Load the model weights from pre-trained model (megnet.pt)
         Args:
@@ -203,10 +195,10 @@ class MEGNet(Module):
         Returns: MEGNet object.
         """
         if model_dir in MODEL_PATHS:
-            return cls.from_dir(MODEL_PATHS[model_dir], device=device)
+            return cls.from_dir(MODEL_PATHS[model_dir])
 
         if os.path.isdir(model_dir) and "megnet.pt" in os.listdir(model_dir):
-            return cls.from_dir(model_dir, device=device)
+            return cls.from_dir(model_dir)
 
         raise ValueError(f"{model_dir} not found in available pretrained {list(MODEL_PATHS.keys())}")
 
@@ -271,15 +263,15 @@ class MEGNet(Module):
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        g = g.to(self.device)  # type: ignore
-        g.edata["edge_attr"] = g.edata["edge_attr"].to(self.device)
-        g.ndata["node_type"] = g.ndata["node_type"].to(self.device)
-        attrs = attrs.to(self.device)
+        g = g.to(DEFAULT_DEVICE)  # type: ignore
+        g.edata["edge_attr"] = g.edata["edge_attr"].to(DEFAULT_DEVICE)
+        g.ndata["node_type"] = g.ndata["node_type"].to(DEFAULT_DEVICE)
+        attrs = attrs.to(DEFAULT_DEVICE)
 
         data_mean = self.data_mean
         data_std = self.data_std
 
-        self.to(self.device)
+        self.to(DEFAULT_DEVICE)
         output = data_std * self.__call__(g, g.edata["edge_attr"], g.ndata["node_type"], attrs) + data_mean
 
         return output.detach()

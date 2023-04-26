@@ -40,7 +40,6 @@ class MEGNetGraphConv(Module):
         node_dims: list[int],
         attr_dims: list[int],
         activation: Module,
-        device: torch.device | None = None,
     ) -> MEGNetGraphConv:
         """
         TODO: Add docs.
@@ -52,9 +51,9 @@ class MEGNetGraphConv(Module):
         """
         # TODO(marcel): Softplus doesn't exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
-        edge_update = MLP(edge_dims, activation, activate_last=True, device=device)
-        node_update = MLP(node_dims, activation, activate_last=True, device=device)
-        attr_update = MLP(attr_dims, activation, activate_last=True, device=device)
+        edge_update = MLP(edge_dims, activation, activate_last=True)
+        node_update = MLP(node_dims, activation, activate_last=True)
+        attr_update = MLP(attr_dims, activation, activate_last=True)
         return MEGNetGraphConv(edge_update, node_update, attr_update)
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
@@ -144,13 +143,7 @@ class MEGNetBlock(Module):
     """
 
     def __init__(
-        self,
-        dims: list[int],
-        conv_hiddens: list[int],
-        act: Module,
-        dropout: float | None = None,
-        skip: bool = True,
-        device: torch.device | None = None,
+        self, dims: list[int], conv_hiddens: list[int], act: Module, dropout: float | None = None, skip: bool = True
     ) -> None:
         """
         TODO: Add docs.
@@ -171,7 +164,6 @@ class MEGNetBlock(Module):
             "activation": self.activation,
             "activate_last": True,
             "bias_last": True,
-            "device": device,
         }
         self.edge_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
         self.node_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
@@ -186,7 +178,6 @@ class MEGNetBlock(Module):
             node_dims=[node_in, *conv_hiddens],
             attr_dims=[attr_in, *conv_hiddens],
             activation=self.activation,
-            device=device,
         )
 
         self.dropout = Dropout(dropout) if dropout else None
@@ -267,7 +258,6 @@ class M3GNetGraphConv(Module):
         node_dims: list[int],
         attr_dims: list[int] | None,
         activation: Module,
-        device: torch.device | None = None,
     ) -> M3GNetGraphConv:
         """
         M3GNetGraphConv initialization
@@ -283,14 +273,12 @@ class M3GNetGraphConv(Module):
         Returns:
         M3GNetGraphConv (class)
         """
-        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:], device=device)
-        edge_weight_func = nn.Linear(in_features=degree, out_features=edge_dims[-1], bias=False, device=device)
+        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:])
+        edge_weight_func = nn.Linear(in_features=degree, out_features=edge_dims[-1], bias=False)
 
-        node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:], device=device)
-        node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False, device=device)
-        attr_update_func = (
-            MLP(attr_dims, activation, activate_last=True).to(device) if include_states else None  # type: ignore
-        )
+        node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
+        node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
+        attr_update_func = MLP(attr_dims, activation, activate_last=True) if include_states else None  # type: ignore
         return M3GNetGraphConv(
             include_states, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
         )
@@ -421,7 +409,6 @@ class M3GNetBlock(Module):
         num_state_feats: int | None = None,
         include_states: bool = False,
         dropout: float | None = None,
-        device: torch.device | None = None,
     ) -> None:
         """
         :param degree: Dimension of radial basis functions
@@ -449,7 +436,6 @@ class M3GNetBlock(Module):
                 node_dims=[node_in, *conv_hiddens, num_node_feats],
                 attr_dims=[attr_in, *conv_hiddens, num_state_feats],  # type: ignore
                 activation=self.activation,
-                device=device,
             )
         else:
             edge_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
@@ -461,7 +447,6 @@ class M3GNetBlock(Module):
                 node_dims=[node_in, *conv_hiddens] + [num_node_feats],
                 attr_dims=None,  # type: ignore
                 activation=self.activation,
-                device=device,
             )
 
         self.dropout = Dropout(dropout) if dropout else None
