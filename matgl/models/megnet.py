@@ -289,14 +289,37 @@ class MEGNetCalculator(nn.Module):
             self.device = model.device
         else:
             self.device = device
+        self.model.to(device)
 
-    def forward(self, structure: Structure, attrs: torch.tensor | None = None):
+    def forward(self, graph: dgl.DGLGraph, attrs: torch.tensor | None = None):
         """
         Args:
-        structure (Structure): Pymatgen structure
-        attrs (torch.tensor): graph attributes
+            graph (dgl.DGLGraph): DGL graph
+            attrs (torch.tensor): graph attributes
         Returns:
-        output (torch.tensor): output property
+            output (torch.tensor): output property
+        """
+        graph = graph.to(self.device)  # type: ignore
+        graph.edata["edge_attr"] = graph.edata["edge_attr"].to(self.device)
+        graph.ndata["node_type"] = graph.ndata["node_type"].to(self.device)
+        if attrs is not None:
+            attrs = attrs.to(self.device)
+
+        output = (
+            self.data_std * self.model(graph, graph.edata["edge_attr"].float(), graph.ndata["node_type"].long(), attrs)
+            + self.data_mean
+        )
+
+        return output
+
+    def predict_structure(self, structure: Structure, attrs: torch.tensor | None = None):
+        """
+        Convenience method to directly predict property from structure.
+        Args:
+            structure (Structure): Pymatgen structure
+            attrs (torch.tensor): graph attributes
+        Returns:
+            output (torch.tensor): output property
         """
         g, attrs_default = self.model.graph_converter.get_graph_from_structure(structure)
         if attrs is None:
@@ -304,16 +327,4 @@ class MEGNetCalculator(nn.Module):
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.model.bond_expansion(bond_dist)
-
-        self.model = self.model.to(self.device)
-        g = g.to(self.device)
-        g.edata["edge_attr"] = g.edata["edge_attr"].to(self.device)
-        g.ndata["node_type"] = g.ndata["node_type"].to(self.device)
-        attrs = attrs.to(self.device)
-
-        output = (
-            self.data_std * self.model(g, g.edata["edge_attr"].float(), g.ndata["node_type"].long(), attrs)
-            + self.data_mean
-        )
-
-        return output
+        return self.forward(g, attrs).detach()
