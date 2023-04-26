@@ -15,7 +15,7 @@ from torch.nn import Dropout, Identity, Module, ModuleList
 
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
-from matgl.layers.activations import SoftPlus2
+from matgl.layers.activations import SoftExponential, SoftPlus2
 from matgl.layers.bond_expansion import BondExpansion
 from matgl.layers.core import MLP, EdgeSet2Set
 from matgl.layers.graph_conv import MEGNetBlock
@@ -98,6 +98,8 @@ class MEGNet(Module):
             self.data_mean = data_mean
         if data_std is not None:
             self.data_std = data_std
+        if device is not None:
+            self.device = device
 
         self.edge_embed = edge_embed if edge_embed else Identity()
         self.node_embed = node_embed if node_embed else Identity()
@@ -115,8 +117,10 @@ class MEGNet(Module):
             activation = nn.Tanh()  # type: ignore
         elif act == "softplus2":
             activation = SoftPlus2()  # type: ignore
+        elif act == "softexp":
+            activation = SoftExponential()  # type: ignore
         else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2")
+            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
         self.edge_encoder = MLP(edge_dims, activation, activate_last=True, device=device)
         self.node_encoder = MLP(node_dims, activation, activate_last=True, device=device)
@@ -273,11 +277,18 @@ class MEGNetCalculator(nn.Module):
     ):
         super().__init__()
         self.model = model
-        self.device = device
         if data_mean is None:
             self.data_mean = model.data_mean
+        else:
+            self.data_mean = data_mean
         if data_std is None:
             self.data_std = model.data_std
+        else:
+            self.data_std = data_std
+        if device is None:
+            self.device = model.device
+        else:
+            self.device = device
 
     def forward(self, structure: Structure, attrs: torch.tensor | None = None):
         """
