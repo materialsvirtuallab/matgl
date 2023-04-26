@@ -20,6 +20,7 @@ from tqdm import tqdm, trange
 # Import megnet related modules
 from pymatgen.core import Element, Structure
 from matgl.graph.converters import get_element_list, Pmg2Graph
+from matgl.layers.bond_expansion import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from matgl.trainer.megnet import MEGNetTrainer
 from matgl.dataloader.dataset import MEGNetDataset, _collate_fn, MGLDataLoader
@@ -83,6 +84,9 @@ train_std, train_mean = compute_data_stats(train_data)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # setup the embedding layer for node attributes
 node_embed = nn.Embedding(len(elem_list), 16, device=device)
+# define the bond expansion
+bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=5.0, num_centers=100, width=0.5, device=device)
+
 # setup the architecture of MEGNet model
 model = MEGNet(
     node_embedding_dim=16,
@@ -98,6 +102,8 @@ model = MEGNet(
     node_embed=node_embed,
     act="softplus2",
     device=device,
+    graph_converter=cry_graph,
+    bond_expansion=bond_expansion,
 )
 
 
