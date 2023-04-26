@@ -5,4 +5,4 @@ torchaudio==2.0.1
 torchvision==0.15.1
 pymatgen==2023.3.23
 ase==3.22.1
-scikit-learn==1.1.3
+scikit-learn==1.2.2
