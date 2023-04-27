@@ -24,7 +24,8 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 
 MODEL_NAME = "megnet"
 
-MODEL_PATHS = {
+# These define paths to models that are already pre-trained and ready to use.
+PRETRAINED_MODEL_PATHS = {
     "MP-2018.6.1-Eform": os.path.join(CWD, "..", "..", "pretrained", "MP-2018.6.1-Eform"),
     "MP-2019.4.1-BandGap": os.path.join(CWD, "..", "..", "pretrained", "MP-2019.4.1-BandGap"),
 }
@@ -184,7 +185,7 @@ class MEGNet(nn.Module):
         return model
 
     @classmethod
-    def load(cls, model_dir: str = "MP-2018.6.1-Eform") -> MEGNet:
+    def load(cls, model_dir: str) -> MEGNet:
         """
         Load the model weights from pre-trained model (megnet.pt)
         Args:
@@ -192,13 +193,13 @@ class MEGNet(nn.Module):
 
         Returns: MEGNet object.
         """
-        if model_dir in MODEL_PATHS:
-            return cls.from_dir(MODEL_PATHS[model_dir])
+        if model_dir in PRETRAINED_MODEL_PATHS:
+            return cls.from_dir(PRETRAINED_MODEL_PATHS[model_dir])
 
         if os.path.isdir(model_dir) and "megnet.pt" in os.listdir(model_dir):
             return cls.from_dir(model_dir)
 
-        raise ValueError(f"{model_dir} not found in available pretrained {list(MODEL_PATHS.keys())}")
+        raise ValueError(f"{model_dir} not found in available pretrained {list(PRETRAINED_MODEL_PATHS.keys())}.")
 
     def forward(
         self,
