@@ -13,7 +13,6 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from matgl.config import DEFAULT_DEVICE
 from matgl.models.megnet import MEGNet
 
 logger = logging.getLogger("megnet_trainer")
@@ -36,12 +35,8 @@ def train_one_step(
     for g, labels, attrs in tqdm(dataloader):
         optimizer.zero_grad()
 
-        g = g.to(DEFAULT_DEVICE)
-        labels = labels.to(DEFAULT_DEVICE)
-
         node_feat = g.ndata["node_type"]
         edge_feat = g.edata["edge_attr"]
-        attrs = attrs.to(DEFAULT_DEVICE)
 
         pred = model(g, edge_feat.float(), node_feat.long(), attrs)
 
@@ -75,12 +70,8 @@ def validate_one_step(
 
     with torch.no_grad():
         for g, labels, attrs in dataloader:
-            g = g.to(DEFAULT_DEVICE)
-            labels = labels.to(DEFAULT_DEVICE)
-
             node_feat = g.ndata["node_type"]
             edge_feat = g.edata["edge_attr"]
-            attrs = attrs.to(DEFAULT_DEVICE)
 
             pred = model(g, edge_feat.float(), node_feat.long(), attrs)
 

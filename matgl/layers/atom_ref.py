@@ -80,7 +80,7 @@ class AtomRef(nn.Module):
             offset_batched_with_state = []
             for i in range(0, self.property_offset.size(dim=0)):
                 property_offset_batched = self.property_offset[i].repeat(g.num_nodes(), 1)
-                offset = property_offset_batched.to(g.device) * g.ndata["attr"]
+                offset = property_offset_batched * g.ndata["attr"]
                 g.ndata["atomic_offset"] = torch.sum(offset, 1)
                 offset_batched = dgl.readout_nodes(g, "atomic_offset")
                 offset_batched_with_state.append(offset_batched)
@@ -88,7 +88,7 @@ class AtomRef(nn.Module):
             return offset_batched_with_state[state_attr]  # type: ignore
         else:
             property_offset_batched = self.property_offset.repeat(g.num_nodes(), 1)
-            offset = property_offset_batched.to(g.device) * g.ndata["attr"]
+            offset = property_offset_batched * g.ndata["attr"]
             g.ndata["atomic_offset"] = torch.sum(offset, 1)
             offset_batched = dgl.readout_nodes(g, "atomic_offset")
             return offset_batched

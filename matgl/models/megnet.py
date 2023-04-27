@@ -13,7 +13,6 @@ from dgl.nn import Set2Set
 from pymatgen.core import Structure
 from torch.nn import Dropout, Identity, Module, ModuleList
 
-from matgl.config import DEFAULT_DEVICE
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
 from matgl.layers.activations import SoftExponential, SoftPlus2
@@ -179,7 +178,7 @@ class MEGNet(Module):
         """
         file_name = os.path.join(path, MODEL_NAME + ".pt")
         if torch.cuda.is_available() is False:
-            state = torch.load(file_name, map_location=DEFAULT_DEVICE)
+            state = torch.load(file_name, map_location=torch.device("cpu"))
         else:
             state = torch.load(file_name)
         model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
@@ -263,15 +262,10 @@ class MEGNet(Module):
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        g = g.to(DEFAULT_DEVICE)  # type: ignore
-        g.edata["edge_attr"] = g.edata["edge_attr"].to(DEFAULT_DEVICE)
-        g.ndata["node_type"] = g.ndata["node_type"].to(DEFAULT_DEVICE)
-        attrs = attrs.to(DEFAULT_DEVICE)
 
         data_mean = self.data_mean
         data_std = self.data_std
 
-        self.to(DEFAULT_DEVICE)
         output = data_std * self.__call__(g, g.edata["edge_attr"], g.ndata["node_type"], attrs) + data_mean
 
         return output.detach()

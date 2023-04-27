@@ -85,10 +85,6 @@ class MEGNetTrainerTest(PymatgenTest):
         train_loss_function = F.mse_loss
         validate_loss_function = F.l1_loss
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        model = model.to(device)
-
         trainer = MEGNetTrainer(
             model=model,
             optimizer=optimizer,

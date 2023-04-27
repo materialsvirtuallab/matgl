@@ -27,7 +27,7 @@ def compute_3body(g: dgl.DGLGraph):
     n_atoms_total = np.sum(g.num_nodes())
     first_col = bond_atom_indices[0].reshape(-1, 1)
     all_indices = torch.arange(n_atoms_total).reshape(1, -1)
-    n_bond_per_atom = torch.count_nonzero(first_col == all_indices.to(g.device), dim=0)
+    n_bond_per_atom = torch.count_nonzero(first_col == all_indices, dim=0)
     n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
     n_triple = torch.sum(n_triple_i)
     n_triple_ij = (n_bond_per_atom - 1).repeat_interleave(n_bond_per_atom)
@@ -51,7 +51,7 @@ def compute_3body(g: dgl.DGLGraph):
             x, y = torch.meshgrid(r, r)
             c = torch.stack([y.ravel(), x.ravel()], dim=1)
             final = c[c[:, 0] != c[:, 1]]
-            triple_bond_indices[start : start + (n * (n - 1)), :] = final.to(g.device) + cs
+            triple_bond_indices[start : start + (n * (n - 1)), :] = final + cs
             start += n * (n - 1)
             cs += n
 
@@ -64,7 +64,6 @@ def compute_3body(g: dgl.DGLGraph):
 
     src_id, dst_id = (triple_bond_indices[:, 0], triple_bond_indices[:, 1])
     l_g = dgl.graph((src_id, dst_id))
-    l_g = l_g.to(g.device)
     l_g.ndata["bond_dist"] = g.edata["bond_dist"]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"]
@@ -84,8 +83,8 @@ def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     bond_vec (torch.tensor): bond distance between two atoms
     bond_dist (torch.tensor): vector from src node to dst node
     """
-    bond_vec = torch.zeros(g.num_edges(), 3).to(g.device)
-    bond_dist = torch.zeros(g.num_edges()).to(g.device)
+    bond_vec = torch.zeros(g.num_edges(), 3)
+    bond_dist = torch.zeros(g.num_edges())
     for i in range(g.num_edges()):
         bond_vec[i, :] = (
             g.ndata["pos"][g.edges()[1][i], :]

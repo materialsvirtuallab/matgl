@@ -6,9 +6,6 @@ import numpy as np
 # import tensorflow as tf
 import torch
 
-# Device. Change this to cuda if you are using GPUs.
-DEFAULT_DEVICE = torch.device("cpu")
-
 DTYPES = {
     "float32": {"numpy": np.float32, "torch": torch.float32},
     "float16": {"numpy": np.float16, "torch": torch.float16},

@@ -14,7 +14,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from matgl.config import DEFAULT_DEVICE
 from matgl.models.potential import Potential
 
 logger = logging.getLogger("m3gnet_trainer")
@@ -72,17 +71,8 @@ def train_one_step(
     avg_loss = torch.zeros(1)
 
     start = default_timer()
-    for g, l_g, attrs, energies, forces, stresses in tqdm(dataloader):
+    for g, _l_g, attrs, energies, forces, stresses in tqdm(dataloader):
         optimizer.zero_grad()
-
-        g = g.to(DEFAULT_DEVICE)
-        l_g = l_g.to(DEFAULT_DEVICE)
-        energies = energies.to(DEFAULT_DEVICE)
-        forces = forces.to(DEFAULT_DEVICE)
-        stresses = stresses.to(DEFAULT_DEVICE)
-
-        attrs = attrs.to(DEFAULT_DEVICE)
-
         pred_e, pred_f, pred_s, pred_h = potential(g=g, graph_attr=attrs)
         pred_f = pred_f.to(torch.float)
         preds: tuple = (pred_e, pred_f, pred_s)
@@ -140,15 +130,7 @@ def validate_one_step(
     start = default_timer()
 
     #    with torch.no_grad():
-    for g, l_g, attrs, energies, forces, stresses in dataloader:
-        g = g.to(DEFAULT_DEVICE)
-        l_g = l_g.to(DEFAULT_DEVICE)
-        energies = energies.to(DEFAULT_DEVICE)
-        forces = forces.to(DEFAULT_DEVICE)
-        stresses = stresses.to(DEFAULT_DEVICE)
-
-        attrs = attrs.to(DEFAULT_DEVICE)
-
+    for g, _l_g, attrs, energies, forces, stresses in dataloader:
         pred_e, pred_f, pred_s, pred_h = potential(g=g, graph_attr=attrs)
         pred_f = pred_f.to(torch.float)
 
