@@ -29,17 +29,32 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 <a name="status"></a>
 # Status
 
+Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
 Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
+
+# Architectures
+
+## MEGNet
+
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MEGNet.png?raw=true"  width="50%">
+
+The MatErials Graph Network (MEGNet) is an implementation of DeepMind's graph networks[1] for universal machine
+learning in materials science. We have demonstrated its success in achieving very low prediction errors in a broad
+array of properties in both molecules and crystals (see "Graph Networks as a Universal Machine Learning Framework for
+Molecules and Crystals"[2]). New releases have included our recent work on multi-fidelity materials property modeling
+(See "Learning properties of ordered and disordered materials from multi-fidelity data"[3]).
+
+Briefly, Figure 1 shows the sequential update steps of the graph network, whereby bonds, atoms, and global state
+attributes are updated using information from each other, generating an output graph.
 
 ## M3GNet
 
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/M3GNet_schematic.png?raw=true"  width="50%">
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/M3GNet.png?raw=true"  width="50%">
 
 [M3GNet](https://www.nature.com/articles/s43588-022-00349-3) is a new materials graph neural network architecture that
-incorporates 3-body interactions. A key difference with prior materials graph implementations such as
-[MEGNet](https://github.com/materialsvirtuallab/megnet) is the addition of the coordinates for atoms and the 3×3
-lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and stresses via
-auto-differentiation.
+incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
+the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
+stresses via auto-differentiation.
 
 As a framework, M3GNet has diverse applications, including:
 
