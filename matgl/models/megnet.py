@@ -22,8 +22,6 @@ from matgl.layers.graph_conv import MEGNetBlock
 logger = logging.getLogger(__file__)
 CWD = os.path.dirname(os.path.abspath(__file__))
 
-MODEL_NAME = "megnet"
-
 # These define paths to models that are already pre-trained and ready to use.
 PRETRAINED_MODEL_PATHS = {
     "MP-2018.6.1-Eform": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2018.6.1-Eform"),
@@ -63,24 +61,34 @@ class MEGNet(nn.Module):
         **kwargs,
     ) -> None:
         """
-        TODO: Add docs.
-        :param in_dim:
-        :param num_blocks:
-        :param hiddens:
-        :param conv_hiddens:
-        :param s2s_num_layers:
-        :param s2s_num_iters:
-        :param output_hiddens:
-        :param act:
-        :param is_classification:
-        :param node_embed:
-        :param edge_embed:
-        :param attr_embed:
-        :param dropout:
-        :param graph_transform: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
-            performing the GCL updates.
-        """
+        Construct a MEGNet model.
 
+        Args:
+            node_embedding_dim: Dimension of node embedding.
+            edge_embedding_dim: Dimension of edge embedding.
+            attr_embedding_dim: Dimension of attr (global state) embedding.
+            num_blocks: Number of blocks.
+            hiddens:
+            conv_hiddens:
+            s2s_num_layers:
+            s2s_num_iters:
+            output_hiddens:
+            act:
+            is_classification:
+            node_embed:
+            edge_embed:
+            attr_embed:
+            include_states:
+            dropout:
+            graph_transformations:
+            element_types:
+            data_mean:
+            data_std:
+            graph_converter: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
+                performing the GCL updates.
+            bond_expansion:
+            **kwargs:
+        """
         # Store MEGNet model args for loading trained model
         self.model_args = {k: v for k, v in locals().items() if k not in ["self", "__class__", "kwargs"]}
         self.model_args.update(kwargs)
@@ -176,7 +184,7 @@ class MEGNet(nn.Module):
         """
         build a MEGNet from a saved directory
         """
-        file_name = os.path.join(path, MODEL_NAME + ".pt")
+        file_name = os.path.join(path, "megnet.pt")
         if torch.cuda.is_available() is False:
             state = torch.load(file_name, map_location=torch.device("cpu"))
         else:
