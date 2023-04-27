@@ -30,8 +30,8 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 <a name="status"></a>
 # Status
 
-Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
-Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
+- Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
+- Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
 
 <a name="architectures"></a>
 # Architectures
