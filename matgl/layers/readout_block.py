@@ -81,7 +81,7 @@ class WeightedReadOut(nn.Module):
     Feed node features into Gated MLP as readout.
     """
 
-    def __init__(self, in_feats: int, dims: list[int], num_targets: int, device: torch.device | None = None):
+    def __init__(self, in_feats: int, dims: list[int], num_targets: int):
         """
         Parameters:
            in_feats: input features (nodes)
@@ -91,7 +91,7 @@ class WeightedReadOut(nn.Module):
         super().__init__()
         self.in_feats = in_feats
         self.dims = [in_feats, *dims] + [num_targets]
-        self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False, device=device)
+        self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False)
 
     def forward(self, g: dgl.DGLGraph):
         """
@@ -109,13 +109,13 @@ class WeightedReadOutPair(nn.Module):
     Feed the average of atomic features i and j into weighted readout layer.
     """
 
-    def __init__(self, in_feats, dims, num_targets, activation=None, device: torch.device | None = None):
+    def __init__(self, in_feats, dims, num_targets, activation=None):
         super().__init__()
         self.in_feats = in_feats
         self.activation = activation
         self.num_targets = num_targets
         self.dims = [*dims, num_targets]
-        self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False, device=device)
+        self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False)
 
     def forward(self, g: dgl.DGLGraph):
         num_nodes = g.ndata["node_feat"].size(dim=0)
