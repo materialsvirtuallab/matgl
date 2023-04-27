@@ -79,13 +79,10 @@ is an example of a prediction of the formation energy for CsCl.
 
 ```python
 from pymatgen.core import Structure, Lattice
-from matgl.models.megnet import MEGNet, MEGNetCalculator
-
-# Let's set the device first. Either "cuda" or "cpu"
-device = torch.device("cpu")
+from matgl.models.megnet import MEGNet
 
 # load the pre-trained MEGNet model. By default, it is the formation energy model.
-model = MEGNet.load(device=device)
+model = MEGNet.load()
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
 # define MEGNet calculator
