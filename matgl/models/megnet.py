@@ -11,7 +11,6 @@ import torch
 import torch.nn as nn
 from dgl.nn import Set2Set
 from pymatgen.core import Structure
-from torch.nn import Dropout, Identity, Module, ModuleList
 
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
@@ -31,7 +30,7 @@ MODEL_PATHS = {
 }
 
 
-class MEGNet(Module):
+class MEGNet(nn.Module):
     """
     DGL implementation of MEGNet.
     """
@@ -49,9 +48,9 @@ class MEGNet(Module):
         output_hiddens: list[int],
         act: str = "swish",
         is_classification: bool = True,
-        node_embed: Module | None = None,
-        edge_embed: Module | None = None,
-        attr_embed: Module | None = None,
+        node_embed: nn.Module | None = None,
+        edge_embed: nn.Module | None = None,
+        attr_embed: nn.Module | None = None,
         include_states: bool = False,
         dropout: float | None = None,
         graph_transformations: list | None = None,
@@ -98,9 +97,9 @@ class MEGNet(Module):
         if data_std is not None:
             self.data_std = data_std
 
-        self.edge_embed = edge_embed if edge_embed else Identity()
-        self.node_embed = node_embed if node_embed else Identity()
-        self.attr_embed = attr_embed if attr_embed else Identity()
+        self.edge_embed = edge_embed if edge_embed else nn.Identity()
+        self.node_embed = node_embed if node_embed else nn.Identity()
+        self.attr_embed = attr_embed if attr_embed else nn.Identity()
 
         node_dims = [node_embedding_dim, *hiddens]
         edge_dims = [edge_embedding_dim, *hiddens]
@@ -138,7 +137,7 @@ class MEGNet(Module):
         # other blocks
         for _ in range(num_blocks - 1):
             blocks.append(MEGNetBlock(dims=[block_out_dim, *hiddens], **block_args))  # type: ignore
-        self.blocks = ModuleList(blocks)
+        self.blocks = nn.ModuleList(blocks)
 
         s2s_kwargs = {"n_iters": s2s_num_iters, "n_layers": s2s_num_layers}
         self.edge_s2s = EdgeSet2Set(block_out_dim, **s2s_kwargs)
@@ -151,11 +150,11 @@ class MEGNet(Module):
             activate_last=False,
         )
 
-        self.dropout = Dropout(dropout) if dropout else None
+        self.dropout = nn.Dropout(dropout) if dropout else None
         # TODO(marcel): should this be an 1D dropout
 
         self.is_classification = is_classification
-        self.graph_transformations = graph_transformations or [Identity()] * num_blocks
+        self.graph_transformations = graph_transformations or [nn.Identity()] * num_blocks
         self.include_states = include_states
 
     def as_dict(self):
