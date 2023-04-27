@@ -6,12 +6,12 @@
 # Table of Contents
 * [Introduction](#introduction)
 * [Status](#status)
+* [Architectures](#architectures)
 * [Installation](#installation)
 * [Usage](#usage)
 * [Documentation](#documentation)
 * [References](#references)
 
-<a name="introduction"></a>
 # Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
@@ -26,7 +26,6 @@ implemented in TensorFlow.
 This effort is a collaboration between the [Materials Virtual Lab](http://materialsvirtuallab.org) and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
-<a name="status"></a>
 # Status
 
 Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
@@ -68,7 +67,6 @@ As a framework, M3GNet has diverse applications, including:
   state-of-the-art ML models.
 
 For detailed performance benchmarks, please refer to the publication in the [References](#references) section.
-
 
 <a name="installation"></a>
 # Installation
