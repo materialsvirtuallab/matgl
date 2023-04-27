@@ -263,9 +263,6 @@ class MEGNet(Module):
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
 
-        data_mean = self.data_mean
-        data_std = self.data_std
-
-        output = data_std * self.__call__(g, g.edata["edge_attr"], g.ndata["node_type"], attrs) + data_mean
+        output = self.data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], attrs) + self.data_mean
 
         return output.detach()
