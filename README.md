@@ -12,6 +12,7 @@
 * [Documentation](#documentation)
 * [References](#references)
 
+<a name="introduction"></a>
 # Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
@@ -26,22 +27,24 @@ implemented in TensorFlow.
 This effort is a collaboration between the [Materials Virtual Lab](http://materialsvirtuallab.org) and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
+<a name="status"></a>
 # Status
 
 Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
 Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
 
+<a name="architectures"></a>
 # Architectures
 
 ## MEGNet
 
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MEGNet.png?raw=true"  width="50%">
 
-The MatErials Graph Network (MEGNet) is an implementation of DeepMind's graph networks[1] for universal machine
+The MatErials Graph Network (MEGNet) is an implementation of DeepMind's graph networks for universal machine
 learning in materials science. We have demonstrated its success in achieving very low prediction errors in a broad
 array of properties in both molecules and crystals (see "Graph Networks as a Universal Machine Learning Framework for
-Molecules and Crystals"[2]). New releases have included our recent work on multi-fidelity materials property modeling
-(See "Learning properties of ordered and disordered materials from multi-fidelity data"[3]).
+Molecules and Crystals"). New releases have included our recent work on multi-fidelity materials property modeling
+(See "Learning properties of ordered and disordered materials from multi-fidelity data").
 
 Briefly, Figure 1 shows the sequential update steps of the graph network, whereby bonds, atoms, and global state
 attributes are updated using information from each other, generating an output graph.
@@ -116,15 +119,20 @@ A full example is in [here](examples/Using%20MEGNet%20Pre-trained%20Models%20for
 
 Please cite the following works:
 
-- M3GNet
-    ```txt
-    Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
-    2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
-    ```
 - MEGNET
     ```txt
     Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
     Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
+    ```
+- Multi-fidelity MEGNet
+    ```txt
+    Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
+    Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.
+    ```
+- M3GNet
+    ```txt
+    Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
+    2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
     ```
 
 # Acknowledgements
