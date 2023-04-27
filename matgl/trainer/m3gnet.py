@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
+from matgl.config import DEFAULT_DEVICE
 from matgl.models.potential import Potential
 
 logger = logging.getLogger("m3gnet_trainer")
@@ -23,7 +24,6 @@ def loss_fn(
     loss: nn.Module,
     energy_weight: float,
     force_weight: float,
-    device: torch.device,
     labels: tuple[torch.tensor, torch.tensor, torch.tensor],
     preds: tuple[torch.tensor, torch.tensor, torch.tensor],
     num_atoms: int,
@@ -42,7 +42,7 @@ def loss_fn(
         s_mae = F.l1_loss(s_target, preds[2])
         total_loss = energy_weight * e_loss + force_weight * f_loss + stress_weight * s_loss
     else:
-        s_mae = torch.zeros(1, device=device)
+        s_mae = torch.zeros(1)
         total_loss = energy_weight * e_loss + force_weight * f_loss
     total_loss = total_loss.to(torch.float)
     results = {
@@ -56,7 +56,6 @@ def loss_fn(
 
 def train_one_step(
     potential: Potential,
-    device: torch.device,
     optimizer: torch.optim.Optimizer,
     train_loss: nn.Module,
     energy_weight: float,
@@ -67,22 +66,22 @@ def train_one_step(
 ):
     potential.model.train()
 
-    mae_e = torch.zeros(1, device=device)
-    mae_f = torch.zeros(1, device=device)
-    mae_s = torch.zeros(1, device=device)
-    avg_loss = torch.zeros(1, device=device)
+    mae_e = torch.zeros(1)
+    mae_f = torch.zeros(1)
+    mae_s = torch.zeros(1)
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
     for g, l_g, attrs, energies, forces, stresses in tqdm(dataloader):
         optimizer.zero_grad()
 
-        g = g.to(device)
-        l_g = l_g.to(device)
-        energies = energies.to(device)
-        forces = forces.to(device)
-        stresses = stresses.to(device)
+        g = g.to(DEFAULT_DEVICE)
+        l_g = l_g.to(DEFAULT_DEVICE)
+        energies = energies.to(DEFAULT_DEVICE)
+        forces = forces.to(DEFAULT_DEVICE)
+        stresses = stresses.to(DEFAULT_DEVICE)
 
-        attrs = attrs.to(device)
+        attrs = attrs.to(DEFAULT_DEVICE)
 
         pred_e, pred_f, pred_s, pred_h = potential(g=g, graph_attr=attrs)
         pred_f = pred_f.to(torch.float)
@@ -97,7 +96,6 @@ def train_one_step(
             labels=labels,  # type: ignore
             preds=preds,  # type: ignore
             num_atoms=num_atoms,
-            device=device,
         )
 
         results["total_loss"].backward()
@@ -128,29 +126,28 @@ def train_one_step(
 
 def validate_one_step(
     potential: Potential,
-    device: torch.device,
     val_loss: nn.Module,
     energy_weight: float,
     force_weight: float,
     stress_weight: float | None,
     dataloader: tuple,
 ):
-    mae_e = torch.zeros(1, device=device)
-    mae_f = torch.zeros(1, device=device)
-    mae_s = torch.zeros(1, device=device)
-    avg_loss = torch.zeros(1, device=device)
+    mae_e = torch.zeros(1)
+    mae_f = torch.zeros(1)
+    mae_s = torch.zeros(1)
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
 
     #    with torch.no_grad():
     for g, l_g, attrs, energies, forces, stresses in dataloader:
-        g = g.to(device)
-        l_g = l_g.to(device)
-        energies = energies.to(device)
-        forces = forces.to(device)
-        stresses = stresses.to(device)
+        g = g.to(DEFAULT_DEVICE)
+        l_g = l_g.to(DEFAULT_DEVICE)
+        energies = energies.to(DEFAULT_DEVICE)
+        forces = forces.to(DEFAULT_DEVICE)
+        stresses = stresses.to(DEFAULT_DEVICE)
 
-        attrs = attrs.to(device)
+        attrs = attrs.to(DEFAULT_DEVICE)
 
         pred_e, pred_f, pred_s, pred_h = potential(g=g, graph_attr=attrs)
         pred_f = pred_f.to(torch.float)
@@ -166,7 +163,6 @@ def validate_one_step(
             labels=labels,  # type: ignore
             preds=preds,  # type: ignore
             num_atoms=num_atoms,
-            device=device,
         )
 
         mae_e += results["energy_MAE"].detach()
@@ -240,7 +236,6 @@ class M3GNetTrainer:
 
     def train(
         self,
-        device: torch.device,
         num_epochs: int,
         train_loss: nn.Module,
         val_loss: nn.Module,
@@ -268,7 +263,6 @@ class M3GNetTrainer:
         for epoch in tqdm(range(num_epochs)):
             avg_loss_train, train_energies_mae, train_forces_mae, train_stresses_mae, train_time = train_one_step(
                 potential=self.potential,
-                device=device,
                 optimizer=self.optimizer,
                 train_loss=train_loss,
                 energy_weight=energy_weight,
@@ -279,7 +273,6 @@ class M3GNetTrainer:
             )
             avg_loss_val, val_energies_mae, val_forces_mae, val_stresses_mae, val_time = validate_one_step(
                 potential=self.potential,
-                device=device,
                 val_loss=val_loss,
                 energy_weight=energy_weight,
                 force_weight=force_weight,

@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
+from matgl.config import DEFAULT_DEVICE
 from matgl.models.megnet import MEGNet
 
 logger = logging.getLogger("megnet_trainer")
@@ -20,7 +21,6 @@ logger = logging.getLogger("megnet_trainer")
 
 def train_one_step(
     model: nn.Module,
-    device: torch.device,
     optimizer: torch.optim.Optimizer,
     loss_function: nn.Module,
     data_std: torch.Tensor,
@@ -29,19 +29,19 @@ def train_one_step(
 ):
     model.train()
 
-    avg_loss = torch.zeros(1, device=device)
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
 
     for g, labels, attrs in tqdm(dataloader):
         optimizer.zero_grad()
 
-        g = g.to(device)
-        labels = labels.to(device)
+        g = g.to(DEFAULT_DEVICE)
+        labels = labels.to(DEFAULT_DEVICE)
 
         node_feat = g.ndata["node_type"]
         edge_feat = g.edata["edge_attr"]
-        attrs = attrs.to(device)
+        attrs = attrs.to(DEFAULT_DEVICE)
 
         pred = model(g, edge_feat.float(), node_feat.long(), attrs)
 
@@ -64,24 +64,23 @@ def train_one_step(
 
 def validate_one_step(
     model: nn.Module,
-    device: torch.device,
     loss_function: nn.Module,
     data_std: torch.Tensor,
     data_mean: torch.Tensor,
     dataloader: tuple,
 ):
-    avg_loss = torch.zeros(1, device=device)
+    avg_loss = torch.zeros(1)
 
     start = default_timer()
 
     with torch.no_grad():
         for g, labels, attrs in dataloader:
-            g = g.to(device)
-            labels = labels.to(device)
+            g = g.to(DEFAULT_DEVICE)
+            labels = labels.to(DEFAULT_DEVICE)
 
             node_feat = g.ndata["node_type"]
             edge_feat = g.edata["edge_attr"]
-            attrs = attrs.to(device)
+            attrs = attrs.to(DEFAULT_DEVICE)
 
             pred = model(g, edge_feat.float(), node_feat.long(), attrs)
 
@@ -147,7 +146,6 @@ class MEGNetTrainer:
 
     def train(
         self,
-        device: torch.device,
         num_epochs: int,
         train_loss_func: nn.Module,
         val_loss_func: nn.Module,
@@ -173,14 +171,13 @@ class MEGNetTrainer:
         for epoch in tqdm(range(num_epochs)):
             train_loss, train_time = train_one_step(
                 self.model,
-                device,
                 self.optimizer,
                 train_loss_func,
                 data_std,
                 data_mean,
                 train_loader,
             )
-            val_loss, val_time = validate_one_step(self.model, device, val_loss_func, data_std, data_mean, val_loader)
+            val_loss, val_time = validate_one_step(self.model, val_loss_func, data_std, data_mean, val_loader)
 
             self.scheduler.step()
             logger.info(
