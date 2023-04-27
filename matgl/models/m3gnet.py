@@ -139,7 +139,7 @@ class M3GNet(nn.Module):
             num_state_feats=num_state_feats,
             include_states=include_states,
             state_embedding_dim=state_embedding_dim,
-            activation=self.activation
+            activation=self.activation,
         )
 
         self.basis_expansion = SphericalBesselWithHarmonics(
@@ -148,9 +148,7 @@ class M3GNet(nn.Module):
         self.three_body_interactions = nn.ModuleList(
             {
                 ThreeBodyInteractions(
-                    update_network_atom=MLP(
-                        dims=[num_node_feats, degree], activation=nn.Sigmoid(), activate_last=True
-                    ),
+                    update_network_atom=MLP(dims=[num_node_feats, degree], activation=nn.Sigmoid(), activate_last=True),
                     update_network_bond=GatedMLP(in_feats=degree, dims=[num_edge_feats], use_bias=False),
                 )
                 for _ in range(n_blocks)
@@ -188,9 +186,7 @@ class M3GNet(nn.Module):
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
-            self.final_layer = WeightedReadOut(
-                in_feats=num_node_feats, dims=[units, units], num_targets=num_targets
-            )
+            self.final_layer = WeightedReadOut(in_feats=num_node_feats, dims=[units, units], num_targets=num_targets)
         if element_refs is not None:
             self.element_ref_calc = AtomRef(property_offset=element_refs)
 
