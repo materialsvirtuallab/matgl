@@ -23,7 +23,7 @@ class SphericalBesselWithHarmonics(nn.Module):
     """
 
     def __init__(
-        self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool, device: torch.device | None = None
+        self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool
     ):
         """
         :param max_n: Degree of radial basis functions
@@ -45,10 +45,10 @@ class SphericalBesselWithHarmonics(nn.Module):
         self.shf = SphericalHarmonicsFunction(self.max_l, self.use_phi)
         if self.use_smooth:
             self.sbf = SphericalBesselFunction(
-                self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth, device
+                self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth
             )
         else:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth, device)
+            self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth)
 
     def forward(self, graph, line_graph):
         sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
