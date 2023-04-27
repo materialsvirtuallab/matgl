@@ -119,7 +119,7 @@ A full example is in [here](examples/Using%20MEGNet%20Pre-trained%20Models%20for
 
 Please cite the following works:
 
-- MEGNET
+- MEGNet
     ```txt
     Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
     Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
