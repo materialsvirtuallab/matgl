@@ -90,8 +90,8 @@ python setup.py -e .
 <a name="usage"></a>
 # Usage
 
-The pre-trained MEGNet models for the Materials Project formation energy and band gap are now available. The following
-is an example of a prediction of the formation energy for CsCl.
+The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
+The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
 from pymatgen.core import Structure, Lattice
@@ -101,7 +101,6 @@ from matgl.models.megnet import MEGNet
 model = MEGNet.load("MP-2018.6.1-Eform")
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-# define MEGNet calculator
 eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):5f} eV/atom.")
 ```
