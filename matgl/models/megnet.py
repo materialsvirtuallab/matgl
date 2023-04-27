@@ -26,8 +26,8 @@ MODEL_NAME = "megnet"
 
 # These define paths to models that are already pre-trained and ready to use.
 PRETRAINED_MODEL_PATHS = {
-    "MP-2018.6.1-Eform": os.path.join(CWD, "..", "..", "pretrained", "MP-2018.6.1-Eform"),
-    "MP-2019.4.1-BandGap": os.path.join(CWD, "..", "..", "pretrained", "MP-2019.4.1-BandGap"),
+    "MP-2018.6.1-Eform": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2018.6.1-Eform"),
+    "MP-2019.4.1-BandGap-mfi": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2019.4.1-BandGap-mfi"),
 }
 
 
@@ -199,7 +199,7 @@ class MEGNet(nn.Module):
         if os.path.isdir(model_dir) and "megnet.pt" in os.listdir(model_dir):
             return cls.from_dir(model_dir)
 
-        raise ValueError(f"{model_dir} not found in available pretrained {list(PRETRAINED_MODEL_PATHS.keys())}.")
+        raise ValueError(f"{model_dir} not found in available pretrained_models {list(PRETRAINED_MODEL_PATHS.keys())}.")
 
     def forward(
         self,

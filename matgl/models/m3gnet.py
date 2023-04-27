@@ -31,7 +31,7 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 
 MODEL_NAME = "m3gnet"
 
-MODEL_PATHS = {"MP-2021.2.8-EFS": os.path.join(CWD, "..", "..", "pretrained", "MP-2021.2.8-EFS")}
+MODEL_PATHS = {"MP-2021.2.8-EFS": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2021.2.8-EFS")}
 
 
 class M3GNet(nn.Module):
@@ -241,7 +241,7 @@ class M3GNet(nn.Module):
         if os.path.isdir(model_dir) and "m3gnet.pt" in os.listdir(model_dir):
             return cls.from_dir(model_dir)
 
-        raise ValueError(f"{model_dir} not found in available pretrained {list(MODEL_PATHS.keys())}")
+        raise ValueError(f"{model_dir} not found in available pretrained_models {list(MODEL_PATHS.keys())}")
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.
