@@ -31,7 +31,7 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 
 MODEL_NAME = "m3gnet"
 
-MODEL_PATHS = {"MP-2021.2.8-EFS": os.path.join(CWD, "..", "..", "pretrained", "MP-2021.2.8-EFS")}
+MODEL_PATHS = {"MP-2021.2.8-EFS": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2021.2.8-EFS")}
 
 
 class M3GNet(nn.Module):
@@ -66,7 +66,6 @@ class M3GNet(nn.Module):
         num_s2s_steps: int = 3,
         num_s2s_layers: int = 3,
         field: str = "node_feat",
-        device: torch.device | None = None,
         include_states: bool = False,
         element_refs: np.ndarray | None = None,
         activation: str = "swish",
@@ -123,7 +122,7 @@ class M3GNet(nn.Module):
 
         self.graph_converter = Pmg2Graph(element_types=element_types, cutoff=cutoff)
 
-        self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth, device=device)
+        self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth)
 
         degree = max_n * max_l * max_l if use_phi else max_n * max_l
 
@@ -141,19 +140,16 @@ class M3GNet(nn.Module):
             include_states=include_states,
             state_embedding_dim=state_embedding_dim,
             activation=self.activation,
-            device=device,
         )
 
         self.basis_expansion = SphericalBesselWithHarmonics(
-            max_n=max_n, max_l=max_l, cutoff=cutoff, use_phi=use_phi, use_smooth=use_smooth, device=device
+            max_n=max_n, max_l=max_l, cutoff=cutoff, use_phi=use_phi, use_smooth=use_smooth
         )
         self.three_body_interactions = nn.ModuleList(
             {
                 ThreeBodyInteractions(
-                    update_network_atom=MLP(
-                        dims=[num_node_feats, degree], activation=nn.Sigmoid(), activate_last=True, device=device
-                    ),
-                    update_network_bond=GatedMLP(in_feats=degree, dims=[num_edge_feats], use_bias=False, device=device),
+                    update_network_atom=MLP(dims=[num_node_feats, degree], activation=nn.Sigmoid(), activate_last=True),
+                    update_network_bond=GatedMLP(in_feats=degree, dims=[num_edge_feats], use_bias=False),
                 )
                 for _ in range(n_blocks)
             }
@@ -169,7 +165,6 @@ class M3GNet(nn.Module):
                     num_edge_feats=num_edge_feats,
                     num_state_feats=num_state_feats,
                     include_states=include_states,
-                    device=device,
                 )
                 for _ in range(n_blocks)
             }
@@ -184,16 +179,14 @@ class M3GNet(nn.Module):
                 readout_feats = input_feats + num_state_feats if include_states else input_feats  # type: ignore
 
             dims_final_layer = [readout_feats] + [units, units] + [num_targets]
-            self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False, device=device)
+            self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False)
             if task_type == "classification":
                 self.sigmoid = nn.Sigmoid()
 
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
-            self.final_layer = WeightedReadOut(
-                in_feats=num_node_feats, dims=[units, units], num_targets=num_targets, device=device
-            )
+            self.final_layer = WeightedReadOut(in_feats=num_node_feats, dims=[units, units], num_targets=num_targets)
         if element_refs is not None:
             self.element_ref_calc = AtomRef(property_offset=element_refs)
 
@@ -209,7 +202,6 @@ class M3GNet(nn.Module):
         self.data_mean = data_mean
         self.data_std = data_std
         self.element_refs = element_refs
-        self.device = device
 
     def as_dict(self):
         out = {"state_dict": self.state_dict(), "model_args": self.model_args}
@@ -249,7 +241,7 @@ class M3GNet(nn.Module):
         if os.path.isdir(model_dir) and "m3gnet.pt" in os.listdir(model_dir):
             return cls.from_dir(model_dir)
 
-        raise ValueError(f"{model_dir} not found in available pretrained {list(MODEL_PATHS.keys())}")
+        raise ValueError(f"{model_dir} not found in available pretrained_models {list(MODEL_PATHS.keys())}")
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.

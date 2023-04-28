@@ -21,6 +21,98 @@ from matgl.layers.graph_conv import MEGNetBlock
 
 logger = logging.getLogger(__file__)
 CWD = os.path.dirname(os.path.abspath(__file__))
+# defined the default element types
+ELEMENT_TYPES = [
+    "H",
+    "He",
+    "Li",
+    "Be",
+    "B",
+    "C",
+    "N",
+    "O",
+    "F",
+    "Ne",
+    "Na",
+    "Mg",
+    "Al",
+    "Si",
+    "P",
+    "S",
+    "Cl",
+    "Ar",
+    "K",
+    "Ca",
+    "Sc",
+    "Ti",
+    "V",
+    "Cr",
+    "Mn",
+    "Fe",
+    "Co",
+    "Ni",
+    "Cu",
+    "Zn",
+    "Ga",
+    "Ge",
+    "As",
+    "Se",
+    "Br",
+    "Kr",
+    "Rb",
+    "Sr",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Tc",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "In",
+    "Sn",
+    "Sb",
+    "Te",
+    "I",
+    "Xe",
+    "Cs",
+    "Ba",
+    "La",
+    "Ce",
+    "Pr",
+    "Nd",
+    "Pm",
+    "Sm",
+    "Eu",
+    "Gd",
+    "Tb",
+    "Dy",
+    "Ho",
+    "Er",
+    "Tm",
+    "Yb",
+    "Lu",
+    "Hf",
+    "Ta",
+    "W",
+    "Re",
+    "Os",
+    "Ir",
+    "Pt",
+    "Au",
+    "Hg",
+    "Tl",
+    "Pb",
+    "Bi",
+    "Ac",
+    "Th",
+    "Pa",
+    "U",
+    "Np",
+    "Pu",
+]
 
 # These define paths to models that are already pre-trained and ready to use.
 PRETRAINED_MODEL_PATHS = {
@@ -29,35 +121,37 @@ PRETRAINED_MODEL_PATHS = {
 }
 
 
-class MEGNet(nn.Module):
+class TempleMEGNet(nn.Module):
     """
     DGL implementation of MEGNet.
     """
 
     def __init__(
         self,
-        node_embedding_dim: int,
-        edge_embedding_dim: int,
-        attr_embedding_dim: int,
-        num_blocks: int,
-        hiddens: list[int],
-        conv_hiddens: list[int],
-        s2s_num_layers: int,
-        s2s_num_iters: int,
-        output_hiddens: list[int],
-        act: str = "swish",
-        is_classification: bool = True,
-        node_embed: nn.Module | None = None,
-        edge_embed: nn.Module | None = None,
-        attr_embed: nn.Module | None = None,
+        node_embedding_dim: int = 16,
+        edge_embedding_dim: int = 100,
+        attr_embedding_dim: int = 2,
+        nblocks: int = 3,
+        hidden_layer: list[int] = [64, 32],
+        conv_hidden_layer: list[int] = [64, 64, 32],
+        s2s_nlayers: int = 1,
+        s2s_niters: int = 2,
+        output_hidden_layer: list[int] = [32, 16],
+        activation_type: str = "softplus2",
+        is_classification: bool = False,
+        node_embedding_layer: nn.Module | None = None,
+        edge_embedding_layer: nn.Module | None = None,
+        attr_embedding_layer: nn.Module | None = None,
         include_states: bool = False,
         dropout: float | None = None,
         graph_transformations: list | None = None,
         element_types: tuple[str] | None = None,
-        data_mean: torch.tensor | None = None,
-        data_std: torch.tensor | None = None,
+        data_mean: torch.tensor = torch.zeros(1),
+        data_std: torch.tensor = torch.ones(1),
         graph_converter: Pmg2Graph | None = None,
         bond_expansion: BondExpansion | None = None,
+        cutoff: float = 4.0,
+        gauss_width: float = 0.5,
         **kwargs,
     ) -> None:
         """
@@ -67,26 +161,28 @@ class MEGNet(nn.Module):
             node_embedding_dim: Dimension of node embedding.
             edge_embedding_dim: Dimension of edge embedding.
             attr_embedding_dim: Dimension of attr (global state) embedding.
-            num_blocks: Number of blocks.
-            hiddens:
-            conv_hiddens:
-            s2s_num_layers:
-            s2s_num_iters:
-            output_hiddens:
-            act:
-            is_classification:
-            node_embed:
-            edge_embed:
-            attr_embed:
-            include_states:
-            dropout:
-            graph_transformations:
-            element_types:
-            data_mean:
-            data_std:
-            graph_converter: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
+            nblocks: Number of blocks.
+            hidden_layer: Architecture of dense layers before the graph convolution
+            conv_hidden_layer: Architecture of dense layers for message and update functions
+            s2s_nlayers: Number of layers in Set2Set layer
+            s2s_niters: Number of iteratons in Set2Set layer
+            output_hidden_layer: Architecture of dense layers for concatenated features after graph convolution
+            activation_types: Activation used for non-linearity
+            is_classification: Whether this is classification task or not
+            node_embedding_layer: Architecture of embedding layer for node attributes
+            edge_embedding_layer: Architecture of embedding layer for edge attributes
+            attr_embedding_layer: Architecture of embedding layer for state attributes
+            include_states: Whether the state embedding is included
+            dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to a Bernoulli distribution
+            graph_transformations: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
                 performing the GCL updates.
-            bond_expansion:
+            element_types: Elements included in the training set
+            data_mean: Mean of target properties in the training set
+            data_std: Standard deviation of target properties in the training set
+            graph_converter: Pmg2Graph converter
+            bond_expansion: Gaussian expansion for edge attributes
+            cutoff: cutoff for forming bonds
+            gauss_width: width of Gaussian function for bond expansion
             **kwargs:
         """
         # Store MEGNet model args for loading trained model
@@ -97,32 +193,44 @@ class MEGNet(nn.Module):
 
         if element_types is not None:
             self.element_types = element_types
+        else:
+            self.element_types = ELEMENT_TYPES
         if graph_converter is not None:
             self.graph_converter = graph_converter
+        else:
+            self.graph_converter = Pmg2Graph(element_types=self.element_types, cutoff=cutoff)
         if bond_expansion is not None:
             self.bond_expansion = bond_expansion
+        else:
+            self.bond_expansion = BondExpansion(
+                rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=edge_embedding_dim, width=gauss_width
+            )
         if data_mean is not None:
             self.data_mean = data_mean
         if data_std is not None:
             self.data_std = data_std
 
-        self.edge_embed = edge_embed if edge_embed else nn.Identity()
-        self.node_embed = node_embed if node_embed else nn.Identity()
-        self.attr_embed = attr_embed if attr_embed else nn.Identity()
+        self.edge_embedding_layer = edge_embedding_layer if edge_embedding_layer else nn.Identity()
+        if node_embedding_layer is None:
+            self.node_embedding_layer = nn.Embedding(len(self.element_types), node_embedding_dim)
+        else:
+            self.node_embedding_layer = nn.Identity()
+        self.node_embedding_layer = node_embedding_layer if node_embedding_layer else nn.Identity()
+        self.attr_embedding_layer = attr_embedding_layer if attr_embedding_layer else nn.Identity()
 
         node_dims = [node_embedding_dim, *hiddens]
         edge_dims = [edge_embedding_dim, *hiddens]
         attr_dims = [attr_embedding_dim, *hiddens]
 
-        if act == "swish":
+        if activation_type == "swish":
             activation = nn.SiLU()  # type: ignore
-        elif act == "sigmoid":
+        elif activation_type == "sigmoid":
             activation = nn.Sigmoid()  # type: ignore
-        elif act == "tanh":
+        elif activation_type == "tanh":
             activation = nn.Tanh()  # type: ignore
-        elif act == "softplus2":
+        elif activation_type == "softplus2":
             activation = SoftPlus2()  # type: ignore
-        elif act == "softexp":
+        elif activation_type == "softexp":
             activation = SoftExponential()  # type: ignore
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
@@ -131,8 +239,8 @@ class MEGNet(nn.Module):
         self.node_encoder = MLP(node_dims, activation, activate_last=True)
         self.attr_encoder = MLP(attr_dims, activation, activate_last=True)
 
-        blocks_in_dim = hiddens[-1]
-        block_out_dim = conv_hiddens[-1]
+        blocks_in_dim = hidden_layer[-1]
+        block_out_dim = conv_hidden_layer[-1]
         block_args = {
             "conv_hiddens": conv_hiddens,
             "dropout": dropout,
@@ -145,16 +253,16 @@ class MEGNet(nn.Module):
         blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))  # type: ignore
         # other blocks
         for _ in range(num_blocks - 1):
-            blocks.append(MEGNetBlock(dims=[block_out_dim, *hiddens], **block_args))  # type: ignore
+            blocks.append(MEGNetBlock(dims=[block_out_dim, *hidden_layer], **block_args))  # type: ignore
         self.blocks = nn.ModuleList(blocks)
 
-        s2s_kwargs = {"n_iters": s2s_num_iters, "n_layers": s2s_num_layers}
+        s2s_kwargs = {"n_iters": s2s_niters, "n_layers": s2s_nlayers}
         self.edge_s2s = EdgeSet2Set(block_out_dim, **s2s_kwargs)
         self.node_s2s = Set2Set(block_out_dim, **s2s_kwargs)
 
         self.output_proj = MLP(
             # S2S cats q_star to output producing double the dim
-            dims=[2 * 2 * block_out_dim + block_out_dim, *output_hiddens, 1],
+            dims=[2 * 2 * block_out_dim + block_out_dim, *output_hidden_layer, 1],
             activation=activation,
             activate_last=False,
         )
@@ -163,7 +271,7 @@ class MEGNet(nn.Module):
         # TODO(marcel): should this be an 1D dropout
 
         self.is_classification = is_classification
-        self.graph_transformations = graph_transformations or [nn.Identity()] * num_blocks
+        self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
         self.include_states = include_states
 
     def as_dict(self):
@@ -225,12 +333,12 @@ class MEGNet(nn.Module):
         :return: Prediction
         """
         graph_transformations = self.graph_transformations
-        edge_feat = self.edge_encoder(self.edge_embed(edge_feat))
-        node_feat = self.node_encoder(self.node_embed(node_feat))
+        edge_feat = self.edge_encoder(self.edge_embedding_layer(edge_feat))
+        node_feat = self.node_encoder(self.node_embedding_layer(node_feat))
         if self.include_states:
-            graph_attr = self.attr_embed(graph_attr)
+            graph_attr = self.attr_embedding_layer(graph_attr)
         else:
-            graph_attr = self.attr_encoder(self.attr_embed(graph_attr))
+            graph_attr = self.attr_encoder(self.attr_embedding_layer(graph_attr))
 
         for i, block in enumerate(self.blocks):
             graph = graph_transformations[i](graph)

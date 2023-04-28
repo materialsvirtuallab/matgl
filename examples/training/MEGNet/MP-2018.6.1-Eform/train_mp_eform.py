@@ -30,6 +30,11 @@ SEED = 42
 EPOCHS = 2000
 path = os.getcwd()
 
+# define the default device for torch tensor. Either 'cuda' or 'cpu'
+torch.set_default_device("cpu")
+# define the torch.Generator. Either 'cuda' or 'cpu'
+generator = torch.Generator(device="cpu")
+
 
 # define a raw data loading function
 def load_dataset(path: str):
@@ -80,12 +85,10 @@ train_data, val_data, test_data = split_dataset(
 print("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
 # get the average and standard deviation from the training set
 train_std, train_mean = compute_data_stats(train_data)
-# define the device either cpu or cuda
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # setup the embedding layer for node attributes
-node_embed = nn.Embedding(len(elem_list), 16, device=device)
+node_embed = nn.Embedding(len(elem_list), 16)
 # define the bond expansion
-bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=5.0, num_centers=100, width=0.5, device=device)
+bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=5.0, num_centers=100, width=0.5)
 
 # setup the architecture of MEGNet model
 model = MEGNet(
@@ -101,7 +104,6 @@ model = MEGNet(
     is_classification=False,
     node_embed=node_embed,
     act="softplus2",
-    device=device,
     graph_converter=cry_graph,
     bond_expansion=bond_expansion,
 )
@@ -132,8 +134,6 @@ validate_loss_function = F.l1_loss
 train_loader, val_loader, test_loader = MGLDataLoader(
     train_data=train_data, val_data=val_data, test_data=test_data, collate_fn=_collate_fn, batch_size=128, num_workers=1
 )
-# map the model to cpu or cuda
-model = model.to(device)
 
 print(model)
 
@@ -141,7 +141,6 @@ print(model)
 trainer = MEGNetTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
-    device=device,
     num_epochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,

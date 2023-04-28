@@ -53,7 +53,9 @@ def MGLDataLoader(
     batch_size: int,
     num_workers: int,
     use_ddp: bool = False,
+    pin_memory: bool = False,
     test_data: dgl.data.utils.Subset | None = None,
+    generator: torch.Generator | None = None,
 ):
     """
     Dataloader for MEGNet training
@@ -69,8 +71,9 @@ def MGLDataLoader(
         shuffle=True,
         collate_fn=collate_fn,
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
         use_ddp=use_ddp,
+        generator=generator,
     )
 
     val_loader = GraphDataLoader(
@@ -79,7 +82,7 @@ def MGLDataLoader(
         shuffle=False,
         collate_fn=collate_fn,
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
     )
     if test_data is not None:
         test_loader = GraphDataLoader(
@@ -88,7 +91,7 @@ def MGLDataLoader(
             shuffle=False,
             collate_fn=collate_fn,
             num_workers=num_workers,
-            pin_memory=True,
+            pin_memory=pin_memory,
         )
         return train_loader, val_loader, test_loader
     else:
@@ -105,10 +108,10 @@ class MEGNetDataset(DGLDataset):
         structures: list,
         labels: list,
         label_name: str,
-        converter,
+        converter: Pmg2Graph,
         initial: float = 0.0,
         final: float = 5.0,
-        num_centers: int = 20,
+        num_centers: int = 100,
         width: float = 0.5,
         name: str = "MEGNETDataset",
         graph_labels: list | None = None,

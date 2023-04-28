@@ -62,8 +62,7 @@ class GaussianExpansion(nn.Module):
 
     def reset_parameters(self):
         """Reinitialize model parameters."""
-        device = self.centers.device
-        self.centers = nn.Parameter(self.centers.clone().detach().float(), requires_grad=False).to(device)
+        self.centers = nn.Parameter(self.centers.clone().detach().float(), requires_grad=False)
 
     def forward(self, bond_dists):
         """Expand distances.
@@ -115,9 +114,7 @@ class SphericalBesselFunction:
     Calculate the spherical Bessel function based on sympy + pytorch implementations
     """
 
-    def __init__(
-        self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False, device: torch.device | None = None
-    ):
+    def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
         """
         Args:
             max_l: int, max order (excluding l)
@@ -133,8 +130,7 @@ class SphericalBesselFunction:
         else:
             self.funcs = self._calculate_symbolic_funcs()
 
-        self.zeros = torch.from_numpy(SPHERICAL_BESSEL_ROOTS).type(DataType.torch_float)
-        self.device = device
+        self.zeros = torch.tensor(SPHERICAL_BESSEL_ROOTS, dtype=DataType.torch_float)
 
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> list:
@@ -175,9 +171,9 @@ class SphericalBesselFunction:
         roots = self.zeros[: self.max_l, : self.max_n]
 
         results = []
-        factor = torch.tensor(sqrt(2.0 / self.cutoff**3)).to(self.device)
+        factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
         for i in range(self.max_l):
-            root = roots[i].to(self.device)
+            root = roots[i]
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
@@ -277,7 +273,7 @@ def _block_repeat(array, block_size, repeats):
         indices.append(torch.tile(col_index[start : start + b], [repeats[i]]))
         start += b
     indices = torch.cat(indices, axis=0)
-    return torch.index_select(array, 1, indices.to(array.device))
+    return torch.index_select(array, 1, indices)
 
 
 def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool, use_smooth: bool):
@@ -313,7 +309,7 @@ def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool, use_smooth:
         # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
         block_size = 2 * np.arange(max_l) + 1  # type: ignore
         # 2 * tf.range(max_l) + 1
-    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf.to(sbf.device), 1)
+    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
     expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
     shape = max_n * max_l
     if use_phi:
@@ -415,7 +411,7 @@ def get_segment_indices_from_n(ns):
     Returns: segment indices tensor
     """
     B = ns
-    A = torch.arange(B.size(dim=0)).to(B.device)
+    A = torch.arange(B.size(dim=0))
     return A.repeat_interleave(B, dim=0)
 
 
@@ -523,7 +519,7 @@ def scatter_sum(input_tensor: torch.tensor, segment_ids: torch.tensor, num_segme
         size[dim] = 0
     else:
         size[dim] = num_segments
-    output = torch.zeros(size, dtype=input_tensor.dtype, device=input_tensor.device)
+    output = torch.zeros(size, dtype=input_tensor.dtype)
     return output.scatter_add_(dim, segment_ids, input_tensor)
 
 

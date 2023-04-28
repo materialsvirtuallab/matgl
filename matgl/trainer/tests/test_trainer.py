@@ -85,10 +85,6 @@ class MEGNetTrainerTest(PymatgenTest):
         train_loss_function = F.mse_loss
         validate_loss_function = F.l1_loss
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        model = model.to(device)
-
         trainer = MEGNetTrainer(
             model=model,
             optimizer=optimizer,
@@ -96,7 +92,6 @@ class MEGNetTrainerTest(PymatgenTest):
         )
 
         trainer.train(
-            device=device,
             num_epochs=2,
             train_loss_func=train_loss_function,
             val_loss_func=validate_loss_function,
@@ -158,7 +153,6 @@ class M3GNetTrainerTest(PymatgenTest):
         trainer = M3GNetTrainer(potential=ff, optimizer=optimizer, scheduler=scheduler)
 
         trainer.train(
-            device=torch.device("cpu"),
             num_epochs=2,
             train_loss=train_loss_function,
             val_loss=validate_loss_function,

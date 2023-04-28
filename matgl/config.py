@@ -1,4 +1,4 @@
-"""Data types"""
+"""Global configuration variables for matgl."""
 from __future__ import annotations
 
 import numpy as np
