@@ -35,7 +35,7 @@ class Pmg2Graph:
 
     def __init__(
         self,
-        element_types: tuple[str],
+        element_types: tuple[str, ...],
         cutoff: float = 5.0,
     ):
         """
