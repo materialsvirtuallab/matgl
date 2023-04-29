@@ -476,30 +476,28 @@ class MEGNetTemp(nn.Module):
         self.node_encoder = MLP(node_dims, activation, activate_last=True)
         self.attr_encoder = MLP(attr_dims, activation, activate_last=True)
 
-        blocks_in_dim = hidden_layer_sizes_input[-1]
-        block_out_dim = hidden_layer_sizes_conv[-1]
+        dim_blocks_in = hidden_layer_sizes_input[-1]
+        dim_blocks_out = hidden_layer_sizes_conv[-1]
         block_args = {
             "conv_hiddens": hidden_layer_sizes_conv,
             "dropout": dropout,
             "act": activation,
             "skip": True,
         }
-        blocks = []
-
         # first block
-        blocks.append(MEGNetBlock(dims=[blocks_in_dim], **block_args))  # type: ignore
+        blocks = [MEGNetBlock(dims=[dim_blocks_in], **block_args)]  # type: ignore
         # other blocks
         for _ in range(nblocks - 1):
-            blocks.append(MEGNetBlock(dims=[block_out_dim, *hidden_layer_sizes_input], **block_args))  # type: ignore
+            blocks.append(MEGNetBlock(dims=[dim_blocks_out, *hidden_layer_sizes_input], **block_args))  # type: ignore
         self.blocks = nn.ModuleList(blocks)
 
         s2s_kwargs = {"n_iters": niters_set2set, "n_layers": nlayers_set2set}
-        self.edge_s2s = EdgeSet2Set(block_out_dim, **s2s_kwargs)
-        self.node_s2s = Set2Set(block_out_dim, **s2s_kwargs)
+        self.edge_s2s = EdgeSet2Set(dim_blocks_out, **s2s_kwargs)
+        self.node_s2s = Set2Set(dim_blocks_out, **s2s_kwargs)
 
         self.output_proj = MLP(
             # S2S cats q_star to output producing double the dim
-            dims=[2 * 2 * block_out_dim + block_out_dim, *hidden_layer_sizes_output, 1],
+            dims=[2 * 2 * dim_blocks_out + dim_blocks_out, *hidden_layer_sizes_output, 1],
             activation=activation,
             activate_last=False,
         )
