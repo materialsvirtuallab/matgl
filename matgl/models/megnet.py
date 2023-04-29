@@ -440,16 +440,10 @@ class MEGNetTemp(nn.Module):
         super().__init__()
 
         self.element_types = element_types or DEFAULT_ELEMENT_TYPES
-        if graph_converter is not None:
-            self.graph_converter = graph_converter
-        else:
-            self.graph_converter = Pmg2Graph(element_types=self.element_types, cutoff=cutoff)
-        if bond_expansion is not None:
-            self.bond_expansion = bond_expansion
-        else:
-            self.bond_expansion = BondExpansion(
-                rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
-            )
+        self.graph_converter = graph_converter or Pmg2Graph(element_types=self.element_types, cutoff=cutoff)
+        self.bond_expansion = bond_expansion or BondExpansion(
+            rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
+        )
         self.data_mean = data_mean or torch.zeros(1)
         self.data_std = data_std or torch.ones(1)
 
@@ -458,8 +452,8 @@ class MEGNetTemp(nn.Module):
             self.node_embedding_layer = nn.Embedding(len(self.element_types), dim_node_embedding)
         else:
             self.node_embedding_layer = nn.Identity()
-        self.node_embedding_layer = layer_node_embedding if layer_node_embedding else nn.Identity()
-        self.attr_embedding_layer = layer_attr_embedding if layer_attr_embedding else nn.Identity()
+        self.node_embedding_layer = layer_node_embedding or nn.Identity()
+        self.attr_embedding_layer = layer_attr_embedding or nn.Identity()
 
         node_dims = [dim_node_embedding, *hidden_layer_sizes_conv]
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_conv]
@@ -511,7 +505,6 @@ class MEGNetTemp(nn.Module):
         )
 
         self.dropout = nn.Dropout(dropout) if dropout else None
-        # TODO(marcel): should this be an 1D dropout
 
         self.is_classification = is_classification
         self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
@@ -616,8 +609,7 @@ class MEGNetTemp(nn.Module):
             output (torch.tensor): output property
         """
         g, attrs_default = self.graph_converter.get_graph_from_structure(structure)
-        if attrs is None:
-            attrs = torch.tensor(attrs_default)
+        attrs = attrs or torch.tensor(attrs_default)
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
