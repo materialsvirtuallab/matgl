@@ -402,7 +402,8 @@ class MEGNetTemp(nn.Module):
         **kwargs,
     ) -> None:
         """
-        Construct a MEGNet model.
+        Construct a MEGNet model. Useful defaults for all arguments have been specified based on MEGNet formation energy
+        model.
 
         Args:
             dim_node_embedding: Dimension of node embedding.
