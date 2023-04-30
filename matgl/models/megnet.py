@@ -546,7 +546,10 @@ class MEGNetTemp(nn.Module):
         try:
             return cls.from_dir(model_dir)
         except FileNotFoundError:
-            raise ValueError(f"{model_dir} not found in available pretrained_models {PRETRAINED_MODELS_PATH}.")
+            raise ValueError(
+                f"{model_dir} does not appear to be a valid model. Provide a valid path or use one of "
+                f"the following pretrained models in {list(PRETRAINED_MODELS_PATH.iterdir())}."
+            )
 
     def forward(
         self,
