@@ -4,7 +4,7 @@ Implementation of MEGNet model.
 from __future__ import annotations
 
 import logging
-import os
+from pathlib import Path
 
 import dgl
 import torch
@@ -12,6 +12,7 @@ import torch.nn as nn
 from dgl.nn import Set2Set
 from pymatgen.core import Structure
 
+from matgl.config import PRETRAINED_MODELS_PATH
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
 from matgl.layers.activations import SoftExponential, SoftPlus2
@@ -20,13 +21,6 @@ from matgl.layers.core import MLP, EdgeSet2Set
 from matgl.layers.graph_conv import MEGNetBlock
 
 logger = logging.getLogger(__file__)
-CWD = os.path.dirname(os.path.abspath(__file__))
-
-# These define paths to models that are already pre-trained and ready to use.
-PRETRAINED_MODEL_PATHS = {
-    "MP-2018.6.1-Eform": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2018.6.1-Eform"),
-    "MP-2019.4.1-BandGap-mfi": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2019.4.1-BandGap-mfi"),
-}
 
 
 class MEGNet(nn.Module):
@@ -180,11 +174,12 @@ class MEGNet(nn.Module):
         return model
 
     @classmethod
-    def from_dir(cls, path, **kwargs):
+    def from_dir(cls, path: str | Path, **kwargs):
         """
         build a MEGNet from a saved directory
         """
-        file_name = os.path.join(path, "megnet.pt")
+        path = Path(path)
+        file_name = path / "megnet.pt"
         if torch.cuda.is_available() is False:
             state = torch.load(file_name, map_location=torch.device("cpu"))
         else:
@@ -193,21 +188,21 @@ class MEGNet(nn.Module):
         return model
 
     @classmethod
-    def load(cls, model_dir: str) -> MEGNet:
+    def load(cls, model_dir: str | Path) -> MEGNet:
         """
         Load the model weights from pre-trained model (megnet.pt)
         Args:
-            model_dir (str): directory for saved model. Defaults to "MP-2018.6.1-Eform".
+            model_dir (str): directory for saved model.
 
         Returns: MEGNet object.
         """
-        if model_dir in PRETRAINED_MODEL_PATHS:
-            return cls.from_dir(PRETRAINED_MODEL_PATHS[model_dir])
-
-        if os.path.isdir(model_dir) and "megnet.pt" in os.listdir(model_dir):
+        if (PRETRAINED_MODELS_PATH / model_dir).exists():
+            return cls.from_dir(PRETRAINED_MODELS_PATH / model_dir)
+        model_dir = Path(model_dir)
+        try:
             return cls.from_dir(model_dir)
-
-        raise ValueError(f"{model_dir} not found in available pretrained_models {list(PRETRAINED_MODEL_PATHS.keys())}.")
+        except FileNotFoundError:
+            raise ValueError(f"{model_dir} not found in available pretrained_models {PRETRAINED_MODELS_PATH}.")
 
     def forward(
         self,

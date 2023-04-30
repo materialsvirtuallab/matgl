@@ -1,10 +1,12 @@
 """Global configuration variables for matgl."""
 from __future__ import annotations
 
-import numpy as np
+from pathlib import Path
 
-# import tensorflow as tf
+import numpy as np
 import torch
+
+# CWD = os.path.dirname(os.path.abspath(__file__))
 
 DTYPES = {
     "float32": {"numpy": np.float32, "torch": torch.float32},
@@ -12,6 +14,8 @@ DTYPES = {
     "int32": {"numpy": np.int32, "torch": torch.int32},
     "int16": {"numpy": np.int16, "torch": torch.int16},
 }
+
+PRETRAINED_MODELS_PATH = Path(__file__).absolute().parent / ".." / "pretrained_models"
 
 
 class DataType:
