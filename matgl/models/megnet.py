@@ -504,53 +504,6 @@ class MEGNetTemp(nn.Module):
         self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
         self.include_states = include_states
 
-    def as_dict(self):
-        out = {"state_dict": self.state_dict(), "model_args": self.model_args}
-        return out
-
-    @classmethod
-    def from_dict(cls, dict, **kwargs):
-        """
-        build a MEGNet from a saved dictionary
-        """
-        model = MEGNet(**dict["model_args"])
-        model.load_state_dict(dict["state_dict"], **kwargs)
-        return model
-
-    @classmethod
-    def from_dir(cls, path: str | Path, **kwargs):
-        """
-        build a MEGNet from a saved directory
-        """
-        path = Path(path)
-        file_name = path / "megnet.pt"
-        if torch.cuda.is_available() is False:
-            state = torch.load(file_name, map_location=torch.device("cpu"))
-        else:
-            state = torch.load(file_name)
-        model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
-        return model
-
-    @classmethod
-    def load(cls, model_dir: str | Path) -> MEGNet:
-        """
-        Load the model weights from pre-trained model (megnet.pt)
-        Args:
-            model_dir (str): directory for saved model.
-
-        Returns: MEGNet object.
-        """
-        if (PRETRAINED_MODELS_PATH / model_dir).exists():
-            return cls.from_dir(PRETRAINED_MODELS_PATH / model_dir)
-        model_dir = Path(model_dir)
-        try:
-            return cls.from_dir(model_dir)
-        except FileNotFoundError:
-            raise ValueError(
-                f"{model_dir} does not appear to be a valid model. Provide a valid path or use one of "
-                f"the following pretrained models in {list(PRETRAINED_MODELS_PATH.iterdir())}."
-            )
-
     def forward(
         self,
         graph: dgl.DGLGraph,
@@ -559,7 +512,8 @@ class MEGNetTemp(nn.Module):
         graph_attr: torch.Tensor,
     ):
         """
-        TODO: Add docs.
+        Forward pass of MEGnet. Executes all blocks.
+
         :param graph: Input graph
         :param edge_feat: Edge features
         :param node_feat: Node features
@@ -615,3 +569,50 @@ class MEGNetTemp(nn.Module):
         output = self.data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], attrs) + self.data_mean
 
         return output.detach()
+
+    def as_dict(self):
+        out = {"state_dict": self.state_dict(), "model_args": self.model_args}
+        return out
+
+    @classmethod
+    def from_dict(cls, dict, **kwargs):
+        """
+        build a MEGNet from a saved dictionary
+        """
+        model = MEGNet(**dict["model_args"])
+        model.load_state_dict(dict["state_dict"], **kwargs)
+        return model
+
+    @classmethod
+    def from_dir(cls, path: str | Path, **kwargs):
+        """
+        build a MEGNet from a saved directory
+        """
+        path = Path(path)
+        file_name = path / "megnet.pt"
+        if torch.cuda.is_available() is False:
+            state = torch.load(file_name, map_location=torch.device("cpu"))
+        else:
+            state = torch.load(file_name)
+        model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
+        return model
+
+    @classmethod
+    def load(cls, model_dir: str | Path) -> MEGNet:
+        """
+        Load the model weights from pre-trained model (megnet.pt)
+        Args:
+            model_dir (str): directory for saved model.
+
+        Returns: MEGNet object.
+        """
+        if (PRETRAINED_MODELS_PATH / model_dir).exists():
+            return cls.from_dir(PRETRAINED_MODELS_PATH / model_dir)
+        model_dir = Path(model_dir)
+        try:
+            return cls.from_dir(model_dir)
+        except FileNotFoundError:
+            raise ValueError(
+                f"{model_dir} does not appear to be a valid model. Provide a valid path or use one of "
+                f"the following pretrained models in {list(PRETRAINED_MODELS_PATH.iterdir())}."
+            )
