@@ -7,6 +7,7 @@ Submodules
 .. toctree::
    :maxdepth: 6
 
+   matgl.layers.activations
    matgl.layers.atom_ref
    matgl.layers.bond_expansion
    matgl.layers.core
