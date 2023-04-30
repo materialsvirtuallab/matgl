@@ -16,6 +16,7 @@ DTYPES = {
 }
 
 PRETRAINED_MODELS_PATH = Path(__file__).absolute().parent / ".." / "pretrained_models"
+PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 
 class DataType:
