@@ -98,7 +98,7 @@ from pymatgen.core import Structure, Lattice
 from matgl.models.megnet import MEGNet
 
 # load the pre-trained MEGNet model for formation energy model.
-model = MEGNet.load("MP-2018.6.1-Eform")
+model = MEGNet.load("MEGNet-MP-2018.6.1-Eform")
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
 eform = model.predict_structure(struct)
