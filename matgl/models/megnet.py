@@ -592,9 +592,11 @@ class MEGNetTemp(nn.Module):
     @classmethod
     def load(cls, model_dir: str | Path, **kwargs) -> MEGNet:
         """
-        Load the model weights from pre-trained model (megnet.pt)
+        Load a MEGNet model from a directory or the name of a pre-trained model.
+
         Args:
-            model_dir (str): directory for saved model.
+            model_dir (str): String or Path object for location of saved model. It can also be one of the pre-trained
+                models listed in matgl.config.PRETRAINED_MODELS_PATH.
             **kwargs: Additional kwargs.
 
         Returns: MEGNet object.
