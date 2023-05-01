@@ -179,7 +179,7 @@ class MEGNet(nn.Module):
         build a MEGNet from a saved directory
         """
         path = Path(path)
-        file_name = path / "megnet.pt"
+        file_name = path / "MEGNet-MP-2018.6.1-Eform.pt"
         if torch.cuda.is_available() is False:
             state = torch.load(file_name, map_location=torch.device("cpu"))
         else:
@@ -190,7 +190,7 @@ class MEGNet(nn.Module):
     @classmethod
     def load(cls, model_dir: str | Path) -> MEGNet:
         """
-        Load the model weights from pre-trained model (megnet.pt)
+        Load the model weights from pre-trained model (MEGNet-MP-2018.6.1-Eform.pt)
         Args:
             model_dir (str): directory for saved model.
 
