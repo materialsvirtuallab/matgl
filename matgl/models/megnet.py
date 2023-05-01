@@ -528,9 +528,8 @@ class MEGNetTemp(nn.Module):
         else:
             graph_attr = self.attr_encoder(self.attr_embedding_layer(graph_attr))
 
-        for i, block in enumerate(self.blocks):
-            graph = graph_transformations[i](graph)
-            output = block(graph, edge_feat, node_feat, graph_attr)
+        for gt, block in zip(graph_transformations, self.blocks):
+            output = block(gt(graph), edge_feat, node_feat, graph_attr)
             edge_feat, node_feat, graph_attr = output
 
         node_vec = self.node_s2s(graph, node_feat)
@@ -575,42 +574,41 @@ class MEGNetTemp(nn.Module):
         return out
 
     @classmethod
-    def from_dict(cls, dict, **kwargs):
+    def from_dict(cls, d: dict, **kwargs) -> MEGNet:
+        r"""
+        Load MEGNet model from dict.
+
+        Args:
+            d: dict
+            **kwargs: Additional kwargs.
+
+        Returns:
+            MEGNet model
         """
-        build a MEGNet from a saved dictionary
-        """
-        model = MEGNet(**dict["model_args"])
-        model.load_state_dict(dict["state_dict"], **kwargs)
+        model = MEGNet(**d["model_args"])
+        model.load_state_dict(d["state_dict"], **kwargs)
         return model
 
     @classmethod
-    def from_dir(cls, path: str | Path, **kwargs):
-        """
-        build a MEGNet from a saved directory
-        """
-        path = Path(path)
-        file_name = path / "megnet.pt"
-        if torch.cuda.is_available() is False:
-            state = torch.load(file_name, map_location=torch.device("cpu"))
-        else:
-            state = torch.load(file_name)
-        model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
-        return model
-
-    @classmethod
-    def load(cls, model_dir: str | Path) -> MEGNet:
+    def load(cls, model_dir: str | Path, **kwargs) -> MEGNet:
         """
         Load the model weights from pre-trained model (megnet.pt)
         Args:
             model_dir (str): directory for saved model.
+            **kwargs: Additional kwargs.
 
         Returns: MEGNet object.
         """
-        if (PRETRAINED_MODELS_PATH / model_dir).exists():
-            return cls.from_dir(PRETRAINED_MODELS_PATH / model_dir)
         model_dir = Path(model_dir)
+        if (PRETRAINED_MODELS_PATH / model_dir).exists():
+            path = PRETRAINED_MODELS_PATH / model_dir
         try:
-            return cls.from_dir(model_dir)
+            if torch.cuda.is_available() is False:
+                state = torch.load(path / "megnet.pt", map_location=torch.device("cpu"))
+            else:
+                state = torch.load(path / "megnet.pt")
+            model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
+            return model
         except FileNotFoundError:
             raise ValueError(
                 f"{model_dir} does not appear to be a valid model. Provide a valid path or use one of "
