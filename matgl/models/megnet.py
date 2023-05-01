@@ -271,30 +271,29 @@ class MEGNet(nn.Module):
         build a MEGNet from a saved directory
         """
         path = Path(path)
-        file_name = path / "MEGNet-MP-2018.6.1-Eform.pt"
         if torch.cuda.is_available() is False:
-            state = torch.load(file_name, map_location=torch.device("cpu"))
+            state = torch.load(path, map_location=torch.device("cpu"))
         else:
-            state = torch.load(file_name)
+            state = torch.load(path)
         model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
         return model
 
     @classmethod
-    def load(cls, model_dir: str | Path) -> MEGNet:
+    def load(cls, model_path: str | Path) -> MEGNet:
         """
         Load the model weights from pre-trained model (MEGNet-MP-2018.6.1-Eform.pt)
         Args:
-            model_dir (str): directory for saved model.
+            model_path (str): directory for saved model.
 
         Returns: MEGNet object.
         """
-        if (PRETRAINED_MODELS_PATH / model_dir).exists():
-            return cls.from_dir(PRETRAINED_MODELS_PATH / model_dir)
-        model_dir = Path(model_dir)
+        model_path = Path(model_path)
+        if (PRETRAINED_MODELS_PATH / f"{model_path}.pt").exists():
+            model_path = PRETRAINED_MODELS_PATH / f"{model_path}.pt"
         try:
-            return cls.from_dir(model_dir)
+            return cls.from_dir(model_path)
         except FileNotFoundError:
-            raise ValueError(f"{model_dir} not found in available pretrained_models {PRETRAINED_MODELS_PATH}.")
+            raise ValueError(f"{model_path} not found in available pretrained_models {PRETRAINED_MODELS_PATH}.")
 
     def forward(
         self,
@@ -590,29 +589,29 @@ class MEGNetTemp(nn.Module):
         return model
 
     @classmethod
-    def load(cls, model_dir: str | Path, **kwargs) -> MEGNet:
+    def load(cls, model_path: str | Path, **kwargs) -> MEGNet:
         """
         Load a MEGNet model from a directory or the name of a pre-trained model.
 
         Args:
-            model_dir (str): String or Path object for location of saved model. It can also be one of the pre-trained
+            model_path (str): String or Path object for location of saved model. It can also be one of the pre-trained
                 models listed in matgl.config.PRETRAINED_MODELS_PATH.
             **kwargs: Additional kwargs.
 
         Returns: MEGNet object.
         """
-        model_dir = Path(model_dir)
-        if (PRETRAINED_MODELS_PATH / model_dir).exists():
-            path = PRETRAINED_MODELS_PATH / model_dir
+        model_path = Path(model_path)
+        if (PRETRAINED_MODELS_PATH / f"{model_path}.pt").exists():
+            model_path = PRETRAINED_MODELS_PATH / model_path
         try:
             if torch.cuda.is_available() is False:
-                state = torch.load(path / "megnet.pt", map_location=torch.device("cpu"))
+                state = torch.load(model_path, map_location=torch.device("cpu"))
             else:
-                state = torch.load(path / "megnet.pt")
+                state = torch.load(model_path)
             model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
             return model
         except FileNotFoundError:
             raise ValueError(
-                f"{model_dir} does not appear to be a valid model. Provide a valid path or use one of "
+                f"{model_path} does not appear to be a valid model. Provide a valid path or use one of "
                 f"the following pretrained models in {list(PRETRAINED_MODELS_PATH.iterdir())}."
             )
