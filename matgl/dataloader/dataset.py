@@ -171,7 +171,7 @@ class MEGNetDataset(DGLDataset):
             self.graphs.append(graph)
             self.graph_attr.append(state_attr)
         if self.graph_labels is not None:
-            if np.array(graph_labels).dtype == "int64":
+            if np.array(self.graph_labels).dtype == "int64":
                 self.graph_attr = torch.tensor(self.graph_labels).long()  # type: ignore
             else:
                 self.graph_attr = torch.tensor(self.graph_labels)  # type: ignore
