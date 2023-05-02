@@ -11,7 +11,8 @@ from matgl.utils.data import ModelSource
 class ModelSourceTestCase(unittest.TestCase):
     def test_remote(self):
         with ModelSource(
-            "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/MEGNet-MP-2018.6.1-Eform.pt"
+            "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/MEGNet-MP-2018.6.1-Eform.pt",
+            use_cache=False,
         ) as s:
             model = torch.load(s, map_location=torch.device("cpu"))
             self.assertIn("state_dict", model["model"])

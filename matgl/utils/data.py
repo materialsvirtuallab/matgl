@@ -12,22 +12,26 @@ class ModelSource:
     Defines a local or remote source for models.
     """
 
-    def __init__(self, uri):
+    def __init__(self, uri, use_cache=True):
         """
 
         Args:
-            uri:
+            uri: Uniform resource identifier.
+            use_cache: By default, downloaded models are saved at $HOME/.matgl/models. If False, models will be
+                downloaded to current working directory.
         """
         self.uri = uri
         self.model_name = uri.split("/")[-1]
-        self.local_path = PRETRAINED_MODELS_PATH / self.model_name
+        if use_cache:
+            if not PRETRAINED_MODELS_PATH.exists():
+                os.makedirs(PRETRAINED_MODELS_PATH)
+            self.local_path = PRETRAINED_MODELS_PATH / self.model_name
+        else:
+            self.local_path = self.model_name
         self._download()
 
     def _download(self):
         r = requests.get(self.uri, allow_redirects=True)
-
-        if not PRETRAINED_MODELS_PATH.exists():
-            os.makedirs(PRETRAINED_MODELS_PATH)
 
         with open(self.local_path, "wb") as f:
             f.write(r.content)
