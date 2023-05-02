@@ -35,7 +35,7 @@ VAL_FIDELITIES = ["gllb-sc", "hse", "scan"]
 TEST_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
 
 SEED = 42
-EPOCHS = 1000
+EPOCHS = 2000
 path = os.getcwd()
 
 # define the default device for torch tensor. Either 'cuda' or 'cpu'
@@ -170,21 +170,26 @@ bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_
 
 # define the achitecture of multi-fidelity MEGNet model
 model = MEGNet(
-    node_embedding_dim=16,
-    edge_embedding_dim=100,
-    num_blocks=3,
-    hiddens=[64, 32],
-    conv_hiddens=[64, 64, 32],
-    s2s_num_layers=1,
-    s2s_num_iters=3,
-    output_hiddens=[32, 16],
+    dim_node_embedding=16,
+    dim_edge_embedding=100,
+    dim_attr_embedding=16,
+    nblocks=3,
+    hidden_layer_sizes_input=(64, 32),
+    hidden_layer_sizes_conv=(64, 64, 32),
+    nlayers_set2set=1,
+    niters_set2set=3,
+    hidden_layer_sizes_output=(32, 16),
     is_classification=False,
-    node_embed=node_embed,
-    attr_embed=attr_embed,
-    attr_embedding_dim=16,
-    act="softplus2",
+    layer_node_embedding=node_embed,
+    layer_attr_embedding=attr_embed,
+    activation_type="softplus2",
+    include_state_embedding=True,
     graph_converter=cry_graph,
     bond_expansion=bond_expansion,
+    cutoff=5.0,
+    gauss_width=0.5,
+    data_mean=train_mean,
+    data_std=train_std,
 )
 
 
@@ -205,14 +210,19 @@ def xavier_init(model):
 xavier_init(model)
 # setup the optimizer and scheduler
 optimizer = torch.optim.AdamW(model.parameters(), lr=1.0e-3, weight_decay=1.0e-2, amsgrad=True)
-scheduler = CosineAnnealingLR(optimizer, T_max=1000 * 10, eta_min=1.0e-4)
+scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS * 10, eta_min=1.0e-4)
 
 # define the loss functions
 train_loss_function = F.l1_loss
 validate_loss_function = F.l1_loss
 ## using GraphDataLoader for batched graphs
 train_loader, val_loader = MGLDataLoader(
-    train_data=training_set, val_data=validation_set, collate_fn=_collate_fn, batch_size=128, num_workers=1
+    train_data=training_set,
+    val_data=validation_set,
+    collate_fn=_collate_fn,
+    batch_size=128,
+    num_workers=0,
+    generator=generator,
 )
 
 

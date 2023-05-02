@@ -85,12 +85,12 @@ def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     """
     bond_vec = torch.zeros(g.num_edges(), 3)
     bond_dist = torch.zeros(g.num_edges())
-    for i in range(g.num_edges()):
-        bond_vec[i, :] = (
-            g.ndata["pos"][g.edges()[1][i], :]
-            + torch.sum(torch.squeeze(g.edata["pbc_offset"][i][:] * g.edata["lattice"][i][:, None]), dim=0)
-            - g.ndata["pos"][g.edges()[0][i], :]
-        )
+    bond_vec[:, :] = (
+        g.ndata["pos"][g.edges()[1][:].long(), :]
+        + torch.squeeze(torch.matmul(g.edata["pbc_offset"].unsqueeze(1), torch.squeeze(g.edata["lattice"])))
+        - g.ndata["pos"][g.edges()[0][:].long(), :]
+    )
+
     bond_dist = torch.norm(bond_vec, dim=1)
 
     return bond_vec, bond_dist

@@ -58,25 +58,22 @@ class MEGNetTrainerTest(PymatgenTest):
 
         node_feat = g_sample.ndata["node_type"]
         edge_feat = g_sample.edata["edge_attr"]
-        attrs = attr_sample
         node_embed = nn.Embedding(node_feat.shape[-1], 16)
         edge_embed = MLP([edge_feat.shape[-1], 16], activation=None)
-        attr_embed = MLP([attrs.shape[-1], 16], activation=None)
 
         model = MEGNet(
-            node_embedding_dim=16,
-            edge_embedding_dim=16,
-            attr_embedding_dim=16,
-            num_blocks=3,
-            hiddens=[64, 32],
-            conv_hiddens=[64, 64, 32],
-            s2s_num_layers=1,
-            s2s_num_iters=3,
-            output_hiddens=[32, 16],
+            dim_node_embedding=16,
+            dim_edge_embedding=16,
+            dim_attr_embedding=2,
+            nblocks=3,
+            hidden_layer_sizes_input=(64, 32),
+            hidden_layer_sizes_conv=(64, 64, 32),
+            nlayers_set2set=1,
+            niters_set2set=3,
+            hidden_layer_sizes_outputput=[32, 16],
             is_classification=False,
-            node_embed=node_embed,
-            edge_embed=edge_embed,
-            attr_embed=attr_embed,
+            layer_node_embedding=node_embed,
+            layer_edge_embedding=edge_embed,
         )
 
         optimizer = torch.optim.Adam(model.parameters(), lr=1.0e-3)

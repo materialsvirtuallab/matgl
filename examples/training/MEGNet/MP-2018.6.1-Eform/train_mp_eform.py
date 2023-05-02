@@ -92,20 +92,24 @@ bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=5.0, num_
 
 # setup the architecture of MEGNet model
 model = MEGNet(
-    node_embedding_dim=16,
-    edge_embedding_dim=100,
-    attr_embedding_dim=2,
-    num_blocks=3,
-    hiddens=[64, 32],
-    conv_hiddens=[64, 64, 32],
-    s2s_num_layers=1,
-    s2s_num_iters=2,
-    output_hiddens=[32, 16],
+    dim_node_embedding=16,
+    dim_edge_embedding=100,
+    dim_attr_embedding=2,
+    nblocks=3,
+    hidden_layer_sizes_input=(64, 32),
+    hidden_layer_sizes_conv=(64, 64, 32),
+    nlayers_set2set=1,
+    niters_set2set=2,
+    hidden_layer_sizes_output=(32, 16),
     is_classification=False,
-    node_embed=node_embed,
-    act="softplus2",
+    layer_node_embedding=node_embed,
+    activation_type="softplus2",
     graph_converter=cry_graph,
     bond_expansion=bond_expansion,
+    cutoff=4.0,
+    gauss_width=0.5,
+    data_std=train_std,
+    data_mean=train_mean,
 )
 
 
@@ -126,13 +130,19 @@ def xavier_init(model):
 xavier_init(model)
 # setup the optimizer and scheduler
 optimizer = torch.optim.AdamW(model.parameters(), lr=1.0e-3, weight_decay=5.0e-5, amsgrad=True)
-scheduler = CosineAnnealingLR(optimizer, T_max=2000 * 10, eta_min=1.0e-4)
+scheduler = CosineAnnealingLR(optimizer, T_max=EPOCHS * 10, eta_min=1.0e-4)
 # define the loss function for training and validation
 train_loss_function = F.l1_loss
 validate_loss_function = F.l1_loss
 # using GraphDataLoader for batched graphs
 train_loader, val_loader, test_loader = MGLDataLoader(
-    train_data=train_data, val_data=val_data, test_data=test_data, collate_fn=_collate_fn, batch_size=128, num_workers=1
+    train_data=train_data,
+    val_data=val_data,
+    test_data=test_data,
+    collate_fn=_collate_fn,
+    batch_size=128,
+    num_workers=0,
+    generator=generator,
 )
 
 print(model)

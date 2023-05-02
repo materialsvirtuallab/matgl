@@ -1,63 +1,49 @@
 from __future__ import annotations
 
-from collections import namedtuple
+import unittest
 
-import dgl
 import torch as th
+from pymatgen.core.structure import Lattice, Structure
 
+from matgl.graph.compute import compute_pair_vector_and_distance
+from matgl.graph.converters import Pmg2Graph, get_element_list
+from matgl.layers.bond_expansion import BondExpansion
 from matgl.models import MEGNet
 
-Graph = namedtuple("Graph", "graph, graph_attr")
 
+class TestMEGNet(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
 
-def build_graph(N, E, NDIM=5, EDIM=3, GDIM=10):
-    graph = dgl.rand_graph(N, E)
-    graph.ndata["node_feat"] = th.rand(N, NDIM)
-    graph.edata["edge_feat"] = th.rand(E, EDIM)
-    graph_attr = th.rand(1, GDIM)
-    return Graph(graph, graph_attr)
+        cls.element_types = get_element_list([s])
+        p2g = Pmg2Graph(element_types=cls.element_types, cutoff=5.0)
+        graph, state = p2g.get_graph_from_structure(s)
+        cls.g1 = graph
+        cls.state1 = state
 
-
-def get_graphs(num_graphs, NDIM=5, EDIM=3, GDIM=10):
-    Ns = th.randint(10, 30, (num_graphs,)).tolist()
-    Es = th.randint(35, 100, (num_graphs,)).tolist()
-    graphs = [build_graph(*gspec, NDIM, EDIM, GDIM) for gspec in zip(Ns, Es)]
-    return graphs
-
-
-def batch(graph_attrs_lists):
-    graphs, attrs = list(zip(*graph_attrs_lists))
-    batched_graph = dgl.batch(graphs)
-    batched_attrs = th.vstack(attrs)
-    return batched_graph, batched_attrs
-
-
-def test_megnet():
-    DIM = 16
-    N1, N2, N3 = 64, 32, 16
-    graphs = get_graphs(5, NDIM=DIM, EDIM=DIM, GDIM=DIM)
-    batched_graph, attrs = batch(graphs)
-
-    model = MEGNet(
-        node_embedding_dim=DIM,
-        edge_embedding_dim=DIM,
-        attr_embedding_dim=DIM,
-        num_blocks=3,
-        hiddens=[N1, N2],
-        conv_hiddens=[N1, N1, N2],
-        act="swish",
-        s2s_num_layers=4,
-        s2s_num_iters=3,
-        output_hiddens=[N2, N3],
-        is_classification=True,
-    )
-
-    # one pass
-    edge_feat = batched_graph.edata.pop("edge_feat")
-    node_feat = batched_graph.ndata.pop("node_feat")
-    out = model(batched_graph, edge_feat, node_feat, attrs)
-    return out
+    def test_megnet(self):
+        model = MEGNet(
+            dim_node_embedding=16,
+            dim_edge_embedding=100,
+            dim_attr_embedding=2,
+            nblocks=3,
+            include_states=True,
+            hidden_layer_sizes_input=(64, 32),
+            hidden_layer_sizes_conv=(64, 64, 32),
+            activation_type="swish",
+            nlayers_set2set=4,
+            niters_set2set=3,
+            hidden_layer_sizes_output=(32, 16),
+            is_classification=True,
+        )
+        bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_centers=100, width=0.5)
+        bond_vec, bond_dist = compute_pair_vector_and_distance(self.g1)
+        self.g1.edata["edge_attr"] = bond_expansion(bond_dist)
+        self.state1 = th.tensor(self.state1)
+        output = model(self.g1, self.g1.edata["edge_attr"], self.g1.ndata["node_type"], self.state1)
+        self.assertListEqual([th.numel(output)], [1])
 
 
 if __name__ == "__main__":
-    test_megnet()
+    unittest.main()

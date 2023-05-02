@@ -126,6 +126,8 @@ class MEGNetDataset(DGLDataset):
         final: final distance for Gaussian expansions
         num_centers: number of Gaussian functions
         width: width of Gaussian functions
+        name: Name of dataset
+        graph_labels: graph attributes either integers and floating point numbers
         """
         self.converter = converter
         self.structures = structures
@@ -169,7 +171,10 @@ class MEGNetDataset(DGLDataset):
             self.graphs.append(graph)
             self.graph_attr.append(state_attr)
         if self.graph_labels is not None:
-            self.graph_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+            if np.array(graph_labels).dtype == "int64":
+                self.graph_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+            else:
+                self.graph_attr = torch.tensor(self.graph_labels)  # type: ignore
         else:
             self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
 
