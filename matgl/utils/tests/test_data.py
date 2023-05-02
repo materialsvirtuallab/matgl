@@ -15,8 +15,10 @@ class ModelSourceTestCase(unittest.TestCase):
         ) as s:
             model = torch.load(s, map_location=torch.device("cpu"))
             self.assertIn("state_dict", model["model"])
-
-        os.remove("MEGNet-MP-2018.6.1-Eform.pt")
+        try:  # cleanup
+            os.remove("MEGNet-MP-2018.6.1-Eform.pt")
+        except FileNotFoundError:
+            pass
 
 
 if __name__ == "__main__":
