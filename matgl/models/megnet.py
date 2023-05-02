@@ -12,13 +12,14 @@ import torch.nn as nn
 from dgl.nn import Set2Set
 from pymatgen.core import Structure
 
-from matgl.config import PRETRAINED_MODELS_PATH
+from matgl.config import PRETRAINED_MODELS_BASE_URL, PRETRAINED_MODELS_PATH
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
 from matgl.layers.activations import SoftExponential, SoftPlus2
 from matgl.layers.bond_expansion import BondExpansion
 from matgl.layers.core import MLP, EdgeSet2Set
 from matgl.layers.graph_conv import MEGNetBlock
+from matgl.utils.data import ModelSource
 
 logger = logging.getLogger(__file__)
 
@@ -351,14 +352,26 @@ class MEGNet(nn.Module):
         """
         Load the model weights from pre-trained model (MEGNet-MP-2018.6.1-Eform.pt)
         Args:
-            model_path (str): directory for saved model.
+            model_path (str): Path to saved model or name of pre-trained model. The search order is
+                model_path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
+                PRETRAINED_MODELS_BASE_URL.
 
         Returns: MEGNet object.
         """
         model_path = Path(model_path)
-        if (PRETRAINED_MODELS_PATH / f"{model_path}.pt").exists():
-            model_path = PRETRAINED_MODELS_PATH / f"{model_path}.pt"
+
         try:
             return cls.from_dir(model_path)
         except FileNotFoundError:
-            raise ValueError(f"{model_path} not found in available pretrained_models {PRETRAINED_MODELS_PATH}.")
+            if (PRETRAINED_MODELS_PATH / f"{model_path}.pt").exists():
+                model_path = PRETRAINED_MODELS_PATH / f"{model_path}.pt"
+                return cls.from_dir(model_path)
+
+            try:
+                source = ModelSource(f"{PRETRAINED_MODELS_BASE_URL}{model_path}.pt")
+                return cls.from_dir(source.local_path)
+            except BaseException:
+                raise ValueError(
+                    f"No valid model found in {model_path} or among pre-trained_models at "
+                    f"{PRETRAINED_MODELS_PATH} or {PRETRAINED_MODELS_BASE_URL}."
+                )

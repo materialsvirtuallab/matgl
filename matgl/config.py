@@ -1,6 +1,7 @@
 """Global configuration variables for matgl."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +16,7 @@ DTYPES = {
     "int16": {"numpy": np.int16, "torch": torch.int16},
 }
 
-PRETRAINED_MODELS_PATH = Path(__file__).absolute().parent / ".." / "pretrained_models"
+PRETRAINED_MODELS_PATH = Path(os.path.expanduser("~")) / ".matgl" / "models"
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 
