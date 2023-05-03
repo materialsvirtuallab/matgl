@@ -1,5 +1,5 @@
 """
-Various math function implementations.
+Implementations of math functions.
 """
 
 from __future__ import annotations
