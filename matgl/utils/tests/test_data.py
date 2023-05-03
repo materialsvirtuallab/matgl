@@ -5,12 +5,12 @@ import unittest
 
 import torch
 
-from matgl.utils.data import ModelSource
+from matgl.utils.remote import RemoteFile
 
 
 class ModelSourceTestCase(unittest.TestCase):
     def test_remote(self):
-        with ModelSource(
+        with RemoteFile(
             "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/MEGNet-MP-2018.6.1-Eform.pt",
             use_cache=False,
         ) as s:

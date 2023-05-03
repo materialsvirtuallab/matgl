@@ -16,7 +16,7 @@ DTYPES = {
     "int16": {"numpy": np.int16, "torch": torch.int16},
 }
 
-PRETRAINED_MODELS_PATH = Path(os.path.expanduser("~")) / ".matgl" / "models"
+MATGL_CACHE = Path(os.path.expanduser("~")) / ".matgl"
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 

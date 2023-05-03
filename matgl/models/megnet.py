@@ -12,14 +12,14 @@ import torch.nn as nn
 from dgl.nn import Set2Set
 from pymatgen.core import Structure
 
-from matgl.config import PRETRAINED_MODELS_BASE_URL, PRETRAINED_MODELS_PATH
+from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
 from matgl.layers.activations import SoftExponential, SoftPlus2
 from matgl.layers.bond_expansion import BondExpansion
 from matgl.layers.core import MLP, EdgeSet2Set
 from matgl.layers.graph_conv import MEGNetBlock
-from matgl.utils.data import ModelSource
+from matgl.utils.remote import RemoteFile
 
 logger = logging.getLogger(__file__)
 
@@ -363,15 +363,15 @@ class MEGNet(nn.Module):
         try:
             return cls.from_dir(model_path)
         except FileNotFoundError:
-            if (PRETRAINED_MODELS_PATH / f"{model_path}.pt").exists():
-                model_path = PRETRAINED_MODELS_PATH / f"{model_path}.pt"
+            if (MATGL_CACHE / f"{model_path}.pt").exists():
+                model_path = MATGL_CACHE / f"{model_path}.pt"
                 return cls.from_dir(model_path)
 
             try:
-                source = ModelSource(f"{PRETRAINED_MODELS_BASE_URL}{model_path}.pt")
+                source = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{model_path}.pt")
                 return cls.from_dir(source.local_path)
             except BaseException:
                 raise ValueError(
                     f"No valid model found in {model_path} or among pre-trained_models at "
-                    f"{PRETRAINED_MODELS_PATH} or {PRETRAINED_MODELS_BASE_URL}."
+                    f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
                 )
