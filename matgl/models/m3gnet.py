@@ -7,7 +7,6 @@ import logging
 import os
 
 import dgl
-import numpy as np
 import torch
 import torch.nn as nn
 
@@ -17,7 +16,6 @@ from matgl.graph.compute import (
     create_line_graph,
 )
 from matgl.graph.converters import Pmg2Graph
-from matgl.layers.atom_ref import AtomRef
 from matgl.layers.bond_expansion import BondExpansion
 from matgl.layers.core import MLP, GatedMLP
 from matgl.layers.cutoff_functions import polynomial_cutoff
@@ -67,7 +65,6 @@ class M3GNet(nn.Module):
         num_s2s_layers: int = 3,
         field: str = "node_feat",
         include_states: bool = False,
-        element_refs: np.ndarray | None = None,
         activation: str = "swish",
         **kwargs,
     ):
@@ -101,8 +98,6 @@ class M3GNet(nn.Module):
             num_s2s_steps (int): number of set2set iterations
             num_s2s_layers (int): number of set2set layers
             include_states (bool): whether to include states features
-            element_refs (np.ndarray): element reference values for each
-                element
             activation (str): activation type. choose from 'swish', 'tanh', 'sigmoid'
             **kwargs:
         """
@@ -187,8 +182,6 @@ class M3GNet(nn.Module):
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
             self.final_layer = WeightedReadOut(in_feats=num_node_feats, dims=[units, units], num_targets=num_targets)
-        if element_refs is not None:
-            self.element_ref_calc = AtomRef(property_offset=element_refs)
 
         self.max_n = max_n
         self.max_l = max_l
@@ -201,7 +194,6 @@ class M3GNet(nn.Module):
         self.is_intensive = is_intensive
         self.data_mean = data_mean
         self.data_std = data_std
-        self.element_refs = element_refs
 
     def as_dict(self):
         out = {"state_dict": self.state_dict(), "model_args": self.model_args}
@@ -297,8 +289,4 @@ class M3GNet(nn.Module):
             g.ndata["atomic_properties"] = self.final_layer(g)
             output = dgl.readout_nodes(g, "atomic_properties", op="sum")
         output = output * self.data_std + self.data_mean
-        output = torch.squeeze(output)
-        if self.element_refs is not None:
-            property_offset = torch.squeeze(self.element_ref_calc(g))
-            output += property_offset
-        return output
+        return torch.squeeze(output)

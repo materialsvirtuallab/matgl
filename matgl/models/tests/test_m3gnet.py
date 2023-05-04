@@ -23,7 +23,7 @@ class TestM3GNet(unittest.TestCase):
         cls.state1 = state
 
     def test_model(self):
-        model = M3GNet(element_types=self.element_types, is_intensive=False, element_refs=np.array([-0.5, -1.0]))
+        model = M3GNet(element_types=self.element_types, is_intensive=False)
         output = model(g=self.g1)
         self.assertListEqual([torch.numel(output)], [1])
 

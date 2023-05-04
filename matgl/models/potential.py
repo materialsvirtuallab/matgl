@@ -4,9 +4,12 @@ M3GNet potentials
 from __future__ import annotations
 
 import dgl
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import grad
+
+from matgl.layers.atom_ref import AtomRef
 
 
 class Potential(nn.Module):
@@ -17,12 +20,14 @@ class Potential(nn.Module):
     def __init__(
         self,
         model: nn.Module,
+        element_refs: np.ndarray | None = None,
         calc_forces: bool = True,
         calc_stresses: bool = True,
         calc_hessian: bool = False,
     ):
         """
         :param model: M3GNet model
+        :param element_refs: Element reference values for each element
         :param calc_forces: Enable force calculations
         :param calc_stresses: Enable stress calculations
         :param calc_hessian: Enable hessian calculations
@@ -33,6 +38,9 @@ class Potential(nn.Module):
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
         self.graph_converter = model.graph_converter
+        if element_refs is not None:
+            self.element_ref_calc = AtomRef(property_offset=element_refs)
+        self.element_refs = element_refs
 
     def forward(
         self, g: dgl.DGLGraph, graph_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None
@@ -51,6 +59,9 @@ class Potential(nn.Module):
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
         total_energies = self.model(g=g, state_attr=graph_attr, l_g=l_g)
+        if self.element_refs is not None:
+            property_offset = torch.squeeze(self.element_ref_calc(g))
+            total_energies += property_offset
         if self.calc_forces:
             grads = grad(
                 total_energies,
