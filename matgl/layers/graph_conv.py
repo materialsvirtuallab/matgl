@@ -43,10 +43,10 @@ class MEGNetGraphConv(Module):
     ) -> MEGNetGraphConv:
         """
         TODO: Add docs.
-        :param edge_dims:
-        :param node_dims:
-        :param attr_dims:
-        :param activation:
+        :param edge_dims: dense layers for message functions
+        :param node_dims: dense layers for node update functions
+        :param attr_dims: dense layers for state update functions
+        :param activation: activation function
         :return:
         """
         # TODO(marcel): Softplus doesn't exactly match paper's SoftPlus2
@@ -147,11 +147,12 @@ class MEGNetBlock(Module):
     ) -> None:
         """
         TODO: Add docs.
-        :param dims:
-        :param conv_hiddens:
-        :param act:
-        :param dropout:
-        :param skip:
+        :param dims: architecture of dense layers before graph convolution
+        :param conv_hiddens: architecture of graph convolution
+        :param act: activation type
+        :param dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
+                a Bernoulli distribution
+        :param skip: residual block
         """
         super().__init__()
         self.has_dense = len(dims) > 1

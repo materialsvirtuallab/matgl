@@ -31,6 +31,98 @@ MODEL_NAME = "m3gnet"
 
 MODEL_PATHS = {"MP-2021.2.8-EFS": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2021.2.8-EFS")}
 
+DEFAULT_ELEMENT_TYPES = (
+    "H",
+    "He",
+    "Li",
+    "Be",
+    "B",
+    "C",
+    "N",
+    "O",
+    "F",
+    "Ne",
+    "Na",
+    "Mg",
+    "Al",
+    "Si",
+    "P",
+    "S",
+    "Cl",
+    "Ar",
+    "K",
+    "Ca",
+    "Sc",
+    "Ti",
+    "V",
+    "Cr",
+    "Mn",
+    "Fe",
+    "Co",
+    "Ni",
+    "Cu",
+    "Zn",
+    "Ga",
+    "Ge",
+    "As",
+    "Se",
+    "Br",
+    "Kr",
+    "Rb",
+    "Sr",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Tc",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "In",
+    "Sn",
+    "Sb",
+    "Te",
+    "I",
+    "Xe",
+    "Cs",
+    "Ba",
+    "La",
+    "Ce",
+    "Pr",
+    "Nd",
+    "Pm",
+    "Sm",
+    "Eu",
+    "Gd",
+    "Tb",
+    "Dy",
+    "Ho",
+    "Er",
+    "Tm",
+    "Yb",
+    "Lu",
+    "Hf",
+    "Ta",
+    "W",
+    "Re",
+    "Os",
+    "Ir",
+    "Pt",
+    "Au",
+    "Hg",
+    "Tl",
+    "Pb",
+    "Bi",
+    "Ac",
+    "Th",
+    "Pa",
+    "U",
+    "Np",
+    "Pu",
+)
+
 
 class M3GNet(nn.Module):
     """
@@ -40,15 +132,14 @@ class M3GNet(nn.Module):
     def __init__(
         self,
         element_types: tuple[str],
-        num_node_feats: int = 64,
-        num_edge_feats: int = 64,
-        num_state_feats: int | None = None,
-        num_node_types: int | None = None,
-        num_state_types: int | None = None,
-        state_embedding_dim: int | None = None,
+        dim_node_embedding: int = 64,
+        dim_edge_embedding: int = 64,
+        dim_attr_embedding: int | None = None,
+        dim_state_types: int | None = None,
+        dim_state_feats: int | None = None,
         max_n: int = 3,
         max_l: int = 3,
-        n_blocks: int = 3,
+        nblocks: int = 3,
         rbf_type="SphericalBessel",
         is_intensive: bool = True,
         readout_type: str = "weighted_atom",
@@ -58,28 +149,27 @@ class M3GNet(nn.Module):
         units: int = 64,
         data_mean: float = 0.0,
         data_std: float = 1.0,
-        num_targets: int = 1,
+        ntargets: int = 1,
         use_smooth: bool = False,
         use_phi: bool = False,
-        num_s2s_steps: int = 3,
-        num_s2s_layers: int = 3,
+        niters_set2set: int = 3,
+        nlayers_set2set: int = 3,
         field: str = "node_feat",
-        include_states: bool = False,
+        include_state_embedding: bool = False,
         activation: str = "swish",
         **kwargs,
     ):
         r"""
         Args:
             element_types (tuple): list of elements appearing in the dataset
-            num_node_feats (int): number of atomic features
-            num_edge_feats (int): number of edge features
-            num_state_feats (int): number of state features
-            num_node_types (int): number of node types
-            num_state_types (int): number of state labels
-            state_embedding_dim (int): number of hidden neeurons in state embedding
+            dim_node_embedding (int): number of embedded atomic features
+            dim_edge_embedding (int): number of edge features
+            dim_attr_embedding (int): number of hidden neurons in state embedding
+            dim_state_feats (int): number of state features after linear layer
+            dim_state_types (int): number of state labels
             max_n (int): number of radial basis expansion
             max_l (int): number of angular expansion
-            n_blocks (int): number of convolution blocks
+            nblocks (int): number of convolution blocks
             rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
             is_intensive (bool): whether the prediction is intensive
             readout (str): the readout function type. choose from `set2set`,
@@ -91,13 +181,13 @@ class M3GNet(nn.Module):
             units (int): number of neurons in each MLP layer
             data_mean (float): optional `mean` value of the target
             data_std (float): optional `std` of the target
-            num_targets (int): number of target properties
+            ntargets (int): number of target properties
             use_smooth (bool): whether using smooth Bessel functions
             use_phi (bool): whether using phi angle
             field (str): using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
-            num_s2s_steps (int): number of set2set iterations
-            num_s2s_layers (int): number of set2set layers
-            include_states (bool): whether to include states features
+            niters_set2set (int): number of set2set iterations
+            nlayers_set2set (int): number of set2set layers
+            include_state_embedding (bool): whether to include states features
             activation (str): activation type. choose from 'swish', 'tanh', 'sigmoid'
             **kwargs:
         """
@@ -115,6 +205,9 @@ class M3GNet(nn.Module):
         elif activation == "sigmoid":
             self.activation = nn.Sigmoid()  # type: ignore
 
+        if element_types is None:
+            self.element_types = DEFAULT_ELEMENT_TYPES
+
         self.graph_converter = Pmg2Graph(element_types=element_types, cutoff=cutoff)
 
         self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth)
@@ -123,17 +216,14 @@ class M3GNet(nn.Module):
 
         degree_rbf = max_n if use_smooth else max_n * max_l
 
-        if num_node_types is None:
-            num_node_types = len(element_types)
-
         self.embedding = EmbeddingBlock(
             degree_rbf=degree_rbf,
-            num_node_feats=num_node_feats,
-            num_edge_feats=num_edge_feats,
-            num_node_types=num_node_types,
-            num_state_feats=num_state_feats,
-            include_states=include_states,
-            state_embedding_dim=state_embedding_dim,
+            num_node_feats=dim_node_embedding,
+            num_edge_feats=dim_edge_embedding,
+            num_node_types=len(element_types),
+            num_state_feats=dim_state_feats,
+            include_states=include_state_embedding,
+            state_embedding_dim=dim_attr_embedding,
             activation=self.activation,
         )
 
@@ -143,10 +233,12 @@ class M3GNet(nn.Module):
         self.three_body_interactions = nn.ModuleList(
             {
                 ThreeBodyInteractions(
-                    update_network_atom=MLP(dims=[num_node_feats, degree], activation=nn.Sigmoid(), activate_last=True),
-                    update_network_bond=GatedMLP(in_feats=degree, dims=[num_edge_feats], use_bias=False),
+                    update_network_atom=MLP(
+                        dims=[dim_node_embedding, degree], activation=nn.Sigmoid(), activate_last=True
+                    ),
+                    update_network_bond=GatedMLP(in_feats=degree, dims=[dim_edge_embedding], use_bias=False),
                 )
-                for _ in range(n_blocks)
+                for _ in range(nblocks)
             }
         )
 
@@ -156,24 +248,24 @@ class M3GNet(nn.Module):
                     degree=degree_rbf,
                     activation=self.activation,
                     conv_hiddens=[units, units],
-                    num_node_feats=num_node_feats,
-                    num_edge_feats=num_edge_feats,
-                    num_state_feats=num_state_feats,
-                    include_states=include_states,
+                    num_node_feats=dim_node_embedding,
+                    num_edge_feats=dim_edge_embedding,
+                    num_state_feats=dim_state_feats,
+                    include_states=include_state_embedding,
                 )
-                for _ in range(n_blocks)
+                for _ in range(nblocks)
             }
         )
         if is_intensive:
-            input_feats = num_node_feats if field == "node_feat" else num_edge_feats
+            input_feats = dim_node_embedding if field == "node_feat" else dim_edge_embedding
             if readout_type == "set2set":
-                self.readout = Set2SetReadOut(num_steps=num_s2s_steps, num_layers=num_s2s_layers, field=field)
-                readout_feats = 2 * input_feats + num_state_feats if include_states else 2 * input_feats  # type: ignore
+                self.readout = Set2SetReadOut(num_steps=niters_set2set, num_layers=nlayers_set2set, field=field)
+                readout_feats = 2 * input_feats + dim_state_feats if include_state_embedding else 2 * input_feats  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)
-                readout_feats = input_feats + num_state_feats if include_states else input_feats  # type: ignore
+                readout_feats = input_feats + dim_state_feats if include_state_embedding else input_feats  # type: ignore
 
-            dims_final_layer = [readout_feats] + [units, units] + [num_targets]
+            dims_final_layer = [readout_feats] + [units, units] + [ntargets]
             self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False)
             if task_type == "classification":
                 self.sigmoid = nn.Sigmoid()
@@ -181,15 +273,15 @@ class M3GNet(nn.Module):
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
-            self.final_layer = WeightedReadOut(in_feats=num_node_feats, dims=[units, units], num_targets=num_targets)
+            self.final_layer = WeightedReadOut(in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets)
 
         self.max_n = max_n
         self.max_l = max_l
-        self.n_blocks = n_blocks
+        self.n_blocks = nblocks
         self.units = units
         self.cutoff = cutoff
         self.threebody_cutoff = threebody_cutoff
-        self.include_states = include_states
+        self.include_states = include_state_embedding
         self.task_type = task_type
         self.is_intensive = is_intensive
         self.data_mean = data_mean
