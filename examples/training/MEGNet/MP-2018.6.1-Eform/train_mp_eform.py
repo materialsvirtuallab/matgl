@@ -23,7 +23,7 @@ from matgl.graph.converters import get_element_list, Pmg2Graph
 from matgl.layers.bond_expansion import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from matgl.trainer.megnet import MEGNetTrainer
-from matgl.dataloader.dataset import MEGNetDataset, _collate_fn, MGLDataLoader
+from matgl.data.dataset import MEGNetDataset, _collate_fn, MGLDataLoader
 from matgl.models import MEGNet
 
 SEED = 42

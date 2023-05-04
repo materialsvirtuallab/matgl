@@ -7,7 +7,9 @@ Subpackages
 .. toctree::
    :maxdepth: 6
 
-   matgl.dataloader
+   matgl.apps
+   matgl.data
+   matgl.ext
    matgl.graph
    matgl.layers
    matgl.models

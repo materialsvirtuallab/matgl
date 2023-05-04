@@ -8,7 +8,7 @@ from dgl.data.utils import split_dataset
 from pymatgen.core import Molecule
 from pymatgen.util.testing import PymatgenTest
 
-from matgl.dataloader.dataset import (
+from matgl.data.dataset import (
     M3GNetDataset,
     MEGNetDataset,
     MGLDataLoader,

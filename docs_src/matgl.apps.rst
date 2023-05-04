@@ -1,5 +1,5 @@
-matgl.utils package
-===================
+matgl.apps package
+==================
 
 Submodules
 ----------
@@ -7,13 +7,12 @@ Submodules
 .. toctree::
    :maxdepth: 6
 
-   matgl.utils.maths
-   matgl.utils.remote
+   matgl.apps.pes
 
 Module contents
 ---------------
 
-.. automodule:: matgl.utils
+.. automodule:: matgl.apps
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,5 +1,5 @@
-matgl.utils package
-===================
+matgl.data package
+==================
 
 Submodules
 ----------
@@ -7,13 +7,12 @@ Submodules
 .. toctree::
    :maxdepth: 6
 
-   matgl.utils.maths
-   matgl.utils.remote
+   matgl.data.dataset
 
 Module contents
 ---------------
 
-.. automodule:: matgl.utils
+.. automodule:: matgl.data
    :members:
    :undoc-members:
    :show-inheritance:

@@ -13,7 +13,7 @@ from pymatgen.util.testing import PymatgenTest
 from torch.optim.lr_scheduler import ExponentialLR
 
 from matgl.apps.pes import Potential
-from matgl.dataloader.dataset import (
+from matgl.data.dataset import (
     M3GNetDataset,
     MEGNetDataset,
     MGLDataLoader,

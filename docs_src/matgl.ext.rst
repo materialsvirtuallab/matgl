@@ -1,5 +1,5 @@
-matgl.utils package
-===================
+matgl.ext package
+=================
 
 Submodules
 ----------
@@ -7,13 +7,12 @@ Submodules
 .. toctree::
    :maxdepth: 6
 
-   matgl.utils.maths
-   matgl.utils.remote
+   matgl.ext.ase
 
 Module contents
 ---------------
 
-.. automodule:: matgl.utils
+.. automodule:: matgl.ext
    :members:
    :undoc-members:
    :show-inheritance:

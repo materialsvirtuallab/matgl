@@ -1,5 +1,5 @@
 """
-Tools to construct a dataloader for DGL grphs
+Tools to construct a data for DGL grphs
 """
 from __future__ import annotations
 
