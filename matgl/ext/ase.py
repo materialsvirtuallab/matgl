@@ -1,5 +1,5 @@
 """
-Dynamics calculations using M3GNet
+Interfaces to the Atomic Simulation Environment package for dynamic simulations.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
-from .potential import Potential
+from matgl.models.potential import Potential
 
 OPTIMIZERS = {
     "FIRE": FIRE,
