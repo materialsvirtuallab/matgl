@@ -13,14 +13,14 @@ from pymatgen.util.testing import PymatgenTest
 from torch.optim.lr_scheduler import ExponentialLR
 
 from matgl.apps.pes import Potential
-from matgl.data.dataset import (
+from matgl.graph.converters import Pmg2Graph, get_element_list
+from matgl.graph.data import (
     M3GNetDataset,
     MEGNetDataset,
     MGLDataLoader,
     _collate_fn,
     _collate_fn_efs,
 )
-from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers.core import MLP
 from matgl.models.m3gnet import M3GNet
 from matgl.models.megnet import MEGNet

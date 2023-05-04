@@ -3,7 +3,6 @@
 # Email: t1ko@ucsd.edu
 
 import json
-from typing import Dict, List, Tuple, Union
 
 import os
 import torch
@@ -12,18 +11,15 @@ import torch.nn.functional as F
 from dgl.data.utils import split_dataset
 
 import pandas as pd
-import dgl
 import math
 
-from tqdm import tqdm, trange
-
 # Import megnet related modules
-from pymatgen.core import Element, Structure
+from pymatgen.core import Structure
 from matgl.graph.converters import get_element_list, Pmg2Graph
 from matgl.layers.bond_expansion import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from matgl.trainer.megnet import MEGNetTrainer
-from matgl.data.dataset import MEGNetDataset, _collate_fn, MGLDataLoader
+from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
 from matgl.models import MEGNet
 
 SEED = 42
