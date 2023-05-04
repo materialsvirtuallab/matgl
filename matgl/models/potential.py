@@ -14,7 +14,7 @@ from matgl.layers.atom_ref import AtomRef
 
 class Potential(nn.Module):
     """
-    A M3GNet potential class.
+    A class representing an interatomic potential.
     """
 
     def __init__(
