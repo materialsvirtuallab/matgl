@@ -3,30 +3,23 @@
 # Email: t1ko@ucsd.edu
 import gzip
 import json
-from typing import Callable
-from typing import Dict, List, Tuple, Union
+from typing import List
 
 import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dgl.data.utils import split_dataset
 from copy import deepcopy
-from glob import glob
 
-import pandas as pd
-import dgl
 import math
 
-from tqdm import tqdm, trange
-
 # Import megnet related modules
-from pymatgen.core import Element, Structure
+from pymatgen.core import Structure
 from matgl.graph.converters import get_element_list, Pmg2Graph
 from matgl.layers.bond_expansion import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from matgl.trainer.megnet import MEGNetTrainer
-from matgl.data.dataset import MEGNetDataset, _collate_fn, MGLDataLoader
+from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
 from matgl.models import MEGNet
 
 ALL_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
