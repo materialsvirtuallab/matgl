@@ -12,6 +12,7 @@ from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
 from torch.optim.lr_scheduler import ExponentialLR
 
+from matgl.apps.pes import Potential
 from matgl.dataloader.dataset import (
     M3GNetDataset,
     MEGNetDataset,
@@ -23,7 +24,6 @@ from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers.core import MLP
 from matgl.models.m3gnet import M3GNet
 from matgl.models.megnet import MEGNet
-from matgl.models.potential import Potential
 from matgl.trainer.m3gnet import M3GNetTrainer
 from matgl.trainer.megnet import MEGNetTrainer
 

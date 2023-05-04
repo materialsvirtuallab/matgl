@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from matgl.models.potential import Potential
+from matgl.apps.pes import Potential
 
 logger = logging.getLogger("m3gnet_trainer")
 

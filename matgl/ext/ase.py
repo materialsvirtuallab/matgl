@@ -27,7 +27,7 @@ from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
-from matgl.models.potential import Potential
+from matgl.apps.pes import Potential
 
 OPTIMIZERS = {
     "FIRE": FIRE,

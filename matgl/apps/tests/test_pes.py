@@ -6,9 +6,9 @@ import numpy as np
 import torch
 from pymatgen.core.structure import Lattice, Structure
 
+from matgl.apps.pes import Potential
 from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.models.m3gnet import M3GNet
-from matgl.models.potential import Potential
 
 
 class TestPotential(unittest.TestCase):
