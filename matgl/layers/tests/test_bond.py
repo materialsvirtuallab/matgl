@@ -6,7 +6,7 @@ from pymatgen.core.structure import Lattice, Molecule, Structure
 
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.layers._bond import BondExpansion
+from matgl.layers import BondExpansion
 
 
 class TestBondExpansion(unittest.TestCase):

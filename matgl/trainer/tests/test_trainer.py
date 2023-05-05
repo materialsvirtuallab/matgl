@@ -21,9 +21,8 @@ from matgl.graph.data import (
     _collate_fn,
     _collate_fn_efs,
 )
-from matgl.layers._core import MLP
-from matgl.models._m3gnet import M3GNet
-from matgl.models._megnet import MEGNet
+from matgl.layers import MLP
+from matgl.models import M3GNet, MEGNet
 from matgl.trainer.m3gnet import M3GNetTrainer
 from matgl.trainer.megnet import MEGNetTrainer
 

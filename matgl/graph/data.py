@@ -17,7 +17,7 @@ from tqdm import trange
 
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
 from matgl.graph.converters import GraphConverter
-from matgl.layers._bond import BondExpansion
+from matgl.layers import BondExpansion
 
 
 def _collate_fn(batch):

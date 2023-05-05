@@ -15,8 +15,7 @@ from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.layers._bond import BondExpansion
-from matgl.layers._embedding import EmbeddingBlock
+from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._graph_convolution import (
     MLP,
     M3GNetBlock,

@@ -12,9 +12,8 @@ from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.layers._bond import BondExpansion
+from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._core import MLP, GatedMLP
-from matgl.layers._embedding import EmbeddingBlock
 from matgl.layers._three_body import SphericalBesselWithHarmonics, ThreeBodyInteractions
 from matgl.utils.cutoff import polynomial_cutoff
 
