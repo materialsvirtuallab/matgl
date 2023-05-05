@@ -27,20 +27,21 @@ class EmbeddingBlock(nn.Module):
         dim_attr_embedding: int | None = None,
     ):
         """
-        Parameters:
-        -----------
-        degree_rbf (int): number of rbf
-        activation (nn.Module): activation type
-        dim_node_embedding (int): dimensionality of node features
-        dim_edge_embedding (int): dimensionality of edge features
-        dim_attr_embedding (int): dimensionality of state features
-        include_states (bool): whether including state for M3GNet or not
-        num_state_types (int): number of state labels
-        state_embedding_dim (int): dimensionality of state embedding
+
+        Args:
+            degree_rbf (int): number of rbf
+            activation (nn.Module): activation type
+            dim_node_embedding (int): dimensionality of node features
+            dim_edge_embedding (int): dimensionality of edge features
+            dim_attr_feats: dimensionality of state features
+            ntypes_node: number of node labels
+            include_attr_embedding: Whether to include state embedding
+            ntypes_attr: number of state labels
+            dim_attr_embedding: dimensionality of state embedding
         """
         super().__init__()
         self.include_states = include_attr_embedding
-        self.ntypes_state = ntypes_attr
+        self.ntypes_attr = ntypes_attr
         self.dim_node_embedding = dim_node_embedding
         self.dim_edge_embedding = dim_edge_embedding
         self.dim_attr_feats = dim_attr_feats
@@ -76,7 +77,7 @@ class EmbeddingBlock(nn.Module):
 
         edge_feat = self.edge_embedding(edge_attr.to(torch.float32))
         if self.include_states is True:
-            if self.ntypes_state and self.dim_attr_embedding is not None:
+            if self.ntypes_attr and self.dim_attr_embedding is not None:
                 state_feat = self.state_embedding(state_attr)
             else:
                 state_attr = torch.unsqueeze(state_attr, 0)
