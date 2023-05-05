@@ -13,11 +13,10 @@ import torch
 from dgl.data import DGLDataset
 from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
-from pymatgen.core import Structure
 from tqdm import trange
 
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
-from matgl.graph.converters import Pmg2Graph
+from matgl.graph.converters import GraphConverter
 from matgl.layers._bond import BondExpansion
 
 
@@ -108,7 +107,7 @@ class MEGNetDataset(DGLDataset):
         structures: list,
         labels: list,
         label_name: str,
-        converter: Pmg2Graph,
+        converter: GraphConverter,
         initial: float = 0.0,
         final: float = 5.0,
         num_centers: int = 100,
@@ -162,10 +161,7 @@ class MEGNetDataset(DGLDataset):
         )
         for idx in trange(num_graphs):
             structure = self.structures[idx]
-            if isinstance(structure, Structure):
-                graph, state_attr = self.converter.get_graph_from_structure(structure=structure)
-            else:
-                graph, state_attr = self.converter.get_graph_from_molecule(mol=structure)
+            graph, state_attr = self.converter.get_graph(structure)
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["edge_attr"] = bond_expansion(bond_dist)
             self.graphs.append(graph)
@@ -226,7 +222,7 @@ class M3GNetDataset(DGLDataset):
         energies: list,
         forces: list,
         stresses: None | list,
-        converter: Pmg2Graph,
+        converter: GraphConverter,
         threebody_cutoff: float,
         name="M3GNETDataset",
         graph_labels: list | None = None,
@@ -270,10 +266,7 @@ class M3GNetDataset(DGLDataset):
         self.graph_attr = []
         for idx in trange(num_graphs):
             structure = self.structures[idx]
-            if isinstance(structure, Structure):
-                graph, state_attr = self.converter.get_graph_from_structure(structure=structure)
-            else:
-                graph, state_attr = self.converter.get_graph_from_molecule(mol=structure)
+            graph, state_attr = self.converter.get_graph(structure)
             self.graphs.append(graph)
             self.graph_attr.append(state_attr)
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
