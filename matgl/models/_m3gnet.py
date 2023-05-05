@@ -177,7 +177,9 @@ class M3GNet(nn.Module):
                 )
             else:
                 self.readout = ReduceReadOut("mean", field=field)
-                readout_feats = input_feats + dim_state_feats if include_state_embedding else input_feats  # type: ignore
+                readout_feats = (
+                    input_feats + dim_state_feats if include_state_embedding else input_feats  # type: ignore
+                )
 
             dims_final_layer = [readout_feats] + [units, units] + [ntargets]
             self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False)
