@@ -15,8 +15,8 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
-from matgl.ext.pymatgen import Structure2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
+from matgl.graph.converters import GraphConverter
 from matgl.layers._bond import BondExpansion
 
 
@@ -107,7 +107,7 @@ class MEGNetDataset(DGLDataset):
         structures: list,
         labels: list,
         label_name: str,
-        converter: Structure2Graph,
+        converter: GraphConverter,
         initial: float = 0.0,
         final: float = 5.0,
         num_centers: int = 100,
@@ -222,7 +222,7 @@ class M3GNetDataset(DGLDataset):
         energies: list,
         forces: list,
         stresses: None | list,
-        converter: Structure2Graph,
+        converter: GraphConverter,
         threebody_cutoff: float,
         name="M3GNETDataset",
         graph_labels: list | None = None,
