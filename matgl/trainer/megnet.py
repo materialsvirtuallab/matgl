@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from matgl.models.megnet import MEGNet
+from matgl.models._megnet import MEGNet
 
 logger = logging.getLogger("megnet_trainer")
 
