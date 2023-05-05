@@ -150,8 +150,8 @@ class MEGNetBlock(Module):
         :param dims: architecture of dense layers before graph convolution
         :param conv_hiddens: architecture of graph convolution
         :param act: activation type
-        :param dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
-                a Bernoulli distribution
+        :param dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
+            to a Bernoulli distribution
         :param skip: residual block
         """
         super().__init__()
