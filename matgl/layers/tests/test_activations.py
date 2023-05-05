@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 import torch
 
-from matgl.layers.activations import SoftExponential, SoftPlus2
+from matgl.layers._activations import SoftExponential, SoftPlus2
 
 
 class TestActivations(unittest.TestCase):

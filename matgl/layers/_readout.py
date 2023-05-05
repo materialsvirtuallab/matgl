@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from dgl.nn import Set2Set
 
-from matgl.layers.core import EdgeSet2Set, GatedMLP
+from matgl.layers._core import EdgeSet2Set, GatedMLP
 
 
 class Set2SetReadOut(nn.Module):

@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import grad
 
-from matgl.layers.atom_ref import AtomRef
+from matgl.layers._atom_ref import AtomRef
 
 
 class Potential(nn.Module):

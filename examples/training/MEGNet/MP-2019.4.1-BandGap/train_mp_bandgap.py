@@ -16,7 +16,7 @@ import math
 # Import megnet related modules
 from pymatgen.core import Structure
 from matgl.graph.converters import get_element_list, Pmg2Graph
-from matgl.layers.bond_expansion import BondExpansion
+from matgl.layers._bond import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from matgl.trainer.megnet import MEGNetTrainer
 from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader

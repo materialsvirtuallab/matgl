@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 import torch
 
-from matgl.layers.cutoff_functions import cosine_cutoff, polynomial_cutoff
+from matgl.layers._cutoff import cosine_cutoff, polynomial_cutoff
 
 
 class TestCutoff(unittest.TestCase):
