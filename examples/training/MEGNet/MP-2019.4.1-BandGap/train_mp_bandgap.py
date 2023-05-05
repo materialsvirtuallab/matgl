@@ -165,7 +165,7 @@ bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_
 model = MEGNet(
     dim_node_embedding=16,
     dim_edge_embedding=100,
-    dim_attr_embedding=16,
+    dim_state_embedding=16,
     nblocks=3,
     hidden_layer_sizes_input=(64, 32),
     hidden_layer_sizes_conv=(64, 64, 32),
@@ -174,7 +174,7 @@ model = MEGNet(
     hidden_layer_sizes_output=(32, 16),
     is_classification=False,
     layer_node_embedding=node_embed,
-    layer_attr_embedding=attr_embed,
+    layer_state_embedding=attr_embed,
     activation_type="softplus2",
     include_state_embedding=True,
     graph_converter=cry_graph,

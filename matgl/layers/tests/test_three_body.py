@@ -6,12 +6,12 @@ import torch
 import torch.nn as nn
 from pymatgen.core.structure import Lattice, Structure
 
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers._bond import BondExpansion
 from matgl.layers._core import MLP, GatedMLP
 from matgl.layers._embedding import EmbeddingBlock
@@ -25,8 +25,8 @@ class TestThreeBody(unittest.TestCase):
         cls.s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
 
         element_types = get_element_list([cls.s])
-        p2g = Pmg2Graph(element_types=element_types, cutoff=5.0)
-        graph, state = p2g.get_graph_from_structure(cls.s)
+        p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
+        graph, state = p2g.get_graph(cls.s)
         cls.g1 = graph
         cls.state1 = state
         bond_vec, bond_dist = compute_pair_vector_and_distance(cls.g1)

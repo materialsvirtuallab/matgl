@@ -98,7 +98,7 @@ exclude = [
 "tasks.py" = ["D"]
 
 [tool.pytest.ini_options]
-addopts = "-x --durations=30 --quiet -rxXs --color=yes -p no:warnings"
+addopts = "--durations=30 --quiet -rXs --color=yes -p no:warnings"
 
 [tool.mypy]
 ignore_missing_imports = true

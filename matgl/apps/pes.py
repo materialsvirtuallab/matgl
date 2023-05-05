@@ -37,7 +37,6 @@ class Potential(nn.Module):
         self.calc_forces = calc_forces
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
-        self.graph_converter = model.graph_converter
         if element_refs is not None:
             self.element_ref_calc = AtomRef(property_offset=element_refs)
         self.element_refs = element_refs

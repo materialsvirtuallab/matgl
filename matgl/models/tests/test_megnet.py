@@ -5,8 +5,8 @@ import unittest
 import torch as th
 from pymatgen.core.structure import Lattice, Structure
 
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 
@@ -17,8 +17,8 @@ class TestMEGNet(unittest.TestCase):
         s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
 
         cls.element_types = get_element_list([s])
-        p2g = Pmg2Graph(element_types=cls.element_types, cutoff=5.0)
-        graph, state = p2g.get_graph_from_structure(s)
+        p2g = Structure2Graph(element_types=cls.element_types, cutoff=5.0)
+        graph, state = p2g.get_graph(s)
         cls.g1 = graph
         cls.state1 = state
 
@@ -26,7 +26,7 @@ class TestMEGNet(unittest.TestCase):
         model = MEGNet(
             dim_node_embedding=16,
             dim_edge_embedding=100,
-            dim_attr_embedding=2,
+            dim_state_embedding=2,
             nblocks=3,
             include_states=True,
             hidden_layer_sizes_input=(64, 32),

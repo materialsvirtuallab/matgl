@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 from pymatgen.core.structure import Lattice, Structure
 
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers._bond import BondExpansion
 from matgl.layers._core import MLP, GatedMLP
 from matgl.layers._embedding import EmbeddingBlock
@@ -19,8 +19,8 @@ class TestCoreAndEmbedding(unittest.TestCase):
         cls.s1 = Structure(Lattice.cubic(4.0), ["Mo", "Mo"], [[0.0, 0, 0], [0.5, 0.5, 0.5]])
         Structure(Lattice.cubic(3), ["Mo", "Fe"], [[0, 0, 0], [0.5, 0.5, 0.5]])
         element_types = get_element_list([cls.s1])
-        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph_from_structure(cls.s1)
+        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = p2g.get_graph(cls.s1)
         cls.g1 = graph
         cls.state1 = state
 
@@ -49,8 +49,8 @@ class TestCoreAndEmbedding(unittest.TestCase):
             degree_rbf=9,
             dim_node_embedding=16,
             dim_edge_embedding=16,
-            dim_attr_feats=16,
-            include_attr_embedding=True,
+            dim_state_feats=16,
+            include_state_embedding=True,
             activation=nn.SiLU(),
         )
         graph_attr = torch.tensor([1.0, 2.0])
@@ -66,9 +66,9 @@ class TestCoreAndEmbedding(unittest.TestCase):
             degree_rbf=9,
             dim_node_embedding=16,
             dim_edge_embedding=16,
-            include_attr_embedding=True,
-            dim_attr_embedding=32,
-            ntypes_attr=2,
+            include_state_embedding=True,
+            dim_state_embedding=32,
+            ntypes_state=2,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed2(node_attr, edge_attr, torch.tensor([1]))
@@ -78,8 +78,8 @@ class TestCoreAndEmbedding(unittest.TestCase):
             degree_rbf=9,
             dim_node_embedding=16,
             dim_edge_embedding=16,
-            dim_attr_feats=16,
-            include_attr_embedding=True,
+            dim_state_feats=16,
+            include_state_embedding=True,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed3(node_attr, edge_attr, torch.tensor([1.0, 2.0]))

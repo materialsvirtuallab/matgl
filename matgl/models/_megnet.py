@@ -31,7 +31,7 @@ class MEGNet(nn.Module):
         self,
         dim_node_embedding: int = 16,
         dim_edge_embedding: int = 100,
-        dim_attr_embedding: int = 2,
+        dim_state_embedding: int = 2,
         nblocks: int = 3,
         hidden_layer_sizes_input: tuple[int, ...] = (64, 32),
         hidden_layer_sizes_conv: tuple[int, ...] = (64, 64, 32),
@@ -42,7 +42,7 @@ class MEGNet(nn.Module):
         is_classification: bool = False,
         layer_node_embedding: nn.Module | None = None,
         layer_edge_embedding: nn.Module | None = None,
-        layer_attr_embedding: nn.Module | None = None,
+        layer_state_embedding: nn.Module | None = None,
         include_state_embedding: bool = False,
         dropout: float | None = None,
         graph_transformations: list | None = None,
@@ -61,7 +61,7 @@ class MEGNet(nn.Module):
         Args:
             dim_node_embedding: Dimension of node embedding.
             dim_edge_embedding: Dimension of edge embedding.
-            dim_attr_embedding: Dimension of attr (global state) embedding.
+            dim_state_embedding: Dimension of state embedding.
             nblocks: Number of blocks.
             hidden_layer_sizes_input: Architecture of dense layers before the graph convolution
             hidden_layer_sizes_conv: Architecture of dense layers for message and update functions
@@ -72,7 +72,7 @@ class MEGNet(nn.Module):
             is_classification: Whether this is classification task or not
             layer_node_embedding: Architecture of embedding layer for node attributes
             layer_edge_embedding: Architecture of embedding layer for edge attributes
-            layer_attr_embedding: Architecture of embedding layer for state attributes
+            layer_state_embedding: Architecture of embedding layer for state attributes
             include_state_embedding: Whether the state embedding is included
             dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
                 a Bernoulli distribution
@@ -105,11 +105,11 @@ class MEGNet(nn.Module):
             self.node_embedding_layer = nn.Embedding(len(self.element_types), dim_node_embedding)
         else:
             self.node_embedding_layer = layer_node_embedding
-        self.attr_embedding_layer = layer_attr_embedding or nn.Identity()
+        self.state_embedding_layer = layer_state_embedding or nn.Identity()
 
         node_dims = [dim_node_embedding, *hidden_layer_sizes_input]
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_input]
-        attr_dims = [dim_attr_embedding, *hidden_layer_sizes_input]
+        state_dims = [dim_state_embedding, *hidden_layer_sizes_input]
 
         if activation_type == "swish":
             activation = nn.SiLU()  # type: ignore
@@ -126,7 +126,7 @@ class MEGNet(nn.Module):
 
         self.edge_encoder = MLP(edge_dims, activation, activate_last=True)
         self.node_encoder = MLP(node_dims, activation, activate_last=True)
-        self.attr_encoder = MLP(attr_dims, activation, activate_last=True)
+        self.state_encoder = MLP(state_dims, activation, activate_last=True)
 
         dim_blocks_in = hidden_layer_sizes_input[-1]
         dim_blocks_out = hidden_layer_sizes_conv[-1]
@@ -165,7 +165,7 @@ class MEGNet(nn.Module):
         graph: dgl.DGLGraph,
         edge_feat: torch.Tensor,
         node_feat: torch.Tensor,
-        graph_attr: torch.Tensor,
+        state_feat: torch.Tensor,
     ):
         """
         Forward pass of MEGnet. Executes all blocks.
@@ -173,29 +173,29 @@ class MEGNet(nn.Module):
         :param graph: Input graph
         :param edge_feat: Edge features
         :param node_feat: Node features
-        :param graph_attr: Graph attributes / state features.
+        :param state_feat: State features.
         :return: Prediction
         """
         graph_transformations = self.graph_transformations
         edge_feat = self.edge_encoder(self.edge_embedding_layer(edge_feat))
         node_feat = self.node_encoder(self.node_embedding_layer(node_feat))
         if self.include_state_embedding:
-            graph_attr = self.attr_encoder(self.attr_embedding_layer(graph_attr))
+            state_feat = self.state_encoder(self.state_embedding_layer(state_feat))
         else:
-            graph_attr = self.attr_encoder(graph_attr)
+            state_feat = self.state_encoder(state_feat)
 
         for gt, block in zip(graph_transformations, self.blocks):
-            output = block(gt(graph), edge_feat, node_feat, graph_attr)
-            edge_feat, node_feat, graph_attr = output
+            output = block(gt(graph), edge_feat, node_feat, state_feat)
+            edge_feat, node_feat, state_feat = output
 
         node_vec = self.node_s2s(graph, node_feat)
         edge_vec = self.edge_s2s(graph, edge_feat)
 
         node_vec = torch.squeeze(node_vec)
         edge_vec = torch.squeeze(edge_vec)
-        graph_attr = torch.squeeze(graph_attr)
+        state_feat = torch.squeeze(state_feat)
 
-        vec = torch.hstack([node_vec, edge_vec, graph_attr])
+        vec = torch.hstack([node_vec, edge_vec, state_feat])
 
         if self.dropout:
             vec = self.dropout(vec)  # pylint: disable=E1102
@@ -207,26 +207,29 @@ class MEGNet(nn.Module):
         return output
 
     def predict_structure(
-        self, structure: Structure, attrs: torch.tensor | None = None, graph_converter: GraphConverter | None = None
+        self,
+        structure: Structure,
+        state_feats: torch.tensor | None = None,
+        graph_converter: GraphConverter | None = None,
     ):
         """
         Convenience method to directly predict property from structure.
         Args:
             structure (Structure): Pymatgen structure
-            attrs (torch.tensor): graph attributes
+            state_feats (torch.tensor): graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
         Returns:
             output (torch.tensor): output property
         """
         if graph_converter is None:
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
-        g, attrs_default = graph_converter.get_graph(structure)
-        if attrs is None:
-            attrs = torch.tensor(attrs_default)
+        g, state_feats_default = graph_converter.get_graph(structure)
+        if state_feats is None:
+            state_feats = torch.tensor(state_feats_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
 
-        output = self.data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], attrs) + self.data_mean
+        output = self.data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats) + self.data_mean
 
         return output.detach()
 

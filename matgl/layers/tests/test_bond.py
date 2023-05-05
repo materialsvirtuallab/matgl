@@ -4,8 +4,8 @@ import unittest
 
 from pymatgen.core.structure import Lattice, Molecule, Structure
 
+from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers._bond import BondExpansion
 
 
@@ -16,14 +16,14 @@ class TestBondExpansion(unittest.TestCase):
         mol = Molecule(["C", "O"], [[0, 0, 0], [1.1, 0, 0]])
 
         element_types = get_element_list([cls.s])
-        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph_from_structure(cls.s)
+        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = p2g.get_graph(cls.s)
         cls.g1 = graph
         cls.state1 = state
 
         element_types = get_element_list([mol])
-        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph_from_molecule(mol)
+        p2g = Molecule2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = p2g.get_graph(mol)
         cls.g2 = graph
         cls.state2 = state
 

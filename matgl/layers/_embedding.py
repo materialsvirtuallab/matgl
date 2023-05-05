@@ -20,11 +20,11 @@ class EmbeddingBlock(nn.Module):
         activation: nn.Module,
         dim_node_embedding: int,
         dim_edge_embedding: int,
-        dim_attr_feats: int | None = None,
+        dim_state_feats: int | None = None,
         ntypes_node: int | None = None,
-        include_attr_embedding: bool = False,
-        ntypes_attr: int | None = None,
-        dim_attr_embedding: int | None = None,
+        include_state_embedding: bool = False,
+        ntypes_state: int | None = None,
+        dim_state_embedding: int | None = None,
     ):
         """
 
@@ -33,23 +33,23 @@ class EmbeddingBlock(nn.Module):
             activation (nn.Module): activation type
             dim_node_embedding (int): dimensionality of node features
             dim_edge_embedding (int): dimensionality of edge features
-            dim_attr_feats: dimensionality of state features
+            dim_state_feats: dimensionality of state features
             ntypes_node: number of node labels
-            include_attr_embedding: Whether to include state embedding
-            ntypes_attr: number of state labels
-            dim_attr_embedding: dimensionality of state embedding
+            include_state_embedding: Whether to include state embedding
+            ntypes_state: number of state labels
+            dim_state_embedding: dimensionality of state embedding
         """
         super().__init__()
-        self.include_states = include_attr_embedding
-        self.ntypes_attr = ntypes_attr
+        self.include_states = include_state_embedding
+        self.ntypes_state = ntypes_state
         self.dim_node_embedding = dim_node_embedding
         self.dim_edge_embedding = dim_edge_embedding
-        self.dim_attr_feats = dim_attr_feats
+        self.dim_state_feats = dim_state_feats
         self.ntypes_node = ntypes_node
-        self.dim_attr_embedding = dim_attr_embedding
+        self.dim_state_embedding = dim_state_embedding
         self.activation = activation
-        if ntypes_attr and dim_attr_embedding is not None:
-            self.state_embedding = nn.Embedding(ntypes_attr, dim_attr_embedding)  # type: ignore
+        if ntypes_state and dim_state_embedding is not None:
+            self.state_embedding = nn.Embedding(ntypes_state, dim_state_embedding)  # type: ignore
         if ntypes_node is not None:
             self.node_embedding = nn.Embedding(ntypes_node, dim_node_embedding)
         self.edge_embedding = MLP([degree_rbf, self.dim_edge_embedding], activation=activation, activate_last=True)
@@ -77,11 +77,11 @@ class EmbeddingBlock(nn.Module):
 
         edge_feat = self.edge_embedding(edge_attr.to(torch.float32))
         if self.include_states is True:
-            if self.ntypes_attr and self.dim_attr_embedding is not None:
+            if self.ntypes_state and self.dim_state_embedding is not None:
                 state_feat = self.state_embedding(state_attr)
             else:
                 state_attr = torch.unsqueeze(state_attr, 0)
-                state_embed = MLP([state_attr.shape[-1], self.dim_attr_feats], activation=self.activation)
+                state_embed = MLP([state_attr.shape[-1], self.dim_state_feats], activation=self.activation)
                 state_feat = state_embed(state_attr.to(torch.float32))
         else:
             state_feat = None

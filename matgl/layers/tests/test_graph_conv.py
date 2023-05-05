@@ -124,8 +124,8 @@ class TestGraphConv(unittest.TestCase):
             degree_rbf=9,
             dim_node_embedding=num_node_feats,
             dim_edge_embedding=num_edge_feats,
-            dim_attr_feats=num_state_feats,
-            include_attr_embedding=True,
+            dim_state_feats=num_state_feats,
+            include_state_embedding=True,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embedding(node_attr, bond_basis, state_attr)
@@ -143,7 +143,7 @@ class TestGraphConv(unittest.TestCase):
             include_states=True,
             edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
             node_dims=[node_in, *conv_hiddens, num_node_feats],
-            attr_dims=[state_in, *conv_hiddens, num_state_feats],
+            state_dims=[state_in, *conv_hiddens, num_state_feats],
             activation=nn.SiLU(),
         )
         edge_feat_new, node_feat_new, state_feat_new = conv(self.g1, edge_feat, node_feat, state_feat)
@@ -168,8 +168,8 @@ class TestGraphConv(unittest.TestCase):
             degree_rbf=9,
             dim_node_embedding=num_node_feats,
             dim_edge_embedding=num_edge_feats,
-            dim_attr_feats=num_state_feats,
-            include_attr_embedding=True,
+            dim_state_feats=num_state_feats,
+            include_state_embedding=True,
             activation=nn.SiLU(),
         )
         node_attr = self.g1.ndata["attr"]

@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from pymatgen.core.structure import Lattice, Structure
 
-from matgl.graph.converters import Pmg2Graph, get_element_list
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.layers._atom_ref import AtomRef
 
 
@@ -16,8 +16,8 @@ class TestAtomRef(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.s1 = Structure(Lattice.cubic(3.17), ["Mo", "S", "H"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75]])
         cls.element_types = get_element_list([cls.s1])
-        p2g = Pmg2Graph(element_types=cls.element_types, cutoff=4.0)
-        graph, state = p2g.get_graph_from_structure(cls.s1)
+        p2g = Structure2Graph(element_types=cls.element_types, cutoff=4.0)
+        graph, state = p2g.get_graph(cls.s1)
         cls.g1 = graph
         cls.state1 = state
 

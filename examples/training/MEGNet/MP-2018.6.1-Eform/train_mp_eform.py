@@ -90,7 +90,7 @@ bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=5.0, num_
 model = MEGNet(
     dim_node_embedding=16,
     dim_edge_embedding=100,
-    dim_attr_embedding=2,
+    dim_state_embedding=2,
     nblocks=3,
     hidden_layer_sizes_input=(64, 32),
     hidden_layer_sizes_conv=(64, 64, 32),

@@ -22,30 +22,30 @@ class MEGNetGraphConv(Module):
         self,
         edge_func: Module,
         node_func: Module,
-        attr_func: Module,
+        state_func: Module,
     ) -> None:
         """
         :param edge_func: Edge update function.
         :param node_func: Node update function.
-        :param attr_func: Global state update function.
+        :param state_func: Global state update function.
         """
         super().__init__()
         self.edge_func = edge_func
         self.node_func = node_func
-        self.attr_func = attr_func
+        self.attr_func = state_func
 
     @staticmethod
     def from_dims(
         edge_dims: list[int],
         node_dims: list[int],
-        attr_dims: list[int],
+        state_dims: list[int],
         activation: Module,
     ) -> MEGNetGraphConv:
         """
         TODO: Add docs.
         :param edge_dims: dense layers for message functions
         :param node_dims: dense layers for node update functions
-        :param attr_dims: dense layers for state update functions
+        :param state_dims: dense layers for state update functions
         :param activation: activation function
         :return:
         """
@@ -53,7 +53,7 @@ class MEGNetGraphConv(Module):
         # TODO(marcel): Should we activate last?
         edge_update = MLP(edge_dims, activation, activate_last=True)
         node_update = MLP(node_dims, activation, activate_last=True)
-        attr_update = MLP(attr_dims, activation, activate_last=True)
+        attr_update = MLP(state_dims, activation, activate_last=True)
         return MEGNetGraphConv(edge_update, node_update, attr_update)
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
@@ -91,15 +91,15 @@ class MEGNetGraphConv(Module):
         graph.ndata["v"] = self.node_func(inputs)
         return graph.ndata["v"]
 
-    def attr_update_(self, graph: dgl.DGLGraph, attrs: torch.Tensor) -> torch.Tensor:
+    def state_update_(self, graph: dgl.DGLGraph, state_attrs: torch.Tensor) -> torch.Tensor:
         """
         Perform attribute (global state) update.
 
         :param graph: Input graph
-        :param attrs: Input attributes
+        :param state_attrs: Input attributes
         :return: Output tensor for attributes
         """
-        u = attrs
+        u = state_attrs
         ue = dgl.readout_edges(graph, feat="e", op="mean")
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
         ue = torch.squeeze(ue)
@@ -114,7 +114,7 @@ class MEGNetGraphConv(Module):
         graph: dgl.DGLGraph,
         edge_feat: torch.Tensor,
         node_feat: torch.Tensor,
-        graph_attr: torch.Tensor,
+        state_attr: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Perform sequence of edge->node->attribute updates.
@@ -122,19 +122,19 @@ class MEGNetGraphConv(Module):
         :param graph: Input graph
         :param edge_feat: Edge features
         :param node_feat: Node features
-        :param graph_attr: Graph attributes (global state)
+        :param state_attr: Graph attributes (global state)
         :return: (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
-            graph.ndata["u"] = dgl.broadcast_nodes(graph, graph_attr)
+            graph.ndata["u"] = dgl.broadcast_nodes(graph, state_attr)
 
             edge_feat = self.edge_update_(graph)
             node_feat = self.node_update_(graph)
-            graph_attr = self.attr_update_(graph, graph_attr)
+            state_attr = self.state_update_(graph, state_attr)
 
-        return edge_feat, node_feat, graph_attr
+        return edge_feat, node_feat, state_attr
 
 
 class MEGNetBlock(Module):
@@ -168,7 +168,7 @@ class MEGNetBlock(Module):
         }
         self.edge_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
         self.node_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
-        self.attr_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
+        self.state_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
 
         # compute input sizes
         edge_in = 2 * conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM
@@ -177,7 +177,7 @@ class MEGNetBlock(Module):
         self.conv = MEGNetGraphConv.from_dims(
             edge_dims=[edge_in, *conv_hiddens],
             node_dims=[node_in, *conv_hiddens],
-            attr_dims=[attr_in, *conv_hiddens],
+            state_dims=[attr_in, *conv_hiddens],
             activation=self.activation,
         )
 
@@ -190,34 +190,34 @@ class MEGNetBlock(Module):
         graph: dgl.DGLGraph,
         edge_feat: torch.Tensor,
         node_feat: torch.Tensor,
-        graph_attr: torch.Tensor,
+        state_attr: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         TODO: Add docs.
         :param graph:
         :param edge_feat:
         :param node_feat:
-        :param graph_attr:
+        :param state_attr:
         :return:
         """
-        inputs = (edge_feat, node_feat, graph_attr)
+        inputs = (edge_feat, node_feat, state_attr)
         edge_feat = self.edge_func(edge_feat)
         node_feat = self.node_func(node_feat)
-        graph_attr = self.attr_func(graph_attr)
+        state_attr = self.state_func(state_attr)
 
-        edge_feat, node_feat, graph_attr = self.conv(graph, edge_feat, node_feat, graph_attr)
+        edge_feat, node_feat, state_attr = self.conv(graph, edge_feat, node_feat, state_attr)
 
         if self.dropout:
             edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102
             node_feat = self.dropout(node_feat)  # pylint: disable=E1102
-            graph_attr = self.dropout(graph_attr)  # pylint: disable=E1102
+            state_attr = self.dropout(state_attr)  # pylint: disable=E1102
 
         if self.skip:
             edge_feat = edge_feat + inputs[0]
             node_feat = node_feat + inputs[1]
-            graph_attr = graph_attr + inputs[2]
+            state_attr = state_attr + inputs[2]
 
-        return edge_feat, node_feat, graph_attr
+        return edge_feat, node_feat, state_attr
 
 
 class M3GNetGraphConv(Module):
@@ -232,7 +232,7 @@ class M3GNetGraphConv(Module):
         edge_weight_func: Module,
         node_update_func: Module,
         node_weight_func: Module,
-        attr_update_func: Module | None,
+        state_update_func: Module | None,
     ):
         """
         Parameters:
@@ -249,7 +249,7 @@ class M3GNetGraphConv(Module):
         self.edge_weight_func = edge_weight_func
         self.node_update_func = node_update_func
         self.node_weight_func = node_weight_func
-        self.attr_update_func = attr_update_func
+        self.state_update_func = state_update_func
 
     @staticmethod
     def from_dims(
@@ -257,7 +257,7 @@ class M3GNetGraphConv(Module):
         include_states,
         edge_dims: list[int],
         node_dims: list[int],
-        attr_dims: list[int] | None,
+        state_dims: list[int] | None,
         activation: Module,
     ) -> M3GNetGraphConv:
         """
@@ -279,7 +279,7 @@ class M3GNetGraphConv(Module):
 
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
-        attr_update_func = MLP(attr_dims, activation, activate_last=True) if include_states else None  # type: ignore
+        attr_update_func = MLP(state_dims, activation, activate_last=True) if include_states else None  # type: ignore
         return M3GNetGraphConv(
             include_states, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
         )
@@ -346,7 +346,7 @@ class M3GNetGraphConv(Module):
         node_update = graph.ndata.pop("ve")
         return node_update
 
-    def attr_update_(self, graph: dgl.DGLGraph, attrs: torch.Tensor) -> torch.Tensor:
+    def state_update_(self, graph: dgl.DGLGraph, state_attrs: torch.Tensor) -> torch.Tensor:
         """
         Perform attribute (global state) update.
 
@@ -357,10 +357,10 @@ class M3GNetGraphConv(Module):
         Returns:
         state_update: state_features update
         """
-        u = attrs
+        u = state_attrs
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
         inputs = torch.hstack([u, uv])
-        graph_attr = self.attr_update_func(inputs)  # type: ignore
+        graph_attr = self.state_update_func(inputs)  # type: ignore
         return graph_attr
 
     def forward(
@@ -368,7 +368,7 @@ class M3GNetGraphConv(Module):
         graph: dgl.DGLGraph,
         edge_feat: torch.Tensor,
         node_feat: torch.Tensor,
-        graph_attr: torch.Tensor,
+        state_attr: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Perform sequence of edge->node->states updates.
@@ -376,23 +376,23 @@ class M3GNetGraphConv(Module):
         :param graph: Input graph
         :param edge_feat: Edge features
         :param node_feat: Node features
-        :param graph_attr: Graph attributes (global state)
+        :param state_attr: Graph attributes (global state)
         :return: (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
             if self.include_states:
-                graph.ndata["u"] = dgl.broadcast_nodes(graph, graph_attr)
+                graph.ndata["u"] = dgl.broadcast_nodes(graph, state_attr)
 
             edge_update = self.edge_update_(graph)
             graph.edata["e"] = edge_feat + edge_update
-            node_update = self.node_update_(graph, graph_attr)
+            node_update = self.node_update_(graph, state_attr)
             graph.ndata["v"] = node_feat + node_update
             if self.include_states:
-                graph_attr = self.attr_update_(graph, graph_attr)
+                state_attr = self.state_update_(graph, state_attr)
 
-        return edge_feat + edge_update, node_feat + node_update, graph_attr
+        return edge_feat + edge_update, node_feat + node_update, state_attr
 
 
 class M3GNetBlock(Module):
@@ -435,7 +435,7 @@ class M3GNetBlock(Module):
                 include_states,
                 edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
                 node_dims=[node_in, *conv_hiddens, num_node_feats],
-                attr_dims=[attr_in, *conv_hiddens, num_state_feats],  # type: ignore
+                state_dims=[attr_in, *conv_hiddens, num_state_feats],  # type: ignore
                 activation=self.activation,
             )
         else:
@@ -446,7 +446,7 @@ class M3GNetBlock(Module):
                 include_states,
                 edge_dims=[edge_in, *conv_hiddens] + [num_edge_feats],
                 node_dims=[node_in, *conv_hiddens] + [num_node_feats],
-                attr_dims=None,  # type: ignore
+                state_dims=None,  # type: ignore
                 activation=self.activation,
             )
 
@@ -457,7 +457,7 @@ class M3GNetBlock(Module):
         graph: dgl.DGLGraph,
         edge_feat: torch.tensor,
         node_feat: torch.tensor,
-        graph_feat: torch.tensor,
+        state_feat: torch.tensor,
     ) -> tuple:
         """
         :param graph: DGL graph
@@ -466,11 +466,11 @@ class M3GNetBlock(Module):
         :param graph_attr: State features
         :return: A tuple of updated features
         """
-        edge_feat, node_feat, graph_feat = self.conv(graph, edge_feat, node_feat, graph_feat)
+        edge_feat, node_feat, state_feat = self.conv(graph, edge_feat, node_feat, state_feat)
 
         if self.dropout:
             edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102
             node_feat = self.dropout(node_feat)  # pylint: disable=E1102
-            graph_feat = self.dropout(graph_feat)  # pylint: disable=E1102
+            state_feat = self.dropout(state_feat)  # pylint: disable=E1102
 
-        return edge_feat, node_feat, graph_feat
+        return edge_feat, node_feat, state_feat

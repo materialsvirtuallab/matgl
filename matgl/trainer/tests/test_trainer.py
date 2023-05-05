@@ -13,7 +13,7 @@ from pymatgen.util.testing import PymatgenTest
 from torch.optim.lr_scheduler import ExponentialLR
 
 from matgl.apps.pes import Potential
-from matgl.graph.converters import Pmg2Graph, get_element_list
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import (
     M3GNetDataset,
     MEGNetDataset,
@@ -37,7 +37,7 @@ class MEGNetTrainerTest(PymatgenTest):
         structures = [s1, s1, s1, s1, s1, s1, s1, s1, s1, s1, s2, s2, s2, s2, s2, s2, s2, s2, s2, s2]
         label = np.zeros(20)
         element_types = get_element_list([s1, s2])
-        cry_graph = Pmg2Graph(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels=label, label_name="label")
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -64,7 +64,7 @@ class MEGNetTrainerTest(PymatgenTest):
         model = MEGNet(
             dim_node_embedding=16,
             dim_edge_embedding=16,
-            dim_attr_embedding=2,
+            dim_state_embedding=2,
             nblocks=3,
             hidden_layer_sizes_input=(64, 32),
             hidden_layer_sizes_conv=(64, 64, 32),
@@ -112,7 +112,7 @@ class M3GNetTrainerTest(PymatgenTest):
         forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
         stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
         element_types = get_element_list([s1, s2])
-        cry_graph = Pmg2Graph(element_types=element_types, cutoff=5.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=5.0)
         dataset = M3GNetDataset(
             threebody_cutoff=4.0,
             structures=structures,
