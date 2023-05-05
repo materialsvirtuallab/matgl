@@ -122,7 +122,6 @@ class M3GNetCalculator(Calculator):
         self,
         potential: Potential,
         state_attr: torch.tensor = None,
-        compute_stress: bool = True,
         stress_weight: float = 1.0,
         **kwargs,
     ):
@@ -140,6 +139,8 @@ class M3GNetCalculator(Calculator):
         self.compute_hessian = potential.calc_hessian
         self.stress_weight = stress_weight
         self.state_attr = state_attr
+        self.element_types = potential.model.element_types
+        self.cutoff = potential.model.cutoff
 
     def calculate(
         self,
@@ -160,7 +161,8 @@ class M3GNetCalculator(Calculator):
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
-        graph, state_attr_default = Atoms2Graph().get_graph(atoms)
+        print(self.potential.model.element_types)
+        graph, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)
         if self.state_attr is not None:
             energies, forces, stresses, hessians = self.potential(graph, self.state_attr)
         else:

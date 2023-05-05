@@ -121,6 +121,8 @@ class M3GNet(nn.Module):
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES
+        else:
+            self.element_types = element_types
 
         self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth)
 
