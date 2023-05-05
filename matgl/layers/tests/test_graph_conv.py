@@ -15,17 +15,17 @@ from matgl.graph.compute import (
     create_line_graph,
 )
 from matgl.graph.converters import Pmg2Graph, get_element_list
-from matgl.layers.bond_expansion import BondExpansion
-from matgl.layers.cutoff_functions import polynomial_cutoff
-from matgl.layers.embedding_block import EmbeddingBlock
-from matgl.layers.graph_conv import (
+from matgl.layers._bond import BondExpansion
+from matgl.layers._embedding import EmbeddingBlock
+from matgl.layers._graph_convolution import (
     MLP,
     M3GNetBlock,
     M3GNetGraphConv,
     MEGNetBlock,
     MEGNetGraphConv,
 )
-from matgl.layers.three_body import SphericalBesselWithHarmonics
+from matgl.layers._three_body import SphericalBesselWithHarmonics
+from matgl.utils.cutoff import polynomial_cutoff
 
 Graph = namedtuple("Graph", "graph, graph_attr")
 

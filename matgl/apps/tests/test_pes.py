@@ -8,7 +8,7 @@ from pymatgen.core.structure import Lattice, Structure
 
 from matgl.apps.pes import Potential
 from matgl.graph.converters import Pmg2Graph, get_element_list
-from matgl.models.m3gnet import M3GNet
+from matgl.models._m3gnet import M3GNet
 
 
 class TestPotential(unittest.TestCase):

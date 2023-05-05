@@ -8,9 +8,9 @@ from pymatgen.core.structure import Lattice, Structure
 
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph, get_element_list
-from matgl.layers.bond_expansion import BondExpansion
-from matgl.layers.core import MLP, GatedMLP
-from matgl.layers.embedding_block import EmbeddingBlock
+from matgl.layers._bond import BondExpansion
+from matgl.layers._core import MLP, GatedMLP
+from matgl.layers._embedding import EmbeddingBlock
 
 
 class TestCoreAndEmbedding(unittest.TestCase):

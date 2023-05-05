@@ -16,13 +16,19 @@ from matgl.graph.compute import (
     create_line_graph,
 )
 from matgl.graph.converters import Pmg2Graph
-from matgl.layers.bond_expansion import BondExpansion
-from matgl.layers.core import MLP, GatedMLP
-from matgl.layers.cutoff_functions import polynomial_cutoff
-from matgl.layers.embedding_block import EmbeddingBlock
-from matgl.layers.graph_conv import M3GNetBlock
-from matgl.layers.readout_block import ReduceReadOut, Set2SetReadOut, WeightedReadOut
-from matgl.layers.three_body import SphericalBesselWithHarmonics, ThreeBodyInteractions
+from matgl.layers import (
+    MLP,
+    BondExpansion,
+    EmbeddingBlock,
+    GatedMLP,
+    M3GNetBlock,
+    ReduceReadOut,
+    Set2SetReadOut,
+    SphericalBesselWithHarmonics,
+    ThreeBodyInteractions,
+    WeightedReadOut,
+)
+from matgl.utils.cutoff import polynomial_cutoff
 
 logger = logging.getLogger(__file__)
 CWD = os.path.dirname(os.path.abspath(__file__))

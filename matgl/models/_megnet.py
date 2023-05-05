@@ -15,10 +15,7 @@ from pymatgen.core import Structure
 from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import Pmg2Graph
-from matgl.layers.activations import SoftExponential, SoftPlus2
-from matgl.layers.bond_expansion import BondExpansion
-from matgl.layers.core import MLP, EdgeSet2Set
-from matgl.layers.graph_conv import MEGNetBlock
+from matgl.layers import MLP, BondExpansion, EdgeSet2Set, MEGNetBlock, SoftExponential, SoftPlus2
 from matgl.utils.remote import RemoteFile
 
 logger = logging.getLogger(__file__)

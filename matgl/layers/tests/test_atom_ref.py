@@ -8,7 +8,7 @@ import torch
 from pymatgen.core.structure import Lattice, Structure
 
 from matgl.graph.converters import Pmg2Graph, get_element_list
-from matgl.layers.atom_ref import AtomRef
+from matgl.layers._atom_ref import AtomRef
 
 
 class TestAtomRef(unittest.TestCase):
