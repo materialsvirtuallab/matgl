@@ -140,8 +140,8 @@ class M3GNet(nn.Module):
         dim_node_embedding: int = 64,
         dim_edge_embedding: int = 64,
         dim_attr_embedding: int | None = None,
-        dim_state_types: int | None = None,
-        dim_state_feats: int | None = None,
+        dim_attr_types: int | None = None,
+        dim_attr_feats: int | None = None,
         max_n: int = 3,
         max_l: int = 3,
         nblocks: int = 3,
@@ -160,7 +160,7 @@ class M3GNet(nn.Module):
         niters_set2set: int = 3,
         nlayers_set2set: int = 3,
         field: str = "node_feat",
-        include_state_embedding: bool = False,
+        include_attr_embedding: bool = False,
         activation: str = "swish",
         **kwargs,
     ):
@@ -170,8 +170,8 @@ class M3GNet(nn.Module):
             dim_node_embedding (int): number of embedded atomic features
             dim_edge_embedding (int): number of edge features
             dim_attr_embedding (int): number of hidden neurons in state embedding
-            dim_state_feats (int): number of state features after linear layer
-            dim_state_types (int): number of state labels
+            dim_attr_feats (int): number of state features after linear layer
+            dim_attr_types (int): number of state labels
             max_n (int): number of radial basis expansion
             max_l (int): number of angular expansion
             nblocks (int): number of convolution blocks
@@ -192,7 +192,7 @@ class M3GNet(nn.Module):
             field (str): using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
             niters_set2set (int): number of set2set iterations
             nlayers_set2set (int): number of set2set layers
-            include_state_embedding (bool): whether to include states features
+            include_attr_embedding (bool): whether to include states features
             activation (str): activation type. choose from 'swish', 'tanh', 'sigmoid'
             **kwargs:
         """
@@ -221,12 +221,12 @@ class M3GNet(nn.Module):
 
         self.embedding = EmbeddingBlock(
             degree_rbf=degree_rbf,
-            num_node_feats=dim_node_embedding,
-            num_edge_feats=dim_edge_embedding,
-            num_node_types=len(element_types),
-            num_state_feats=dim_state_feats,
-            include_states=include_state_embedding,
-            state_embedding_dim=dim_attr_embedding,
+            dim_node_embedding=dim_node_embedding,
+            dim_edge_embedding=dim_edge_embedding,
+            ntypes_node=len(element_types),
+            dim_attr_feats=dim_attr_feats,
+            include_attr_embedding=include_attr_embedding,
+            dim_attr_embedding=dim_attr_embedding,
             activation=self.activation,
         )
 
@@ -253,8 +253,8 @@ class M3GNet(nn.Module):
                     conv_hiddens=[units, units],
                     num_node_feats=dim_node_embedding,
                     num_edge_feats=dim_edge_embedding,
-                    num_state_feats=dim_state_feats,
-                    include_states=include_state_embedding,
+                    num_state_feats=dim_attr_feats,
+                    include_states=include_attr_embedding,
                 )
                 for _ in range(nblocks)
             }
@@ -263,10 +263,12 @@ class M3GNet(nn.Module):
             input_feats = dim_node_embedding if field == "node_feat" else dim_edge_embedding
             if readout_type == "set2set":
                 self.readout = Set2SetReadOut(num_steps=niters_set2set, num_layers=nlayers_set2set, field=field)
-                readout_feats = 2 * input_feats + dim_state_feats if include_state_embedding else 2 * input_feats  # type: ignore
+                readout_feats = (
+                    2 * input_feats + dim_attr_feats if include_attr_embedding else 2 * input_feats  # type: ignore
+                )
             else:
                 self.readout = ReduceReadOut("mean", field=field)
-                readout_feats = input_feats + dim_state_feats if include_state_embedding else input_feats  # type: ignore
+                readout_feats = input_feats + dim_attr_feats if include_attr_embedding else input_feats  # type: ignore
 
             dims_final_layer = [readout_feats] + [units, units] + [ntargets]
             self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False)
@@ -284,7 +286,7 @@ class M3GNet(nn.Module):
         self.units = units
         self.cutoff = cutoff
         self.threebody_cutoff = threebody_cutoff
-        self.include_states = include_state_embedding
+        self.include_states = include_attr_embedding
         self.task_type = task_type
         self.is_intensive = is_intensive
         self.data_mean = data_mean

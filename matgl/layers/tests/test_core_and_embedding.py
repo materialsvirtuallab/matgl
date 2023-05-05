@@ -47,10 +47,10 @@ class TestCoreAndEmbedding(unittest.TestCase):
         # include state features
         embed = EmbeddingBlock(
             degree_rbf=9,
-            num_node_feats=16,
-            num_edge_feats=16,
-            num_state_feats=16,
-            include_states=True,
+            dim_node_embedding=16,
+            dim_edge_embedding=16,
+            dim_attr_feats=16,
+            include_attr_embedding=True,
             activation=nn.SiLU(),
         )
         graph_attr = torch.tensor([1.0, 2.0])
@@ -64,11 +64,11 @@ class TestCoreAndEmbedding(unittest.TestCase):
         # include state embedding
         embed2 = EmbeddingBlock(
             degree_rbf=9,
-            num_node_feats=16,
-            num_edge_feats=16,
-            include_states=True,
-            state_embedding_dim=32,
-            num_state_types=2,
+            dim_node_embedding=16,
+            dim_edge_embedding=16,
+            include_attr_embedding=True,
+            dim_attr_embedding=32,
+            ntypes_attr=2,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed2(node_attr, edge_attr, torch.tensor([1]))
@@ -76,16 +76,16 @@ class TestCoreAndEmbedding(unittest.TestCase):
         # include state features
         embed3 = EmbeddingBlock(
             degree_rbf=9,
-            num_node_feats=16,
-            num_edge_feats=16,
-            num_state_feats=16,
-            include_states=True,
+            dim_node_embedding=16,
+            dim_edge_embedding=16,
+            dim_attr_feats=16,
+            include_attr_embedding=True,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed3(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         self.assertListEqual([state_feat.size(dim=0), state_feat.size(dim=1)], [1, 16])
         # without any state feature
-        embed4 = EmbeddingBlock(degree_rbf=9, num_node_feats=16, num_edge_feats=16, activation=nn.SiLU())
+        embed4 = EmbeddingBlock(degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=16, activation=nn.SiLU())
         node_feat, edge_feat, state_feat = embed4(
             node_attr, edge_attr, torch.tensor([0.0, 0.0])
         )  # this will be default value

@@ -9,12 +9,12 @@ import torch
 import torch.nn as nn
 from pymatgen.core.structure import Lattice, Structure
 
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers._bond import BondExpansion
 from matgl.layers._embedding import EmbeddingBlock
 from matgl.layers._graph_convolution import (
@@ -95,8 +95,8 @@ class TestGraphConv(unittest.TestCase):
         cls.s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
 
         element_types = get_element_list([cls.s])
-        p2g = Pmg2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph_from_structure(cls.s)
+        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
+        graph, state = p2g.get_graph(cls.s)
         cls.g1 = graph
         cls.state1 = state
         bond_vec, bond_dist = compute_pair_vector_and_distance(cls.g1)
@@ -122,10 +122,10 @@ class TestGraphConv(unittest.TestCase):
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
             degree_rbf=9,
-            num_node_feats=num_node_feats,
-            num_edge_feats=num_edge_feats,
-            num_state_feats=num_state_feats,
-            include_states=True,
+            dim_node_embedding=num_node_feats,
+            dim_edge_embedding=num_edge_feats,
+            dim_attr_feats=num_state_feats,
+            include_attr_embedding=True,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embedding(node_attr, bond_basis, state_attr)
@@ -166,10 +166,10 @@ class TestGraphConv(unittest.TestCase):
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
             degree_rbf=9,
-            num_node_feats=num_node_feats,
-            num_edge_feats=num_edge_feats,
-            num_state_feats=num_state_feats,
-            include_states=True,
+            dim_node_embedding=num_node_feats,
+            dim_edge_embedding=num_edge_feats,
+            dim_attr_feats=num_state_feats,
+            include_attr_embedding=True,
             activation=nn.SiLU(),
         )
         node_attr = self.g1.ndata["attr"]

@@ -73,7 +73,7 @@ class TestThreeBody(unittest.TestCase):
         num_edge_feats = 16
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
-            degree_rbf=9, num_node_feats=num_node_feats, num_edge_feats=num_edge_feats, activation=nn.SiLU()
+            degree_rbf=9, dim_node_embedding=num_node_feats, dim_edge_embedding=num_edge_feats, activation=nn.SiLU()
         )
 
         node_attr = self.g1.ndata["attr"]

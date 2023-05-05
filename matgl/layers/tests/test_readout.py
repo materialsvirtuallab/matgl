@@ -38,7 +38,7 @@ class TestReadOut(unittest.TestCase):
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(self.g1.edata["bond_dist"])
         embed = EmbeddingBlock(
-            degree_rbf=9, num_node_feats=16, num_edge_feats=16, num_state_feats=16, activation=nn.SiLU()
+            degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=16, dim_attr_feats=16, activation=nn.SiLU()
         )
         node_attr = self.g1.ndata["attr"]
         edge_attr = bond_basis
@@ -55,7 +55,7 @@ class TestReadOut(unittest.TestCase):
         node_attr = self.g1.ndata["attr"]
         edge_attr = bond_basis
         embed = EmbeddingBlock(
-            degree_rbf=9, num_node_feats=16, num_edge_feats=16, num_state_feats=16, activation=nn.SiLU()
+            degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=16, dim_attr_feats=16, activation=nn.SiLU()
         )
         node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         read_out = WeightedReadOutPair(in_feats=16, dims=[32, 32], num_targets=1)
@@ -70,7 +70,7 @@ class TestReadOut(unittest.TestCase):
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(self.g1.edata["bond_dist"])
         embed = EmbeddingBlock(
-            degree_rbf=9, num_node_feats=16, num_edge_feats=16, num_state_feats=16, activation=nn.SiLU()
+            degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=16, dim_attr_feats=16, activation=nn.SiLU()
         )
         node_attr = self.g1.ndata["attr"]
         edge_attr = bond_basis
@@ -88,7 +88,7 @@ class TestReadOut(unittest.TestCase):
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(self.g1.edata["bond_dist"])
         embed = EmbeddingBlock(
-            degree_rbf=9, num_node_feats=16, num_edge_feats=32, num_state_feats=16, activation=nn.SiLU()
+            degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=32, dim_attr_feats=16, activation=nn.SiLU()
         )
         node_attr = self.g1.ndata["attr"]
         edge_attr = bond_basis
