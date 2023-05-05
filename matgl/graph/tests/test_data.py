@@ -185,7 +185,7 @@ class DatasetTest(PymatgenTest):
 
     @classmethod
     def tearDownClass(cls):
-        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "graph_attr.pt", "labels.json"):
+        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
             try:
                 os.remove(fn)
             except FileNotFoundError:

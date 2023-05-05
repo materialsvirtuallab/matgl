@@ -73,7 +73,7 @@ def train_one_step(
     start = default_timer()
     for g, _l_g, attrs, energies, forces, stresses in tqdm(dataloader):
         optimizer.zero_grad()
-        pred_e, pred_f, pred_s, pred_h = potential(g=g, graph_attr=attrs)
+        pred_e, pred_f, pred_s, pred_h = potential(g=g, state_attr=attrs)
         pred_f = pred_f.to(torch.float)
         preds: tuple = (pred_e, pred_f, pred_s)
         labels: tuple = (energies, forces, stresses)
@@ -131,7 +131,7 @@ def validate_one_step(
 
     #    with torch.no_grad():
     for g, _l_g, attrs, energies, forces, stresses in dataloader:
-        pred_e, pred_f, pred_s, pred_h = potential(g=g, graph_attr=attrs)
+        pred_e, pred_f, pred_s, pred_h = potential(g=g, state_attr=attrs)
         pred_f = pred_f.to(torch.float)
 
         preds: tuple = (pred_e, pred_f, pred_s)

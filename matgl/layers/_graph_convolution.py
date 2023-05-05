@@ -106,8 +106,8 @@ class MEGNetGraphConv(Module):
         uv = torch.squeeze(uv)
         u = torch.squeeze(u)
         inputs = torch.hstack([u, ue, uv])
-        graph_attr = self.attr_func(inputs)
-        return graph_attr
+        state_attr = self.attr_func(inputs)
+        return state_attr
 
     def forward(
         self,
@@ -319,7 +319,7 @@ class M3GNetGraphConv(Module):
         edge_update = graph.edata.pop("mij")
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, graph_attr: torch.Tensor) -> torch.Tensor:
+    def node_update_(self, graph: dgl.DGLGraph, state_attr: torch.Tensor) -> torch.Tensor:
         """
         Perform node update.
 
@@ -337,7 +337,7 @@ class M3GNetGraphConv(Module):
         rbf = graph.edata["rbf"]
         rbf = rbf.float()
         if self.include_states:
-            u = broadcast_states_to_bonds(graph, graph_attr)
+            u = broadcast_states_to_bonds(graph, state_attr)
             inputs = torch.hstack([vi, vj, eij, u])
         else:
             inputs = torch.hstack([vi, vj, eij])
@@ -360,8 +360,8 @@ class M3GNetGraphConv(Module):
         u = state_attrs
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
         inputs = torch.hstack([u, uv])
-        graph_attr = self.state_update_func(inputs)  # type: ignore
-        return graph_attr
+        state_attr = self.state_update_func(inputs)  # type: ignore
+        return state_attr
 
     def forward(
         self,
@@ -463,7 +463,7 @@ class M3GNetBlock(Module):
         :param graph: DGL graph
         :param edge_feat: Edge features
         :param node_feat: Node features
-        :param graph_attr: State features
+        :param state_attr: State features
         :return: A tuple of updated features
         """
         edge_feat, node_feat, state_feat = self.conv(graph, edge_feat, node_feat, state_feat)

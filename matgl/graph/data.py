@@ -24,25 +24,25 @@ def _collate_fn(batch):
     """
     Merge a list of dgl graphs to form a batch
     """
-    graphs, labels, graph_attr = map(list, zip(*batch))
+    graphs, labels, state_attr = map(list, zip(*batch))
     g = dgl.batch(graphs)
     labels = torch.tensor(labels, dtype=torch.float32)
-    graph_attr = torch.stack(graph_attr)
-    return g, labels, graph_attr
+    state_attr = torch.stack(state_attr)
+    return g, labels, state_attr
 
 
 def _collate_fn_efs(batch):
     """
     Merge a list of dgl graphs to form a batch
     """
-    graphs, line_graphs, graph_attr, energies, forces, stresses = map(list, zip(*batch))
+    graphs, line_graphs, state_attr, energies, forces, stresses = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
     e = torch.tensor(energies, dtype=torch.float32)
     f = torch.vstack(forces)
     s = torch.vstack(stresses)
-    graph_attr = torch.stack(graph_attr)
-    return g, l_g, graph_attr, e, f, s
+    state_attr = torch.stack(state_attr)
+    return g, l_g, state_attr, e, f, s
 
 
 def MGLDataLoader(
@@ -155,7 +155,7 @@ class MEGNetDataset(DGLDataset):
         """
         num_graphs = self.labels.shape[0]
         self.graphs = []
-        self.graph_attr = []
+        self.state_attr = []
         bond_expansion = BondExpansion(
             rbf_type="Gaussian", initial=self.initial, final=self.final, num_centers=self.num_centers, width=self.width
         )
@@ -165,29 +165,29 @@ class MEGNetDataset(DGLDataset):
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["edge_attr"] = bond_expansion(bond_dist)
             self.graphs.append(graph)
-            self.graph_attr.append(state_attr)
+            self.state_attr.append(state_attr)
         if self.graph_labels is not None:
             if np.array(self.graph_labels).dtype == "int64":
-                self.graph_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+                self.state_attr = torch.tensor(self.graph_labels).long()  # type: ignore
             else:
-                self.graph_attr = torch.tensor(self.graph_labels)  # type: ignore
+                self.state_attr = torch.tensor(self.graph_labels)  # type: ignore
         else:
-            self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
+            self.state_attr = torch.tensor(self.state_attr)  # type: ignore
 
-        return self.graphs, self.graph_attr
+        return self.graphs, self.state_attr
 
-    def save(self, filename: str = "dgl_graph.bin", filename_graph_attr: str = "graph_attr.pt"):
+    def save(self, filename: str = "dgl_graph.bin", filename_state_attr: str = "state_attr.pt"):
         """
         Save dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename_graph_attr: Name of file storing graph attrs
+        :filename_state_attr: Name of file storing graph attrs
         """
         labels_with_key = {self.label_name: self.labels}
         save_graphs(filename, self.graphs, labels_with_key)
-        torch.save(self.graph_attr, filename_graph_attr)
+        torch.save(self.state_attr, filename_state_attr)
 
-    def load(self, filename: str = "dgl_graph.bin", filename_graph_attr: str = "graph_attr.pt"):
+    def load(self, filename: str = "dgl_graph.bin", filename_state_attr: str = "state_attr.pt"):
         """
         Load dgl graphs
         Args:
@@ -196,13 +196,13 @@ class MEGNetDataset(DGLDataset):
         """
         self.graphs, label_dict = load_graphs(filename)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
-        self.graph_attr = torch.load("graph_attr.pt")
+        self.state_attr = torch.load("state_attr.pt")
 
     def __getitem__(self, idx: int):
         """
         Get graph and label with idx
         """
-        return self.graphs[idx], self.labels[idx], self.graph_attr[idx]
+        return self.graphs[idx], self.labels[idx], self.state_attr[idx]
 
     def __len__(self):
         """
@@ -263,12 +263,12 @@ class M3GNetDataset(DGLDataset):
         num_graphs = len(self.energies)
         self.graphs = []
         self.line_graphs = []
-        self.graph_attr = []
+        self.state_attr = []
         for idx in trange(num_graphs):
             structure = self.structures[idx]
             graph, state_attr = self.converter.get_graph(structure)
             self.graphs.append(graph)
-            self.graph_attr.append(state_attr)
+            self.state_attr.append(state_attr)
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["bond_vec"] = bond_vec
             graph.edata["bond_dist"] = bond_dist
@@ -278,28 +278,28 @@ class M3GNetDataset(DGLDataset):
             line_graph.ndata.pop("pbc_offset")
             self.line_graphs.append(line_graph)
         if self.graph_labels is not None:
-            self.graph_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+            self.state_attr = torch.tensor(self.graph_labels).long()  # type: ignore
         else:
-            self.graph_attr = torch.tensor(self.graph_attr)  # type: ignore
+            self.state_attr = torch.tensor(self.state_attr)  # type: ignore
 
-        return self.graphs, self.line_graphs, self.graph_attr
+        return self.graphs, self.line_graphs, self.state_attr
 
     def save(
         self,
         filename: str = "dgl_graph.bin",
         filename_line_graph: str = "dgl_line_graph.bin",
-        filename_graph_attr: str = "graph_attr.pt",
+        filename_state_attr: str = "state_attr.pt",
     ):
         """
         Save dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename_graph_attr: Name of file storing graph attrs
+        :filename_state_attr: Name of file storing graph attrs
         """
         labels_with_key = {"energies": self.energies, "forces": self.forces, "stresses": self.stresses}
         save_graphs(filename, self.graphs)
         save_graphs(filename_line_graph, self.line_graphs)
-        torch.save(self.graph_attr, filename_graph_attr)
+        torch.save(self.state_attr, filename_state_attr)
         with open("labels.json", "w") as file:
             file.write("".join(str(labels_with_key).split("\n")))
 
@@ -307,7 +307,7 @@ class M3GNetDataset(DGLDataset):
         self,
         filename: str = "dgl_graph.bin",
         filename_line_graph: str = "dgl_line_graph.bin",
-        filename_graph_attr: str = "graph_attr.pt",
+        filename_state_attr: str = "state_attr.pt",
     ):
         """
         Load dgl graphs
@@ -322,7 +322,7 @@ class M3GNetDataset(DGLDataset):
         self.energies = labels["energies"]
         self.forces = labels["forces"]
         self.stresses = labels["stresses"]
-        self.graph_attr = torch.load("graph_attr.pt")
+        self.state_attr = torch.load("state_attr.pt")
 
     def __getitem__(self, idx: int):
         """
@@ -331,7 +331,7 @@ class M3GNetDataset(DGLDataset):
         return (
             self.graphs[idx],
             self.line_graphs[idx],
-            self.graph_attr[idx],
+            self.state_attr[idx],
             self.energies[idx],
             torch.tensor(self.forces[idx]),
             torch.tensor(self.stresses[idx]),
