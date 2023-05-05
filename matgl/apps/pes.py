@@ -42,22 +42,22 @@ class Potential(nn.Module):
         self.element_refs = element_refs
 
     def forward(
-        self, g: dgl.DGLGraph, graph_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None
+        self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None
     ) -> tuple:
         """
         Args:
-        g: DGL graph
-        graph_attr: State attrs
+            g: DGL graph
+            state_attr: State attrs
 
         Returns:
-        energies, forces, stresses, hessian: torch.tensor
+            energies, forces, stresses, hessian: torch.tensor
         """
         forces = torch.zeros(1)
         stresses = torch.zeros(1)
         hessian = torch.zeros(1)
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
-        total_energies = self.model(g=g, state_attr=graph_attr, l_g=l_g)
+        total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
         if self.element_refs is not None:
             property_offset = torch.squeeze(self.element_ref_calc(g))
             total_energies += property_offset

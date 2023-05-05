@@ -53,10 +53,10 @@ class TestCoreAndEmbedding(unittest.TestCase):
             include_state_embedding=True,
             activation=nn.SiLU(),
         )
-        graph_attr = torch.tensor([1.0, 2.0])
+        state_attr = torch.tensor([1.0, 2.0])
         node_attr = self.g1.ndata["attr"]
         edge_attr = bond_basis
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, graph_attr)
+        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, state_attr)
 
         self.assertListEqual([node_feat.size(dim=0), node_feat.size(dim=1)], [2, 16])
         self.assertListEqual([edge_feat.size(dim=0), edge_feat.size(dim=1)], [28, 16])

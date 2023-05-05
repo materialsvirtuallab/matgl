@@ -121,7 +121,7 @@ class M3GNetCalculator(Calculator):
     def __init__(
         self,
         potential: Potential,
-        graph_attr: torch.tensor = None,
+        state_attr: torch.tensor = None,
         compute_stress: bool = True,
         stress_weight: float = 1.0,
         **kwargs,
@@ -139,7 +139,7 @@ class M3GNetCalculator(Calculator):
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
         self.stress_weight = stress_weight
-        self.graph_attr = graph_attr
+        self.state_attr = state_attr
 
     def calculate(
         self,
@@ -160,11 +160,11 @@ class M3GNetCalculator(Calculator):
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
-        graph, graph_attr_default = Atoms2Graph().get_graph(atoms)
-        if self.graph_attr is not None:
-            energies, forces, stresses, hessians = self.potential(graph, self.graph_attr)
+        graph, state_attr_default = Atoms2Graph().get_graph(atoms)
+        if self.state_attr is not None:
+            energies, forces, stresses, hessians = self.potential(graph, self.state_attr)
         else:
-            energies, forces, stresses, hessians = self.potential(graph, graph_attr_default)
+            energies, forces, stresses, hessians = self.potential(graph, state_attr_default)
         self.results.update(
             energy=energies.detach().cpu().numpy(),
             free_energy=energies.detach().cpu().numpy(),
@@ -184,7 +184,7 @@ class Relaxer:
     def __init__(
         self,
         potential: Potential = None,
-        graph_attr: torch.tensor = None,
+        state_attr: torch.tensor = None,
         optimizer: Optimizer | str = "FIRE",
         relax_cell: bool = True,
         stress_weight: float = 0.01,
@@ -210,7 +210,7 @@ class Relaxer:
 
         self.opt_class: Optimizer = optimizer_obj
         self.calculator = M3GNetCalculator(
-            potential=potential, graph_attr=graph_attr, stress_weight=stress_weight  # type: ignore
+            potential=potential, state_attr=state_attr, stress_weight=stress_weight  # type: ignore
         )
         self.relax_cell = relax_cell
         self.potential = potential
@@ -328,7 +328,7 @@ class MolecularDynamics:
         self,
         atoms: Atoms,
         potential: Potential,
-        graph_attr: torch.tensor = None,
+        state_attr: torch.tensor = None,
         ensemble: str = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
@@ -364,7 +364,7 @@ class MolecularDynamics:
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
-        self.atoms.set_calculator(M3GNetCalculator(potential=potential, graph_attr=graph_attr))
+        self.atoms.set_calculator(M3GNetCalculator(potential=potential, state_attr=state_attr))
 
         if taut is None:
             taut = 100 * timestep * units.fs

@@ -27,15 +27,15 @@ from matgl.layers._graph_convolution import (
 from matgl.layers._three_body import SphericalBesselWithHarmonics
 from matgl.utils.cutoff import polynomial_cutoff
 
-Graph = namedtuple("Graph", "graph, graph_attr")
+Graph = namedtuple("Graph", "graph, state_attr")
 
 
 def build_graph(N, E, NDIM=5, EDIM=3, GDIM=10):
     graph = dgl.rand_graph(N, E)
     graph.ndata["node_feat"] = torch.rand(N, NDIM)
     graph.edata["edge_feat"] = torch.rand(E, EDIM)
-    graph_attr = torch.rand(1, GDIM)
-    return Graph(graph, graph_attr)
+    state_attr = torch.rand(1, GDIM)
+    return Graph(graph, state_attr)
 
 
 def get_graphs(num_graphs, NDIM=5, EDIM=3, GDIM=10):
@@ -45,8 +45,8 @@ def get_graphs(num_graphs, NDIM=5, EDIM=3, GDIM=10):
     return graphs
 
 
-def batch(graph_attrs_lists):
-    graphs, attrs = list(zip(*graph_attrs_lists))
+def batch(state_attrs_lists):
+    graphs, attrs = list(zip(*state_attrs_lists))
     batched_graph = dgl.batch(graphs)
     batched_attrs = torch.vstack(attrs)
     return batched_graph, batched_attrs
