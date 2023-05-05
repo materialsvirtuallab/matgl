@@ -14,9 +14,9 @@ from matgl.graph.compute import (
 from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers._bond import BondExpansion
 from matgl.layers._core import MLP, GatedMLP
-from matgl.layers._cutoff import polynomial_cutoff
 from matgl.layers._embedding import EmbeddingBlock
 from matgl.layers._three_body import SphericalBesselWithHarmonics, ThreeBodyInteractions
+from matgl.utils.cutoff import polynomial_cutoff
 
 
 class TestThreeBody(unittest.TestCase):

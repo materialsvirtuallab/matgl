@@ -16,7 +16,6 @@ from matgl.graph.compute import (
 )
 from matgl.graph.converters import Pmg2Graph, get_element_list
 from matgl.layers._bond import BondExpansion
-from matgl.layers._cutoff import polynomial_cutoff
 from matgl.layers._embedding import EmbeddingBlock
 from matgl.layers._graph_convolution import (
     MLP,
@@ -26,6 +25,7 @@ from matgl.layers._graph_convolution import (
     MEGNetGraphConv,
 )
 from matgl.layers._three_body import SphericalBesselWithHarmonics
+from matgl.utils.cutoff import polynomial_cutoff
 
 Graph = namedtuple("Graph", "graph, graph_attr")
 

@@ -6,4 +6,4 @@ from __future__ import annotations
 
 # flake8: noqa
 from ._megnet import MEGNet
-from .m3gnet import M3GNet
+from ._m3gnet import M3GNet

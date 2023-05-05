@@ -8,7 +8,7 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from matgl.apps.pes import Potential
 from matgl.ext.ase import M3GNetCalculator
 from matgl.graph.converters import get_element_list
-from matgl.models.m3gnet import M3GNet
+from matgl.models._m3gnet import M3GNet
 
 
 class TestAseInterface(unittest.TestCase):

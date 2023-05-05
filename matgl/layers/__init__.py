@@ -7,7 +7,6 @@ from ._activations import SoftExponential, SoftPlus2
 from ._atom_ref import AtomRef
 from ._bond import BondExpansion
 from ._core import MLP, EdgeSet2Set, GatedMLP
-from ._cutoff import cosine_cutoff, polynomial_cutoff
 from ._embedding import EmbeddingBlock
 from ._graph_convolution import M3GNetBlock, M3GNetGraphConv, MEGNetBlock, MEGNetGraphConv
 from ._readout import ReduceReadOut, Set2SetReadOut, WeightedReadOut, WeightedReadOutPair
