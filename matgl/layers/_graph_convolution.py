@@ -32,7 +32,7 @@ class MEGNetGraphConv(Module):
         super().__init__()
         self.edge_func = edge_func
         self.node_func = node_func
-        self.attr_func = state_func
+        self.state_func = state_func
 
     @staticmethod
     def from_dims(
@@ -106,7 +106,7 @@ class MEGNetGraphConv(Module):
         uv = torch.squeeze(uv)
         u = torch.squeeze(u)
         inputs = torch.hstack([u, ue, uv])
-        state_attr = self.attr_func(inputs)
+        state_attr = self.state_func(inputs)
         return state_attr
 
     def forward(

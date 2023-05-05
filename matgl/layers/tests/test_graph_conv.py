@@ -59,8 +59,8 @@ def test_megnet_layer():
     NDIM, EDIM, GDIM = 5, 3, 10
     edge_func = MLP(dims=[2 * NDIM + EDIM + GDIM, EDIM])
     node_func = MLP(dims=[EDIM + NDIM + GDIM, NDIM])
-    attr_func = MLP(dims=[EDIM + NDIM + GDIM, GDIM])
-    layer = MEGNetGraphConv(edge_func, node_func, attr_func)
+    state_func = MLP(dims=[EDIM + NDIM + GDIM, GDIM])
+    layer = MEGNetGraphConv(edge_func, node_func, state_func)
 
     # one pass
     edge_feat = batched_graph.edata.pop("edge_feat")
