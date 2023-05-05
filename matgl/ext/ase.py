@@ -9,6 +9,7 @@ import io
 import pickle
 import sys
 
+import dgl
 import numpy as np
 import torch
 from ase import Atoms, units
@@ -24,10 +25,13 @@ from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
 from ase.optimize.optimize import Optimizer
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
+from dgl.backend import tensor
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
+from pymatgen.optimization.neighbors import find_points_in_spheres
 
 from matgl.apps.pes import Potential
+from matgl.graph.converters import GraphConverter
 
 OPTIMIZERS = {
     "FIRE": FIRE,
@@ -39,6 +43,116 @@ OPTIMIZERS = {
     "SciPyFminBFGS": SciPyFminBFGS,
     "BFGSLineSearch": BFGSLineSearch,
 }
+
+
+class Atoms2Graph(GraphConverter):
+    """
+    Construct a DGL graph from ASE atoms.
+    """
+
+    def __init__(
+        self,
+        element_types: tuple[str, ...],
+        cutoff: float = 5.0,
+    ):
+        """
+        Parameters
+        ----------
+        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
+            constructed with the same dimensionality of features.
+        cutoff: Cutoff radius for graph representation
+        """
+        self.element_types = tuple(element_types)
+        self.cutoff = cutoff
+
+    def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, list]:
+        """
+        Get a DGL graph from an input Structure.
+
+        :param structure: pymatgen structure object
+        :return:
+            g: DGL graph
+            state_attr: state features
+        """
+        numerical_tol = 1.0e-8
+        pbc = np.array([1, 1, 1], dtype=int)
+        element_types = self.element_types
+        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
+        atomic_number = np.array([site.specie.Z for site in structure])
+        lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
+        volume = structure.volume
+        cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
+        src_id, dst_id, images, bond_dist = find_points_in_spheres(
+            cart_coords,
+            cart_coords,
+            r=self.cutoff,
+            pbc=pbc,
+            lattice=lattice_matrix,
+            tol=numerical_tol,
+        )
+        exclude_self = (src_id != dst_id) | (bond_dist > numerical_tol)
+        src_id, dst_id, images, bond_dist = (
+            src_id[exclude_self],
+            dst_id[exclude_self],
+            images[exclude_self],
+            bond_dist[exclude_self],
+        )
+        u, v = tensor(src_id), tensor(dst_id)
+        g = dgl.graph((u, v))
+        g.edata["pbc_offset"] = torch.tensor(images)
+        g.edata["lattice"] = tensor([[lattice_matrix] for i in range(g.num_edges())])
+        g.ndata["attr"] = tensor(Z)
+        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
+        g.ndata["pos"] = tensor(cart_coords)
+        g.ndata["volume"] = tensor([volume for i in range(atomic_number.shape[0])])
+        state_attr = [0.0, 0.0]
+        g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix))
+        return g, state_attr
+
+    def get_graph_from_atoms(self, atoms: Atoms) -> tuple[dgl.DGLGraph, list]:
+        """
+        Get a DGL graph from an input Structure.
+
+        :param structure: pymatgen structure object
+        :return:
+            g: DGL graph
+            state_attr: state features
+        """
+
+        numerical_tol = 1.0e-8
+        pbc = np.array([1, 1, 1], dtype=int)
+        element_types = self.element_types
+        Z = np.array([np.eye(len(element_types))[element_types.index(i.symbol)] for i in atoms])
+        atomic_number = np.array(atoms.get_atomic_numbers())
+        lattice_matrix = np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float)
+        volume = atoms.get_volume()
+        cart_coords = np.ascontiguousarray(np.array(atoms.get_positions()), dtype=float)
+        src_id, dst_id, images, bond_dist = find_points_in_spheres(
+            cart_coords,
+            cart_coords,
+            r=self.cutoff,
+            pbc=pbc,
+            lattice=lattice_matrix,
+            tol=numerical_tol,
+        )
+        exclude_self = (src_id != dst_id) | (bond_dist > numerical_tol)
+        src_id, dst_id, images, bond_dist = (
+            src_id[exclude_self],
+            dst_id[exclude_self],
+            images[exclude_self],
+            bond_dist[exclude_self],
+        )
+        u, v = tensor(src_id), tensor(dst_id)
+        g = dgl.graph((u, v))
+        g.edata["pbc_offset"] = torch.tensor(images)
+        g.edata["lattice"] = tensor([[lattice_matrix] for i in range(g.num_edges())])
+        g.ndata["attr"] = tensor(Z)
+        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(i.symbol)] for i in atoms]))
+        g.ndata["pos"] = tensor(cart_coords)
+        g.ndata["volume"] = tensor([volume for i in range(atomic_number.shape[0])])
+        state_attr = [0.0, 0.0]
+        g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix))
+        return g, state_attr
 
 
 class M3GNetCalculator(Calculator):

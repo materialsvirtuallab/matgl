@@ -15,7 +15,6 @@ from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.graph.converters import Pmg2Graph
 from matgl.layers import (
     MLP,
     BondExpansion,
@@ -120,8 +119,6 @@ class M3GNet(nn.Module):
             self.activation = nn.Tanh()  # type: ignore
         elif activation == "sigmoid":
             self.activation = nn.Sigmoid()  # type: ignore
-
-        self.graph_converter = Pmg2Graph(element_types=element_types, cutoff=cutoff)
 
         self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth)
 

@@ -13,8 +13,9 @@ from dgl.nn import Set2Set
 from pymatgen.core import Structure
 
 from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
+from matgl.ext.pymatgen import Structure2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.graph.converters import Pmg2Graph
+from matgl.graph.converters import GraphConverter
 from matgl.layers import MLP, BondExpansion, EdgeSet2Set, MEGNetBlock, SoftExponential, SoftPlus2
 from matgl.utils.remote import RemoteFile
 
@@ -297,17 +298,21 @@ class MEGNet(nn.Module):
 
         return output
 
-    def predict_structure(self, structure: Structure, attrs: torch.tensor | None = None, graph_converter=None):
+    def predict_structure(
+        self, structure: Structure, attrs: torch.tensor | None = None, graph_converter: GraphConverter | None = None
+    ):
         """
         Convenience method to directly predict property from structure.
         Args:
             structure (Structure): Pymatgen structure
             attrs (torch.tensor): graph attributes
+            graph_converter: Object that implements a get_graph_from_structure.
         Returns:
             output (torch.tensor): output property
         """
-        graph_converter = graph_converter or Pmg2Graph(element_types=self.element_types, cutoff=self.cutoff)
-        g, attrs_default = graph_converter.get_graph_from_structure(structure)
+        if graph_converter is None:
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
+        g, attrs_default = graph_converter.get_graph(structure)
         if attrs is None:
             attrs = torch.tensor(attrs_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
