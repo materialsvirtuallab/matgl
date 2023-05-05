@@ -4,10 +4,10 @@ import unittest
 
 import numpy as np
 import torch
-from pymatgen.core.structure import Lattice, Structure
+from pymatgen.core import Lattice, Structure
 
 from matgl.apps.pes import Potential
-from matgl.graph.converters import Pmg2Graph, get_element_list
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.models._m3gnet import M3GNet
 
 
@@ -18,8 +18,8 @@ class TestPotential(unittest.TestCase):
         s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
 
         cls.element_types = get_element_list([s])
-        p2g = Pmg2Graph(element_types=cls.element_types, cutoff=5.0)
-        graph, state = p2g.get_graph_from_structure(s)
+        p2g = Structure2Graph(element_types=cls.element_types, cutoff=5.0)
+        graph, state = p2g.get_graph(s)
         cls.g1 = graph
         cls.state1 = state
 
