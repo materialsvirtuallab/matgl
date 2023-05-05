@@ -140,7 +140,6 @@ class MEGNet(nn.Module):
         element_types: tuple[str, ...] | None = None,
         data_mean: torch.tensor | None = None,
         data_std: torch.tensor | None = None,
-        graph_converter: Pmg2Graph | None = None,
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
@@ -173,7 +172,6 @@ class MEGNet(nn.Module):
             element_types: Elements included in the training set
             data_mean: Mean of target properties in the training set. Defaults to 0.
             data_std: Standard deviation of target properties in the training set. Defaults to 1.
-            graph_converter: Pmg2Graph converter
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
             gauss_width: width of Gaussian function for bond expansion
@@ -186,7 +184,7 @@ class MEGNet(nn.Module):
         super().__init__()
 
         self.element_types = element_types or DEFAULT_ELEMENT_TYPES
-        self.graph_converter = graph_converter or Pmg2Graph(element_types=self.element_types, cutoff=cutoff)
+        self.cutoff = cutoff
         self.bond_expansion = bond_expansion or BondExpansion(
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
         )
@@ -299,7 +297,7 @@ class MEGNet(nn.Module):
 
         return output
 
-    def predict_structure(self, structure: Structure, attrs: torch.tensor | None = None):
+    def predict_structure(self, structure: Structure, attrs: torch.tensor | None = None, graph_converter=None):
         """
         Convenience method to directly predict property from structure.
         Args:
@@ -308,7 +306,8 @@ class MEGNet(nn.Module):
         Returns:
             output (torch.tensor): output property
         """
-        g, attrs_default = self.graph_converter.get_graph_from_structure(structure)
+        graph_converter = graph_converter or Pmg2Graph(element_types=self.element_types, cutoff=self.cutoff)
+        g, attrs_default = graph_converter.get_graph_from_structure(structure)
         if attrs is None:
             attrs = torch.tensor(attrs_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
@@ -337,7 +336,7 @@ class MEGNet(nn.Module):
         build a MEGNet from a saved directory
         """
         path = Path(path)
-        if torch.cuda.is_available() is False:
+        if not torch.cuda.is_available():
             state = torch.load(path, map_location=torch.device("cpu"))
         else:
             state = torch.load(path)
