@@ -31,9 +31,9 @@ class EmbeddingBlock(nn.Module):
         -----------
         degree_rbf (int): number of rbf
         activation (nn.Module): activation type
-        num_node_feats (int): dimensionality of node features
-        num_edge_feats (int): dimensionality of edge features
-        num_state_feats (int): dimensionality of state features
+        dim_node_embedding (int): dimensionality of node features
+        dim_edge_embedding (int): dimensionality of edge features
+        dim_attr_embedding (int): dimensionality of state features
         include_states (bool): whether including state for M3GNet or not
         num_state_types (int): number of state labels
         state_embedding_dim (int): dimensionality of state embedding
