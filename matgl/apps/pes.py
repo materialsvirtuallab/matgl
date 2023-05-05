@@ -1,5 +1,5 @@
 """
-M3GNet potentials
+Implementation of Interatomic Potentials
 """
 from __future__ import annotations
 
