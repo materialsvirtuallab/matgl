@@ -27,8 +27,8 @@ from matgl.layers import (
     SphericalBesselWithHarmonics,
     ThreeBodyInteractions,
     WeightedReadOut,
-    polynomial_cutoff,
 )
+from matgl.utils.cutoff import polynomial_cutoff
 
 logger = logging.getLogger(__file__)
 CWD = os.path.dirname(os.path.abspath(__file__))
