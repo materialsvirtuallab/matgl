@@ -16,16 +16,20 @@ d = torch.load(state_path)
 
 newd = {}
 
+name_mappings = {
+    "attr_encoder": "state_encoder",
+    "attr_func": "state_func",
+    "state_embedding_layer": "layer_state_embedding",
+    "node_embedding_layer": "layer_node_embedding",
+    "edge_embedding_layer": "layer_edge_embedding",
+}
+
 for k, v in d.items():
-    k = k.replace("attr_encoder", "state_encoder")
-    k = k.replace("attr_func", "state_func")
-    k = k.replace("state_embedding_layer", "layer_state_embedding")
-    k = k.replace("node_embedding_layer", "layer_node_embedding")
-    k = k.replace("edge_embedding_layer", "layer_edge_embedding")
-    if "attr" in k:
-        print(k)
+    for n1, n2 in name_mappings.items():
+        k = k.replace(n1, n2)
     newd[k] = v
 
 torch.save(newd, state_path)
 
+# This last step is just to check that the new model loads correctly.
 model = MEGNet.from_dir_new(model_path)
