@@ -100,11 +100,11 @@ class MEGNet(nn.Module):
         self.data_mean = data_mean or torch.zeros(1)
         self.data_std = data_std or torch.ones(1)
 
-        self.edge_embedding_layer = layer_edge_embedding if layer_edge_embedding else nn.Identity()
+        self.layer_edge_embedding = layer_edge_embedding if layer_edge_embedding else nn.Identity()
         if layer_node_embedding is None:
-            self.node_embedding_layer = nn.Embedding(len(self.element_types), dim_node_embedding)
+            self.layer_node_embedding = nn.Embedding(len(self.element_types), dim_node_embedding)
         else:
-            self.node_embedding_layer = layer_node_embedding
+            self.layer_node_embedding = layer_node_embedding
         self.layer_state_embedding = layer_state_embedding or nn.Identity()
 
         node_dims = [dim_node_embedding, *hidden_layer_sizes_input]
@@ -177,8 +177,8 @@ class MEGNet(nn.Module):
         :return: Prediction
         """
         graph_transformations = self.graph_transformations
-        edge_feat = self.edge_encoder(self.edge_embedding_layer(edge_feat))
-        node_feat = self.node_encoder(self.node_embedding_layer(node_feat))
+        edge_feat = self.edge_encoder(self.layer_edge_embedding(edge_feat))
+        node_feat = self.node_encoder(self.layer_node_embedding(node_feat))
         if self.include_state_embedding:
             state_feat = self.state_encoder(self.layer_state_embedding(state_feat))
         else:
