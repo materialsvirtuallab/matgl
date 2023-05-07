@@ -7,6 +7,7 @@ Submodules
 .. toctree::
    :maxdepth: 6
 
+   matgl.utils.cutoff
    matgl.utils.maths
    matgl.utils.remote
 

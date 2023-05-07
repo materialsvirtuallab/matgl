@@ -29,35 +29,8 @@
 
           <div class="body" role="main">
             
-  <section id="module-matgl.layers.embedding_block">
-<span id="matgl-layers-embedding-block-module"></span><h1>matgl.layers.embedding_block module<a class="headerlink" href="#module-matgl.layers.embedding_block" title="Permalink to this heading">¶</a></h1>
-<p>Embedding node, edge and optional state attributes</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.layers.embedding_block.EmbeddingBlock">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.layers.embedding_block.</span></span><span class="sig-name descname"><span class="pre">EmbeddingBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree_rbf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nn.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_node_feats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_edge_feats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_node_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_state_feats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_state_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_embedding_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.embedding_block.EmbeddingBlock" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Embedding block for generating node, bond and state features</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.embedding_block.EmbeddingBlock.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_attr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_attr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.embedding_block.EmbeddingBlock.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Output embedded features</p>
-<p>Args:
-node_attr: node attribute
-edge_attr: edge attribute
-state_attr: state attribute</p>
-<p>Returns:
-node_feat: embedded node features
-edge_feat: embedded edge features
-state_feat: embedded state features</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="matgl.layers.embedding_block.EmbeddingBlock.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.layers.embedding_block.EmbeddingBlock.training" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="matgl-layers-embedding-block-module">
+<h1>matgl.layers.embedding_block module<a class="headerlink" href="#matgl-layers-embedding-block-module" title="Permalink to this heading">¶</a></h1>
 </section>
 
 

@@ -1,6 +1,13 @@
 matgl.graph package
 ===================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 6
+
+
 Submodules
 ----------
 
@@ -9,6 +16,7 @@ Submodules
 
    matgl.graph.compute
    matgl.graph.converters
+   matgl.graph.data
 
 Module contents
 ---------------

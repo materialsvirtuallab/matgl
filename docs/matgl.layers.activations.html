@@ -29,74 +29,8 @@
 
           <div class="body" role="main">
             
-  <section id="module-matgl.layers.activations">
-<span id="matgl-layers-activations-module"></span><h1>matgl.layers.activations module<a class="headerlink" href="#module-matgl.layers.activations" title="Permalink to this heading">¶</a></h1>
-<p>Custome Activation Fucntions</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.layers.activations.SoftExponential">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.layers.activations.</span></span><span class="sig-name descname"><span class="pre">SoftExponential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.activations.SoftExponential" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Soft exponential activation.
-When x &lt; 0, SoftExponential(x,alpha) = -log(1-alpha(x+alpha))/alpha
-When x = 0, SoftExponential(x,alpha) = 0
-When x &gt; 0, SoftExponential(x,alpha) = (exp(alpha*x)-1)/alpha + alpha</p>
-<dl>
-<dt>References:</dt><dd><ul class="simple">
-<li><p>See related paper:</p></li>
-</ul>
-<p><a class="reference external" href="https://arxiv.org/pdf/1602.01321.pdf">https://arxiv.org/pdf/1602.01321.pdf</a></p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.activations.SoftExponential.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#matgl.layers.activations.SoftExponential.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Evaluate activation function given the input tensor x.
-Arguments:</p>
-<blockquote>
-<div><p>x (torch.tensor): Input tensor</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>out (torch.tensor): Output tensor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="matgl.layers.activations.SoftExponential.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.layers.activations.SoftExponential.training" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.layers.activations.SoftPlus2">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.layers.activations.</span></span><span class="sig-name descname"><span class="pre">SoftPlus2</span></span><a class="headerlink" href="#matgl.layers.activations.SoftPlus2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>SoftPlus2 activation function:
-out = log(exp(x)+1) - log(2)
-softplus function that is 0 at x=0, the implementation aims at avoiding overflow</p>
-<p>Arguments:</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.activations.SoftPlus2.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#matgl.layers.activations.SoftPlus2.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Evaluate activation function given the input tensor x.
-Arguments:</p>
-<blockquote>
-<div><p>x (torch.tensor): Input tensor</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>out (torch.tensor): Output tensor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="matgl.layers.activations.SoftPlus2.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.layers.activations.SoftPlus2.training" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="matgl-layers-activations-module">
+<h1>matgl.layers.activations module<a class="headerlink" href="#matgl-layers-activations-module" title="Permalink to this heading">¶</a></h1>
 </section>
 
 

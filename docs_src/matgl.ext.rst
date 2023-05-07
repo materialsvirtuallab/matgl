@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 6
 
    matgl.ext.ase
+   matgl.ext.pymatgen
 
 Module contents
 ---------------

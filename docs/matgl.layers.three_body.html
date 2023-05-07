@@ -29,62 +29,8 @@
 
           <div class="body" role="main">
             
-  <section id="module-matgl.layers.three_body">
-<span id="matgl-layers-three-body-module"></span><h1>matgl.layers.three_body module<a class="headerlink" href="#module-matgl.layers.three_body" title="Permalink to this heading">¶</a></h1>
-<p>Three-Body interaction implementations.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.layers.three_body.SphericalBesselWithHarmonics">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.layers.three_body.</span></span><span class="sig-name descname"><span class="pre">SphericalBesselWithHarmonics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_smooth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.three_body.SphericalBesselWithHarmonics" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Expansion of basis using Spherical Bessel and Harmonics</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.three_body.SphericalBesselWithHarmonics.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_graph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.three_body.SphericalBesselWithHarmonics.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="matgl.layers.three_body.SphericalBesselWithHarmonics.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.layers.three_body.SphericalBesselWithHarmonics.training" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.layers.three_body.ThreeBodyInteractions">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.layers.three_body.</span></span><span class="sig-name descname"><span class="pre">ThreeBodyInteractions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update_network_atom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_network_bond</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.three_body.ThreeBodyInteractions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Include 3D interactions to the bond update</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.three_body.ThreeBodyInteractions.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">three_basis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">three_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_feat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_feat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.three_body.ThreeBodyInteractions.forward" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Args:</dt><dd><p>graph: dgl graph
-three_basis: three body basis expansion
-three_cutoff: cutoff radius
-node_feat: node features
-edge_feat: edge features
-<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs:</p>
-</dd>
-</dl>
-<p>Returns:</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="matgl.layers.three_body.ThreeBodyInteractions.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.layers.three_body.ThreeBodyInteractions.training" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="matgl-layers-three-body-module">
+<h1>matgl.layers.three_body module<a class="headerlink" href="#matgl-layers-three-body-module" title="Permalink to this heading">¶</a></h1>
 </section>
 
 

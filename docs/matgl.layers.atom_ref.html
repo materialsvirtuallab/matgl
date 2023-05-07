@@ -29,53 +29,8 @@
 
           <div class="body" role="main">
             
-  <section id="module-matgl.layers.atom_ref">
-<span id="matgl-layers-atom-ref-module"></span><h1>matgl.layers.atom_ref module<a class="headerlink" href="#module-matgl.layers.atom_ref" title="Permalink to this heading">¶</a></h1>
-<p>atomic energy offset. Used for predicting extensive properties.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.layers.atom_ref.AtomRef">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.layers.atom_ref.</span></span><span class="sig-name descname"><span class="pre">AtomRef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">property_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.atom_ref.AtomRef" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Get total property offset for a system:</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.atom_ref.AtomRef.fit">
-<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structs_or_graphs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">ScalarType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#matgl.layers.atom_ref.AtomRef.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fit the elemental reference values for the properties</p>
-<p>Args:
-structs_or_graphs: pymatgen Structures or dgl graphs
-properties (np.ndarray): array of extensive properties</p>
-<p>Returns:</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.atom_ref.AtomRef.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.layers.atom_ref.AtomRef.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the total property offset for a system</p>
-<p>Args:
-g: a batch of dgl graphs
-state_attr: state attributes</p>
-<p>Returns:
-offset_per_graph:</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.layers.atom_ref.AtomRef.get_feature_matrix">
-<span class="sig-name descname"><span class="pre">get_feature_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structs_or_graphs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">ScalarType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.layers.atom_ref.AtomRef.get_feature_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of atoms for different elements in the structure</p>
-<p>Args:
-structs_or_graphs (list): a list of pymatgen Structure or dgl graph
-element_list: a dictionary containing element types in the training set</p>
-<p>Returns:
-features (np.array): a matrix (num_structures, num_elements)</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="matgl.layers.atom_ref.AtomRef.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.layers.atom_ref.AtomRef.training" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <section id="matgl-layers-atom-ref-module">
+<h1>matgl.layers.atom_ref module<a class="headerlink" href="#matgl-layers-atom-ref-module" title="Permalink to this heading">¶</a></h1>
 </section>
 
 

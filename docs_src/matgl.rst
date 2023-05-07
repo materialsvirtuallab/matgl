@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 6
 
    matgl.apps
-   matgl.data
    matgl.ext
    matgl.graph
    matgl.layers

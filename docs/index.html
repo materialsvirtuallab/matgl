@@ -119,7 +119,7 @@ state-of-the-art ML models.</p></li>
 <p>The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
 The following is an example of a prediction of the formation energy for CsCl.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">Lattice</span>
-<span class="kn">from</span> <span class="nn">matgl.models.megnet</span> <span class="kn">import</span> <span class="n">MEGNet</span>
+<span class="kn">from</span> <span class="nn">matgl.models._megnet</span> <span class="kn">import</span> <span class="n">MEGNet</span>
 
 <span class="c1"># load the pre-trained MEGNet model for formation energy model.</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">MEGNet</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MEGNet-MP-2018.6.1-Eform&quot;</span><span class="p">)</span>
