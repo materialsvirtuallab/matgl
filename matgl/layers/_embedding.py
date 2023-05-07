@@ -49,10 +49,12 @@ class EmbeddingBlock(nn.Module):
         self.dim_state_embedding = dim_state_embedding
         self.activation = activation
         if ntypes_state and dim_state_embedding is not None:
-            self.state_embedding = nn.Embedding(ntypes_state, dim_state_embedding)  # type: ignore
+            self.layer_state_embedding = nn.Embedding(ntypes_state, dim_state_embedding)  # type: ignore
         if ntypes_node is not None:
-            self.node_embedding = nn.Embedding(ntypes_node, dim_node_embedding)
-        self.edge_embedding = MLP([degree_rbf, self.dim_edge_embedding], activation=activation, activate_last=True)
+            self.layer_node_embedding = nn.Embedding(ntypes_node, dim_node_embedding)
+        self.layer_edge_embedding = MLP(
+            [degree_rbf, self.dim_edge_embedding], activation=activation, activate_last=True
+        )
 
     def forward(self, node_attr, edge_attr, state_attr):
         """
@@ -70,15 +72,15 @@ class EmbeddingBlock(nn.Module):
         """
 
         if self.ntypes_node is not None:
-            node_feat = self.node_embedding(node_attr)
+            node_feat = self.layer_node_embedding(node_attr)
         else:
             node_embed = MLP([node_attr.shape[-1], self.dim_node_embedding], activation=self.activation)
             node_feat = node_embed(node_attr.to(torch.float32))
 
-        edge_feat = self.edge_embedding(edge_attr.to(torch.float32))
+        edge_feat = self.layer_edge_embedding(edge_attr.to(torch.float32))
         if self.include_states is True:
             if self.ntypes_state and self.dim_state_embedding is not None:
-                state_feat = self.state_embedding(state_attr)
+                state_feat = self.layer_state_embedding(state_attr)
             else:
                 state_attr = torch.unsqueeze(state_attr, 0)
                 state_embed = MLP([state_attr.shape[-1], self.dim_state_feats], activation=self.activation)

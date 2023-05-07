@@ -53,7 +53,7 @@ class MEGNet(nn.Module):
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
         **kwargs,
-    ) -> None:
+    ):
         """
         Construct a MEGNet model. Useful defaults for all arguments have been specified based on MEGNet formation energy
         model.
