@@ -31,10 +31,10 @@ class RemoteFile:
         self.model_name = toks[-2]
         self.fname = toks[-1]
         if use_cache:
-            if not (MATGL_CACHE / self.model_name).exists():
-                os.makedirs(MATGL_CACHE / self.model_name)
+            os.makedirs(MATGL_CACHE / self.model_name, exist_ok=True)
             self.local_path = MATGL_CACHE / self.model_name / self.fname
         else:
+            os.makedirs(self.model_name, exist_ok=True)
             self.local_path = Path(self.model_name) / self.fname
         if (not self.local_path.exists()) or force_download:
             self._download()
