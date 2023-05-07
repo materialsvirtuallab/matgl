@@ -27,13 +27,15 @@ class RemoteFile:
                 present. If you want to force a re-download, set this to True.
         """
         self.uri = uri
-        self.model_name = uri.split("/")[-1]
+        toks = uri.split("/")
+        self.model_name = toks[-2]
+        self.fname = toks[-1]
         if use_cache:
-            if not MATGL_CACHE.exists():
-                os.makedirs(MATGL_CACHE)
-            self.local_path = MATGL_CACHE / self.model_name
+            if not (MATGL_CACHE / self.model_name).exists():
+                os.makedirs(MATGL_CACHE / self.model_name)
+            self.local_path = MATGL_CACHE / self.model_name / self.fname
         else:
-            self.local_path = Path(self.model_name)
+            self.local_path = Path(self.model_name) / self.fname
         if (not self.local_path.exists()) or force_download:
             self._download()
 

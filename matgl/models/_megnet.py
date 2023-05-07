@@ -246,93 +246,47 @@ class MEGNet(nn.Module):
         model.load_state_dict(dict["state_dict"], **kwargs)
         return model
 
-    @classmethod
-    def from_dir(cls, path: str | Path, **kwargs):
-        """
-        build a MEGNet from a saved directory
-        """
-        path = Path(path)
-        if not torch.cuda.is_available():
-            state = torch.load(path, map_location=torch.device("cpu"))
-        else:
-            state = torch.load(path)
-        model = MEGNet.from_dict(state["model"], strict=False, **kwargs)
-        return model
-
     def save(self, path: str | Path):
         path = Path(path)
         torch.save(self.model_args, path / "model.pt")
         torch.save(self.state_dict(), path / "state.pt")
 
     @classmethod
-    def from_dir_new(cls, path: str | Path, **kwargs):
+    def load(cls, path: str | Path) -> MEGNet:
         """
-        build a MEGNet from a saved directory
+        Load the model weights from a directory.
+
+        Args:
+            path (str|path): Path to saved model or name of pre-trained model. The search order is
+                path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
+                PRETRAINED_MODELS_BASE_URL.
+
+        Returns: MEGNet object.
         """
         path = Path(path)
-        if not torch.cuda.is_available():
-            state = torch.load(path / "state.pt", map_location=torch.device("cpu"))
+        if (path / "model.pt").exists() and (path / "state.pt").exists():
+            model_path = path / "model.pt"
+            state_path = path / "state.pt"
+        elif (MATGL_CACHE / path / "model.pt").exists() and (MATGL_CACHE / path / "state.pt").exists():
+            model_path = MATGL_CACHE / path / "model.pt"
+            state_path = MATGL_CACHE / path / "state.pt"
         else:
-            state = torch.load(path / "state.pt")
-        model_args = torch.load(path / "model.pt")
+            try:
+                model_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/model.pt")
+                state_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/state.pt")
+                model_path = model_file.local_path
+                state_path = state_file.local_path
+            except BaseException:
+                raise ValueError(
+                    f"No valid model found in {model_path} or among pre-trained_models at "
+                    f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
+                )
+
+        if not torch.cuda.is_available():
+            state = torch.load(state_path, map_location=torch.device("cpu"))
+        else:
+            state = torch.load(state_path)
+        model_args = torch.load(model_path)
         model = cls(**model_args)
         model.load_state_dict(state)
         return model
-
-    @classmethod
-    def load_new(cls, model_path: str | Path) -> MEGNet:
-        """
-        Load the model weights from pre-trained model (MEGNet-MP-2018.6.1-Eform.pt)
-        Args:
-            model_path (str): Path to saved model or name of pre-trained model. The search order is
-                model_path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
-                PRETRAINED_MODELS_BASE_URL.
-
-        Returns: MEGNet object.
-        """
-        model_path = Path(model_path)
-
-        try:
-            return cls.from_dir(model_path)
-        except FileNotFoundError:
-            if (MATGL_CACHE / f"{model_path}.pt").exists():
-                model_path = MATGL_CACHE / f"{model_path}.pt"
-                return cls.from_dir(model_path)
-
-            try:
-                source = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{model_path}.pt")
-                return cls.from_dir(source.local_path)
-            except BaseException:
-                raise ValueError(
-                    f"No valid model found in {model_path} or among pre-trained_models at "
-                    f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-                )
-
-    @classmethod
-    def load(cls, model_path: str | Path) -> MEGNet:
-        """
-        Load the model weights from pre-trained model (MEGNet-MP-2018.6.1-Eform.pt)
-        Args:
-            model_path (str): Path to saved model or name of pre-trained model. The search order is
-                model_path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
-                PRETRAINED_MODELS_BASE_URL.
-
-        Returns: MEGNet object.
-        """
-        model_path = Path(model_path)
-
-        try:
-            return cls.from_dir(model_path)
-        except FileNotFoundError:
-            if (MATGL_CACHE / f"{model_path}.pt").exists():
-                model_path = MATGL_CACHE / f"{model_path}.pt"
-                return cls.from_dir(model_path)
-
-            try:
-                source = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{model_path}.pt")
-                return cls.from_dir(source.local_path)
-            except BaseException:
-                raise ValueError(
-                    f"No valid model found in {model_path} or among pre-trained_models at "
-                    f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-                )
