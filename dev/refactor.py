@@ -7,10 +7,11 @@ import torch
 
 from matgl.models import MEGNet
 
-# model_path = 'pretrained_models/MEGNet-MP-2019.4.1-BandGap-mfi'
+model_path = "pretrained_models/MEGNet-MP-2019.4.1-BandGap-mfi"
 
-model_path = "pretrained_models/MEGNet-MP-2018.6.1-Eform"
-state_path = model_path + "/state.pt"
+# model_path = "pretrained_models/MEGNet-MP-2018.6.1-Eform"
+state_path = model_path + "/model.pt"
+# state_path = model_path + "/state.pt"
 
 d = torch.load(state_path)
 
@@ -22,6 +23,8 @@ name_mappings = {
     "state_embedding_layer": "layer_state_embedding",
     "node_embedding_layer": "layer_node_embedding",
     "edge_embedding_layer": "layer_edge_embedding",
+    "dim_attr_embedding": "dim_state_embedding",
+    "layer_attr_embedding": "layer_state_embedding",
 }
 
 for k, v in d.items():
