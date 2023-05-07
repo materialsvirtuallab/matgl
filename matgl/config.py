@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import torch
 
-# CWD = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_ELEMENT_TYPES = (
     "H",
     "He",

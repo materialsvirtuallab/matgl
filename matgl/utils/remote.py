@@ -3,12 +3,15 @@ Provides utilities for managing models and data.
 """
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
 import requests
 
 from matgl.config import MATGL_CACHE
+
+logger = logging.getLogger(__file__)
 
 
 class RemoteFile:
@@ -37,7 +40,10 @@ class RemoteFile:
             os.makedirs(self.model_name, exist_ok=True)
             self.local_path = Path(self.model_name) / self.fname
         if (not self.local_path.exists()) or force_download:
+            logger.info("Downloading from remote location...")
             self._download()
+        else:
+            logger.info(f"Using cached local file at {self.local_path}...")
 
     def _download(self):
         r = requests.get(self.uri, allow_redirects=True)
