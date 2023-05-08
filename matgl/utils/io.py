@@ -22,17 +22,14 @@ class IOMixIn:
     Mixin class for model saving and loading.
     """
 
-    def save_args(self, locals, kwargs):
+    def save_args(self, locals: dict, kwargs: dict) -> None:
         r"""
         Method to save args into a private _init_args variable. This should be called after super in the __init__
-        method.
+        method, e.g., `self.save_args(locals(), kwargs)`.
 
         Args:
             locals: The result of locals().
             kwargs: kwargs passed to the class.
-
-        Returns:
-
         """
         args = inspect.getfullargspec(self.__class__.__init__).args
         self._init_args = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
@@ -94,8 +91,7 @@ class IOMixIn:
             state = torch.load(state_path, map_location=torch.device("cpu"))
         else:
             state = torch.load(state_path)
-        _init_args = torch.load(model_path)
-        model = cls(**_init_args)
+        model = cls(**torch.load(model_path))
         model.load_state_dict(state)  # type: ignore
         return model
 
