@@ -238,6 +238,8 @@ class MEGNet(nn.Module):
         path = Path(path)
         torch.save(self.model_args, path / "model.pt")
         torch.save(self.state_dict(), path / "state.pt")
+
+        # This txt dump of model args is purely for ease of reference. It is used to deserialize the model.
         d = {"name": self.__class__.__name__, "kwargs": self.model_args}
         with open(path / "model.txt", "w") as f:
             json.dump(d, f, default=lambda o: str(o), indent=4)
