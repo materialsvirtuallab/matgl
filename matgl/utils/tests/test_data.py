@@ -5,7 +5,7 @@ import unittest
 
 import torch
 
-from matgl.utils.remote import RemoteFile
+from matgl.utils.io import RemoteFile
 
 
 class ModelSourceTestCase(unittest.TestCase):

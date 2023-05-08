@@ -29,6 +29,7 @@ from matgl.layers import (
     WeightedReadOut,
 )
 from matgl.utils.cutoff import polynomial_cutoff
+from matgl.utils.io import IOMixIn
 
 logger = logging.getLogger(__file__)
 CWD = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +39,7 @@ MODEL_NAME = "m3gnet"
 MODEL_PATHS = {"MP-2021.2.8-EFS": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2021.2.8-EFS")}
 
 
-class M3GNet(nn.Module):
+class M3GNet(nn.Module, IOMixIn):
     """
     The main M3GNet model
     """
@@ -204,46 +205,6 @@ class M3GNet(nn.Module):
         self.is_intensive = is_intensive
         self.data_mean = data_mean
         self.data_std = data_std
-
-    def as_dict(self):
-        out = {"state_dict": self.state_dict(), "model_args": self.model_args}
-        return out
-
-    @classmethod
-    def from_dict(cls, dict, **kwargs):
-        """
-        build a M3GNet from a saved dictionary
-        """
-        model = M3GNet(**dict["model_args"])
-        model.load_state_dict(dict["state_dict"], **kwargs)
-        return model
-
-    @classmethod
-    def from_dir(cls, path, **kwargs):
-        """
-        build a M3GNet from a saved directory
-        """
-        file_name = os.path.join(path, MODEL_NAME + ".pt")
-        state = torch.load(file_name)
-        model = M3GNet.from_dict(state["model"], **kwargs)
-        return model
-
-    @classmethod
-    def load(cls, model_dir: str = "MP-2021.2.8-EFS") -> M3GNet:
-        """
-        Load the model weights from pre-trained model (m3gnet.pt)
-        Args:
-            model_dir (str): directory for saved model. Defaults to "MP-2021.2.8-EFS".
-
-        Returns: M3GNet object.
-        """
-        if model_dir in MODEL_PATHS:
-            return cls.from_dir(MODEL_PATHS[model_dir])
-
-        if os.path.isdir(model_dir) and "m3gnet.pt" in os.listdir(model_dir):
-            return cls.from_dir(model_dir)
-
-        raise ValueError(f"{model_dir} not found in available pretrained_models {list(MODEL_PATHS.keys())}")
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.

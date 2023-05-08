@@ -3,9 +3,7 @@ Implementation of MEGNet model.
 """
 from __future__ import annotations
 
-import json
 import logging
-from pathlib import Path
 
 import dgl
 import torch
@@ -13,17 +11,17 @@ import torch.nn as nn
 from dgl.nn import Set2Set
 from pymatgen.core import Structure
 
-from matgl.config import DEFAULT_ELEMENT_TYPES, MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
+from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.ext.pymatgen import Structure2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import GraphConverter
 from matgl.layers import MLP, BondExpansion, EdgeSet2Set, MEGNetBlock, SoftExponential, SoftPlus2
-from matgl.utils.remote import RemoteFile
+from matgl.utils.io import IOMixIn
 
 logger = logging.getLogger(__file__)
 
 
-class MEGNet(nn.Module):
+class MEGNet(nn.Module, IOMixIn):
     """
     DGL implementation of MEGNet.
     """
@@ -233,53 +231,3 @@ class MEGNet(nn.Module):
         output = self.data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats) + self.data_mean
 
         return output.detach()
-
-    def save(self, path: str | Path):
-        path = Path(path)
-        torch.save(self.model_args, path / "model.pt")
-        torch.save(self.state_dict(), path / "state.pt")
-
-        # This txt dump of model args is purely for ease of reference. It is used to deserialize the model.
-        d = {"name": self.__class__.__name__, "kwargs": self.model_args}
-        with open(path / "model.txt", "w") as f:
-            json.dump(d, f, default=lambda o: str(o), indent=4)
-
-    @classmethod
-    def load(cls, path: str | Path) -> MEGNet:
-        """
-        Load the model weights from a directory.
-
-        Args:
-            path (str|path): Path to saved model or name of pre-trained model. The search order is
-                path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
-                PRETRAINED_MODELS_BASE_URL.
-
-        Returns: MEGNet object.
-        """
-        path = Path(path)
-        if (path / "model.pt").exists() and (path / "state.pt").exists():
-            model_path = path / "model.pt"
-            state_path = path / "state.pt"
-        elif (MATGL_CACHE / path / "model.pt").exists() and (MATGL_CACHE / path / "state.pt").exists():
-            model_path = MATGL_CACHE / path / "model.pt"
-            state_path = MATGL_CACHE / path / "state.pt"
-        else:
-            try:
-                model_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/model.pt")
-                state_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/state.pt")
-                model_path = model_file.local_path
-                state_path = state_file.local_path
-            except BaseException:
-                raise ValueError(
-                    f"No valid model found in {model_path} or among pre-trained_models at "
-                    f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-                )
-
-        if not torch.cuda.is_available():
-            state = torch.load(state_path, map_location=torch.device("cpu"))
-        else:
-            state = torch.load(state_path)
-        model_args = torch.load(model_path)
-        model = cls(**model_args)
-        model.load_state_dict(state)
-        return model
