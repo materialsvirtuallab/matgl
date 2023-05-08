@@ -3,6 +3,7 @@ Implementation of MEGNet model.
 """
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 
@@ -233,23 +234,13 @@ class MEGNet(nn.Module):
 
         return output.detach()
 
-    def as_dict(self):
-        out = {"state_dict": self.state_dict(), "model_args": self.model_args}
-        return out
-
-    @classmethod
-    def from_dict(cls, dict, **kwargs):
-        """
-        build a MEGNet from a saved dictionary
-        """
-        model = MEGNet(**dict["model_args"])
-        model.load_state_dict(dict["state_dict"], **kwargs)
-        return model
-
     def save(self, path: str | Path):
         path = Path(path)
         torch.save(self.model_args, path / "model.pt")
         torch.save(self.state_dict(), path / "state.pt")
+        d = {"name": self.__class__.__name__, "kwargs": self.model_args}
+        with open(path / "model.txt", "w") as f:
+            json.dump(d, f, default=lambda o: str(o), indent=4)
 
     @classmethod
     def load(cls, path: str | Path) -> MEGNet:
