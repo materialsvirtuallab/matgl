@@ -12,25 +12,21 @@ from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
 from torch.optim.lr_scheduler import ExponentialLR
 
-from matgl.apps.pes import Potential
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import (
-    M3GNetDataset,
     MEGNetDataset,
     MGLDataLoader,
     _collate_fn,
-    _collate_fn_efs,
 )
 from matgl.layers import MLP
-from matgl.models import M3GNet, MEGNet
-from matgl.trainer.m3gnet import M3GNetTrainer
-from matgl.trainer.megnet import MEGNetTrainer
+from matgl.models import MEGNet
+from matgl.utils.training import ModelTrainer
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class MEGNetTrainerTest(PymatgenTest):
-    def test_megnet_dataloader(self):
+class ModelTrainerTest(PymatgenTest):
+    def test_megnet_training(self):
         s1 = self.get_structure("LiFePO4")
         s2 = self.get_structure("BaNiO3")
         structures = [s1, s1, s1, s1, s1, s1, s1, s1, s1, s1, s2, s2, s2, s2, s2, s2, s2, s2, s2, s2]
@@ -81,7 +77,7 @@ class MEGNetTrainerTest(PymatgenTest):
         train_loss_function = F.mse_loss
         validate_loss_function = F.l1_loss
 
-        trainer = MEGNetTrainer(
+        trainer = ModelTrainer(
             model=model,
             optimizer=optimizer,
             scheduler=scheduler,
@@ -91,73 +87,8 @@ class MEGNetTrainerTest(PymatgenTest):
             nepochs=2,
             train_loss_func=train_loss_function,
             val_loss_func=validate_loss_function,
-            data_std=torch.zeros(1),
-            data_mean=torch.zeros(1),
             train_loader=train_loader,
             val_loader=val_loader,
-            logger_name="test_trainer.json",
-        )
-
-
-class M3GNetTrainerTest(PymatgenTest):
-    def test_m3gnet_dataloader(self):
-        s1 = self.get_structure("LiFePO4")
-        s2 = self.get_structure("BaNiO3")
-        structures = [s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2, s1, s2]
-        energies = np.zeros(20)
-        f1 = np.zeros((28, 3)).tolist()
-        f2 = np.zeros((10, 3)).tolist()
-        s = np.zeros((3, 3)).tolist()
-        forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
-        stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
-        element_types = get_element_list([s1, s2])
-        cry_graph = Structure2Graph(element_types=element_types, cutoff=5.0)
-        dataset = M3GNetDataset(
-            threebody_cutoff=4.0,
-            structures=structures,
-            converter=cry_graph,
-            energies=energies,
-            forces=forces,
-            stresses=stresses,
-        )
-        train_data, val_data, test_data = split_dataset(
-            dataset,
-            frac_list=[0.8, 0.1, 0.1],
-            shuffle=True,
-            random_state=42,
-        )
-        train_loader, val_loader, test_loader = MGLDataLoader(
-            train_data=train_data,
-            val_data=val_data,
-            test_data=test_data,
-            collate_fn=_collate_fn_efs,
-            batch_size=2,
-            num_workers=1,
-        )
-        model = M3GNet(
-            element_types=element_types,
-            is_intensive=False,
-        )
-
-        ff = Potential(model=model)
-        optimizer = torch.optim.Adam(ff.model.parameters(), lr=1.0e-3)
-        scheduler = ExponentialLR(optimizer, gamma=0.9)
-
-        train_loss_function = F.mse_loss
-        validate_loss_function = F.l1_loss
-
-        trainer = M3GNetTrainer(potential=ff, optimizer=optimizer, scheduler=scheduler)
-
-        trainer.train(
-            nepochs=2,
-            train_loss=train_loss_function,
-            val_loss=validate_loss_function,
-            energy_weight=1.0,
-            force_weight=1.0,
-            stress_weight=0.1,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            logger_name="test_trainer.json",
         )
 
     @classmethod
@@ -167,8 +98,7 @@ class M3GNetTrainerTest(PymatgenTest):
                 os.remove(fn)
             except FileNotFoundError:
                 pass
-        shutil.rmtree("BestModel")
-        shutil.rmtree("CheckPoints")
+        shutil.rmtree("matgl_training")
 
 
 if __name__ == "__main__":

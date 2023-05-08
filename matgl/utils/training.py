@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import json
+import codecs
+import csv
 import logging
 import os
 from pathlib import Path
@@ -93,41 +94,6 @@ def validate_one_step(
     return avg_loss, epoch_time
 
 
-class StreamingJSONWriter:
-    """
-    Serialize streaming data to JSON.
-
-    This class holds onto an open file reference to which it carefully
-    appends new JSON data. Individual entries are input in a list, and
-    after every entry the list is closed so that it remains valid JSON.
-    When a new item is added, the file cursor is moved backwards to overwrite
-    the list closing bracket.
-    """
-
-    def __init__(self, filename, encoder=json.JSONEncoder):
-        if os.path.exists(filename):
-            self.file = open(filename, "r+")
-            self.delimeter = ","
-        else:
-            self.file = open(filename, "w")
-            self.delimeter = "["
-        self.encoder = encoder
-
-    def dump(self, obj):
-        """
-        Dump a JSON-serializable object to file.
-        """
-        data = json.dumps(obj, cls=self.encoder)
-        close_str = "\n]\n"
-        self.file.seek(max(self.file.seek(0, os.SEEK_END) - len(close_str), 0))
-        self.file.write(f"{self.delimeter}\n    {data}{close_str}")
-        self.file.flush()
-        self.delimeter = ","
-
-    def close(self):
-        self.file.close()
-
-
 class ModelTrainer:
     def __init__(self, model, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler):
         """
@@ -148,54 +114,58 @@ class ModelTrainer:
         val_loss_func: nn.Module,
         train_loader: tuple,
         val_loader: tuple,
-        logger_name: str,
         logpath: str | Path = "matgl_training",
     ) -> None:
+        """
+
+        Args:
+            nepochs:
+            train_loss_func:
+            val_loss_func:
+            train_loader:
+            val_loader:
+            training_logfile:
+            logpath:
+        """
         logpath = Path(logpath)
         outpath = logpath / "best_model"
         checkpath = logpath / "checkpoints"
         os.makedirs(outpath, exist_ok=True)
-        os.makedirs(logpath, exist_ok=True)
-        jsonlog = StreamingJSONWriter(filename=logger_name)
+        os.makedirs(checkpath, exist_ok=True)
         logger.info("## Training started ##")
         best_val_loss = 1000.0
-        for epoch in tqdm(range(nepochs)):
-            train_loss, train_time = train_one_step(
-                self.model,
-                self.optimizer,
-                train_loss_func,
-                train_loader,
-            )
-            val_loss, val_time = validate_one_step(self.model, val_loss_func, val_loader)
 
-            self.scheduler.step()
-            logger.info(
-                f"Epoch: {epoch + 1:03} Train Loss: {train_loss:.4f} "
-                f"Val Loss: {val_loss:.4f} Train Time: {train_time:.2f} s. "
-                f"Val Time: {val_time:.2f} s."
-            )
-            if val_loss < best_val_loss:
-                torch.save(
-                    {
-                        "epoch": epoch + 1,
-                        "model": self.model.state_dict(),
-                        "optimizer_state_dict": self.optimizer.state_dict(),
-                        "scheduler_state_dict": self.scheduler.state_dict(),
-                        "loss": val_loss,
-                    },
-                    checkpath / f"{epoch + 1}-{val_loss}.pt",
+        with codecs.open(logpath / "training_log.csv", "w", "utf-8") as fp:  # type: ignore
+            csvlog = csv.writer(fp)
+            row = ["epoch", "train_loss", "val_loss", "train_time", "val_time"]
+            csvlog.writerow(row)
+            for epoch in tqdm(range(nepochs)):
+                train_loss, train_time = train_one_step(
+                    self.model,
+                    self.optimizer,
+                    train_loss_func,
+                    train_loader,
                 )
+                val_loss, val_time = validate_one_step(self.model, val_loss_func, val_loader)
 
-                log_dict = {
-                    "Epoch": epoch + 1,
-                    "train_loss": train_loss,
-                    "val_loss": val_loss,
-                    "train_time": train_time,
-                    "val_time": val_time,
-                }
-
-                jsonlog.dump(log_dict)
-                best_val_loss = val_loss
-                self.model.save(outpath)
-        jsonlog.close()
+                self.scheduler.step()
+                logger.info(
+                    f"Epoch: {epoch + 1:03} Train Loss: {train_loss:.4f} "
+                    f"Val Loss: {val_loss:.4f} Train Time: {train_time:.2f} s. "
+                    f"Val Time: {val_time:.2f} s."
+                )
+                if val_loss < best_val_loss:
+                    torch.save(
+                        {
+                            "epoch": epoch + 1,
+                            "model": self.model.state_dict(),
+                            "optimizer_state_dict": self.optimizer.state_dict(),
+                            "scheduler_state_dict": self.scheduler.state_dict(),
+                            "loss": val_loss,
+                        },
+                        checkpath / f"{epoch + 1}-{val_loss}.pt",
+                    )
+                    csvlog.writerow([epoch + 1, train_loss, val_loss, train_time, val_time])
+                    best_val_loss = val_loss
+                    self.model.save(outpath)
         logger.info("## Training finished ##")
