@@ -17,8 +17,6 @@ def train_one_step(
     model: nn.Module,
     optimizer: torch.optim.Optimizer,
     loss_function: nn.Module,
-    data_std: torch.Tensor,
-    data_mean: torch.Tensor,
     dataloader,
 ):
     """
@@ -50,7 +48,7 @@ def train_one_step(
 
         pred = torch.squeeze(pred)
 
-        loss = loss_function(pred, (labels - data_mean) / data_std)
+        loss = loss_function(pred, (labels - model.data_mean) / model.data_std)
 
         loss.backward()
         optimizer.step()
@@ -68,8 +66,6 @@ def train_one_step(
 def validate_one_step(
     model: nn.Module,
     loss_function: nn.Module,
-    data_std: torch.Tensor,
-    data_mean: torch.Tensor,
     dataloader: tuple,
 ):
     avg_loss = torch.zeros(1)
@@ -85,7 +81,7 @@ def validate_one_step(
 
             pred = torch.squeeze(pred)
 
-            loss = loss_function(data_mean + pred * data_std, labels)
+            loss = loss_function(model.data_mean + pred * model.data_std, labels)
 
             avg_loss += loss
 
@@ -150,8 +146,6 @@ class ModelTrainer:
         nepochs: int,
         train_loss_func: nn.Module,
         val_loss_func: nn.Module,
-        data_std: torch.tensor,
-        data_mean: torch.tensor,
         train_loader: tuple,
         val_loader: tuple,
         logger_name: str,
@@ -170,11 +164,9 @@ class ModelTrainer:
                 self.model,
                 self.optimizer,
                 train_loss_func,
-                data_std,
-                data_mean,
                 train_loader,
             )
-            val_loss, val_time = validate_one_step(self.model, val_loss_func, data_std, data_mean, val_loader)
+            val_loss, val_time = validate_one_step(self.model, val_loss_func, val_loader)
 
             self.scheduler.step()
             logger.info(
