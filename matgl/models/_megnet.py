@@ -85,10 +85,6 @@ class MEGNet(nn.Module, IOMixIn):
             gauss_width: width of Gaussian function for bond expansion
             **kwargs:
         """
-        # Store MEGNet model args for loading trained model
-        self.model_args = {k: v for k, v in locals().items() if k not in ["self", "__class__", "kwargs"]}
-        self.model_args.update(kwargs)
-
         super().__init__()
 
         self.element_types = element_types or DEFAULT_ELEMENT_TYPES
@@ -105,6 +101,18 @@ class MEGNet(nn.Module, IOMixIn):
         else:
             self.layer_node_embedding = layer_node_embedding
         self.layer_state_embedding = layer_state_embedding or nn.Identity()
+        self.dim_node_embedding = dim_node_embedding
+        self.dim_edge_embedding = dim_edge_embedding
+        self.dim_state_embedding = dim_state_embedding
+        self.nblocks = nblocks
+        self.hidden_layer_sizes_input = hidden_layer_sizes_input
+        self.hidden_layer_sizes_conv = hidden_layer_sizes_conv
+        self.hidden_layer_sizes_output = hidden_layer_sizes_output
+        self.nlayers_set2set = nlayers_set2set
+        self.niters_set2set = niters_set2set
+        self.activation_type = activation_type
+        self.gauss_width = gauss_width
+        self.kwargs = kwargs
 
         node_dims = [dim_node_embedding, *hidden_layer_sizes_input]
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_input]

@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from inspect import getfullargspec
 from pathlib import Path
 
 import requests
@@ -14,6 +15,24 @@ import torch
 from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
 
 logger = logging.getLogger(__file__)
+
+
+def _get_class_args(obj):
+    d = {}
+    spec = getfullargspec(obj.__class__.__init__)
+    args = spec.args
+
+    for c in args:
+        if c != "self":
+            try:
+                a = getattr(obj, c)
+            except AttributeError:
+                raise NotImplementedError(
+                    "All args to be present as either self.argname and kwargs to be present under "
+                    "a self.kwargs variable."
+                )
+            d[c] = a
+    return d
 
 
 class IOMixIn:
@@ -34,11 +53,12 @@ class IOMixIn:
                 a description of model purpose, the training set used, etc.
         """
         path = Path(path)
-        torch.save(self.model_args, path / "model.pt")  # type: ignore
+        model_args = _get_class_args(self)
+        torch.save(model_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
 
         # This txt dump of model args is purely for ease of reference. It is not used to deserialize the model.
-        d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": self.model_args}  # type: ignore
+        d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": model_args}  # type: ignore
         with open(path / "model.txt", "w") as f:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
