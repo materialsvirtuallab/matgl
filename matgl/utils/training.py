@@ -191,7 +191,7 @@ class ModelTrainer:
                         "scheduler_state_dict": self.scheduler.state_dict(),
                         "loss": val_loss,
                     },
-                    checkpath + "/%05d" % (epoch + 1) + "-%6.5f" % (val_loss) + ".pt",
+                    checkpath / f"{epoch + 1}-{val_loss}.pt",
                 )
 
                 log_dict = {
@@ -204,6 +204,6 @@ class ModelTrainer:
 
                 jsonlog.dump(log_dict)
                 best_val_loss = val_loss
-                torch.save({"model": self.model.as_dict()}, outpath + "/best-model.pt")
+                self.model.save(outpath)
         jsonlog.close()
         logger.info("## Training finished ##")
