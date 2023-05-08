@@ -3,7 +3,6 @@ Implementation of MEGNet model.
 """
 from __future__ import annotations
 
-import inspect
 import logging
 
 import dgl
@@ -87,13 +86,9 @@ class MEGNet(nn.Module, IOMixIn):
             **kwargs:
         """
 
-        # Store M3GNet model args for loading trained model
-
         super().__init__()
 
-        args = inspect.getfullargspec(self.__class__.__init__).args
-        self.model_args = {k: v for k, v in locals().items() if k in args and k not in ("self", "__class__")}
-        self.model_args.update(kwargs)
+        self.save_args(locals(), kwargs)
 
         self.element_types = element_types or DEFAULT_ELEMENT_TYPES
         self.cutoff = cutoff

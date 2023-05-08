@@ -3,7 +3,6 @@ Core M3GNet model
 """
 from __future__ import annotations
 
-import inspect
 import logging
 
 import dgl
@@ -104,9 +103,7 @@ class M3GNet(nn.Module, IOMixIn):
 
         super().__init__()
 
-        args = inspect.getfullargspec(self.__class__.__init__).args
-        self.model_args = {k: v for k, v in locals().items() if k in args and k not in ("self", "__class__")}
-        self.model_args.update(kwargs)
+        self.save_args(locals(), kwargs)
 
         if activation_type == "swish":
             activation = nn.SiLU()  # type: ignore

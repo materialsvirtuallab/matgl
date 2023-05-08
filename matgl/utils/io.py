@@ -3,6 +3,7 @@ Provides utilities for managing models and data.
 """
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 import os
@@ -21,6 +22,22 @@ class IOMixIn:
     Mixin class for model saving and loading.
     """
 
+    def save_args(self, locals, kwargs):
+        r"""
+        Method to save args into a private _init_args variable. This should be called after super in the __init__
+        method.
+
+        Args:
+            locals: The result of locals().
+            kwargs: kwargs passed to the class.
+
+        Returns:
+
+        """
+        args = inspect.getfullargspec(self.__class__.__init__).args
+        self._init_args = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
+        self._init_args.update(kwargs)
+
     def save(self, path: str | Path, metadata: dict | None = None):
         """
         Save model to a directory. Three files will be saved.
@@ -34,11 +51,11 @@ class IOMixIn:
                 a description of model purpose, the training set used, etc.
         """
         path = Path(path)
-        torch.save(self.model_args, path / "model.pt")  # type: ignore
+        torch.save(self._init_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
 
         # This txt dump of model args is purely for ease of reference. It is not used to deserialize the model.
-        d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": self.model_args}  # type: ignore
+        d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": self._init_args}  # type: ignore
         with open(path / "model.txt", "w") as f:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
@@ -77,8 +94,8 @@ class IOMixIn:
             state = torch.load(state_path, map_location=torch.device("cpu"))
         else:
             state = torch.load(state_path)
-        model_args = torch.load(model_path)
-        model = cls(**model_args)
+        _init_args = torch.load(model_path)
+        model = cls(**_init_args)
         model.load_state_dict(state)  # type: ignore
         return model
 
