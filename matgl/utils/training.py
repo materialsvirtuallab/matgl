@@ -137,8 +137,7 @@ class ModelTrainer:
 
         with codecs.open(logpath / "training_log.csv", "w", "utf-8") as fp:  # type: ignore
             csvlog = csv.writer(fp)
-            row = ["epoch", "train_loss", "val_loss", "train_time", "val_time"]
-            csvlog.writerow(row)
+            csvlog.writerow(["epoch", "train_loss", "val_loss", "train_time", "val_time"])
             for epoch in tqdm(range(nepochs)):
                 train_loss, train_time = train_one_step(
                     self.model,
