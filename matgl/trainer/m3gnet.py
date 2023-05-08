@@ -293,6 +293,6 @@ class M3GNetTrainer:
 
                 jsonlogger.dump(log_dict)
                 best_val_loss = avg_loss_val
-                torch.save({"model": self.potential.model.as_dict()}, outpath + "/m3gnet.pt")
+                self.potential.model.save(outpath)
         jsonlogger.close()
         logger.info("## Training finished ##")
