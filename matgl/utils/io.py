@@ -21,7 +21,7 @@ class IOMixIn:
     Mixin class for model saving and loading.
     """
 
-    def save(self, path: str | Path, metadata=None):
+    def save(self, path: str | Path, metadata: dict | None = None):
         """
         Save model to a directory. Three files will be saved.
         - path/model.pt, which contains the torch serialzied model args.
