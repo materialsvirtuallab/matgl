@@ -21,7 +21,7 @@ class IOMixIn:
     Mixin class for model saving and loading.
     """
 
-    def save(self, path: str | Path):
+    def save(self, path: str | Path, metadata=None):
         """
         Save model to a directory. Three files will be saved.
         - path/model.pt, which contains the torch serialzied model args.
@@ -30,13 +30,15 @@ class IOMixIn:
 
         Args:
             path: String or Path object to directory for model saving.
+            metadata: Any additional metadata to be saved into the model.txt file. For example, a good use would be
+                a description of model purpose, the training set used, etc.
         """
         path = Path(path)
         torch.save(self.model_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
 
         # This txt dump of model args is purely for ease of reference. It is not used to deserialize the model.
-        d = {"name": self.__class__.__name__, "kwargs": self.model_args}  # type: ignore
+        d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": self.model_args}  # type: ignore
         with open(path / "model.txt", "w") as f:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
