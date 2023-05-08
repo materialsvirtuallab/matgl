@@ -14,87 +14,11 @@ from tqdm import tqdm
 logger = logging.getLogger(__file__)
 
 
-def train_one_step(
-    model: nn.Module,
-    optimizer: torch.optim.Optimizer,
-    loss_function: nn.Module,
-    dataloader,
-):
-    """
-
-    Args:
-        model:
-        optimizer:
-        loss_function:
-        data_std:
-        data_mean:
-        dataloader:
-
-    Returns:
-
-    """
-    model.train()
-
-    avg_loss = torch.zeros(1)
-
-    start = default_timer()
-
-    for g, labels, attrs in tqdm(dataloader):
-        optimizer.zero_grad()
-
-        node_feat = g.ndata["node_type"]
-        edge_feat = g.edata["edge_attr"]
-
-        pred = model(g, edge_feat.float(), node_feat.long(), attrs)
-
-        pred = torch.squeeze(pred)
-
-        loss = loss_function(pred, (labels - model.data_mean) / model.data_std)
-
-        loss.backward()
-        optimizer.step()
-
-        avg_loss += loss.detach()
-
-    stop = default_timer()
-
-    avg_loss = avg_loss.cpu().item() / len(dataloader)
-    epoch_time = stop - start
-
-    return avg_loss, epoch_time
-
-
-def validate_one_step(
-    model: nn.Module,
-    loss_function: nn.Module,
-    dataloader: tuple,
-):
-    avg_loss = torch.zeros(1)
-
-    start = default_timer()
-
-    with torch.no_grad():
-        for g, labels, attrs in dataloader:
-            node_feat = g.ndata["node_type"]
-            edge_feat = g.edata["edge_attr"]
-
-            pred = model(g, edge_feat.float(), node_feat.long(), attrs)
-
-            pred = torch.squeeze(pred)
-
-            loss = loss_function(model.data_mean + pred * model.data_std, labels)
-
-            avg_loss += loss
-
-    stop = default_timer()
-
-    avg_loss = avg_loss.cpu().item() / len(dataloader)
-    epoch_time = stop - start
-
-    return avg_loss, epoch_time
-
-
 class ModelTrainer:
+    """
+    Utility class to perform training of models with logging and saving of best models.
+    """
+
     def __init__(self, model, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler):
         """
 
@@ -106,6 +30,80 @@ class ModelTrainer:
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
+
+    def train_one_step(
+        self,
+        train_loss_func: nn.Module,
+        dataloader,
+    ) -> tuple[float, float]:
+        """
+        Perform a single step training.
+
+        Args:
+            train_loss_func: Loss function for training
+            dataloader: Data loader.
+
+        Returns:
+            avg_loss, training_time
+        """
+        model = self.model
+        optimizer = self.optimizer
+
+        model.train()
+
+        avg_loss = torch.zeros(1)
+
+        start = default_timer()
+        mean = model.data_mean
+        std = model.data_std
+
+        for g, labels, attrs in tqdm(dataloader):
+            optimizer.zero_grad()
+            node_feat = g.ndata["node_type"]
+            edge_feat = g.edata["edge_attr"]
+            pred = model(g, edge_feat.float(), node_feat.long(), attrs)
+            pred = torch.squeeze(pred)
+            loss = train_loss_func(pred, (labels - mean) / std)
+            loss.backward()
+            optimizer.step()
+            avg_loss += loss.detach()
+        avg_loss = avg_loss.cpu().item() / len(dataloader)
+        return avg_loss, default_timer() - start
+
+    def validate_one_step(
+        self,
+        val_loss_func: nn.Module,
+        dataloader: tuple,
+    ) -> tuple[float, float]:
+        """
+        Perform a single step validation.
+
+        Args:
+            val_loss_func: Validation loss function.
+            dataloader: Data loader.
+
+        Returns:
+            avg_loss, training_time
+        """
+        model = self.model
+        avg_loss = torch.zeros(1)
+
+        start = default_timer()
+
+        with torch.no_grad():
+            for g, labels, attrs in dataloader:
+                node_feat = g.ndata["node_type"]
+                edge_feat = g.edata["edge_attr"]
+
+                pred = model(g, edge_feat.float(), node_feat.long(), attrs)
+
+                pred = torch.squeeze(pred)
+
+                loss = val_loss_func(model.data_mean + pred * model.data_std, labels)
+
+                avg_loss += loss
+        avg_loss = avg_loss.cpu().item() / len(dataloader)
+        return avg_loss, default_timer() - start
 
     def train(
         self,
@@ -139,13 +137,11 @@ class ModelTrainer:
             csvlog = csv.writer(fp)
             csvlog.writerow(["epoch", "train_loss", "val_loss", "train_time", "val_time"])
             for epoch in tqdm(range(nepochs)):
-                train_loss, train_time = train_one_step(
-                    self.model,
-                    self.optimizer,
+                train_loss, train_time = self.train_one_step(
                     train_loss_func,
                     train_loader,
                 )
-                val_loss, val_time = validate_one_step(self.model, val_loss_func, val_loader)
+                val_loss, val_time = self.validate_one_step(val_loss_func, val_loader)
 
                 self.scheduler.step()
                 logger.info(
