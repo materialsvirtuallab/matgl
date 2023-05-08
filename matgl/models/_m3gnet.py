@@ -3,6 +3,7 @@ Core M3GNet model
 """
 from __future__ import annotations
 
+import inspect
 import logging
 
 import dgl
@@ -101,19 +102,18 @@ class M3GNet(nn.Module, IOMixIn):
             **kwargs:
         """
 
-        # Store M3GNet model args for loading trained model
-        for k, v in locals().items():
-            if k not in ["self", "__class__"]:
-                setattr(self, k, v)
-
         super().__init__()
 
+        args = inspect.getfullargspec(self.__class__.__init__).args
+        self.model_args = {k: v for k, v in locals().items() if k in args and k not in ("self", "__class__")}
+        self.model_args.update(kwargs)
+
         if activation_type == "swish":
-            self.activation = nn.SiLU()  # type: ignore
+            activation = nn.SiLU()  # type: ignore
         elif activation_type == "tanh":
-            self.activation = nn.Tanh()  # type: ignore
+            activation = nn.Tanh()  # type: ignore
         elif activation_type == "sigmoid":
-            self.activation = nn.Sigmoid()  # type: ignore
+            activation = nn.Sigmoid()  # type: ignore
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES
@@ -134,7 +134,7 @@ class M3GNet(nn.Module, IOMixIn):
             dim_state_feats=dim_state_feats,
             include_state_embedding=include_state_embedding,
             dim_state_embedding=dim_state_embedding,
-            activation=self.activation,
+            activation=activation,
         )
 
         self.basis_expansion = SphericalBesselWithHarmonics(
@@ -156,7 +156,7 @@ class M3GNet(nn.Module, IOMixIn):
             {
                 M3GNetBlock(
                     degree=degree_rbf,
-                    activation=self.activation,
+                    activation=activation,
                     conv_hiddens=[units, units],
                     num_node_feats=dim_node_embedding,
                     num_edge_feats=dim_edge_embedding,
@@ -180,7 +180,7 @@ class M3GNet(nn.Module, IOMixIn):
                 )
 
             dims_final_layer = [readout_feats] + [units, units] + [ntargets]
-            self.final_layer = MLP(dims_final_layer, self.activation, activate_last=False)
+            self.final_layer = MLP(dims_final_layer, activation, activate_last=False)
             if task_type == "classification":
                 self.sigmoid = nn.Sigmoid()
 

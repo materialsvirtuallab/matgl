@@ -3,6 +3,7 @@ Implementation of MEGNet model.
 """
 from __future__ import annotations
 
+import inspect
 import logging
 
 import dgl
@@ -86,7 +87,13 @@ class MEGNet(nn.Module, IOMixIn):
             **kwargs:
         """
 
+        # Store M3GNet model args for loading trained model
+
         super().__init__()
+
+        args = inspect.getfullargspec(self.__class__.__init__).args
+        self.model_args = {k: v for k, v in locals().items() if k in args and k not in ("self", "__class__")}
+        self.model_args.update(kwargs)
 
         self.element_types = element_types or DEFAULT_ELEMENT_TYPES
         self.cutoff = cutoff
@@ -102,18 +109,6 @@ class MEGNet(nn.Module, IOMixIn):
         else:
             self.layer_node_embedding = layer_node_embedding
         self.layer_state_embedding = layer_state_embedding or nn.Identity()
-        self.dim_node_embedding = dim_node_embedding
-        self.dim_edge_embedding = dim_edge_embedding
-        self.dim_state_embedding = dim_state_embedding
-        self.nblocks = nblocks
-        self.hidden_layer_sizes_input = hidden_layer_sizes_input
-        self.hidden_layer_sizes_conv = hidden_layer_sizes_conv
-        self.hidden_layer_sizes_output = hidden_layer_sizes_output
-        self.nlayers_set2set = nlayers_set2set
-        self.niters_set2set = niters_set2set
-        self.activation_type = activation_type
-        self.gauss_width = gauss_width
-        self.kwargs = kwargs
 
         node_dims = [dim_node_embedding, *hidden_layer_sizes_input]
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_input]
