@@ -4,7 +4,6 @@ Core M3GNet model
 from __future__ import annotations
 
 import logging
-import os
 
 import dgl
 import torch
@@ -32,11 +31,6 @@ from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
 
 logger = logging.getLogger(__file__)
-CWD = os.path.dirname(os.path.abspath(__file__))
-
-MODEL_NAME = "m3gnet"
-
-MODEL_PATHS = {"MP-2021.2.8-EFS": os.path.join(CWD, "..", "..", "pretrained_models", "MP-2021.2.8-EFS")}
 
 
 class M3GNet(nn.Module, IOMixIn):
