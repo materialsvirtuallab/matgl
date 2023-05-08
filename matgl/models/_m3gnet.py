@@ -56,8 +56,6 @@ class M3GNet(nn.Module, IOMixIn):
         cutoff: float = 5.0,
         threebody_cutoff: float = 4.0,
         units: int = 64,
-        data_mean: float = 0.0,
-        data_std: float = 1.0,
         ntargets: int = 1,
         use_smooth: bool = False,
         use_phi: bool = False,
@@ -88,8 +86,6 @@ class M3GNet(nn.Module, IOMixIn):
             cutoff (float): cutoff radius of the graph
             threebody_cutoff (float): cutoff radius for 3 body interaction
             units (int): number of neurons in each MLP layer
-            data_mean (float): optional `mean` value of the target
-            data_std (float): optional `std` of the target
             ntargets (int): number of target properties
             use_smooth (bool): whether using smooth Bessel functions
             use_phi (bool): whether using phi angle
@@ -195,8 +191,6 @@ class M3GNet(nn.Module, IOMixIn):
         self.include_states = include_state_embedding
         self.task_type = task_type
         self.is_intensive = is_intensive
-        self.data_mean = data_mean
-        self.data_std = data_std
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.
@@ -251,5 +245,4 @@ class M3GNet(nn.Module, IOMixIn):
         else:
             g.ndata["atomic_properties"] = self.final_layer(g)
             output = dgl.readout_nodes(g, "atomic_properties", op="sum")
-        output = output * self.data_std + self.data_mean
         return torch.squeeze(output)

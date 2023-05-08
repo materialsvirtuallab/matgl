@@ -147,7 +147,7 @@ print(model)
 trainer = MEGNetTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
-    num_epochs=EPOCHS,
+    nepochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,
     data_std=train_std,

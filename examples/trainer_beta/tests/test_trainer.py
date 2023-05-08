@@ -88,7 +88,7 @@ class MEGNetTrainerTest(PymatgenTest):
         )
 
         trainer.train(
-            num_epochs=2,
+            nepochs=2,
             train_loss_func=train_loss_function,
             val_loss_func=validate_loss_function,
             data_std=torch.zeros(1),
@@ -149,7 +149,7 @@ class M3GNetTrainerTest(PymatgenTest):
         trainer = M3GNetTrainer(potential=ff, optimizer=optimizer, scheduler=scheduler)
 
         trainer.train(
-            num_epochs=2,
+            nepochs=2,
             train_loss=train_loss_function,
             val_loss=validate_loss_function,
             energy_weight=1.0,
