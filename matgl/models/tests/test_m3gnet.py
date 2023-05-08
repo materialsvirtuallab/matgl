@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import unittest
 
 import numpy as np
@@ -26,6 +27,11 @@ class TestM3GNet(unittest.TestCase):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         output = model(g=self.g1)
         self.assertListEqual([torch.numel(output)], [1])
+        model.save(".")
+        M3GNet.load(".")
+        os.remove("model.pt")
+        os.remove("model.txt")
+        os.remove("state.pt")
 
     def test_model_intensive(self):
         model = M3GNet(element_types=self.element_types, is_intensive=True)

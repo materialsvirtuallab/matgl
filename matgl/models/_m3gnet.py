@@ -65,7 +65,7 @@ class M3GNet(nn.Module, IOMixIn):
         nlayers_set2set: int = 3,
         field: str = "node_feat",
         include_state_embedding: bool = False,
-        activation: str = "swish",
+        activation_type: str = "swish",
         **kwargs,
     ):
         r"""
@@ -97,21 +97,22 @@ class M3GNet(nn.Module, IOMixIn):
             niters_set2set (int): number of set2set iterations
             nlayers_set2set (int): number of set2set layers
             include_state_embedding (bool): whether to include states features
-            activation (str): activation type. choose from 'swish', 'tanh', 'sigmoid'
+            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid'
             **kwargs:
         """
 
         # Store M3GNet model args for loading trained model
-        self.model_args = {k: v for k, v in locals().items() if k not in ["self", "__class__", "kwargs"]}
-        self.model_args.update(kwargs)
+        for k, v in locals().items():
+            if k not in ["self", "__class__"]:
+                setattr(self, k, v)
 
         super().__init__()
 
-        if activation == "swish":
+        if activation_type == "swish":
             self.activation = nn.SiLU()  # type: ignore
-        elif activation == "tanh":
+        elif activation_type == "tanh":
             self.activation = nn.Tanh()  # type: ignore
-        elif activation == "sigmoid":
+        elif activation_type == "sigmoid":
             self.activation = nn.Sigmoid()  # type: ignore
 
         if element_types is None:

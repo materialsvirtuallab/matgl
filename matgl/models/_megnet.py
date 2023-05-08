@@ -85,6 +85,7 @@ class MEGNet(nn.Module, IOMixIn):
             gauss_width: width of Gaussian function for bond expansion
             **kwargs:
         """
+
         super().__init__()
 
         self.element_types = element_types or DEFAULT_ELEMENT_TYPES
