@@ -271,7 +271,8 @@ class M3GNetTrainer:
                 torch.save(
                     {
                         "epoch": epoch + 1,
-                        "model": self.potential.model.as_dict(),
+                        "model": self.potential.model.model_args(),
+                        "state": self.potential.model.state_dict(),
                         "optimizer_state_dict": self.optimizer.state_dict(),
                         "scheduler_state_dict": self.scheduler.state_dict(),
                         "loss": avg_loss_val,
