@@ -1,3 +1,6 @@
+"""
+Utilities for model training.
+"""
 from __future__ import annotations
 
 import codecs
