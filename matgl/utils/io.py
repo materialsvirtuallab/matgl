@@ -17,7 +17,20 @@ logger = logging.getLogger(__file__)
 
 
 class IOMixIn:
+    """
+    Mixin class for model saving and loading.
+    """
+
     def save(self, path: str | Path):
+        """
+        Save model to a directory. Three files will be saved.
+        - path/model.pt, which contains the torch serialzied model args.
+        - path/state.pt, which contains the saved state_dict from the model.
+        - path/model.txt, a txt version of model.pt that is purely meant for ease of reference.
+
+        Args:
+            path: String or Path object to directory for model saving.
+        """
         path = Path(path)
         torch.save(self.model_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
