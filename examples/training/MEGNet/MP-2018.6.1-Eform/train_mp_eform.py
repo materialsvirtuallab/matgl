@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
 import logging
+import zipfile
 
 import pandas as pd
 import math
@@ -18,6 +19,7 @@ from tqdm import tqdm
 
 # Import megnet related modules
 from pymatgen.core import Structure
+from matgl.utils.io import RemoteFile
 from matgl.ext.pymatgen import get_element_list, Structure2Graph
 from matgl.layers._bond import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
@@ -27,7 +29,6 @@ from matgl.models import MEGNet
 
 SEED = 42
 EPOCHS = 2000
-path = os.getcwd()
 
 # define the default device for torch tensor. Either 'cuda' or 'cpu'
 torch.set_default_device("cpu")
@@ -38,13 +39,14 @@ logging.basicConfig(level=logging.INFO)
 
 
 # define a raw data loading function
-def load_dataset(path: str):
-    if not os.path.isfile("mp.2018.6.1.json"):
-        raise RuntimeError(
-            "Please download the data first! Go to https://figshare.com/articles/dataset/Graphs_of_materials_project/7451351 and download it."
-        )
+def load_dataset():
+    if not os.path.exists("mp.2018.6.1.json"):
+        logging.info("Downloading...")
+        f = RemoteFile("https://figshare.com/ndownloader/files/15087992")
+        with zipfile.ZipFile(f.local_path) as zf:
+            zf.extractall(".")
     logging.info("Loading json...")
-    data = pd.read_json(path + "/mp.2018.6.1.json")
+    data = pd.read_json("mp.2018.6.1.json")
     structures = []
     mp_id = []
     for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
@@ -52,8 +54,7 @@ def load_dataset(path: str):
         structures.append(struct)
         mp_id.append(mid)
 
-    Eform = data["formation_energy_per_atom"].tolist()
-    return structures, mp_id, Eform
+    return structures, mp_id, data["formation_energy_per_atom"].tolist()
 
 
 # define a function for computating the statistics of dataset
@@ -67,7 +68,7 @@ def compute_data_stats(dataset):
 
 
 # load the MP raw dataset
-structures, mp_id, Eform_per_atom = load_dataset(path=path)
+structures, mp_id, Eform_per_atom = load_dataset()
 # get element types in the dataset
 elem_list = get_element_list(structures)
 # setup a graph converter
