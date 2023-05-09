@@ -9,9 +9,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
+import logging
 
 import pandas as pd
 import math
+
+from tqdm import tqdm
 
 # Import megnet related modules
 from pymatgen.core import Structure
@@ -31,6 +34,8 @@ torch.set_default_device("cpu")
 # define the torch.Generator. Either 'cuda' or 'cpu'
 generator = torch.Generator(device="cpu")
 
+logging.basicConfig(level=logging.INFO)
+
 
 # define a raw data loading function
 def load_dataset(path: str):
@@ -38,15 +43,15 @@ def load_dataset(path: str):
         raise RuntimeError(
             "Please download the data first! Go to https://figshare.com/articles/dataset/Graphs_of_materials_project/7451351 and download it."
         )
-    with open(path + "/mp.2018.6.1.json") as f:
-        structure_data = {i["material_id"]: i["structure"] for i in json.load(f)}
+    logging.info("Loading json...")
+    data = pd.read_json(path + "/mp.2018.6.1.json")
     structures = []
     mp_id = []
-    for struct_id, struct_from_cif in structure_data.items():
-        struct = Structure.from_str(struct_from_cif, fmt="cif")
+    for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
+        struct = Structure.from_str(structure_str, fmt="cif")
         structures.append(struct)
-        mp_id.append(struct_id)
-    data = pd.read_json("mp.2018.6.1.json")
+        mp_id.append(mid)
+
     Eform = data["formation_energy_per_atom"].tolist()
     return structures, mp_id, Eform
 
@@ -78,7 +83,7 @@ train_data, val_data, test_data = split_dataset(
     shuffle=True,
     random_state=SEED,
 )
-print("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
+logging.info("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
 # get the average and standard deviation from the training set
 train_std, train_mean = compute_data_stats(train_data)
 # setup the embedding layer for node attributes
