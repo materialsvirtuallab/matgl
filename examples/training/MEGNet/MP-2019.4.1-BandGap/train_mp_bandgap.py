@@ -15,10 +15,10 @@ import math
 
 # Import megnet related modules
 from pymatgen.core import Structure
-from matgl.graph.converters import get_element_list, Pmg2Graph
+from matgl.ext.pymatgen import get_element_list, Structure2Graph
 from matgl.layers._bond import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from matgl.trainer.megnet import MEGNetTrainer
+from matgl.utils.training import ModelTrainer
 from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
 from matgl.models import MEGNet
 
@@ -58,7 +58,7 @@ print("All structures in mp.2019.04.01.json contain %d structures" % len(structu
 
 
 #  Band gap data
-with gzip.open("data_no_structs.json.gz", "rb") as f:
+with gzip.open("data_no_structs.json.gz", "rb") as f:  # type: ignore
     bandgap_data = json.loads(f.read())
 
 useful_ids = set.union(*[set(bandgap_data[i].keys()) for i in ALL_FIDELITIES])  # mp ids that are used in training
@@ -125,7 +125,7 @@ train_structures, train_graph_attrs, train_targets = get_graphs_targets(train_id
 val_structures, val_graph_attrs, val_targets = get_graphs_targets(val_ids)
 
 elem_list = get_element_list(train_structures)
-cry_graph = Pmg2Graph(element_types=elem_list, cutoff=5.0)
+cry_graph = Structure2Graph(element_types=elem_list, cutoff=5.0)
 
 
 ## Load the dataset using MEGNetDataset
@@ -222,15 +222,12 @@ train_loader, val_loader = MGLDataLoader(
 print(model)
 
 # setup the MEGNetTrainer
-trainer = MEGNetTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
+trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
     nepochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,
-    data_std=train_std,
-    data_mean=train_mean,
     train_loader=train_loader,
     val_loader=val_loader,
-    logger_name="Bandgap_log.json",
 )

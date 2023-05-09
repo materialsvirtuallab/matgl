@@ -15,10 +15,10 @@ import math
 
 # Import megnet related modules
 from pymatgen.core import Structure
-from matgl.graph.converters import get_element_list, Pmg2Graph
+from matgl.ext.pymatgen import get_element_list, Structure2Graph
 from matgl.layers._bond import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from matgl.trainer.megnet import MEGNetTrainer
+from matgl.utils.training import ModelTrainer
 from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
 from matgl.models import MEGNet
 
@@ -66,7 +66,7 @@ structures, mp_id, Eform_per_atom = load_dataset(path=path)
 # get element types in the dataset
 elem_list = get_element_list(structures)
 # setup a graph converter
-cry_graph = Pmg2Graph(element_types=elem_list, cutoff=4.0)
+cry_graph = Structure2Graph(element_types=elem_list, cutoff=4.0)
 # convert the raw dataset into MEGNetDataset
 mp_dataset = MEGNetDataset(
     structures, Eform_per_atom, "Eform", converter=cry_graph, initial=0.0, final=5.0, num_centers=100, width=0.5
@@ -144,15 +144,12 @@ train_loader, val_loader, test_loader = MGLDataLoader(
 print(model)
 
 # setup the MEGNetTrainer
-trainer = MEGNetTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
+trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
     nepochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,
-    data_std=train_std,
-    data_mean=train_mean,
     train_loader=train_loader,
     val_loader=val_loader,
-    logger_name="Eforms_log.json",
 )
