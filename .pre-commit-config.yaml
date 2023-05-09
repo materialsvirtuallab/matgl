@@ -30,13 +30,13 @@ repos:
     hooks:
       - id: mypy
 
-#  - repo: https://github.com/codespell-project/codespell
-#    rev: v2.2.2
-#    hooks:
-#      - id: codespell
-#        stages: [commit, commit-msg]
-#        exclude_types: [html]
-#        additional_dependencies: [tomli] # needed to read pyproject.toml below py3.11
+  #  - repo: https://github.com/codespell-project/codespell
+  #    rev: v2.2.2
+  #    hooks:
+  #      - id: codespell
+  #        stages: [commit, commit-msg]
+  #        exclude_types: [html]
+  #        additional_dependencies: [tomli] # needed to read pyproject.toml below py3.11
 
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.12.5
@@ -44,3 +44,15 @@ repos:
       - id: cython-lint
         args: [--no-pycodestyle]
       - id: double-quote-cython-strings
+
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.7.0
+    hooks:
+      - id: nbqa-ruff
+        args: [--fix]
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+        args: [--drop-empty-cells, --keep-output]
