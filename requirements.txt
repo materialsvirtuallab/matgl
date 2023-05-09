@@ -2,7 +2,7 @@ numpy==1.24.3
 dgl==1.1.0
 torch==2.0.0
 torchaudio==2.0.1
-torchvision==0.15.1
+torchvision==0.15.2
 pymatgen==2023.3.23
 ase==3.22.1
 scikit-learn==1.2.2
