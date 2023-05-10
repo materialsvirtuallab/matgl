@@ -112,8 +112,8 @@ class RemoteFile:
 
         Args:
             uri: Uniform resource identifier.
-            use_cache: By default, downloaded models are saved at $HOME/.matgl. If False, models will be
-                downloaded to current working directory.
+            cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
+                $HOME/.matgl.
             force_download: To speed up access, a model with the same name in the cache location will be used if
                 present. If you want to force a re-download, set this to True.
         """
