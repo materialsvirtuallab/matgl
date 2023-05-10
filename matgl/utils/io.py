@@ -35,7 +35,7 @@ class IOMixIn:
         self._init_args = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
         self._init_args.update(kwargs)
 
-    def save(self, path: str | Path, metadata: dict | None = None):
+    def save(self, path: str | Path, metadata: dict | None = None, makedirs: bool = True):
         """
         Save model to a directory. Three files will be saved.
         - path/model.pt, which contains the torch serialzied model args.
@@ -46,8 +46,12 @@ class IOMixIn:
             path: String or Path object to directory for model saving.
             metadata: Any additional metadata to be saved into the model.txt file. For example, a good use would be
                 a description of model purpose, the training set used, etc.
+            makedirs: Whether to create the directory using os.makedirs(exist_ok=True). Note that if the directory
+                already exists, makedirs will not do anything.
         """
         path = Path(path)
+        if makedirs:
+            os.makedirs(path, exist_ok=True)
         torch.save(self._init_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
 
