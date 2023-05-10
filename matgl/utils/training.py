@@ -100,7 +100,7 @@ class ModelTrainer:
 
                 pred = torch.squeeze(pred)
 
-                loss = val_loss_func(model.data_mean + pred * model.data_std, labels)
+                loss = val_loss_func(pred, labels)
 
                 avg_loss += loss
         avg_loss = avg_loss.cpu().item() / len(dataloader)
