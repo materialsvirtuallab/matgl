@@ -61,7 +61,7 @@ class IOMixIn:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
     @classmethod
-    def load(cls, path: str | Path):
+    def load(cls, path: str | Path, **kwargs):
         """
         Load the model weights from a directory.
 
@@ -69,6 +69,8 @@ class IOMixIn:
             path (str|path): Path to saved model or name of pre-trained model. The search order is
                 path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
                 PRETRAINED_MODELS_BASE_URL.
+            kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
+                want to update the model.
 
         Returns: MEGNet object.
         """
@@ -81,8 +83,8 @@ class IOMixIn:
             state_path = MATGL_CACHE / path / "state.pt"
         else:
             try:
-                model_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/model.pt")
-                state_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/state.pt")
+                model_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/model.pt", **kwargs)
+                state_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/state.pt", **kwargs)
                 model_path = model_file.local_path
                 state_path = state_file.local_path
             except BaseException:
