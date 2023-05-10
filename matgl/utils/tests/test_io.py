@@ -12,7 +12,7 @@ class ModelSourceTestCase(unittest.TestCase):
     def test_remote(self):
         with RemoteFile(
             "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/MEGNet-MP-2018.6.1-Eform/model.pt",
-            use_cache=False,
+            cache_location=".",
         ) as s:
             model = torch.load(s, map_location=torch.device("cpu"))
             self.assertIn("nblocks", model)

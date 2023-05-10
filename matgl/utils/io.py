@@ -107,7 +107,7 @@ class RemoteFile:
     Handling of download of remote files to a local cache.
     """
 
-    def __init__(self, uri: str, use_cache: bool = True, force_download: bool = False):
+    def __init__(self, uri: str, cache_location: str | Path = MATGL_CACHE, force_download: bool = False):
         """
 
         Args:
@@ -121,12 +121,9 @@ class RemoteFile:
         toks = uri.split("/")
         self.model_name = toks[-2]
         self.fname = toks[-1]
-        if use_cache:
-            os.makedirs(MATGL_CACHE / self.model_name, exist_ok=True)
-            self.local_path = MATGL_CACHE / self.model_name / self.fname
-        else:
-            os.makedirs(self.model_name, exist_ok=True)
-            self.local_path = Path(self.model_name) / self.fname
+        cache_location = Path(cache_location)
+        os.makedirs(cache_location / self.model_name, exist_ok=True)
+        self.local_path = cache_location / self.model_name / self.fname
         if (not self.local_path.exists()) or force_download:
             logger.info("Downloading from remote location...")
             self._download()
