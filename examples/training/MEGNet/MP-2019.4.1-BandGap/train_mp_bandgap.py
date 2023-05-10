@@ -37,16 +37,6 @@ torch.set_default_device("cpu")
 generator = torch.Generator(device="cpu")
 
 
-# define a function for computating the statistics of dataset
-def compute_data_stats(dataset):
-    graphs, targets, attrs = zip(*dataset)
-    targets = torch.stack(targets)
-
-    data_std, data_mean = torch.std_mean(targets)
-
-    return data_std, data_mean
-
-
 # load materials project structures
 
 if not os.path.isfile("mp.2019.04.01.json"):
@@ -153,8 +143,6 @@ validation_set = MEGNetDataset(
     graph_labels=val_graph_attrs,
 )
 
-# obtain the average and standard deviation from the training data
-train_std, train_mean = compute_data_stats(training_set)
 # define the embedding layer for nodel and state attributes
 node_embed = nn.Embedding(len(elem_list), 16)
 attr_embed = nn.Embedding(len(ALL_FIDELITIES), 16)
@@ -181,8 +169,6 @@ model = MEGNet(
     bond_expansion=bond_expansion,
     cutoff=5.0,
     gauss_width=0.5,
-    data_mean=train_mean,
-    data_std=train_std,
 )
 
 

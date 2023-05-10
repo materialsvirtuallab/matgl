@@ -57,16 +57,6 @@ def load_dataset():
     return structures, mp_id, data["formation_energy_per_atom"].tolist()
 
 
-# define a function for computating the statistics of dataset
-def compute_data_stats(dataset):
-    graphs, targets, attrs = zip(*dataset)
-    targets = torch.stack(targets)
-
-    data_std, data_mean = torch.std_mean(targets)
-
-    return data_std, data_mean
-
-
 # load the MP raw dataset
 structures, mp_id, Eform_per_atom = load_dataset()
 # get element types in the dataset
@@ -86,7 +76,6 @@ train_data, val_data, test_data = split_dataset(
 )
 logging.info("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
 # get the average and standard deviation from the training set
-train_std, train_mean = compute_data_stats(train_data)
 # setup the embedding layer for node attributes
 node_embed = nn.Embedding(len(elem_list), 16)
 # define the bond expansion
@@ -110,8 +99,6 @@ model = MEGNet(
     bond_expansion=bond_expansion,
     cutoff=4.0,
     gauss_width=0.5,
-    data_std=train_std,
-    data_mean=train_mean,
 )
 
 
