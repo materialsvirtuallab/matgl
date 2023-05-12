@@ -93,7 +93,7 @@ The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
 from pymatgen.core import Structure, Lattice
-from matgl.models._megnet import MEGNet
+from matgl.models import MEGNet
 
 # load the pre-trained MEGNet model for formation energy model.
 model = MEGNet.load("MEGNet-MP-2018.6.1-Eform")
