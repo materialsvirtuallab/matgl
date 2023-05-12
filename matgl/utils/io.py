@@ -35,7 +35,7 @@ class IOMixIn:
         self._init_args = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
         self._init_args.update(kwargs)
 
-    def save(self, path: str | Path, metadata: dict | None = None):
+    def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
         """
         Save model to a directory. Three files will be saved.
         - path/model.pt, which contains the torch serialzied model args.
@@ -43,11 +43,15 @@ class IOMixIn:
         - path/model.txt, a txt version of model.pt that is purely meant for ease of reference.
 
         Args:
-            path: String or Path object to directory for model saving.
+            path: String or Path object to directory for model saving. Defaults to current working directory (".").
             metadata: Any additional metadata to be saved into the model.txt file. For example, a good use would be
                 a description of model purpose, the training set used, etc.
+            makedirs: Whether to create the directory using os.makedirs(exist_ok=True). Note that if the directory
+                already exists, makedirs will not do anything.
         """
         path = Path(path)
+        if makedirs:
+            os.makedirs(path, exist_ok=True)
         torch.save(self._init_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
 
@@ -57,7 +61,7 @@ class IOMixIn:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
     @classmethod
-    def load(cls, path: str | Path):
+    def load(cls, path: str | Path, **kwargs):
         """
         Load the model weights from a directory.
 
@@ -65,6 +69,8 @@ class IOMixIn:
             path (str|path): Path to saved model or name of pre-trained model. The search order is
                 path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
                 PRETRAINED_MODELS_BASE_URL.
+            kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
+                want to update the model.
 
         Returns: MEGNet object.
         """
@@ -77,8 +83,8 @@ class IOMixIn:
             state_path = MATGL_CACHE / path / "state.pt"
         else:
             try:
-                model_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/model.pt")
-                state_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/state.pt")
+                model_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/model.pt", **kwargs)
+                state_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/state.pt", **kwargs)
                 model_path = model_file.local_path
                 state_path = state_file.local_path
             except BaseException:
@@ -101,13 +107,13 @@ class RemoteFile:
     Handling of download of remote files to a local cache.
     """
 
-    def __init__(self, uri: str, use_cache: bool = True, force_download: bool = False):
+    def __init__(self, uri: str, cache_location: str | Path = MATGL_CACHE, force_download: bool = False):
         """
 
         Args:
             uri: Uniform resource identifier.
-            use_cache: By default, downloaded models are saved at $HOME/.matgl. If False, models will be
-                downloaded to current working directory.
+            cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
+                $HOME/.matgl.
             force_download: To speed up access, a model with the same name in the cache location will be used if
                 present. If you want to force a re-download, set this to True.
         """
@@ -115,12 +121,9 @@ class RemoteFile:
         toks = uri.split("/")
         self.model_name = toks[-2]
         self.fname = toks[-1]
-        if use_cache:
-            os.makedirs(MATGL_CACHE / self.model_name, exist_ok=True)
-            self.local_path = MATGL_CACHE / self.model_name / self.fname
-        else:
-            os.makedirs(self.model_name, exist_ok=True)
-            self.local_path = Path(self.model_name) / self.fname
+        cache_location = Path(cache_location)
+        os.makedirs(cache_location / self.model_name, exist_ok=True)
+        self.local_path = cache_location / self.model_name / self.fname
         if (not self.local_path.exists()) or force_download:
             logger.info("Downloading from remote location...")
             self._download()

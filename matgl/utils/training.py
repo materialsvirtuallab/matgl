@@ -57,8 +57,6 @@ class ModelTrainer:
         avg_loss = torch.zeros(1)
 
         start = default_timer()
-        mean = model.data_mean
-        std = model.data_std
 
         for g, labels, attrs in tqdm(dataloader):
             optimizer.zero_grad()
@@ -66,7 +64,7 @@ class ModelTrainer:
             edge_feat = g.edata["edge_attr"]
             pred = model(g, edge_feat.float(), node_feat.long(), attrs)
             pred = torch.squeeze(pred)
-            loss = train_loss_func(pred, (labels - mean) / std)
+            loss = train_loss_func(pred, labels)
             loss.backward()
             optimizer.step()
             avg_loss += loss.detach()
@@ -102,7 +100,7 @@ class ModelTrainer:
 
                 pred = torch.squeeze(pred)
 
-                loss = val_loss_func(model.data_mean + pred * model.data_std, labels)
+                loss = val_loss_func(pred, labels)
 
                 avg_loss += loss
         avg_loss = avg_loss.cpu().item() / len(dataloader)

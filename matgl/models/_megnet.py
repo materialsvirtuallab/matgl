@@ -46,8 +46,6 @@ class MEGNet(nn.Module, IOMixIn):
         dropout: float | None = None,
         graph_transformations: list | None = None,
         element_types: tuple[str, ...] | None = None,
-        data_mean: torch.tensor | None = None,
-        data_std: torch.tensor | None = None,
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
@@ -78,8 +76,6 @@ class MEGNet(nn.Module, IOMixIn):
             graph_transformations: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
                 performing the GCL updates.
             element_types: Elements included in the training set
-            data_mean: Mean of target properties in the training set. Defaults to 0.
-            data_std: Standard deviation of target properties in the training set. Defaults to 1.
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
             gauss_width: width of Gaussian function for bond expansion
@@ -95,8 +91,6 @@ class MEGNet(nn.Module, IOMixIn):
         self.bond_expansion = bond_expansion or BondExpansion(
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
         )
-        self.data_mean = data_mean or torch.zeros(1)
-        self.data_std = data_std or torch.ones(1)
 
         self.layer_edge_embedding = layer_edge_embedding if layer_edge_embedding else nn.Identity()
         if layer_node_embedding is None:
@@ -227,6 +221,4 @@ class MEGNet(nn.Module, IOMixIn):
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
 
-        return (
-            self.data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats) + self.data_mean
-        ).detach()
+        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()

@@ -36,9 +36,9 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 <a name="architectures"></a>
 # Architectures
 
-## MEGNet
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true"  width="50%">
 
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MEGNet.png?raw=true"  width="50%">
+## MEGNet
 
 The MatErials Graph Network (MEGNet) is an implementation of DeepMind's graph networks for universal machine
 learning in materials science. We have demonstrated its success in achieving very low prediction errors in a broad
@@ -50,8 +50,6 @@ Briefly, Figure 1 shows the sequential update steps of the graph network, whereb
 attributes are updated using information from each other, generating an output graph.
 
 ## M3GNet
-
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/M3GNet.png?raw=true"  width="50%">
 
 [M3GNet](https://www.nature.com/articles/s43588-022-00349-3) is a new materials graph neural network architecture that
 incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and

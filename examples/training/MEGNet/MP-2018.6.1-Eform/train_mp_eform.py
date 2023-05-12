@@ -9,64 +9,60 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
+import logging
+import zipfile
 
 import pandas as pd
 import math
 
+from tqdm import tqdm
+
 # Import megnet related modules
 from pymatgen.core import Structure
-from matgl.graph.converters import get_element_list, Pmg2Graph
+from matgl.utils.io import RemoteFile
+from matgl.ext.pymatgen import get_element_list, Structure2Graph
 from matgl.layers._bond import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from matgl.trainer.megnet import MEGNetTrainer
+from matgl.utils.training import ModelTrainer
 from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
 from matgl.models import MEGNet
 
 SEED = 42
 EPOCHS = 2000
-path = os.getcwd()
 
 # define the default device for torch tensor. Either 'cuda' or 'cpu'
 torch.set_default_device("cpu")
 # define the torch.Generator. Either 'cuda' or 'cpu'
 generator = torch.Generator(device="cpu")
 
+logging.basicConfig(level=logging.INFO)
+
 
 # define a raw data loading function
-def load_dataset(path: str):
-    if not os.path.isfile("mp.2018.6.1.json"):
-        raise RuntimeError(
-            "Please download the data first! Go to https://figshare.com/articles/dataset/Graphs_of_materials_project/7451351 and download it."
-        )
-    with open(path + "/mp.2018.6.1.json") as f:
-        structure_data = {i["material_id"]: i["structure"] for i in json.load(f)}
+def load_dataset():
+    if not os.path.exists("mp.2018.6.1.json"):
+        logging.info("Downloading...")
+        f = RemoteFile("https://figshare.com/ndownloader/files/15087992")
+        with zipfile.ZipFile(f.local_path) as zf:
+            zf.extractall(".")
+    logging.info("Loading json...")
+    data = pd.read_json("mp.2018.6.1.json")
     structures = []
     mp_id = []
-    for struct_id, struct_from_cif in structure_data.items():
-        struct = Structure.from_str(struct_from_cif, fmt="cif")
+    for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
+        struct = Structure.from_str(structure_str, fmt="cif")
         structures.append(struct)
-        mp_id.append(struct_id)
-    data = pd.read_json("mp.2018.6.1.json")
-    Eform = data["formation_energy_per_atom"].tolist()
-    return structures, mp_id, Eform
+        mp_id.append(mid)
 
-
-# define a function for computating the statistics of dataset
-def compute_data_stats(dataset):
-    graphs, targets, attrs = zip(*dataset)
-    targets = torch.stack(targets)
-
-    data_std, data_mean = torch.std_mean(targets)
-
-    return data_std, data_mean
+    return structures, mp_id, data["formation_energy_per_atom"].tolist()
 
 
 # load the MP raw dataset
-structures, mp_id, Eform_per_atom = load_dataset(path=path)
+structures, mp_id, Eform_per_atom = load_dataset()
 # get element types in the dataset
 elem_list = get_element_list(structures)
 # setup a graph converter
-cry_graph = Pmg2Graph(element_types=elem_list, cutoff=4.0)
+cry_graph = Structure2Graph(element_types=elem_list, cutoff=4.0)
 # convert the raw dataset into MEGNetDataset
 mp_dataset = MEGNetDataset(
     structures, Eform_per_atom, "Eform", converter=cry_graph, initial=0.0, final=5.0, num_centers=100, width=0.5
@@ -78,9 +74,8 @@ train_data, val_data, test_data = split_dataset(
     shuffle=True,
     random_state=SEED,
 )
-print("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
+logging.info("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
 # get the average and standard deviation from the training set
-train_std, train_mean = compute_data_stats(train_data)
 # setup the embedding layer for node attributes
 node_embed = nn.Embedding(len(elem_list), 16)
 # define the bond expansion
@@ -104,8 +99,6 @@ model = MEGNet(
     bond_expansion=bond_expansion,
     cutoff=4.0,
     gauss_width=0.5,
-    data_std=train_std,
-    data_mean=train_mean,
 )
 
 
@@ -144,15 +137,12 @@ train_loader, val_loader, test_loader = MGLDataLoader(
 print(model)
 
 # setup the MEGNetTrainer
-trainer = MEGNetTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
+trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
     nepochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,
-    data_std=train_std,
-    data_mean=train_mean,
     train_loader=train_loader,
     val_loader=val_loader,
-    logger_name="Eforms_log.json",
 )
