@@ -6,4 +6,4 @@ torchvision==0.15.2
 pymatgen==2023.5.10
 ase==3.22.1
 scikit-learn==1.2.2
-pytorch-lightning=2.0.2
+pytorch_lightning=2.0.2
