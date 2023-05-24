@@ -14,8 +14,7 @@ from torch.optim import Optimizer, lr_scheduler
 from matgl.apps.pes import Potential
 
 # import matgl relevant modules
-from matgl.models._m3gnet import M3GNet
-from matgl.models._megnet import MEGNet
+from matgl.models import M3GNet, MEGNet
 
 
 class MatglTrainer(pl.LightningModule):
