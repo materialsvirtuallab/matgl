@@ -46,8 +46,8 @@ class MatglTrainer(pl.LightningModule):
         energy_weight: float = 1.0,
         force_weight: float = 1.0,
         stress_weight: float | None = None,
-        data_mean=torch.zeros(1),
-        data_std=torch.ones(1),
+        data_mean=None,
+        data_std=None,
         calc_stress: bool = False,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
@@ -70,6 +70,10 @@ class MatglTrainer(pl.LightningModule):
 
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
+        if data_mean is None:
+            data_mean = torch.zeros(1)
+        if data_std is None:
+            data_std = torch.ones(1)
         self.data_mean = data_mean
         self.data_std = data_std
         self.energy_weight = energy_weight
