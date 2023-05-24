@@ -220,7 +220,7 @@ class MEGNet(nn.Module, IOMixIn):
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
         if data_mean is None:
-            data_mean = torch.zeors(1)
+            data_mean = torch.zeros(1)
         if data_std is None:
             data_std = torch.ones(1)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
