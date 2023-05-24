@@ -15,7 +15,7 @@ from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.ext.pymatgen import Structure2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import GraphConverter
-from matgl.layers import MLP, BondExpansion, EdgeSet2Set, MEGNetBlock, SoftExponential, SoftPlus2
+from matgl.layers import MLP, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock, SoftExponential, SoftPlus2
 from matgl.utils.io import IOMixIn
 
 logger = logging.getLogger(__file__)
@@ -31,6 +31,7 @@ class MEGNet(nn.Module, IOMixIn):
         dim_node_embedding: int = 16,
         dim_edge_embedding: int = 100,
         dim_state_embedding: int = 2,
+        ntypes_state: int | None = None,
         nblocks: int = 3,
         hidden_layer_sizes_input: tuple[int, ...] = (64, 32),
         hidden_layer_sizes_conv: tuple[int, ...] = (64, 64, 32),
@@ -39,10 +40,7 @@ class MEGNet(nn.Module, IOMixIn):
         niters_set2set: int = 2,
         activation_type: str = "softplus2",
         is_classification: bool = False,
-        layer_node_embedding: nn.Module | None = None,
-        layer_edge_embedding: nn.Module | None = None,
-        layer_state_embedding: nn.Module | None = None,
-        include_state_embedding: bool = False,
+        include_state: bool = True,
         dropout: float | None = None,
         graph_transformations: list | None = None,
         element_types: tuple[str, ...] | None = None,
@@ -70,7 +68,7 @@ class MEGNet(nn.Module, IOMixIn):
             layer_node_embedding: Architecture of embedding layer for node attributes
             layer_edge_embedding: Architecture of embedding layer for edge attributes
             layer_state_embedding: Architecture of embedding layer for state attributes
-            include_state_embedding: Whether the state embedding is included
+            include_state: Whether the state embedding is included
             dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
                 a Bernoulli distribution
             graph_transformations: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
@@ -92,13 +90,6 @@ class MEGNet(nn.Module, IOMixIn):
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
         )
 
-        self.layer_edge_embedding = layer_edge_embedding if layer_edge_embedding else nn.Identity()
-        if layer_node_embedding is None:
-            self.layer_node_embedding = nn.Embedding(len(self.element_types), dim_node_embedding)
-        else:
-            self.layer_node_embedding = layer_node_embedding
-        self.layer_state_embedding = layer_state_embedding or nn.Identity()
-
         node_dims = [dim_node_embedding, *hidden_layer_sizes_input]
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_input]
         state_dims = [dim_state_embedding, *hidden_layer_sizes_input]
@@ -115,6 +106,16 @@ class MEGNet(nn.Module, IOMixIn):
             activation = SoftExponential()  # type: ignore
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
+
+        self.embedding = EmbeddingBlock(
+            degree_rbf=dim_edge_embedding,
+            dim_node_embedding=dim_node_embedding,
+            ntypes_node=len(self.element_types),
+            ntypes_state=ntypes_state,
+            include_state=include_state,
+            dim_state_embedding=dim_state_embedding,
+            activation=activation,
+        )
 
         self.edge_encoder = MLP(edge_dims, activation, activate_last=True)
         self.node_encoder = MLP(node_dims, activation, activate_last=True)
@@ -150,7 +151,7 @@ class MEGNet(nn.Module, IOMixIn):
 
         self.is_classification = is_classification
         self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
-        self.include_state_embedding = include_state_embedding
+        self.include_state_embedding = include_state
 
     def forward(
         self,
@@ -169,12 +170,10 @@ class MEGNet(nn.Module, IOMixIn):
         :return: Prediction
         """
         graph_transformations = self.graph_transformations
-        edge_feat = self.edge_encoder(self.layer_edge_embedding(edge_feat))
-        node_feat = self.node_encoder(self.layer_node_embedding(node_feat))
-        if self.include_state_embedding:
-            state_feat = self.state_encoder(self.layer_state_embedding(state_feat))
-        else:
-            state_feat = self.state_encoder(state_feat)
+        node_feat, edge_feat, state_feat = self.embedding(node_feat, edge_feat, state_feat)
+        edge_feat = self.edge_encoder(edge_feat)
+        node_feat = self.node_encoder(node_feat)
+        state_feat = self.state_encoder(state_feat)
 
         for gt, block in zip(graph_transformations, self.blocks):
             output = block(gt(graph), edge_feat, node_feat, state_feat)
@@ -203,6 +202,8 @@ class MEGNet(nn.Module, IOMixIn):
         structure: Structure,
         state_feats: torch.tensor | None = None,
         graph_converter: GraphConverter | None = None,
+        data_mean: torch.tensor = torch.zeros(1),
+        data_std: torch.tensor = torch.ones(1),
     ):
         """
         Convenience method to directly predict property from structure.
@@ -220,5 +221,6 @@ class MEGNet(nn.Module, IOMixIn):
             state_feats = torch.tensor(state_feats_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
+        output = data_mean + data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats)
 
-        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()
+        return output.detach()
