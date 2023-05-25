@@ -168,7 +168,7 @@ class M3GNet(nn.Module, IOMixIn):
                 self.readout = ReduceReadOut("mean", field=field)
                 readout_feats = input_feats + dim_state_feats if include_state else input_feats  # type: ignore
 
-            dims_final_layer = [readout_feats] + [units, units] + [ntargets]
+            dims_final_layer = [readout_feats, units, units, ntargets]
             self.final_layer = MLP(dims_final_layer, activation, activate_last=False)
             if task_type == "classification":
                 self.sigmoid = nn.Sigmoid()

@@ -445,8 +445,8 @@ class M3GNetBlock(Module):
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_state,
-                edge_dims=[edge_in, *conv_hiddens] + [num_edge_feats],
-                node_dims=[node_in, *conv_hiddens] + [num_node_feats],
+                edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
+                node_dims=[node_in, *conv_hiddens, num_node_feats],
                 state_dims=None,  # type: ignore
                 activation=self.activation,
             )
