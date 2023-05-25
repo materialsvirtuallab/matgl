@@ -101,7 +101,7 @@ class Atoms2Graph(GraphConverter):
         u, v = tensor(src_id), tensor(dst_id)
         g = dgl.graph((u, v))
         g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor([[lattice_matrix] for i in range(g.num_edges())])
+        g.edata["lattice"] = tensor(np.stack([lattice_matrix for _ in range(g.num_edges())]))
         g.ndata["attr"] = tensor(Z)
         g.ndata["node_type"] = tensor(np.hstack([[element_types.index(i.symbol)] for i in atoms]))
         g.ndata["pos"] = tensor(cart_coords)
