@@ -53,9 +53,8 @@ class EmbeddingBlock(nn.Module):
         if ntypes_node is not None:
             self.layer_node_embedding = nn.Embedding(ntypes_node, dim_node_embedding)
         if dim_edge_embedding is not None:
-            self.layer_edge_embedding = MLP(
-                [degree_rbf, self.dim_edge_embedding], activation=activation, activate_last=True
-            )
+            dim_edges = [degree_rbf, dim_edge_embedding]
+            self.layer_edge_embedding = MLP(dim_edges, activation=activation, activate_last=True)
 
     def forward(self, node_attr, edge_attr, state_attr):
         """
