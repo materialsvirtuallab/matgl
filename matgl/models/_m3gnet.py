@@ -23,6 +23,8 @@ from matgl.layers import (
     M3GNetBlock,
     ReduceReadOut,
     Set2SetReadOut,
+    SoftExponential,
+    SoftPlus2,
     SphericalBesselWithHarmonics,
     ThreeBodyInteractions,
     WeightedReadOut,
@@ -93,7 +95,7 @@ class M3GNet(nn.Module, IOMixIn):
             niters_set2set (int): number of set2set iterations
             nlayers_set2set (int): number of set2set layers
             include_state (bool): whether to include states features
-            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid'
+            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
             **kwargs:
         """
 
@@ -107,6 +109,12 @@ class M3GNet(nn.Module, IOMixIn):
             activation = nn.Tanh()  # type: ignore
         elif activation_type == "sigmoid":
             activation = nn.Sigmoid()  # type: ignore
+        elif activation_type == "softplus2":
+            activation = SoftPlus2()  # type: ignore
+        elif activation_type == "softexp":
+            activation = SoftExponential()  # type: ignore
+        else:
+            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES

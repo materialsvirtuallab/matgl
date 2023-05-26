@@ -1,6 +1,7 @@
 """
 Graph convolution layer (GCL) implementations.
 """
+
 from __future__ import annotations
 
 import dgl
@@ -8,8 +9,6 @@ import dgl.function as fn
 import torch
 import torch.nn as nn
 from torch.nn import Dropout, Identity, Module
-
-from matgl.utils.maths import broadcast_states_to_bonds
 
 from ._core import MLP, GatedMLP
 
@@ -338,7 +337,7 @@ class M3GNetGraphConv(Module):
         rbf = graph.edata["rbf"]
         rbf = rbf.float()
         if self.include_states:
-            u = broadcast_states_to_bonds(graph, state_attr)
+            u = dgl.broadcast_edges(graph, state_attr)
             inputs = torch.hstack([vi, vj, eij, u])
         else:
             inputs = torch.hstack([vi, vj, eij])
