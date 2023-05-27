@@ -37,25 +37,25 @@ class TestThreeBody(unittest.TestCase):
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(self.g1, l_g1)
-        self.assertListEqual([three_body_basis.size(dim=0), three_body_basis.size(dim=1)], [364, 9])
+        assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 9]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=2, cutoff=5.0, use_smooth=False, use_phi=True)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(self.g1, l_g1)
-        self.assertListEqual([three_body_basis.size(dim=0), three_body_basis.size(dim=1)], [364, 12])
+        assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 12]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=True, use_phi=False)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(self.g1, l_g1)
-        self.assertListEqual([three_body_basis.size(dim=0), three_body_basis.size(dim=1)], [364, 9])
+        assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 9]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=True, use_phi=True)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(self.g1, l_g1)
-        self.assertListEqual([three_body_basis.size(dim=0), three_body_basis.size(dim=1)], [364, 27])
+        assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 27]
 
     def test_three_body_interactions(self):
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
@@ -86,7 +86,7 @@ class TestThreeBody(unittest.TestCase):
         edge_feat_updated = three_body_interactions(
             self.g1, l_g1, three_body_basis, three_body_cutoff, node_feat, edge_feat
         )
-        self.assertListEqual([edge_feat_updated.size(dim=0), edge_feat_updated.size(dim=1)], [28, 16])
+        assert [edge_feat_updated.size(dim=0), edge_feat_updated.size(dim=1)] == [28, 16]
 
 
 if __name__ == "__main__":

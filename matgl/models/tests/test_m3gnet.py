@@ -26,7 +26,7 @@ class TestM3GNet(unittest.TestCase):
     def test_model(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         output = model(g=self.g1)
-        self.assertListEqual([torch.numel(output)], [1])
+        assert [torch.numel(output)] == [1]
         model.save(".")
         M3GNet.load(".")
         os.remove("model.pt")
@@ -36,7 +36,7 @@ class TestM3GNet(unittest.TestCase):
     def test_model_intensive(self):
         model = M3GNet(element_types=self.element_types, is_intensive=True)
         output = model(g=self.g1)
-        self.assertListEqual([torch.numel(output)], [1])
+        assert [torch.numel(output)] == [1]
 
     def test_model_intensive_with_classification(self):
         model = M3GNet(
@@ -45,14 +45,14 @@ class TestM3GNet(unittest.TestCase):
             task_type="classification",
         )
         output = model(g=self.g1)
-        self.assertListEqual([torch.numel(output)], [1])
+        assert [torch.numel(output)] == [1]
 
     def test_model_intensive_set2set_classification(self):
         model = M3GNet(
             element_types=self.element_types, is_intensive=True, task_type="classification", readout_type="set2set"
         )
         output = model(g=self.g1)
-        self.assertListEqual([torch.numel(output)], [1])
+        assert [torch.numel(output)] == [1]
 
 
 if __name__ == "__main__":

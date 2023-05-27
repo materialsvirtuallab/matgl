@@ -41,7 +41,7 @@ class TestMath(unittest.TestCase):
         sbf2 = SphericalBesselFunction(max_l=3, cutoff=5.0, max_n=3, smooth=True)
 
         res2 = sbf2(r)
-        self.assertTupleEqual(tuple(res2.shape), (10, 3))
+        assert tuple(res2.shape) == (10, 3)
 
         shf = SphericalHarmonicsFunction(max_l=3, use_phi=True)
         res_shf = shf(costheta=np.linspace(-1, 1, 10), phi=np.linspace(0, 2 * np.pi, 10))
@@ -62,13 +62,17 @@ class TestMath(unittest.TestCase):
 
     def test_torch_operations(self):
         ns = torch.tensor([2, 3])
-        self.assertListEqual([0, 0, 1, 1, 1], get_segment_indices_from_n(ns).tolist())
+        assert [0, 0, 1, 1, 1] == get_segment_indices_from_n(ns).tolist()
         ns = torch.tensor([2, 3])
-        self.assertListEqual([0, 1, 0, 1, 2], get_range_indices_from_n(ns).tolist())
-        self.assertListEqual(
-            repeat_with_n(torch.tensor([[0, 0], [1, 1], [2, 2]]), torch.tensor([1, 2, 3])).tolist(),
-            [[0, 0], [1, 1], [1, 1], [2, 2], [2, 2], [2, 2]],
-        )
+        assert [0, 1, 0, 1, 2] == get_range_indices_from_n(ns).tolist()
+        assert repeat_with_n(torch.tensor([[0, 0], [1, 1], [2, 2]]), torch.tensor([1, 2, 3])).tolist() == [
+            [0, 0],
+            [1, 1],
+            [1, 1],
+            [2, 2],
+            [2, 2],
+            [2, 2],
+        ]
 
     def test_segments(self):
         x = torch.tensor([1.0, 1.0, 2.0, 3.0])
@@ -84,9 +88,9 @@ class TestMath(unittest.TestCase):
         g = dgl.graph((src_ids, dst_ids))
         state_attr = torch.tensor([0.0, 0.0])
         broadcasted_state_feat = broadcast_states_to_bonds(g, state_attr)
-        self.assertListEqual([broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)], [3, 2])
+        assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [3, 2]
         broadcasted_state_feat = broadcast_states_to_atoms(g, state_attr)
-        self.assertListEqual([broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)], [5, 2])
+        assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [5, 2]
 
     def test_gaussian_expansion(self):
         bond_dist = torch.tensor([1.0])

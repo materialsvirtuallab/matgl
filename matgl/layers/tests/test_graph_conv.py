@@ -146,9 +146,9 @@ class TestGraphConv(unittest.TestCase):
             activation=nn.SiLU(),
         )
         edge_feat_new, node_feat_new, state_feat_new = conv(self.g1, edge_feat, node_feat, state_feat)
-        self.assertListEqual([edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)], [28, 24])
-        self.assertListEqual([node_feat_new.size(dim=0), node_feat_new.size(dim=1)], [2, 16])
-        self.assertListEqual([state_feat_new.size(dim=0), state_feat_new.size(dim=1)], [1, 32])
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 24]
+        assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
+        assert [state_feat_new.size(dim=0), state_feat_new.size(dim=1)] == [1, 32]
 
     def test_m3gnet_block(self):
         polynomial_cutoff(self.g1.edata["bond_dist"], 4.0)
@@ -186,9 +186,9 @@ class TestGraphConv(unittest.TestCase):
             include_state=True,
         )
         edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
-        self.assertListEqual([edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)], [28, 32])
-        self.assertListEqual([node_feat_new.size(dim=0), node_feat_new.size(dim=1)], [2, 16])
-        self.assertListEqual([state_feat_new.size(dim=0), state_feat_new.size(dim=1)], [1, 64])
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
+        assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
+        assert [state_feat_new.size(dim=0), state_feat_new.size(dim=1)] == [1, 64]
 
         # without state features
         state_feat = None
@@ -202,8 +202,8 @@ class TestGraphConv(unittest.TestCase):
             include_state=False,
         )
         edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
-        self.assertListEqual([edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)], [28, 32])
-        self.assertListEqual([node_feat_new.size(dim=0), node_feat_new.size(dim=1)], [2, 16])
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
+        assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
 
 
 if __name__ == "__main__":

@@ -31,13 +31,13 @@ class TestCoreAndEmbedding(unittest.TestCase):
     def test_mlp(self):
         layer = MLP(dims=[10, 3], activation=nn.SiLU())
         out = layer(self.x).double()
-        self.assertListEqual([out.size()[0], out.size()[1]], [4, 3])
+        assert [out.size()[0], out.size()[1]] == [4, 3]
 
     def test_gated_mlp(self):
         torch.manual_seed(42)
         layer = GatedMLP(in_feats=10, dims=[10, 1], activate_last=False)
         out = layer(self.x)
-        self.assertListEqual([out.size()[0], out.size()[1]], [4, 1])
+        assert [out.size()[0], out.size()[1]] == [4, 1]
 
     def test_embedding(self):
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
@@ -57,9 +57,9 @@ class TestCoreAndEmbedding(unittest.TestCase):
         edge_attr = bond_basis
         node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, state_attr)
 
-        self.assertListEqual([node_feat.size(dim=0), node_feat.size(dim=1)], [2, 16])
-        self.assertListEqual([edge_feat.size(dim=0), edge_feat.size(dim=1)], [28, 16])
-        self.assertListEqual([state_feat.size(dim=0), state_feat.size(dim=1)], [1, 16])
+        assert [node_feat.size(dim=0), node_feat.size(dim=1)] == [2, 16]
+        assert [edge_feat.size(dim=0), edge_feat.size(dim=1)] == [28, 16]
+        assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 16]
         # include state embedding
         embed2 = EmbeddingBlock(
             degree_rbf=9,
@@ -71,7 +71,7 @@ class TestCoreAndEmbedding(unittest.TestCase):
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed2(node_attr, edge_attr, torch.tensor([1]))
-        self.assertListEqual([state_feat.size(dim=0), state_feat.size(dim=1)], [1, 32])
+        assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 32]
         # include state features
         embed3 = EmbeddingBlock(
             degree_rbf=9,
@@ -82,7 +82,7 @@ class TestCoreAndEmbedding(unittest.TestCase):
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed3(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
-        self.assertListEqual([state_feat.size(dim=0), state_feat.size(dim=1)], [1, 16])
+        assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 16]
         # without any state feature
         embed4 = EmbeddingBlock(degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=16, activation=nn.SiLU())
         node_feat, edge_feat, state_feat = embed4(
