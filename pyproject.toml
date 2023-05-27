@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-     # pin NumPy version used in the build
-     "oldest-supported-numpy",
-     "setuptools>=58.0.3"
+  # pin NumPy version used in the build
+  "oldest-supported-numpy",
+  "setuptools>=58.0.3",
 ]
 build-backend = "setuptools.build_meta"
 numpy = "1.24.2"
@@ -72,24 +72,24 @@ ignore = [
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
 exclude = [
-    ".eggs",
-    ".git",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "examples"
+  ".eggs",
+  ".git",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "examples",
+  "node_modules",
+  "venv",
 ]
 
 [tool.ruff.per-file-ignores]
@@ -104,10 +104,10 @@ addopts = "--durations=30 --quiet -rXs --color=yes -p no:warnings"
 ignore_missing_imports = true
 explicit_package_bases = true
 no_implicit_optional = false
-exclude = ['tests', 'examples']
+exclude = ['examples', 'tests']
 
 [[tool.mypy.overrides]]
-module = ["tabulate.*", "requests.*"]
+module = ["requests.*", "tabulate.*"]
 ignore_missing_imports = true
 
 [tool.codespell]

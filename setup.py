@@ -49,6 +49,10 @@ setup(
         "torch",
         "dgl",
     ),
+    extras_require={
+        "munch": ["munch"],
+        "pymatgen": ["pymatgen"],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
