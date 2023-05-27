@@ -33,7 +33,7 @@ name_mappings = {
 
 for k, v in d.items():
     for n1, n2 in name_mappings.items():
-        k = k.replace(n1, n2)
+        k = k.replace(n1, n2)  # noqa: PLW2901
     newd[k] = v
 
 torch.save(newd, state_path)

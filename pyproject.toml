@@ -53,7 +53,6 @@ select = [
   "RSE", # flake8-raise
   "RUF", # Ruff-specific rules
   "SIM", # flake8-simplify
-  "TCH", # flake8-type-checking
   "TID", # tidy imports
   "TID", # flake8-tidy-imports
   "UP",  # pyupgrade
@@ -62,9 +61,6 @@ select = [
 ]
 ignore = [
   "B019",    # functools.lru_cache on methods can lead to memory leaks
-  "B023",    # Function definition does not bind loop variable
-  "B028",    # No explicit stacklevel keyword argument found
-  "B904",    # Within an except clause, raise exceptions with ...
   "D100",    # Missing docstring in public module
   "D104",    # Missing docstring in public package
   "D105",    # Missing docstring in magic method
@@ -74,12 +70,9 @@ ignore = [
   "D212",    # Multi-line docstring summary should start at the first line
   "D415",    # First line should end with a period, question mark, or exclamation point
   "PLR",     # pylint refactor
-  "PLR2004", # Magic number
   "PLW0603", # Using the global statement to update variables is discouraged
-  "PLW2901", # Outer for loop variable overwritten by inner assignment target
   "RET504",  # unnecessary-assign
   "SIM105",  # Use contextlib.suppress(OSError) instead of try-except-pass
-  "SIM115",  # Use context handler for opening files
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]

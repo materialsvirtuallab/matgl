@@ -91,7 +91,7 @@ class IOMixIn:
                 raise ValueError(
                     f"No valid model found in {model_path} or among pre-trained_models at "
                     f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-                )
+                ) from None
 
         if not torch.cuda.is_available():
             state = torch.load(state_path, map_location=torch.device("cpu"))
@@ -142,7 +142,7 @@ class RemoteFile:
         Returns:
             Stream on local path.
         """
-        self.stream = open(self.local_path, "rb")
+        self.stream = open(self.local_path, "rb")  # noqa: SIM115
         return self.stream
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -153,8 +153,5 @@ class RemoteFile:
             exc_type:
             exc_val:
             exc_tb:
-
-        Returns:
-
         """
         self.stream.close()
