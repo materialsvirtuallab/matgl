@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 
 import torch
-import torch.nn as nn
 from pymatgen.core.structure import Lattice, Structure
+from torch import nn
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import compute_pair_vector_and_distance
@@ -88,7 +88,7 @@ class TestCoreAndEmbedding(unittest.TestCase):
         node_feat, edge_feat, state_feat = embed4(
             node_attr, edge_attr, torch.tensor([0.0, 0.0])
         )  # this will be default value
-        self.assertTrue(state_feat is None)
+        assert state_feat is None
 
 
 if __name__ == "__main__":

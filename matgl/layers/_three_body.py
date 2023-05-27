@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import dgl
 import torch
-import torch.nn as nn
+from torch import nn
 
 from matgl.utils.maths import (
     SphericalBesselFunction,

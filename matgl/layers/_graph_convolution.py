@@ -7,7 +7,7 @@ from __future__ import annotations
 import dgl
 import dgl.function as fn
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.nn import Dropout, Identity, Module
 
 from ._core import MLP, GatedMLP
@@ -443,7 +443,7 @@ class M3GNetBlock(Module):
             node_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
-                include_state,
+                include_states,
                 edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
                 node_dims=[node_in, *conv_hiddens, num_node_feats],
                 state_dims=None,  # type: ignore

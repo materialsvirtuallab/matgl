@@ -11,7 +11,7 @@ from pathlib import Path
 from timeit import default_timer
 
 import torch
-import torch.nn as nn
+from torch import nn
 from tqdm import tqdm
 
 logger = logging.getLogger(__file__)

@@ -6,8 +6,8 @@ from __future__ import annotations
 import dgl
 import numpy as np
 import torch
-import torch.nn as nn
 from pymatgen.core import Molecule, Structure
+from torch import nn
 
 
 class AtomRef(nn.Module):
@@ -55,8 +55,8 @@ class AtomRef(nn.Module):
         Fit the elemental reference values for the properties
 
         Args:
-        structs_or_graphs: pymatgen Structures or dgl graphs
-        properties (np.ndarray): array of extensive properties
+            structs_or_graphs: pymatgen Structures or dgl graphs
+            properties (np.ndarray): array of extensive properties
 
         Returns:
         """

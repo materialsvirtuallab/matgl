@@ -7,9 +7,9 @@ import logging
 
 import dgl
 import torch
-import torch.nn as nn
 from dgl.nn import Set2Set
 from pymatgen.core import Structure
+from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.ext.pymatgen import Structure2Graph
@@ -79,7 +79,6 @@ class MEGNet(nn.Module, IOMixIn):
             gauss_width: width of Gaussian function for bond expansion
             **kwargs:
         """
-
         super().__init__()
 
         self.save_args(locals(), kwargs)
@@ -207,10 +206,12 @@ class MEGNet(nn.Module, IOMixIn):
     ):
         """
         Convenience method to directly predict property from structure.
+
         Args:
             structure (Structure): Pymatgen structure
             state_feats (torch.tensor): graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
+
         Returns:
             output (torch.tensor): output property
         """

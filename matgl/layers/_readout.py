@@ -6,8 +6,8 @@ from __future__ import annotations
 
 import dgl
 import torch
-import torch.nn as nn
 from dgl.nn import Set2Set
+from torch import nn
 
 from ._core import EdgeSet2Set, GatedMLP
 

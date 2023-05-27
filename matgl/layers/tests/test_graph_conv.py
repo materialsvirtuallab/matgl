@@ -6,8 +6,8 @@ from collections import namedtuple
 import dgl
 import numpy as np
 import torch
-import torch.nn as nn
 from pymatgen.core.structure import Lattice, Structure
+from torch import nn
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (

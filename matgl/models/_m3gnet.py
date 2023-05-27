@@ -7,7 +7,7 @@ import logging
 
 import dgl
 import torch
-import torch.nn as nn
+from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (
@@ -98,7 +98,6 @@ class M3GNet(nn.Module, IOMixIn):
             activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
             **kwargs:
         """
-
         super().__init__()
 
         self.save_args(locals(), kwargs)
@@ -208,7 +207,7 @@ class M3GNet(nn.Module, IOMixIn):
         l_g : DGLGraph
             DGLGraph for a batch of line graphs.
 
-        Returns
+        Returns:
         -------
         ouput : torch.tensor
             Ouput property for a batch of graphs

@@ -11,9 +11,9 @@ from math import pi, sqrt
 import numpy as np
 import sympy
 import torch
-import torch.nn as nn
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
+from torch import nn
 
 from matgl.config import DataType
 
@@ -543,10 +543,12 @@ def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int)
     """
     Broadcast input tensor along a given dimension to match the shape of the target tensor.
     Modified from torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
+
     Args:
         input_tensor: The tensor to broadcast.
         target_tensor: The tensor whose shape to match.
         dim: The dimension along which to broadcast.
+
     Returns:
         resulting inout tensor after broadcasting
     """
