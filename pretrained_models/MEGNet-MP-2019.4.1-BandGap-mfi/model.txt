@@ -21,7 +21,7 @@
             16
         ],
         "nlayers_set2set": 1,
-        "niters_set2set": 2,
+        "niters_set2set": 3,
         "activation_type": "softplus2",
         "is_classification": false,
         "include_state": true,
@@ -30,7 +30,6 @@
         "element_types": null,
         "bond_expansion": null,
         "cutoff": 5.0,
-        "gauss_width": 0.5,
-        "s2s_num_iters": 3
+        "gauss_width": 0.5
     }
 }
