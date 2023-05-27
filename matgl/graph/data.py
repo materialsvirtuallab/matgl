@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import dgl
 import numpy as np
@@ -16,8 +16,10 @@ from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
-from matgl.graph.converters import GraphConverter
 from matgl.layers import BondExpansion
+
+if TYPE_CHECKING:
+    from matgl.graph.converters import GraphConverter
 
 
 def _collate_fn(batch):
@@ -93,8 +95,7 @@ def MGLDataLoader(
             pin_memory=pin_memory,
         )
         return train_loader, val_loader, test_loader
-    else:
-        return train_loader, val_loader
+    return train_loader, val_loader
 
 
 class MEGNetDataset(DGLDataset):
