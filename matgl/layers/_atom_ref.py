@@ -50,20 +50,18 @@ class AtomRef(nn.Module):
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> bool:
+    def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> None:
         """
         Fit the elemental reference values for the properties
 
         Args:
             structs_or_graphs: pymatgen Structures or dgl graphs
+            element_list (tuple): a list of element types
             properties (np.ndarray): array of extensive properties
-
-        Returns:
         """
         features = self.get_feature_matrix(structs_or_graphs, element_list)
         self.property_offset = np.linalg.pinv(features.T.dot(features)).dot(features.T.dot(properties))
         self.property_offset = torch.tensor(self.property_offset)
-        return True
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None):
         """
