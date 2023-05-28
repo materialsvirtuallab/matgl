@@ -38,7 +38,7 @@ class IOMixIn:
     def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
         """
         Save model to a directory. Three files will be saved.
-        - path/model.pt, which contains the torch serialzied model args.
+        - path/model.pt, which contains the torch serialized model args.
         - path/state.pt, which contains the saved state_dict from the model.
         - path/model.txt, a txt version of model.pt that is purely meant for ease of reference.
 

@@ -143,13 +143,13 @@ validation_set = MEGNetDataset(
     graph_labels=val_graph_attrs,
 )
 
-# define the embedding layer for nodel and state attributes
+# define the embedding layer for nodes and state attributes
 node_embed = nn.Embedding(len(elem_list), 16)
 attr_embed = nn.Embedding(len(ALL_FIDELITIES), 16)
 # define the bond expansion
 bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_centers=100, width=0.5)
 
-# define the achitecture of multi-fidelity MEGNet model
+# define the architecture of multi-fidelity MEGNet model
 model = MEGNet(
     dim_node_embedding=16,
     dim_edge_embedding=100,

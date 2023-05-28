@@ -27,7 +27,7 @@ class BondExpansion(nn.Module):
         width: float = 0.5,
     ) -> None:
         """
-        Parameters:
+        Args:
         ----------
         max_l (int): order of angular part
         max_n (int): order of radial part

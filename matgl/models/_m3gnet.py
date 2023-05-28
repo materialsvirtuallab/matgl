@@ -209,8 +209,8 @@ class M3GNet(nn.Module, IOMixIn):
 
         Returns:
         -------
-        ouput : torch.tensor
-            Ouput property for a batch of graphs
+        output : torch.tensor
+            Output property for a batch of graphs
         """
         node_types = g.ndata["node_type"]
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)

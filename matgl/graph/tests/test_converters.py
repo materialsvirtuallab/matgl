@@ -79,7 +79,7 @@ class Pmg2GraphTest(PymatgenTest):
         assert np.allclose(graph.ndata["pos"][0], [0.0, 0.0, 0.0])
         # check the pbc offset from node 0 to image atom 6
         assert np.allclose(graph.edata["pbc_offset"][0], [-1, -1, -1])
-        # cheeck the lattice vector
+        # check the lattice vector
         assert np.allclose(graph.edata["lattice"][0], [[4.04, 0.0, 0.0], [0.0, 4.04, 0.0], [0.0, 0.0, 4.04]])
         # check the volume
         assert np.allclose(graph.ndata["volume"][0], [65.939264])

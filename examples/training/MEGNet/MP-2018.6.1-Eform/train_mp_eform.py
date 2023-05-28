@@ -67,7 +67,7 @@ cry_graph = Structure2Graph(element_types=elem_list, cutoff=4.0)
 mp_dataset = MEGNetDataset(
     structures, Eform_per_atom, "Eform", converter=cry_graph, initial=0.0, final=5.0, num_centers=100, width=0.5
 )
-# seperate the dataset into training, validation and test data
+# separate the dataset into training, validation and test data
 train_data, val_data, test_data = split_dataset(
     mp_dataset,
     frac_list=[0.9, 0.05, 0.05],

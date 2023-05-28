@@ -20,7 +20,7 @@ class AtomRef(nn.Module):
         property_offset: np.array,  # type: ignore
     ) -> None:
         """
-        Parameters:
+        Args:
         -----------
         property_offset (np.array): a array of elemental property offset
         """

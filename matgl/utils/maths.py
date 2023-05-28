@@ -550,7 +550,7 @@ def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int)
         dim: The dimension along which to broadcast.
 
     Returns:
-        resulting inout tensor after broadcasting
+        resulting input tensor after broadcasting
     """
     if input_tensor.dim() == 1:
         for _ in range(0, dim):

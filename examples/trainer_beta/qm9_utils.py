@@ -90,18 +90,18 @@ def set_seed(seed: int) -> None:
 
 
 def create_dataloaders(config: Munch, data: tuple):
-    dataloaders = namedtuple("Dataloaders", ["train", "val", "test"])
+    data_loaders = namedtuple("Dataloaders", ["train", "val", "test"])
 
-    dataloaders.train = GraphDataLoader(
+    data_loaders.train = GraphDataLoader(
         data.train,
         pin_memory=False,
         batch_size=config.data.batch_size
         # **config.experiment.train,
     )
-    dataloaders.val = GraphDataLoader(data.val)  # , **config.experiment.val)
-    dataloaders.test = GraphDataLoader(data.test)  # , **config.experiment.test)
+    data_loaders.val = GraphDataLoader(data.val)  # , **config.experiment.val)
+    data_loaders.test = GraphDataLoader(data.test)  # , **config.experiment.test)
 
-    return dataloaders
+    return data_loaders
 
 
 class StreamingJSONWriter:
@@ -118,10 +118,10 @@ class StreamingJSONWriter:
     def __init__(self, filename, encoder=json.JSONEncoder):
         if os.path.exists(filename):
             self.file = open(filename, "r+")
-            self.delimeter = ","
+            self.delimiter = ","
         else:
             self.file = open(filename, "w")
-            self.delimeter = "["
+            self.delimiter = "["
         self.encoder = encoder
 
     def dump(self, obj):
@@ -131,9 +131,9 @@ class StreamingJSONWriter:
         data = json.dumps(obj, cls=self.encoder)
         close_str = "\n]\n"
         self.file.seek(max(self.file.seek(0, os.SEEK_END) - len(close_str), 0))
-        self.file.write(f"{self.delimeter}\n    {data}{close_str}")
+        self.file.write(f"{self.delimiter}\n    {data}{close_str}")
         self.file.flush()
-        self.delimeter = ","
+        self.delimiter = ","
 
     def close(self):
         self.file.close()
