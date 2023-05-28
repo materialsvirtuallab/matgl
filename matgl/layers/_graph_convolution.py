@@ -10,7 +10,8 @@ import torch
 from torch import nn
 from torch.nn import Dropout, Identity, Module
 
-from ._core import MLP, GatedMLP
+from matgl.layers._core import MLP, GatedMLP
+from matgl.utils.maths import broadcast_states_to_bonds
 
 
 class MEGNetGraphConv(Module):

@@ -6,7 +6,7 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-from ._core import MLP
+from matgl.layers._core import MLP
 
 
 class EmbeddingBlock(nn.Module):
