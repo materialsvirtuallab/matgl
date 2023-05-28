@@ -99,11 +99,11 @@ class MEGNetGraphConv(Module):
         :param state_attrs: Input attributes
         :return: Output tensor for attributes
         """
-        u_energy = dgl.readout_edges(graph, feat="e", op="mean")
-        u_volume = dgl.readout_nodes(graph, feat="v", op="mean")
-        u_energy = torch.squeeze(u_energy)
-        u_volume = torch.squeeze(u_volume)
-        inputs = torch.hstack([state_attrs.squeeze(), u_energy, u_volume])
+        u_edge = dgl.readout_edges(graph, feat="e", op="mean")
+        u_vertex = dgl.readout_nodes(graph, feat="v", op="mean")
+        u_edge = torch.squeeze(u_edge)
+        u_vertex = torch.squeeze(u_vertex)
+        inputs = torch.hstack([state_attrs.squeeze(), u_edge, u_vertex])
         state_attr = self.state_func(inputs)
         return state_attr
 
