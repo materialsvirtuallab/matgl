@@ -211,7 +211,7 @@ print(model)
 trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
-    nepochs=EPOCHS,
+    n_epochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,
     train_loader=train_loader,
