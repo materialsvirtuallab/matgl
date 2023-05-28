@@ -96,9 +96,5 @@ module = ["requests.*", "tabulate.*"]
 ignore_missing_imports = true
 
 [tool.codespell]
-ignore-words-list = """
-titel,alls,ans,nd,mater,nwo,te,hart,ontop,ist,ot,fo,nax,coo,coul,ser,leary,thre,
-fase,rute,reson,titels,ges,scalr,strat,struc,hda,nin,ons,pres,kno,loos,lamda
-"""
-skip = "pymatgen/analysis/aflow_prototypes.json"
+ignore-words-list = "mater,te,nd"
 check-filenames = true
