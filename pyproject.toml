@@ -70,6 +70,7 @@ ignore = [
   "D415",    # First line should end with a period, question mark, or exclamation point
   "PLR",     # pylint refactor
   "PLW0603", # Using the global statement to update variables is discouraged
+  "PLW2901", # redefined-loop-name
   "RET504",  # unnecessary-assign
   "SIM105",  # Use contextlib.suppress(OSError) instead of try-except-pass
 ]

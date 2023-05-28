@@ -1,31 +1,30 @@
 # Simple training of MEGNet formation energy model for material projects (version:mp.2018.6.1.json)
 # Author: Tsz Wai Ko (Kenko)
 # Email: t1ko@ucsd.edu
+from __future__ import annotations
 
-import json
-
+import logging
+import math
 import os
+import zipfile
+
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
-import logging
-import zipfile
-
-import pandas as pd
-import math
-
-from tqdm import tqdm
 
 # Import megnet related modules
 from pymatgen.core import Structure
-from matgl.utils.io import RemoteFile
-from matgl.ext.pymatgen import get_element_list, Structure2Graph
-from matgl.layers._bond import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from matgl.utils.training import ModelTrainer
-from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
+from tqdm import tqdm
+
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
+from matgl.graph.data import MEGNetDataset, MGLDataLoader, _collate_fn
+from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
+from matgl.utils.io import RemoteFile
+from matgl.utils.training import ModelTrainer
 
 SEED = 42
 EPOCHS = 2000
@@ -74,7 +73,7 @@ train_data, val_data, test_data = split_dataset(
     shuffle=True,
     random_state=SEED,
 )
-logging.info("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
+logging.info(f"Train, Valid, Test size = {len(train_data)}, {len(val_data)}, {len(test_data)}")
 # get the average and standard deviation from the training set
 # setup the embedding layer for node attributes
 node_embed = nn.Embedding(len(elem_list), 16)

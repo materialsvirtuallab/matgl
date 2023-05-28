@@ -180,10 +180,10 @@ class StreamingJSONWriter:
 
     def __init__(self, filename, encoder=json.JSONEncoder):
         if os.path.exists(filename):
-            self.file = open(filename, "r+")
+            self.file = open(filename, "r+")  # noqa: SIM115
             self.delimiter = ","
         else:
-            self.file = open(filename, "w")
+            self.file = open(filename, "w")  # noqa: SIM115
             self.delimiter = "["
         self.encoder = encoder
 
