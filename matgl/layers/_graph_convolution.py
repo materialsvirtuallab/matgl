@@ -101,6 +101,8 @@ class MEGNetGraphConv(Module):
         """
         u_energy = dgl.readout_edges(graph, feat="e", op="mean")
         u_volume = dgl.readout_nodes(graph, feat="v", op="mean")
+        u_energy = torch.squeeze(u_energy)
+        u_volume = torch.squeeze(u_volume)
         inputs = torch.hstack([state_attrs.squeeze(), u_energy, u_volume])
         state_attr = self.state_func(inputs)
         return state_attr
@@ -231,7 +233,7 @@ class M3GNetGraphConv(Module):
         state_update_func: Module | None,
     ):
         """
-        Args:
+        Parameters:
         include_states (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
