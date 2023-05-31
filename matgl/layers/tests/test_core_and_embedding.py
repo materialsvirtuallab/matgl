@@ -49,7 +49,7 @@ class TestCoreAndEmbedding(unittest.TestCase):
             dim_node_embedding=16,
             dim_edge_embedding=16,
             dim_state_feats=16,
-            include_state_embedding=True,
+            include_state=True,
             activation=nn.SiLU(),
         )
         state_attr = torch.tensor([1.0, 2.0])
@@ -65,7 +65,7 @@ class TestCoreAndEmbedding(unittest.TestCase):
             degree_rbf=9,
             dim_node_embedding=16,
             dim_edge_embedding=16,
-            include_state_embedding=True,
+            include_state=True,
             dim_state_embedding=32,
             ntypes_state=2,
             activation=nn.SiLU(),
@@ -78,7 +78,7 @@ class TestCoreAndEmbedding(unittest.TestCase):
             dim_node_embedding=16,
             dim_edge_embedding=16,
             dim_state_feats=16,
-            include_state_embedding=True,
+            include_state=True,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed3(node_attr, edge_attr, torch.tensor([1.0, 2.0]))

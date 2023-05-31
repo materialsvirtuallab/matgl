@@ -10,6 +10,7 @@ import torch.nn as nn
 from torch.autograd import grad
 
 from matgl.layers import AtomRef
+from matgl.models import M3GNet
 
 
 class Potential(nn.Module):
@@ -19,7 +20,7 @@ class Potential(nn.Module):
 
     def __init__(
         self,
-        model: nn.Module,
+        model: M3GNet,
         element_refs: np.ndarray | None = None,
         calc_forces: bool = True,
         calc_stresses: bool = True,

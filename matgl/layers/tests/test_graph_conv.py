@@ -124,7 +124,7 @@ class TestGraphConv(unittest.TestCase):
             dim_node_embedding=num_node_feats,
             dim_edge_embedding=num_edge_feats,
             dim_state_feats=num_state_feats,
-            include_state_embedding=True,
+            include_state=True,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embedding(node_attr, bond_basis, state_attr)
@@ -168,7 +168,7 @@ class TestGraphConv(unittest.TestCase):
             dim_node_embedding=num_node_feats,
             dim_edge_embedding=num_edge_feats,
             dim_state_feats=num_state_feats,
-            include_state_embedding=True,
+            include_state=True,
             activation=nn.SiLU(),
         )
         node_attr = self.g1.ndata["attr"]
@@ -183,7 +183,7 @@ class TestGraphConv(unittest.TestCase):
             num_node_feats=num_node_feats,
             num_edge_feats=num_edge_feats,
             num_state_feats=num_state_feats,
-            include_states=True,
+            include_state=True,
         )
         edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
         self.assertListEqual([edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)], [28, 32])
@@ -199,7 +199,7 @@ class TestGraphConv(unittest.TestCase):
             num_state_feats=num_state_feats,
             conv_hiddens=[32, 16],
             activation=nn.SiLU(),
-            include_states=False,
+            include_state=False,
         )
         edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
         self.assertListEqual([edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)], [28, 32])
