@@ -6,7 +6,6 @@ import unittest
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
@@ -18,7 +17,6 @@ from matgl.graph.data import (
     MGLDataLoader,
     _collate_fn,
 )
-from matgl.layers import MLP
 from matgl.models import MEGNet
 from matgl.utils.training import ModelTrainer
 
@@ -49,16 +47,9 @@ class ModelTrainerTest(PymatgenTest):
             num_workers=1,
         )
 
-        g_sample, label_sample, attr_sample = dataset[0]
-
-        node_feat = g_sample.ndata["node_type"]
-        edge_feat = g_sample.edata["edge_attr"]
-        node_embed = nn.Embedding(node_feat.shape[-1], 16)
-        edge_embed = MLP([edge_feat.shape[-1], 16], activation=None)
-
         model = MEGNet(
             dim_node_embedding=16,
-            dim_edge_embedding=16,
+            dim_edge_embedding=100,
             dim_state_embedding=2,
             nblocks=3,
             hidden_layer_sizes_input=(64, 32),
@@ -67,8 +58,6 @@ class ModelTrainerTest(PymatgenTest):
             niters_set2set=3,
             hidden_layer_sizes_outputput=[32, 16],
             is_classification=False,
-            layer_node_embedding=node_embed,
-            layer_edge_embedding=edge_embed,
         )
 
         optimizer = torch.optim.Adam(model.parameters(), lr=1.0e-3)

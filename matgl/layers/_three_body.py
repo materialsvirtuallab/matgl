@@ -100,7 +100,7 @@ class ThreeBodyInteractions(nn.Module):
             three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2)  # type: ignore
         )
         weights = torch.prod(weights, axis=-1)
-        weights = basis * weights[:, None]
+        basis = basis * weights[:, None]
         new_bonds = scatter_sum(
             basis.to(torch.float32),
             segment_ids=get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),

@@ -1,6 +1,7 @@
 """
 Graph convolution layer (GCL) implementations.
 """
+
 from __future__ import annotations
 
 import dgl
@@ -8,8 +9,6 @@ import dgl.function as fn
 import torch
 import torch.nn as nn
 from torch.nn import Dropout, Identity, Module
-
-from matgl.utils.maths import broadcast_states_to_bonds
 
 from ._core import MLP, GatedMLP
 
@@ -237,7 +236,7 @@ class M3GNetGraphConv(Module):
     ):
         """
         Parameters:
-        include_states (bool): Whether including state
+        include_state (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
@@ -266,7 +265,7 @@ class M3GNetGraphConv(Module):
 
         Args:
         degree (int): max_n*max_l
-        include_states (bool): whether including state or not
+        include_state (bool): whether including state or not
         edge_dim (list): NN architecture for edge update function
         node_dim (list): NN architecture for node update function
         state_dim (list): NN architecture for state update function
@@ -338,7 +337,7 @@ class M3GNetGraphConv(Module):
         rbf = graph.edata["rbf"]
         rbf = rbf.float()
         if self.include_states:
-            u = broadcast_states_to_bonds(graph, state_attr)
+            u = dgl.broadcast_edges(graph, state_attr)
             inputs = torch.hstack([vi, vj, eij, u])
         else:
             inputs = torch.hstack([vi, vj, eij])
@@ -409,7 +408,7 @@ class M3GNetBlock(Module):
         num_node_feats: int,
         num_edge_feats: int,
         num_state_feats: int | None = None,
-        include_states: bool = False,
+        include_state: bool = False,
         dropout: float | None = None,
     ) -> None:
         """
@@ -419,7 +418,7 @@ class M3GNetBlock(Module):
         :param num_state_feats: Number of state features
         :param conv_hiddens: Dimension of hidden layers
         :param activation: Activation type
-        :param include_states: Including state features or not
+        :param include_state: Including state features or not
         :param dropout: Probability of an element to be zero in dropout layer
         """
         super().__init__()
@@ -427,13 +426,13 @@ class M3GNetBlock(Module):
         self.activation = activation
 
         # compute input sizes
-        if include_states:
+        if include_state:
             edge_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
             node_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
             attr_in = num_node_feats + num_state_feats  # type: ignore
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
-                include_states,
+                include_state,
                 edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
                 node_dims=[node_in, *conv_hiddens, num_node_feats],
                 state_dims=[attr_in, *conv_hiddens, num_state_feats],  # type: ignore
@@ -444,9 +443,9 @@ class M3GNetBlock(Module):
             node_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
-                include_states,
-                edge_dims=[edge_in, *conv_hiddens] + [num_edge_feats],
-                node_dims=[node_in, *conv_hiddens] + [num_node_feats],
+                include_state,
+                edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
+                node_dims=[node_in, *conv_hiddens, num_node_feats],
                 state_dims=None,  # type: ignore
                 activation=self.activation,
             )

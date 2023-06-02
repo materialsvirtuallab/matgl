@@ -139,7 +139,7 @@ class M3GNetCalculator(Calculator):
         self.compute_hessian = potential.calc_hessian
         self.stress_weight = stress_weight
         self.state_attr = state_attr
-        self.element_types = potential.model.element_types
+        self.element_types = potential.model.element_types  # type: ignore
         self.cutoff = potential.model.cutoff
 
     def calculate(

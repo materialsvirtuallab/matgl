@@ -119,7 +119,7 @@ class MEGNetDataset(DGLDataset):
         Args:
         structures: Pymatgen strutcure
         labels: property values
-        label: label name
+        label_name: label name
         converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
         initial: initial distance for Gaussian expansions
         final: final distance for Gaussian expansions
@@ -230,13 +230,13 @@ class M3GNetDataset(DGLDataset):
         """
         Args:
         structures: Pymatgen strutcure
-        labels: property values
-        label: label name
-        converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
-        initial: initial distance for Gaussian expansions
-        final: final distance for Gaussian expansions
-        num_centers: number of Gaussian functions
-        width: width of Gaussian functions
+        energies: Target energies
+        forces: Target forces
+        stresses: Target stresses
+        converter: dgl graph converter
+        threebody_cutoff: cutoff for three body
+        name: name of dataset
+        graph_labels: state attributes
         """
         self.converter = converter
         self.structures = structures

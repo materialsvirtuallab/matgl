@@ -23,6 +23,8 @@ from matgl.layers import (
     M3GNetBlock,
     ReduceReadOut,
     Set2SetReadOut,
+    SoftExponential,
+    SoftPlus2,
     SphericalBesselWithHarmonics,
     ThreeBodyInteractions,
     WeightedReadOut,
@@ -62,7 +64,7 @@ class M3GNet(nn.Module, IOMixIn):
         niters_set2set: int = 3,
         nlayers_set2set: int = 3,
         field: str = "node_feat",
-        include_state_embedding: bool = False,
+        include_state: bool = False,
         activation_type: str = "swish",
         **kwargs,
     ):
@@ -92,8 +94,8 @@ class M3GNet(nn.Module, IOMixIn):
             field (str): using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
             niters_set2set (int): number of set2set iterations
             nlayers_set2set (int): number of set2set layers
-            include_state_embedding (bool): whether to include states features
-            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid'
+            include_state (bool): whether to include states features
+            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
             **kwargs:
         """
 
@@ -107,6 +109,12 @@ class M3GNet(nn.Module, IOMixIn):
             activation = nn.Tanh()  # type: ignore
         elif activation_type == "sigmoid":
             activation = nn.Sigmoid()  # type: ignore
+        elif activation_type == "softplus2":
+            activation = SoftPlus2()  # type: ignore
+        elif activation_type == "softexp":
+            activation = SoftExponential()  # type: ignore
+        else:
+            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES
@@ -125,7 +133,7 @@ class M3GNet(nn.Module, IOMixIn):
             dim_edge_embedding=dim_edge_embedding,
             ntypes_node=len(element_types),
             dim_state_feats=dim_state_feats,
-            include_state_embedding=include_state_embedding,
+            include_state=include_state,
             dim_state_embedding=dim_state_embedding,
             activation=activation,
         )
@@ -154,7 +162,7 @@ class M3GNet(nn.Module, IOMixIn):
                     num_node_feats=dim_node_embedding,
                     num_edge_feats=dim_edge_embedding,
                     num_state_feats=dim_state_feats,
-                    include_states=include_state_embedding,
+                    include_state=include_state,
                 )
                 for _ in range(nblocks)
             }
@@ -163,16 +171,12 @@ class M3GNet(nn.Module, IOMixIn):
             input_feats = dim_node_embedding if field == "node_feat" else dim_edge_embedding
             if readout_type == "set2set":
                 self.readout = Set2SetReadOut(num_steps=niters_set2set, num_layers=nlayers_set2set, field=field)
-                readout_feats = (
-                    2 * input_feats + dim_state_feats if include_state_embedding else 2 * input_feats  # type: ignore
-                )
+                readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)
-                readout_feats = (
-                    input_feats + dim_state_feats if include_state_embedding else input_feats  # type: ignore
-                )
+                readout_feats = input_feats + dim_state_feats if include_state else input_feats  # type: ignore
 
-            dims_final_layer = [readout_feats] + [units, units] + [ntargets]
+            dims_final_layer = [readout_feats, units, units, ntargets]
             self.final_layer = MLP(dims_final_layer, activation, activate_last=False)
             if task_type == "classification":
                 self.sigmoid = nn.Sigmoid()
@@ -188,7 +192,7 @@ class M3GNet(nn.Module, IOMixIn):
         self.units = units
         self.cutoff = cutoff
         self.threebody_cutoff = threebody_cutoff
-        self.include_states = include_state_embedding
+        self.include_states = include_state
         self.task_type = task_type
         self.is_intensive = is_intensive
 

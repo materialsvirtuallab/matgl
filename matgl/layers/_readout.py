@@ -90,7 +90,7 @@ class WeightedReadOut(nn.Module):
         """
         super().__init__()
         self.in_feats = in_feats
-        self.dims = [in_feats, *dims] + [num_targets]
+        self.dims = [in_feats, *dims, num_targets]
         self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False)
 
     def forward(self, g: dgl.DGLGraph):

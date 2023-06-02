@@ -143,5 +143,4 @@ class Structure2Graph(GraphConverter):
         g.ndata["pos"] = tensor(cart_coords)
         g.ndata["volume"] = tensor([volume for _ in range(atomic_number.shape[0])])
         state_attr = [0.0, 0.0]
-        g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix))
         return g, state_attr
