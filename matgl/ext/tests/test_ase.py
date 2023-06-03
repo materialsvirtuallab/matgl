@@ -24,9 +24,9 @@ class TestAseInterface(unittest.TestCase):
         ff = Potential(model=model)
         calc = M3GNetCalculator(potential=ff)
         self.s_ase.set_calculator(calc)
-        self.assertListEqual([self.s_ase.get_potential_energy().size], [1])
-        self.assertListEqual(list(self.s_ase.get_forces().shape), [2, 3])
-        self.assertListEqual(list(self.s_ase.get_stress().shape), [6])
+        assert [self.s_ase.get_potential_energy().size] == [1]
+        assert list(self.s_ase.get_forces().shape) == [2, 3]
+        assert list(self.s_ase.get_stress().shape) == [6]
 
 
 if __name__ == "__main__":

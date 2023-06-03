@@ -11,7 +11,7 @@ from pathlib import Path
 from timeit import default_timer
 
 import torch
-import torch.nn as nn
+from torch import nn
 from tqdm import tqdm
 
 logger = logging.getLogger(__file__)
@@ -108,36 +108,36 @@ class ModelTrainer:
 
     def train(
         self,
-        nepochs: int,
+        n_epochs: int,
         train_loss_func: nn.Module,
         val_loss_func: nn.Module,
         train_loader: tuple,
         val_loader: tuple,
-        logpath: str | Path = "matgl_training",
+        log_path: str | Path = "matgl_training",
     ) -> None:
         """
 
         Args:
-            nepochs:
+            n_epochs:
             train_loss_func:
             val_loss_func:
             train_loader:
             val_loader:
             training_logfile:
-            logpath:
+            log_path:
         """
-        logpath = Path(logpath)
-        outpath = logpath / "best_model"
-        checkpath = logpath / "checkpoints"
-        os.makedirs(outpath, exist_ok=True)
-        os.makedirs(checkpath, exist_ok=True)
+        log_path = Path(log_path)
+        out_path = log_path / "best_model"
+        check_path = log_path / "checkpoints"
+        os.makedirs(out_path, exist_ok=True)
+        os.makedirs(check_path, exist_ok=True)
         logger.info("## Training started ##")
         best_val_loss = 1000.0
 
-        with codecs.open(logpath / "training_log.csv", "w", "utf-8") as fp:  # type: ignore
-            csvlog = csv.writer(fp)
-            csvlog.writerow(["epoch", "train_loss", "val_loss", "train_time", "val_time"])
-            for epoch in tqdm(range(nepochs)):
+        with codecs.open(log_path / "training_log.csv", "w", "utf-8") as fp:  # type: ignore
+            csv_log = csv.writer(fp)
+            csv_log.writerow(["epoch", "train_loss", "val_loss", "train_time", "val_time"])
+            for epoch in tqdm(range(n_epochs)):
                 train_loss, train_time = self.train_one_step(
                     train_loss_func,
                     train_loader,
@@ -159,9 +159,9 @@ class ModelTrainer:
                             "scheduler_state_dict": self.scheduler.state_dict(),
                             "loss": val_loss,
                         },
-                        checkpath / f"{epoch + 1}-{val_loss}.pt",
+                        check_path / f"{epoch + 1}-{val_loss}.pt",
                     )
-                    csvlog.writerow([epoch + 1, train_loss, val_loss, train_time, val_time])
+                    csv_log.writerow([epoch + 1, train_loss, val_loss, train_time, val_time])
                     best_val_loss = val_loss
-                    self.model.save(outpath)
+                    self.model.save(out_path)
         logger.info("## Training finished ##")

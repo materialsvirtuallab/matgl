@@ -1,31 +1,30 @@
 # Simple training of MEGNet formation energy model for material projects (version:mp.2018.6.1.json)
 # Author: Tsz Wai Ko (Kenko)
 # Email: t1ko@ucsd.edu
+from __future__ import annotations
 
-import json
-
+import logging
+import math
 import os
+import zipfile
+
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
-import logging
-import zipfile
-
-import pandas as pd
-import math
-
-from tqdm import tqdm
 
 # Import megnet related modules
 from pymatgen.core import Structure
-from matgl.utils.io import RemoteFile
-from matgl.ext.pymatgen import get_element_list, Structure2Graph
-from matgl.layers._bond import BondExpansion
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from matgl.utils.training import ModelTrainer
-from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
+from tqdm import tqdm
+
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
+from matgl.graph.data import MEGNetDataset, MGLDataLoader, _collate_fn
+from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
+from matgl.utils.io import RemoteFile
+from matgl.utils.training import ModelTrainer
 
 SEED = 42
 EPOCHS = 2000
@@ -67,14 +66,14 @@ cry_graph = Structure2Graph(element_types=elem_list, cutoff=4.0)
 mp_dataset = MEGNetDataset(
     structures, Eform_per_atom, "Eform", converter=cry_graph, initial=0.0, final=5.0, num_centers=100, width=0.5
 )
-# seperate the dataset into training, validation and test data
+# separate the dataset into training, validation and test data
 train_data, val_data, test_data = split_dataset(
     mp_dataset,
     frac_list=[0.9, 0.05, 0.05],
     shuffle=True,
     random_state=SEED,
 )
-logging.info("Train, Valid, Test size", len(train_data), len(val_data), len(test_data))
+logging.info(f"Train, Valid, Test size = {len(train_data)}, {len(val_data)}, {len(test_data)}")
 # get the average and standard deviation from the training set
 # setup the embedding layer for node attributes
 node_embed = nn.Embedding(len(elem_list), 16)
@@ -140,7 +139,7 @@ print(model)
 trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
-    nepochs=EPOCHS,
+    n_epochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,
     train_loader=train_loader,

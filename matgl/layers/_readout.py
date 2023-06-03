@@ -6,10 +6,10 @@ from __future__ import annotations
 
 import dgl
 import torch
-import torch.nn as nn
 from dgl.nn import Set2Set
+from torch import nn
 
-from ._core import EdgeSet2Set, GatedMLP
+from matgl.layers._core import EdgeSet2Set, GatedMLP
 
 
 class Set2SetReadOut(nn.Module):
@@ -24,7 +24,7 @@ class Set2SetReadOut(nn.Module):
         field: str,
     ):
         """
-        Paramaters:
+        Args:
             num_steps (int): number of LSTM steps
             field (str): the field of MaterialGraph to perform the readout
         """
@@ -55,7 +55,7 @@ class ReduceReadOut(nn.Module):
     def __init__(self, op: str = "mean", field: str = "node_feat"):
         super().__init__()
         """
-        Parameters:
+        Args:
             op (str): op for the reduction
             field (str): the field of MaterialGraph to perform the reduction
         """
@@ -83,7 +83,7 @@ class WeightedReadOut(nn.Module):
 
     def __init__(self, in_feats: int, dims: list[int], num_targets: int):
         """
-        Parameters:
+        Args:
            in_feats: input features (nodes)
            dims: NN architecture for Gated MLP
            num_targets: number of target properties
@@ -98,7 +98,7 @@ class WeightedReadOut(nn.Module):
         Args:
             g: DGL graph
         Returns:
-            atomic_prperties: torch.tensor
+            atomic_properties: torch.tensor
         """
         atomic_properties = self.gated(g.ndata["node_feat"])
         return atomic_properties

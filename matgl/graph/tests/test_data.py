@@ -30,11 +30,11 @@ class DatasetTest(PymatgenTest):
         dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels=label, label_name="label")
         g1, label1, state1 = dataset[0]
         g2, label2, state2 = dataset[1]
-        self.assertTrue(label1 == label[0])
-        self.assertTrue(g1.num_edges() == cry_graph.get_graph(s1)[0].num_edges())
-        self.assertTrue(g1.num_nodes() == cry_graph.get_graph(s1)[0].num_nodes())
-        self.assertTrue(g2.num_edges() == cry_graph.get_graph(s2)[0].num_edges())
-        self.assertTrue(g2.num_nodes() == cry_graph.get_graph(s2)[0].num_nodes())
+        assert label1 == label[0]
+        assert g1.num_edges() == cry_graph.get_graph(s1)[0].num_edges()
+        assert g1.num_nodes() == cry_graph.get_graph(s1)[0].num_nodes()
+        assert g2.num_edges() == cry_graph.get_graph(s2)[0].num_edges()
+        assert g2.num_nodes() == cry_graph.get_graph(s2)[0].num_nodes()
 
     def test_megnet_dataset_for_mol(self):
         coords = [
@@ -54,11 +54,11 @@ class DatasetTest(PymatgenTest):
         )
         g1, label1, state1 = dataset[0]
         g2, label2, state2 = dataset[1]
-        self.assertTrue(label1 == label[0])
-        self.assertTrue(g1.num_edges() == mol_graph.get_graph(methane)[0].num_edges())
-        self.assertTrue(g1.num_nodes() == mol_graph.get_graph(methane)[0].num_nodes())
-        self.assertTrue(g2.num_edges() == mol_graph.get_graph(methane)[0].num_edges())
-        self.assertTrue(g2.num_nodes() == mol_graph.get_graph(methane)[0].num_nodes())
+        assert label1 == label[0]
+        assert g1.num_edges() == mol_graph.get_graph(methane)[0].num_edges()
+        assert g1.num_nodes() == mol_graph.get_graph(methane)[0].num_nodes()
+        assert g2.num_edges() == mol_graph.get_graph(methane)[0].num_edges()
+        assert g2.num_nodes() == mol_graph.get_graph(methane)[0].num_nodes()
 
     def test_m3gnet_dataset(self):
         s1 = self.get_structure("LiFePO4")
@@ -79,13 +79,13 @@ class DatasetTest(PymatgenTest):
         )
         g1, l_g1, state1, energies_g1, forces_g1, stresses_g1 = dataset[0]
         g2, l_g2, state2, energies_g2, forces_g2, stresses_g2 = dataset[1]
-        self.assertTrue(energies_g1 == energies[0])
-        self.assertTrue(g1.num_edges() == cry_graph.get_graph(s1)[0].num_edges())
-        self.assertTrue(g1.num_nodes() == cry_graph.get_graph(s1)[0].num_nodes())
-        self.assertTrue(g2.num_edges() == cry_graph.get_graph(s2)[0].num_edges())
-        self.assertTrue(g2.num_nodes() == cry_graph.get_graph(s2)[0].num_nodes())
-        self.assertTrue(np.shape(forces_g1)[0], 28)
-        self.assertTrue(np.shape(forces_g2)[0], 10)
+        assert energies_g1 == energies[0]
+        assert g1.num_edges() == cry_graph.get_graph(s1)[0].num_edges()
+        assert g1.num_nodes() == cry_graph.get_graph(s1)[0].num_nodes()
+        assert g2.num_edges() == cry_graph.get_graph(s2)[0].num_edges()
+        assert g2.num_nodes() == cry_graph.get_graph(s2)[0].num_nodes()
+        assert np.shape(forces_g1)[0], 28
+        assert np.shape(forces_g2)[0], 10
 
     def test_megnet_dataloader(self):
         s1 = self.get_structure("LiFePO4")
@@ -109,9 +109,9 @@ class DatasetTest(PymatgenTest):
             batch_size=2,
             num_workers=1,
         )
-        self.assertTrue(len(train_loader) == 8)
-        self.assertTrue(len(val_loader) == 1)
-        self.assertTrue(len(test_loader) == 1)
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
 
     def test_megnet_dataloader_for_mol(self):
         coords = [
@@ -141,9 +141,9 @@ class DatasetTest(PymatgenTest):
             batch_size=2,
             num_workers=1,
         )
-        self.assertTrue(len(train_loader) == 3)
-        self.assertTrue(len(val_loader) == 1)
-        self.assertTrue(len(test_loader) == 1)
+        assert len(train_loader) == 3
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
 
     def test_m3gnet_dataloader(self):
         s1 = self.get_structure("LiFePO4")
@@ -179,9 +179,9 @@ class DatasetTest(PymatgenTest):
             batch_size=2,
             num_workers=1,
         )
-        self.assertTrue(len(train_loader) == 8)
-        self.assertTrue(len(val_loader) == 1)
-        self.assertTrue(len(test_loader) == 1)
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
 
     @classmethod
     def tearDownClass(cls):

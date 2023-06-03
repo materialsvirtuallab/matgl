@@ -9,6 +9,7 @@ import torch
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
+from torch import nn
 from torch.optim.lr_scheduler import ExponentialLR
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
@@ -73,7 +74,7 @@ class ModelTrainerTest(PymatgenTest):
         )
 
         trainer.train(
-            nepochs=2,
+            n_epochs=2,
             train_loss_func=train_loss_function,
             val_loss_func=validate_loss_function,
             train_loader=train_loader,

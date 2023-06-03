@@ -7,9 +7,9 @@ import logging
 
 import dgl
 import torch
-import torch.nn as nn
 from dgl.nn import Set2Set
 from pymatgen.core import Structure
+from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.ext.pymatgen import Structure2Graph
@@ -61,7 +61,7 @@ class MEGNet(nn.Module, IOMixIn):
             hidden_layer_sizes_input: Architecture of dense layers before the graph convolution
             hidden_layer_sizes_conv: Architecture of dense layers for message and update functions
             nlayers_set2set: Number of layers in Set2Set layer
-            niters_set2set: Number of iteratons in Set2Set layer
+            niters_set2set: Number of iterations in Set2Set layer
             hidden_layer_sizes_output: Architecture of dense layers for concatenated features after graph convolution
             activation_types: Activation used for non-linearity
             is_classification: Whether this is classification task or not
@@ -79,7 +79,6 @@ class MEGNet(nn.Module, IOMixIn):
             gauss_width: width of Gaussian function for bond expansion
             **kwargs:
         """
-
         super().__init__()
 
         self.save_args(locals(), kwargs)
@@ -207,10 +206,12 @@ class MEGNet(nn.Module, IOMixIn):
     ):
         """
         Convenience method to directly predict property from structure.
+
         Args:
             structure (Structure): Pymatgen structure
             state_feats (torch.tensor): graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
+
         Returns:
             output (torch.tensor): output property
         """

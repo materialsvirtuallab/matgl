@@ -7,10 +7,10 @@ from __future__ import annotations
 import dgl
 import dgl.function as fn
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.nn import Dropout, Identity, Module
 
-from ._core import MLP, GatedMLP
+from matgl.layers._core import MLP, GatedMLP
 
 
 class MEGNetGraphConv(Module):
@@ -99,13 +99,11 @@ class MEGNetGraphConv(Module):
         :param state_attrs: Input attributes
         :return: Output tensor for attributes
         """
-        u = state_attrs
-        ue = dgl.readout_edges(graph, feat="e", op="mean")
-        uv = dgl.readout_nodes(graph, feat="v", op="mean")
-        ue = torch.squeeze(ue)
-        uv = torch.squeeze(uv)
-        u = torch.squeeze(u)
-        inputs = torch.hstack([u, ue, uv])
+        u_edge = dgl.readout_edges(graph, feat="e", op="mean")
+        u_vertex = dgl.readout_nodes(graph, feat="v", op="mean")
+        u_edge = torch.squeeze(u_edge)
+        u_vertex = torch.squeeze(u_vertex)
+        inputs = torch.hstack([state_attrs.squeeze(), u_edge, u_vertex])
         state_attr = self.state_func(inputs)
         return state_attr
 
@@ -236,11 +234,11 @@ class M3GNetGraphConv(Module):
     ):
         """
         Parameters:
-        include_state (bool): Whether including state
+        include_states (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
-        node_weight_func (Module): Weight function for radieal basis functions (Eq. 5)
+        node_weight_func (Module): Weight function for radial basis functions (Eq. 5)
         attr_update_func (Module): Update function for state feats (Eq. 6)
         """
         super().__init__()
@@ -265,7 +263,7 @@ class M3GNetGraphConv(Module):
 
         Args:
         degree (int): max_n*max_l
-        include_state (bool): whether including state or not
+        include_states (bool): whether including state or not
         edge_dim (list): NN architecture for edge update function
         node_dim (list): NN architecture for node update function
         state_dim (list): NN architecture for state update function
