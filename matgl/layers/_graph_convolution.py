@@ -11,7 +11,6 @@ from torch import nn
 from torch.nn import Dropout, Identity, Module
 
 from matgl.layers._core import MLP, GatedMLP
-from matgl.utils.maths import broadcast_states_to_bonds
 
 
 class MEGNetGraphConv(Module):
@@ -239,7 +238,7 @@ class M3GNetGraphConv(Module):
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
-        node_weight_func (Module): Weight function for radieal basis functions (Eq. 5)
+        node_weight_func (Module): Weight function for radial basis functions (Eq. 5)
         attr_update_func (Module): Update function for state feats (Eq. 6)
         """
         super().__init__()
@@ -264,7 +263,7 @@ class M3GNetGraphConv(Module):
 
         Args:
         degree (int): max_n*max_l
-        include_state (bool): whether including state or not
+        include_states (bool): whether including state or not
         edge_dim (list): NN architecture for edge update function
         node_dim (list): NN architecture for node update function
         state_dim (list): NN architecture for state update function
@@ -442,7 +441,7 @@ class M3GNetBlock(Module):
             node_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
-                include_states,
+                include_state,
                 edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
                 node_dims=[node_in, *conv_hiddens, num_node_feats],
                 state_dims=None,  # type: ignore
