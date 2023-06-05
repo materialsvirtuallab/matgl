@@ -6,8 +6,8 @@ from __future__ import annotations
 import dgl
 import numpy as np
 import torch
-import torch.nn as nn
 from pymatgen.core import Molecule, Structure
+from torch import nn
 
 
 class AtomRef(nn.Module):
@@ -20,7 +20,7 @@ class AtomRef(nn.Module):
         property_offset: np.array,  # type: ignore
     ) -> None:
         """
-        Parameters:
+        Args:
         -----------
         property_offset (np.array): a array of elemental property offset
         """
@@ -50,20 +50,18 @@ class AtomRef(nn.Module):
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> bool:
+    def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> None:
         """
         Fit the elemental reference values for the properties
 
         Args:
-        structs_or_graphs: pymatgen Structures or dgl graphs
-        properties (np.ndarray): array of extensive properties
-
-        Returns:
+            structs_or_graphs: pymatgen Structures or dgl graphs
+            element_list (tuple): a list of element types
+            properties (np.ndarray): array of extensive properties
         """
         features = self.get_feature_matrix(structs_or_graphs, element_list)
         self.property_offset = np.linalg.pinv(features.T.dot(features)).dot(features.T.dot(properties))
         self.property_offset = torch.tensor(self.property_offset)
-        return True
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None):
         """
@@ -86,9 +84,8 @@ class AtomRef(nn.Module):
                 offset_batched_with_state.append(offset_batched)
             offset_batched_with_state = torch.stack(offset_batched_with_state)  # type: ignore
             return offset_batched_with_state[state_attr]  # type: ignore
-        else:
-            property_offset_batched = self.property_offset.repeat(g.num_nodes(), 1)
-            offset = property_offset_batched * g.ndata["attr"]
-            g.ndata["atomic_offset"] = torch.sum(offset, 1)
-            offset_batched = dgl.readout_nodes(g, "atomic_offset")
-            return offset_batched
+        property_offset_batched = self.property_offset.repeat(g.num_nodes(), 1)
+        offset = property_offset_batched * g.ndata["attr"]
+        g.ndata["atomic_offset"] = torch.sum(offset, 1)
+        offset_batched = dgl.readout_nodes(g, "atomic_offset")
+        return offset_batched

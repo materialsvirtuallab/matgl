@@ -31,31 +31,31 @@ class TestBondExpansion(unittest.TestCase):
         bond_expansion = BondExpansion(rbf_type="Gaussian", num_centers=10, initial=0.0, final=4.0, width=0.5)
         bond_vec, bond_dist = compute_pair_vector_and_distance(self.g1)
         bond_basis = bond_expansion(bond_dist)
-        self.assertTupleEqual(bond_basis.shape, (28, 10))
+        assert bond_basis.shape == (28, 10)
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(self.g2)
         bond_basis = bond_expansion(bond_dist)
-        self.assertTupleEqual(bond_basis.shape, (2, 10))
+        assert bond_basis.shape == (2, 10)
 
     def test_spherical_bessel_with_smooth(self):
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
         bond_vec, bond_dist = compute_pair_vector_and_distance(self.g1)
         bond_basis = bond_expansion(bond_dist)
-        self.assertTupleEqual(bond_basis.shape, (28, 3))
+        assert bond_basis.shape == (28, 3)
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(self.g2)
         bond_basis = bond_expansion(bond_dist)
-        self.assertTupleEqual(bond_basis.shape, (2, 3))
+        assert bond_basis.shape == (2, 3)
 
     def test_spherical_bessel(self):
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_vec, bond_dist = compute_pair_vector_and_distance(self.g1)
         bond_basis = bond_expansion(bond_dist)
-        self.assertTupleEqual(bond_basis.shape, (28, 9))
+        assert bond_basis.shape == (28, 9)
 
         bond_vec, bond_dist = compute_pair_vector_and_distance(self.g2)
         bond_basis = bond_expansion(bond_dist)
-        self.assertTupleEqual(bond_basis.shape, (2, 9))
+        assert bond_basis.shape == (2, 9)
 
 
 if __name__ == "__main__":

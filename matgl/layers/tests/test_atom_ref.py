@@ -25,7 +25,7 @@ class TestAtomRef(unittest.TestCase):
         element_ref = AtomRef(np.array([0.5, 1.0, 2.0]))
 
         atom_ref = element_ref(self.g1)
-        self.assertAlmostEqual(atom_ref, 3.5)
+        assert atom_ref == 3.5
 
     def test_atom_ref_fit(self):
         element_ref = AtomRef(np.array([0.5, 1.0, 2.0]))
@@ -33,13 +33,13 @@ class TestAtomRef(unittest.TestCase):
         bg = dgl.batch([self.g1, self.g1])
         element_ref.fit([self.g1, self.g1], self.element_types, properties)
         atom_ref = element_ref(bg)
-        self.assertListEqual(list(np.round(atom_ref.numpy())), [2.0, 2.0])
+        assert list(np.round(atom_ref.numpy())) == [2.0, 2.0]
 
     def test_atom_ref_with_states(self):
         element_ref = AtomRef(np.array([[0.5, 1.0, 2.0], [2.0, 3.0, 5.0]]))
         state_label = torch.tensor([1])
         atom_ref = element_ref(self.g1, state_label)
-        self.assertAlmostEqual(atom_ref, 10.0)
+        assert atom_ref == 10
 
 
 if __name__ == "__main__":

@@ -74,7 +74,6 @@ class Atoms2Graph(GraphConverter):
             g: DGL graph
             state_attr: state features
         """
-
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
@@ -155,6 +154,7 @@ class M3GNetCalculator(Calculator):
             system_changes (list): monitor which properties of atoms were
                 changed for new calculation. If not, the previous calculation
                 results will be loaded.
+
         Returns:
 
         """
@@ -201,7 +201,6 @@ class Relaxer:
             relax_cell (bool): whether to relax the lattice cell
             stress_weight (float): the stress weight for relaxation
         """
-
         if isinstance(optimizer, str):
             optimizer_obj = OPTIMIZERS.get(optimizer, None)
         elif optimizer is None:
@@ -361,7 +360,6 @@ class MolecularDynamics:
             loginterval (int): write to log file every interval steps
             append_trajectory (bool): Whether to append to prev trajectory
         """
-
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms

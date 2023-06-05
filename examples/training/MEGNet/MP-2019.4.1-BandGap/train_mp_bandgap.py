@@ -1,26 +1,28 @@
 # Simple training of multi-fidelity MEGNet bandgap model for materials project (version:mp.2019.4.1.json)
 # Author: Tsz Wai Ko (Kenko)
 # Email: t1ko@ucsd.edu
+from __future__ import annotations
+
 import gzip
 import json
-from typing import List
-
+import math
 import os
+from copy import deepcopy
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from copy import deepcopy
-
-import math
 
 # Import megnet related modules
 from pymatgen.core import Structure
-from matgl.ext.pymatgen import get_element_list, Structure2Graph
-from matgl.layers._bond import BondExpansion
+from sklearn.model_selection import train_test_split
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from matgl.utils.training import ModelTrainer
-from matgl.graph.data import MEGNetDataset, _collate_fn, MGLDataLoader
+
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
+from matgl.graph.data import MEGNetDataset, MGLDataLoader, _collate_fn
+from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
+from matgl.utils.training import ModelTrainer
 
 ALL_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
 TRAIN_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
@@ -74,15 +76,12 @@ for fidelity_id, fidelity in enumerate(ALL_FIDELITIES):
         # the new id is of the form mp-id_fidelity, e.g., mp-1234_pbe
         material_ids.append(f"{mp_id}_{fidelity}")
 
-final_structures = {i: j for i, j in zip(material_ids, structures)}
-final_targets = {i: j for i, j in zip(material_ids, targets)}
-final_graph_attrs = {i: j for i, j in zip(material_ids, graph_attrs)}
+final_structures = dict(zip(material_ids, structures))
+final_targets = dict(zip(material_ids, targets))
+final_graph_attrs = dict(zip(material_ids, graph_attrs))
 
 
 # split the dataset
-
-from sklearn.model_selection import train_test_split
-
 # train:val:test = 8:1:1
 fidelity_list = [i.split("_")[1] for i in material_ids]
 train_val_ids, test_ids = train_test_split(material_ids, stratify=fidelity_list, test_size=0.1, random_state=SEED)
@@ -143,13 +142,13 @@ validation_set = MEGNetDataset(
     graph_labels=val_graph_attrs,
 )
 
-# define the embedding layer for nodel and state attributes
+# define the embedding layer for nodes and state attributes
 node_embed = nn.Embedding(len(elem_list), 16)
 attr_embed = nn.Embedding(len(ALL_FIDELITIES), 16)
 # define the bond expansion
 bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_centers=100, width=0.5)
 
-# define the achitecture of multi-fidelity MEGNet model
+# define the architecture of multi-fidelity MEGNet model
 model = MEGNet(
     dim_node_embedding=16,
     dim_edge_embedding=100,
@@ -211,7 +210,7 @@ print(model)
 trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
-    nepochs=EPOCHS,
+    n_epochs=EPOCHS,
     train_loss_func=train_loss_function,
     val_loss_func=validate_loss_function,
     train_loader=train_loader,

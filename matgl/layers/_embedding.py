@@ -4,9 +4,9 @@ Embedding node, edge and optional state attributes
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
+from torch import nn
 
-from ._core import MLP
+from matgl.layers._core import MLP
 
 
 class EmbeddingBlock(nn.Module):
@@ -70,7 +70,6 @@ class EmbeddingBlock(nn.Module):
         edge_feat: embedded edge features
         state_feat: embedded state features
         """
-
         if self.ntypes_node is not None:
             node_feat = self.layer_node_embedding(node_attr)
         else:

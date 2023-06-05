@@ -6,8 +6,8 @@ from __future__ import annotations
 from typing import Callable
 
 import torch
-import torch.nn as nn
 from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
+from torch import nn
 from torch.nn import LSTM, Linear, Module, ModuleList
 
 

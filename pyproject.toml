@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-     # pin NumPy version used in the build
-     "oldest-supported-numpy",
-     "setuptools>=58.0.3"
+  # pin NumPy version used in the build
+  "oldest-supported-numpy",
+  "setuptools>=58.0.3",
 ]
 build-backend = "setuptools.build_meta"
 numpy = "1.24.2"
@@ -12,7 +12,6 @@ line-length = 120
 target-version = ['py39']
 include = '\.pyi?$'
 exclude = '''
-
 (
   /(
       \.eggs         # exclude a few common directories in the
@@ -35,26 +34,32 @@ target-version = "py39"
 line-length = 120
 select = [
   "B",   # flake8-bugbear
-  "C40", # flake8-comprehensions
-  # "D",   # pydocstyle
-  "E",   # pycodestyle
+  "C4",  # flake8-comprehensions
+  "D",   # pydocstyle
+  "E",   # pycodestyle error
+  "EXE", # flake8-executable
   "F",   # pyflakes
   "I",   # isort
-  "PLE", # pylint error
-  "PLW", # pylint warning
+  "ICN", # flake8-import-conventions
+  "ISC", # flake8-implicit-str-concat
+  "PD",  # pandas-vet
+  "PIE", # flake8-pie
+  "PL",  # pylint
+  "PT",  # flake8-pytest-style
+  "PYI", # flakes8-pyi
   "Q",   # flake8-quotes
+  "RET", # flake8-return
+  "RSE", # flake8-raise
   "RUF", # Ruff-specific rules
   "SIM", # flake8-simplify
   "TID", # tidy imports
+  "TID", # flake8-tidy-imports
   "UP",  # pyupgrade
-  "W",   # pycodestyle
+  "W",   # pycodestyle warning
   "YTT", # flake8-2020
 ]
 ignore = [
   "B019",    # functools.lru_cache on methods can lead to memory leaks
-  "B023",    # Function definition does not bind loop variable
-  "B028",    # No explicit stacklevel keyword argument found
-  "B904",    # Within an except clause, raise exceptions with ...
   "D100",    # Missing docstring in public module
   "D104",    # Missing docstring in public package
   "D105",    # Missing docstring in magic method
@@ -63,34 +68,14 @@ ignore = [
   "D205",    # 1 blank line required between summary line and description
   "D212",    # Multi-line docstring summary should start at the first line
   "D415",    # First line should end with a period, question mark, or exclamation point
-  "PLR2004", # Magic number
+  "PLR",     # pylint refactor
   "PLW0603", # Using the global statement to update variables is discouraged
-  "PLW2901", # Outer for loop variable overwritten by inner assignment target
+  "PLW2901", # redefined-loop-name
+  "RET504",  # unnecessary-assign
   "SIM105",  # Use contextlib.suppress(OSError) instead of try-except-pass
-  "SIM115",  # Use context handler for opening files
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
-exclude = [
-    ".eggs",
-    ".git",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "examples"
-]
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
@@ -104,16 +89,12 @@ addopts = "--durations=30 --quiet -rXs --color=yes -p no:warnings"
 ignore_missing_imports = true
 explicit_package_bases = true
 no_implicit_optional = false
-exclude = ['tests', 'examples']
+exclude = ['examples', 'tests']
 
 [[tool.mypy.overrides]]
-module = ["tabulate.*", "requests.*"]
+module = ["requests.*", "tabulate.*"]
 ignore_missing_imports = true
 
 [tool.codespell]
-ignore-words-list = """
-titel,alls,ans,nd,mater,nwo,te,hart,ontop,ist,ot,fo,nax,coo,coul,ser,leary,thre,
-fase,rute,reson,titels,ges,scalr,strat,struc,hda,nin,ons,pres,kno,loos,lamda
-"""
-skip = "pymatgen/analysis/aflow_prototypes.json"
+ignore-words-list = "mater,te,nd"
 check-filenames = true

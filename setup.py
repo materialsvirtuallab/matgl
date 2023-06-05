@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import re
 
-import numpy
+import numpy as np
 from setuptools import find_packages, setup
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -45,10 +45,11 @@ setup(
         "matgl.utils": ["*.npy"],
     },
     include_package_data=True,
-    install_requires=(
-        "torch",
-        "dgl",
-    ),
+    install_requires=("torch", "dgl"),
+    extras_require={
+        "munch": ["munch"],
+        "pymatgen": ["pymatgen"],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
@@ -63,5 +64,5 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    include_dirs=[numpy.get_include()],
+    include_dirs=[np.get_include()],
 )

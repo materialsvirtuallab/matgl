@@ -2,9 +2,8 @@ from __future__ import annotations
 
 # type: ignore
 import argparse
-from collections import namedtuple
 from timeit import default_timer
-from typing import Callable
+from typing import Callable, NamedTuple
 
 import torch
 import torch.nn as nn
@@ -12,9 +11,9 @@ import torch.nn.functional as F
 from munch import Munch
 from tqdm import tqdm
 
-from matgl.utils import utils
-from matgl.models import MEGNet
+import matgl.utils as utils  # TODO utils does not provide the members being accessed here
 from matgl.layers import MLP
+from matgl.models import MEGNet
 
 
 def train(
@@ -31,17 +30,17 @@ def train(
 
     start = default_timer()
 
-    for g, labels in tqdm(dataloader):
+    for graph, labels in tqdm(dataloader):
         optimizer.zero_grad()
 
-        g = g.to(device)
+        graph = graph.to(device)
         labels = labels.to(device)
 
-        node_feat = torch.hstack((g.ndata["attr"], g.ndata["pos"]))
-        edge_feat = g.edata["edge_attr"]
-        attrs = torch.ones(g.batch_size, 2).to(device) * torch.tensor([data.z_mean, data.num_bond_mean]).to(device)
+        node_feat = torch.hstack((graph.ndata["attr"], graph.ndata["pos"]))
+        edge_feat = graph.edata["edge_attr"]
+        attrs = torch.ones(graph.batch_size, 2).to(device) * torch.tensor([data.z_mean, data.num_bond_mean]).to(device)
 
-        pred = model(g, edge_feat, node_feat, attrs)
+        pred = model(graph, edge_feat, node_feat, attrs)
 
         loss = loss_function(pred, (labels - data.mean) / data.std)
 
@@ -62,23 +61,25 @@ def validate(
     model: nn.Module,
     device: torch.device,
     loss_function: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
-    data: namedtuple,
-    dataloader: namedtuple,
+    data: NamedTuple,
+    dataloader: NamedTuple,
 ):
     avg_loss = 0
 
     start = default_timer()
 
     with torch.no_grad():
-        for g, labels in dataloader:
-            g = g.to(device)
+        for graph, labels in dataloader:
+            graph = graph.to(device)
             labels = labels.to(device)
 
-            node_feat = torch.hstack((g.ndata["attr"], g.ndata["pos"]))
-            edge_feat = g.edata["edge_attr"]
-            attrs = torch.ones(g.batch_size, 2).to(device) * torch.tensor([data.z_mean, data.num_bond_mean]).to(device)
+            node_feat = torch.hstack((graph.ndata["attr"], graph.ndata["pos"]))
+            edge_feat = graph.edata["edge_attr"]
+            attrs = torch.ones(graph.batch_size, 2).to(device) * torch.tensor([data.z_mean, data.num_bond_mean]).to(
+                device
+            )
 
-            pred = model(g, edge_feat, node_feat, attrs)
+            pred = model(graph, edge_feat, node_feat, attrs)
 
             loss = loss_function(data.mean + pred * data.std, labels)
 
@@ -95,7 +96,7 @@ def validate(
 def run(
     args: argparse.ArgumentParser,
     config: Munch,
-    data: namedtuple,
+    data: NamedTuple,
 ):
     g_sample = data.train[0][0]
 
