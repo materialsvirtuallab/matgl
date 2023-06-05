@@ -111,7 +111,7 @@ class TestGraphConv(unittest.TestCase):
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
-        sb_and_sh(self.g1, l_g1)
+        sb_and_sh(l_g1)
         max_n = 3
         max_l = 3
         num_node_feats = 16
@@ -158,7 +158,7 @@ class TestGraphConv(unittest.TestCase):
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
-        sb_and_sh(self.g1, l_g1)
+        sb_and_sh(l_g1)
         num_node_feats = 16
         num_edge_feats = 32
         num_state_feats = 64

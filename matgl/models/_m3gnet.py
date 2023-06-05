@@ -227,7 +227,7 @@ class M3GNet(nn.Module, IOMixIn):
             l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
-        three_body_basis = self.basis_expansion(g, l_g)
+        three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
         num_node_feats, num_edge_feats, num_state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
         for i in range(self.n_blocks):
