@@ -4,7 +4,7 @@ Generate bond features based on spherical bessel functions or gaussian expansion
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from matgl.utils.maths import GaussianExpansion, SphericalBesselFunction
 
@@ -27,7 +27,7 @@ class BondExpansion(nn.Module):
         width: float = 0.5,
     ) -> None:
         """
-        Parameters:
+        Args:
         ----------
         max_l (int): order of angular part
         max_n (int): order of radial part

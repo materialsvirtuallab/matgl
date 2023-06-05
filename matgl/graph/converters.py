@@ -23,4 +23,3 @@ class GraphConverter(metaclass=abc.ABCMeta):
         Returns:
             DGLGraph object, state_attr
         """
-        pass

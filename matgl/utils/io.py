@@ -38,7 +38,7 @@ class IOMixIn:
     def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
         """
         Save model to a directory. Three files will be saved.
-        - path/model.pt, which contains the torch serialzied model args.
+        - path/model.pt, which contains the torch serialized model args.
         - path/state.pt, which contains the saved state_dict from the model.
         - path/model.txt, a txt version of model.pt that is purely meant for ease of reference.
 
@@ -91,7 +91,7 @@ class IOMixIn:
                 raise ValueError(
                     f"No valid model found in {model_path} or among pre-trained_models at "
                     f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-                )
+                ) from None
 
         if not torch.cuda.is_available():
             state = torch.load(state_path, map_location=torch.device("cpu"))
@@ -142,7 +142,7 @@ class RemoteFile:
         Returns:
             Stream on local path.
         """
-        self.stream = open(self.local_path, "rb")
+        self.stream = open(self.local_path, "rb")  # noqa: SIM115
         return self.stream
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -153,8 +153,5 @@ class RemoteFile:
             exc_type:
             exc_val:
             exc_tb:
-
-        Returns:
-
         """
         self.stream.close()

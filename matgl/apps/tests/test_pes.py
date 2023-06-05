@@ -27,37 +27,37 @@ class TestPotential(unittest.TestCase):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model, calc_hessian=True)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([torch.numel(e)], [1])
-        self.assertListEqual([f.size(dim=0), f.size(dim=1)], [2, 3])
-        self.assertListEqual([s.size(dim=0), s.size(dim=1)], [3, 3])
-        self.assertListEqual([h.size(dim=0), h.size(dim=1)], [6, 6])
+        assert [torch.numel(e)] == [1]
+        assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
+        assert [s.size(dim=0), s.size(dim=1)] == [3, 3]
+        assert [h.size(dim=0), h.size(dim=1)] == [6, 6]
 
     def test_potential_efs(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([torch.numel(e)], [1])
-        self.assertListEqual([f.size(dim=0), f.size(dim=1)], [2, 3])
-        self.assertListEqual([s.size(dim=0), s.size(dim=1)], [3, 3])
-        self.assertListEqual([h.size(dim=0)], [1])
+        assert [torch.numel(e)] == [1]
+        assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
+        assert [s.size(dim=0), s.size(dim=1)] == [3, 3]
+        assert [h.size(dim=0)] == [1]
 
     def test_potential_ef(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model, calc_stresses=False)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([torch.numel(e)], [1])
-        self.assertListEqual([f.size(dim=0), f.size(dim=1)], [2, 3])
-        self.assertListEqual([s.size(dim=0)], [1])
-        self.assertListEqual([h.size(dim=0)], [1])
+        assert [torch.numel(e)] == [1]
+        assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
+        assert [s.size(dim=0)] == [1]
+        assert [h.size(dim=0)] == [1]
 
     def test_potential_e(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
         ff = Potential(model=model, calc_forces=False, calc_stresses=False)
         e, f, s, h = ff(self.g1, self.state1)
-        self.assertListEqual([torch.numel(e)], [1])
-        self.assertListEqual([f.size(dim=0)], [1])
-        self.assertListEqual([s.size(dim=0)], [1])
-        self.assertListEqual([h.size(dim=0)], [1])
+        assert [torch.numel(e)] == [1]
+        assert [f.size(dim=0)] == [1]
+        assert [s.size(dim=0)] == [1]
+        assert [h.size(dim=0)] == [1]
 
 
 if __name__ == "__main__":

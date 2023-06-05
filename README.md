@@ -1,19 +1,21 @@
+# matGL
+
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE)
 [![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
 [![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 
-# Table of Contents
-* [Introduction](#introduction)
-* [Status](#status)
-* [Architectures](#architectures)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Documentation](#documentation)
-* [References](#references)
+## Table of Contents
 
-<a name="introduction"></a>
-# Introduction
+- [Introduction](#introduction)
+- [Status](#status)
+- [Architectures](#architectures)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Docs](#docs)
+- [References](#references)
+
+## Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
 representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
@@ -27,14 +29,12 @@ implemented in TensorFlow.
 This effort is a collaboration between the [Materials Virtual Lab](http://materialsvirtuallab.org) and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
-<a name="status"></a>
-# Status
+## Status
 
 - Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
 - Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
 
-<a name="architectures"></a>
-# Architectures
+## Architectures
 
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true"  width="50%">
 
@@ -69,8 +69,7 @@ As a framework, M3GNet has diverse applications, including:
 
 For detailed performance benchmarks, please refer to the publication in the [References](#references) section.
 
-<a name="installation"></a>
-# Installation
+## Installation
 
 Matgl can be installed via pip for the latest stable version:
 
@@ -84,9 +83,7 @@ For the latest dev version, please clone this repo and install using:
 python setup.py -e .
 ```
 
-
-<a name="usage"></a>
-# Usage
+## Usage
 
 The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
 The following is an example of a prediction of the formation energy for CsCl.
@@ -95,44 +92,46 @@ The following is an example of a prediction of the formation energy for CsCl.
 from pymatgen.core import Structure, Lattice
 from matgl.models import MEGNet
 
-# load the pre-trained MEGNet model for formation energy model.
+## load the pre-trained MEGNet model for formation energy model.
 model = MEGNet.load("MEGNet-MP-2018.6.1-Eform")
-# This is the structure obtained from the Materials Project.
+## This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-eform = model.predict_structure(struct)
-print(f"The predicted formation energy for CsCl is {float(eform.numpy()):5f} eV/atom.")
+e_form = model.predict_structure(struct)
+print(f"The predicted formation energy for CsCl is {float(e_form):5f} eV/atom.")
 ```
 
 A full example is in [here](examples/Using%20MEGNet%20Pre-trained%20Models%20for%20Property%20Predictions.ipynb).
 
+## Docs
 
-<a name="documentation"></a>
-# Additional information
-- [Documentation Page](http://materialsvirtuallab.github.io/matgl)
-- [API documentation](https://materialsvirtuallab.github.io/matgl/modules.html)
+<http://materialsvirtuallab.github.io/matgl>
 
-<a name="references"></a>
-# References
+## References
 
 Please cite the following works:
 
 - MEGNet
+
     ```txt
     Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
     Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
     ```
+
 - Multi-fidelity MEGNet
+
     ```txt
     Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
     Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.
     ```
+
 - M3GNet
+
     ```txt
     Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
     2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
     ```
 
-# Acknowledgements
+## Acknowledgments
 
 This work was primarily supported by the Materials Project, funded by the U.S. Department of Energy, Office of Science,
 Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.

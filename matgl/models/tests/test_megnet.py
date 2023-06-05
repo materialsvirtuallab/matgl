@@ -43,7 +43,7 @@ class TestMEGNet(unittest.TestCase):
         self.g1.edata["edge_attr"] = bond_expansion(bond_dist)
         self.state1 = th.tensor(self.state1)
         output = model(self.g1, self.g1.edata["edge_attr"], self.g1.ndata["node_type"], self.state1)
-        self.assertListEqual([th.numel(output)], [1])
+        assert [th.numel(output)] == [1]
 
     def test_save_load(self):
         model = MEGNet(

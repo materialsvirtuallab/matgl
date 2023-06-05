@@ -73,7 +73,7 @@ class ModelTrainerTest(PymatgenTest):
         )
 
         trainer.train(
-            nepochs=2,
+            n_epochs=2,
             train_loss_func=train_loss_function,
             val_loss_func=validate_loss_function,
             train_loader=train_loader,

@@ -15,7 +15,7 @@ class ModelSourceTestCase(unittest.TestCase):
             cache_location=".",
         ) as s:
             model = torch.load(s, map_location=torch.device("cpu"))
-            self.assertIn("nblocks", model)
+            assert "nblocks" in model
         try:  # cleanup
             shutil.rmtree("MEGNet-MP-2018.6.1-Eform")
         except FileNotFoundError:

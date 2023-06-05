@@ -6,7 +6,7 @@ from __future__ import annotations
 import dgl
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.autograd import grad
 
 from matgl.layers import AtomRef

@@ -93,14 +93,13 @@ class MatglTrainer(pl.LightningModule):
         if isinstance(self.model, Potential):
             e, f, s, h = self.model(g=g, l_g=l_g, state_attr=state_attr)
             return e, f.float(), s, h
+        if self.model is M3GNet:
+            preds = self.model(g=g, l_g=l_g, state_attr=state_attr)
         else:
-            if self.model is M3GNet:
-                preds = self.model(g=g, l_g=l_g, state_attr=state_attr)
-            else:
-                node_feat = g.ndata["node_type"]
-                edge_feat = g.edata["edge_attr"]
-                preds = self.model(g, edge_feat.float(), node_feat.long(), state_attr)
-            return preds
+            node_feat = g.ndata["node_type"]
+            edge_feat = g.edata["edge_attr"]
+            preds = self.model(g, edge_feat.float(), node_feat.long(), state_attr)
+        return preds
 
     def step(self, batch: tuple):
         if isinstance(self.model, Potential):
