@@ -40,11 +40,11 @@ class IOMixIn:
         Save model to a directory. Three files will be saved.
         - path/model.pt, which contains the torch serialized model args.
         - path/state.pt, which contains the saved state_dict from the model.
-        - path/model.txt, a txt version of model.pt that is purely meant for ease of reference.
+        - path/model.json, a txt version of model.pt that is purely meant for ease of reference.
 
         Args:
             path: String or Path object to directory for model saving. Defaults to current working directory (".").
-            metadata: Any additional metadata to be saved into the model.txt file. For example, a good use would be
+            metadata: Any additional metadata to be saved into the model.json file. For example, a good use would be
                 a description of model purpose, the training set used, etc.
             makedirs: Whether to create the directory using os.makedirs(exist_ok=True). Note that if the directory
                 already exists, makedirs will not do anything.
@@ -57,11 +57,11 @@ class IOMixIn:
 
         # This json dump of model args is purely for ease of reference. It is not used to deserialize the model.
         d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": self._init_args}  # type: ignore
-        with open(path / "model.txt", "w") as f:
+        with open(path / "model.json", "w") as f:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
     @classmethod
-    def load(cls, path: str | Path, **kwargs):
+    def load(cls, path: str | Path, include_json=False, **kwargs):
         """
         Load the model weights from a directory.
 
@@ -99,6 +99,7 @@ class IOMixIn:
             state = torch.load(state_path)
         model = cls(**torch.load(model_path))
         model.load_state_dict(state)  # type: ignore
+
         return model
 
 
