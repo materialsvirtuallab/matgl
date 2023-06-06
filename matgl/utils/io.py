@@ -75,7 +75,7 @@ class IOMixIn:
             kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
                 want to update the model.
 
-        Returns: MEGNet object.
+        Returns: model_object if include_json is false. (model_object, dict) if include_json is True.
         """
         path = Path(path)
 
