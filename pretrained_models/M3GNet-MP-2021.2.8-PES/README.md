@@ -6,7 +6,8 @@ implemented in tensorflow.
 
 # Training dataset
 
-MP-2021.2.8
+MP-2021.2.8: Materials Project structure relaxations as of 2021.2.8.
+Number of structures: ??
 
 # Performance metrics
 
