@@ -3,8 +3,6 @@ from __future__ import annotations
 import dgl
 import numpy as np
 import pytorch_lightning as pl
-
-# import torch and dgl modules
 import torch
 import torch.nn.functional as F
 import torchmetrics
@@ -12,30 +10,12 @@ from torch import nn
 from torch.optim import Optimizer, lr_scheduler
 
 from matgl.apps.pes import Potential
-
-# import matgl relevant modules
-from matgl.models import M3GNet, MEGNet
+from matgl.models import MEGNet, M3GNet
 
 
-class MatglTrainer(pl.LightningModule):
+class TrainerMixin:
     """
-    MatglTrainer for MEGNet and M3GNet including potential
-    Params:
-    model: Which type of the model for training
-    element_refs: element offset for PES
-    energy_weight: relative importance of energy
-    force_weight: relative importance of force
-    stress_weight: relative importance of stress
-    data_mean: average of training data
-    data_std: standard deviation of training data
-    calc_stress: whether stress calculation is required
-    loss: loss function used for training
-    optimizer: optimizer for training
-    scheduler: scheduler for training
-    lr: learning rate for training
-    decay_steps: number of steps for decaying learning rate
-    decay_alpha: parameter determines the minimum learning rate
-    is_potential: whether the potential is used for training
+    Mix-in class implementing common functions for training.
     """
 
     def __init__(
@@ -128,8 +108,8 @@ class MatglTrainer(pl.LightningModule):
         return results, batch_size
 
     def training_step(self, batch: tuple, batch_idx: int):
-        results, batch_size = self.step(batch)
-        self.log_dict(
+        results, batch_size = self.step(batch)  # type: ignore
+        self.log_dict(  # type: ignore
             {f"train_{key}": val for key, val in results.items()},
             batch_size=batch_size,
             on_epoch=True,
@@ -145,8 +125,8 @@ class MatglTrainer(pl.LightningModule):
         sch.step()
 
     def validation_step(self, batch: tuple, batch_idx: int):
-        results, batch_size = self.step(batch)
-        self.log_dict(
+        results, batch_size = self.step(batch)  # type: ignore
+        self.log_dict(  # type: ignore
             {f"val_{key}": val for key, val in results.items()},
             batch_size=batch_size,
             on_epoch=True,
@@ -155,8 +135,8 @@ class MatglTrainer(pl.LightningModule):
         )
 
     def test_step(self, batch: tuple, batch_idx: int):
-        results, batch_size = self.step(batch)
-        self.log_dict(
+        results, batch_size = self.step(batch)  # type: ignore
+        self.log_dict(  # type: ignore
             {f"test_{key}": val for key, val in results.items()},
             batch_size=batch_size,
             on_epoch=True,
@@ -194,6 +174,173 @@ class MatglTrainer(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         torch.set_grad_enabled(True)
         return self(batch)
+
+
+class ModelTrainer(TrainerMixin, pl.LightningModule):
+    """
+    Trainer for MEGNet and M3GNet models
+    """
+
+    def __init__(
+        self,
+        model,
+        data_mean=None,
+        data_std=None,
+        loss: str = "mse_loss",
+        optimizer: Optimizer | None = None,
+        scheduler: lr_scheduler | None = None,
+        lr: float = 0.001,
+        decay_steps: int = 1000,
+        decay_alpha: float = 0.01,
+    ):
+        """
+
+        Args:
+            model: Which type of the model for training
+            data_mean: average of training data
+            data_std: standard deviation of training data
+            loss: loss function used for training
+            optimizer: optimizer for training
+            scheduler: scheduler for training
+            lr: learning rate for training
+            decay_steps: number of steps for decaying learning rate
+            decay_alpha: parameter determines the minimum learning rate
+        """
+        super().__init__()
+
+        self.model = model
+
+        self.mae = torchmetrics.MeanAbsoluteError()
+        self.rmse = torchmetrics.MeanSquaredError(squared=False)
+        if data_mean is None:
+            data_mean = torch.zeros(1)
+        if data_std is None:
+            data_std = torch.ones(1)
+        self.data_mean = data_mean
+        self.data_std = data_std
+        self.lr = lr
+        self.decay_steps = decay_steps
+        self.decay_alpha = decay_alpha
+        if loss == "mse_loss":
+            self.loss = F.mse_loss
+        else:
+            self.loss = F.l1_loss
+        self.optimizer = optimizer
+        self.scheduler = scheduler
+        self.save_hyperparameters()
+
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+        if isinstance(self.model, M3GNet):
+            return self.model(g=g, l_g=l_g, state_attr=state_attr)
+
+        node_feat = g.ndata["node_type"]
+        edge_feat = g.edata["edge_attr"]
+        return self.model(g, edge_feat.float(), node_feat.long(), state_attr)
+
+    def step(self, batch: tuple):
+        g, labels, state_attr = batch
+        preds = self(g=g, state_attr=state_attr)
+        results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)
+        batch_size = preds.numel()
+        return results, batch_size
+
+    def loss_fn(self, loss: nn.Module, labels: tuple, preds: tuple):
+        total_loss = loss(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        mae = self.mae(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        rmse = self.rmse(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        results = {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
+        return results
+
+
+class PotentialTrainer(TrainerMixin, pl.LightningModule):
+    """
+    Trainer for MatGL potentials.
+    """
+
+    def __init__(
+        self,
+        model,
+        element_refs: np.darray | None = None,
+        energy_weight: float = 1.0,
+        force_weight: float = 1.0,
+        stress_weight: float | None = None,
+        data_mean=None,
+        data_std=None,
+        calc_stress: bool = False,
+        loss: str = "mse_loss",
+        optimizer: Optimizer | None = None,
+        scheduler: lr_scheduler | None = None,
+        lr: float = 0.001,
+        decay_steps: int = 1000,
+        decay_alpha: float = 0.01,
+    ):
+        """
+        Args:
+            model: Which type of the model for training
+            element_refs: element offset for PES
+            energy_weight: relative importance of energy
+            force_weight: relative importance of force
+            stress_weight: relative importance of stress
+            data_mean: average of training data
+            data_std: standard deviation of training data
+            calc_stress: whether stress calculation is required
+            loss: loss function used for training
+            optimizer: optimizer for training
+            scheduler: scheduler for training
+            lr: learning rate for training
+            decay_steps: number of steps for decaying learning rate
+            decay_alpha: parameter determines the minimum learning rate
+        """
+        super().__init__()
+
+        self.model = Potential(model=model, element_refs=element_refs, calc_stresses=calc_stress)
+
+        self.mae = torchmetrics.MeanAbsoluteError()
+        self.rmse = torchmetrics.MeanSquaredError(squared=False)
+        if data_mean is None:
+            data_mean = torch.zeros(1)
+        if data_std is None:
+            data_std = torch.ones(1)
+        self.data_mean = data_mean
+        self.data_std = data_std
+        self.energy_weight = energy_weight
+        self.force_weight = force_weight
+        self.stress_weight = stress_weight
+        self.lr = lr
+        self.decay_steps = decay_steps
+        self.decay_alpha = decay_alpha
+        if loss == "mse_loss":
+            self.loss = F.mse_loss
+        else:
+            self.loss = F.l1_loss
+        self.optimizer = optimizer
+        self.scheduler = scheduler
+        self.save_hyperparameters()
+
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+        e, f, s, h = self.model(g=g, l_g=l_g, state_attr=state_attr)
+        return e, f.float(), s, h
+
+    def step(self, batch: tuple):
+        torch.set_grad_enabled(True)
+        g, l_g, state_attr, energies, forces, stresses = batch
+        e, f, s, _ = self(g=g, state_attr=state_attr, l_g=l_g)
+        f = f.to(torch.float)
+        preds: tuple = (e, f, s)
+        labels: tuple = (energies, forces, stresses)
+        num_atoms = g.batch_num_nodes()
+        results = self.loss_fn_efs(
+            loss=self.loss,
+            preds=preds,
+            labels=labels,
+            energy_weight=self.energy_weight,
+            force_weight=self.force_weight,
+            stress_weight=self.stress_weight,
+            num_atoms=num_atoms,
+        )
+        batch_size = preds[0].numel()
+
+        return results, batch_size
 
     def loss_fn_efs(
         self,
@@ -237,11 +384,4 @@ class MatglTrainer(pl.LightningModule):
             "Force_RMSE": f_rmse,
             "Stress_RMSE": s_rmse,
         }
-        return results
-
-    def loss_fn(self, loss: nn.Module, labels: tuple, preds: tuple):
-        total_loss = loss(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        mae = self.mae(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        rmse = self.rmse(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        results = {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
         return results

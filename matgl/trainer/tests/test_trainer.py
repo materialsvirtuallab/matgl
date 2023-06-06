@@ -12,7 +12,7 @@ from pymatgen.util.testing import PymatgenTest
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, _collate_fn, _collate_fn_efs
 from matgl.models import M3GNet, MEGNet
-from matgl.trainer import MatglTrainer
+from matgl.trainer import ModelTrainer, PotentialTrainer
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -55,7 +55,7 @@ class ModelTrainerTest(PymatgenTest):
         )
 
         print(model)
-        lit_model = MatglTrainer(model=model, is_potential=False)
+        lit_model = ModelTrainer(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
@@ -98,7 +98,7 @@ class ModelTrainerTest(PymatgenTest):
             is_intensive=False,
         )
         print(model)
-        lit_model = MatglTrainer(model=model, is_potential=True)
+        lit_model = PotentialTrainer(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
