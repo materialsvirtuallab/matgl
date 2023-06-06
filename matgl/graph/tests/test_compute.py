@@ -61,7 +61,7 @@ class TestCompute(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.s1 = Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
         element_types = get_element_list([cls.s1])
-        p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
+        p2g = Structure2Graph(element_types=element_types, cutoff=5.0)  # type: ignore
         graph, state = p2g.get_graph(cls.s1)
         cls.g1 = graph
         cls.state1 = state
@@ -75,7 +75,7 @@ class TestCompute(unittest.TestCase):
         ]
         methane = Molecule(["C", "H", "H", "H", "H"], coords)
         element_types = get_element_list([methane])
-        p2g = Molecule2Graph(element_types=element_types, cutoff=2.0)
+        p2g = Molecule2Graph(element_types=element_types, cutoff=2.0)  # type: ignore
         graph, state = p2g.get_graph(methane)
         cls.g2 = graph
         cls.state2 = state

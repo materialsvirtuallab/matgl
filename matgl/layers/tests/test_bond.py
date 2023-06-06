@@ -16,13 +16,13 @@ class TestBondExpansion(unittest.TestCase):
         mol = Molecule(["C", "O"], [[0, 0, 0], [1.1, 0, 0]])
 
         element_types = get_element_list([cls.s])
-        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
+        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)  # type: ignore
         graph, state = p2g.get_graph(cls.s)
         cls.g1 = graph
         cls.state1 = state
 
         element_types = get_element_list([mol])
-        p2g = Molecule2Graph(element_types=element_types, cutoff=4.0)
+        p2g = Molecule2Graph(element_types=element_types, cutoff=4.0)  # type: ignore
         graph, state = p2g.get_graph(mol)
         cls.g2 = graph
         cls.state2 = state
