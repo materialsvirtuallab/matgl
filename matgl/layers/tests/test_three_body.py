@@ -36,25 +36,25 @@ class TestThreeBody(unittest.TestCase):
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
-        three_body_basis = sb_and_sh(self.g1, l_g1)
+        three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 9]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=2, cutoff=5.0, use_smooth=False, use_phi=True)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
-        three_body_basis = sb_and_sh(self.g1, l_g1)
+        three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 12]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=True, use_phi=False)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
-        three_body_basis = sb_and_sh(self.g1, l_g1)
+        three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 9]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=True, use_phi=True)
         l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
-        three_body_basis = sb_and_sh(self.g1, l_g1)
+        three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 27]
 
     def test_three_body_interactions(self):
@@ -64,7 +64,7 @@ class TestThreeBody(unittest.TestCase):
         bond_basis = bond_expansion(self.g1.edata["bond_dist"])
         self.g1.edata["rbf"] = bond_basis
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
-        three_body_basis = sb_and_sh(self.g1, l_g1)
+        three_body_basis = sb_and_sh(l_g1)
         three_body_cutoff = polynomial_cutoff(self.g1.edata["bond_dist"], 4.0)
         max_n = 3
         max_l = 3

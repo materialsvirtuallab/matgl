@@ -9,7 +9,6 @@ import torch
 import torch.nn.functional as F
 from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
-from torch import nn
 from torch.optim.lr_scheduler import ExponentialLR
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list

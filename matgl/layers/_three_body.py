@@ -46,7 +46,7 @@ class SphericalBesselWithHarmonics(nn.Module):
         else:
             self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth)
 
-    def forward(self, graph, line_graph):
+    def forward(self, line_graph):
         sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
         shf = self.shf(line_graph.edata["cos_theta"], line_graph.edata["phi"])
         return combine_sbf_shf(

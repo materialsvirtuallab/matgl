@@ -234,7 +234,7 @@ class M3GNetGraphConv(Module):
     ):
         """
         Parameters:
-        include_states (bool): Whether including state
+        include_state (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
@@ -263,7 +263,7 @@ class M3GNetGraphConv(Module):
 
         Args:
         degree (int): max_n*max_l
-        include_states (bool): whether including state or not
+        include_state (bool): whether including state or not
         edge_dim (list): NN architecture for edge update function
         node_dim (list): NN architecture for node update function
         state_dim (list): NN architecture for state update function
