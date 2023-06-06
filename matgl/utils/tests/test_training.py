@@ -15,7 +15,7 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import (
     MEGNetDataset,
     MGLDataLoader,
-    _collate_fn,
+    collate_fn,
 )
 from matgl.models import MEGNet
 from matgl.utils.training import ModelTrainer
@@ -42,7 +42,7 @@ class ModelTrainerTest(PymatgenTest):
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=_collate_fn,
+            collate_fn=collate_fn,
             batch_size=2,
             num_workers=1,
         )

@@ -10,9 +10,9 @@ from dgl.data.utils import split_dataset
 from pymatgen.util.testing import PymatgenTest
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, _collate_fn, _collate_fn_efs
+from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
-from matgl.trainer import ModelTrainer, PotentialTrainer
+from matgl.utils.trainer import ModelTrainer, PotentialTrainer
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,7 +36,7 @@ class ModelTrainerTest(PymatgenTest):
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=_collate_fn,
+            collate_fn=collate_fn,
             batch_size=2,
             num_workers=1,
         )
@@ -54,7 +54,6 @@ class ModelTrainerTest(PymatgenTest):
             is_classification=False,
         )
 
-        print(model)
         lit_model = ModelTrainer(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
@@ -89,7 +88,7 @@ class ModelTrainerTest(PymatgenTest):
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=_collate_fn_efs,
+            collate_fn=collate_fn_efs,
             batch_size=2,
             num_workers=1,
         )
@@ -97,7 +96,6 @@ class ModelTrainerTest(PymatgenTest):
             element_types=element_types,
             is_intensive=False,
         )
-        print(model)
         lit_model = PotentialTrainer(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)

@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MEGNetDataset, MGLDataLoader, _collate_fn
+from matgl.graph.data import MEGNetDataset, MGLDataLoader, collate_fn
 from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
 from matgl.utils.training import ModelTrainer
@@ -197,7 +197,7 @@ validate_loss_function = F.l1_loss
 train_loader, val_loader = MGLDataLoader(
     train_data=training_set,
     val_data=validation_set,
-    collate_fn=_collate_fn,
+    collate_fn=collate_fn,
     batch_size=128,
     num_workers=0,
     generator=generator,
