@@ -10,7 +10,7 @@ from torch import nn
 from torch.optim import Optimizer, lr_scheduler
 
 from matgl.apps.pes import Potential
-from matgl.models import MEGNet, M3GNet
+from matgl.models import M3GNet, MEGNet
 
 
 class TrainerMixin:
