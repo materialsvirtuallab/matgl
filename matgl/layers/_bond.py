@@ -28,15 +28,15 @@ class BondExpansion(nn.Module):
     ) -> None:
         """
         Args:
-        ----------
-        max_l (int): order of angular part
-        max_n (int): order of radial part
-        cutoff (float): cutoff radius
-        rbf_type (str): type of radial basis function .i.e. either "SphericalBessel" or 'Gaussian'
-        smooth (bool): whether apply the smooth version of spherical bessel functions or not
-        initial (float): initial point for gaussian expansion
-        final (float): final point for gaussian expansion
-        width (float): width of gaussian function
+            max_l (int): order of angular part
+            max_n (int): order of radial part
+            cutoff (float): cutoff radius
+            rbf_type (str): type of radial basis function .i.e. either "SphericalBessel" or 'Gaussian'
+            smooth (bool): whether apply the smooth version of spherical bessel functions or not
+            initial (float): initial point for gaussian expansion
+            final (float): final point for gaussian expansion
+            num_centers (int): Number of centers for gaussian expansion.
+            width (float): width of gaussian function
         """
         super().__init__()
 

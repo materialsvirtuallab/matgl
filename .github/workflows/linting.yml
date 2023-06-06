@@ -24,7 +24,7 @@ jobs:
       - name: ruff
         run: |
           ruff --version
-          ruff check . --ignore D
+          ruff check matgl
       - name: black
         run: |
           black --version

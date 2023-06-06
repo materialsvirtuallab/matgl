@@ -120,6 +120,7 @@ class SphericalBesselFunction:
             max_l: int, max order (excluding l)
             max_n: int, max number of roots used in each l
             cutoff: float, cutoff radius
+            smooth: Whether to smooth the function.
         """
         self.max_l = max_l
         self.max_n = max_n
@@ -250,7 +251,7 @@ class SphericalHarmonicsFunction:
     def __call__(self, costheta, phi=None):
         """
         Args:
-            theta: torch.tensor, the azimuthal angle
+            costheta: Cosine of the azimuthal angle
             phi: torch.tensor, the polar angle
 
         Returns: [n, m] spherical harmonic results, where n is the number
@@ -276,7 +277,7 @@ def _block_repeat(array, block_size, repeats):
     return torch.index_select(array, 1, indices)
 
 
-def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool, use_smooth: bool):
+def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
     """
     Combine the spherical Bessel function and the spherical Harmonics function
 

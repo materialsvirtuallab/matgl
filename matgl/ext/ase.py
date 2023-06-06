@@ -124,13 +124,13 @@ class M3GNetCalculator(Calculator):
         stress_weight: float = 1.0,
         **kwargs,
     ):
-        """
-
+        r"""
         Args:
             potential (Potential): m3gnet.models.Potential
+            state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
             stress_weight (float): the stress weight.
-            **kwargs:
+            **kwargs: Kwargs pass through to super().__init__().
         """
         super().__init__(**kwargs)
         self.potential = potential
@@ -154,9 +154,6 @@ class M3GNetCalculator(Calculator):
             system_changes (list): monitor which properties of atoms were
                 changed for new calculation. If not, the previous calculation
                 results will be loaded.
-
-        Returns:
-
         """
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
@@ -191,11 +188,10 @@ class Relaxer:
         stress_weight: float = 0.01,
     ):
         """
-
         Args:
-            potential (Potential): a M3GNet potential,
-                a str path to a saved model or a short name for saved model
+            potential (Potential): a M3GNet potential, a str path to a saved model or a short name for saved model
                 that comes with M3GNet distribution
+            state_attr (torch.tensor): State attr.
             optimizer (str or ase Optimizer): the optimization algorithm.
                 Defaults to "FIRE"
             relax_cell (bool): whether to relax the lattice cell
@@ -226,8 +222,7 @@ class Relaxer:
         verbose=False,
         **kwargs,
     ):
-        """
-
+        r"""
         Args:
             atoms (Atoms): the atoms for relaxation
             fmax (float): total force tolerance for relaxation convergence.
@@ -235,8 +230,8 @@ class Relaxer:
             steps (int): max number of steps for relaxation
             traj_file (str): the trajectory file for saving
             interval (int): the step interval for saving the trajectories
-            **kwargs:
-        Returns:
+            verbose (bool): Whether to have verbose output.
+            **kwargs: Kwargs pass-through to optimizer.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = self.ase_adaptor.get_atoms(atoms)
@@ -342,11 +337,11 @@ class MolecularDynamics:
         append_trajectory: bool = False,
     ):
         """
-
         Args:
             atoms (Atoms): atoms to run the MD
             potential (Potential): potential for calculating the energy, force,
                 stress of the atoms
+            state_attr (torch.tensor): State attr.
             ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
                 use with extra caution
             temperature (float): temperature for MD simulation, in K
@@ -384,11 +379,9 @@ class MolecularDynamics:
 
         elif ensemble.lower() == "npt":
             """
-
             NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
             This is a more flexible scheme that fixes three angles of the unit
             cell but allows three lattice parameter to change independently.
-
             """
 
             self.dyn = Inhomogeneous_NPTBerendsen(
@@ -453,9 +446,6 @@ class MolecularDynamics:
         Set new atoms to run MD
         Args:
             atoms (Atoms): new atoms for running MD
-
-        Returns:
-
         """
         calculator = self.atoms.calc
         self.atoms = atoms

@@ -36,7 +36,7 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 
 ## Architectures
 
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true"  width="50%">
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic" width="50%">
 
 ## MEGNet
 
@@ -59,15 +59,15 @@ stresses via auto-differentiation.
 As a framework, M3GNet has diverse applications, including:
 
 - **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
-  machine learning interatomic potentials (ML-IAPs). However, a key feature of a graph representation is its
+  machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
   flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
-  *universal IAP* that can work across the entire periodic table of the elements by training on relaxations performed
+  *universal IP* that can work across the entire periodic table of the elements by training on relaxations performed
   in the [Materials Project](http://materialsproject.org).
 - **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
-  surrogate models for property predictions, achieving in many cases accuracies that better or similar to other
+  surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
   state-of-the-art ML models.
 
-For detailed performance benchmarks, please refer to the publication in the [References](#references) section.
+For detailed performance benchmarks, please refer to the publications in the [References](#references) section.
 
 ## Installation
 
@@ -100,7 +100,7 @@ e_form = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(e_form):5f} eV/atom.")
 ```
 
-A full example is in [here](examples/Using%20MEGNet%20Pre-trained%20Models%20for%20Property%20Predictions.ipynb).
+A full example is in [here](examples/Pre-trained%20MEGNet%20for%20Property%20Predictions.ipynb).
 
 ## Docs
 
