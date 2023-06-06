@@ -24,13 +24,12 @@ class TrainerMixin:
 
     def training_step(self, batch: tuple, batch_idx: int):
         """
-
         Args:
             batch:
             batch_idx:
 
         Returns:
-
+           Total loss.
         """
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
