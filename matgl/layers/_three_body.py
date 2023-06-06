@@ -49,9 +49,7 @@ class SphericalBesselWithHarmonics(nn.Module):
     def forward(self, line_graph):
         sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
         shf = self.shf(line_graph.edata["cos_theta"], line_graph.edata["phi"])
-        return combine_sbf_shf(
-            sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi, use_smooth=self.use_smooth
-        )
+        return combine_sbf_shf(sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi)
 
 
 class ThreeBodyInteractions(nn.Module):
