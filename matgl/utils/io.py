@@ -75,30 +75,38 @@ class IOMixIn:
         Returns: MEGNet object.
         """
         path = Path(path)
-        if (path / "model.pt").exists() and (path / "state.pt").exists():
-            model_path = path / "model.pt"
-            state_path = path / "state.pt"
-        elif (MATGL_CACHE / path / "model.pt").exists() and (MATGL_CACHE / path / "state.pt").exists():
-            model_path = MATGL_CACHE / path / "model.pt"
-            state_path = MATGL_CACHE / path / "state.pt"
+
+        fnames = ["model.pt", "state.pt"]
+        if include_json:
+            fnames.append("model.json")
+
+        if all((path / fn).exists() for fn in fnames):
+            fpaths = {fn: path / fn for fn in fnames}
+        elif all((MATGL_CACHE / path / fn).exists() for fn in fnames):
+            fpaths = {fn: MATGL_CACHE / path / fn for fn in fnames}
         else:
             try:
-                model_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/model.pt", **kwargs)
-                state_file = RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/state.pt", **kwargs)
-                model_path = model_file.local_path
-                state_path = state_file.local_path
+                fpaths = {
+                    fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames
+                }
             except BaseException:
                 raise ValueError(
-                    f"No valid model found in {model_path} or among pre-trained_models at "
+                    f"No valid model found in {path} or among pre-trained_models at "
                     f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
                 ) from None
 
         if not torch.cuda.is_available():
-            state = torch.load(state_path, map_location=torch.device("cpu"))
+            state = torch.load(fpaths["state.pt"], map_location=torch.device("cpu"))
         else:
-            state = torch.load(state_path)
-        model = cls(**torch.load(model_path))
+            state = torch.load(fpaths["state.pt"])
+        model = cls(**torch.load(fpaths["model.pt"]))
         model.load_state_dict(state)  # type: ignore
+
+        if include_json:
+            with open(fpaths["model.json"]) as f:
+                model_data = json.load(f)
+
+            return model, model_data
 
         return model
 
