@@ -1,167 +1,348 @@
 """
-Utilities for model training.
+Utils for training MatGL models.
 """
+
 from __future__ import annotations
 
-import codecs
-import csv
-import logging
-import os
-from pathlib import Path
-from timeit import default_timer
-
+import dgl
+import numpy as np
+import pytorch_lightning as pl
 import torch
+import torch.nn.functional as F
+import torchmetrics
 from torch import nn
-from tqdm import tqdm
+from torch.optim import Optimizer, lr_scheduler
 
-logger = logging.getLogger(__file__)
+from matgl.apps.pes import Potential
+from matgl.models import M3GNet
 
 
-class ModelTrainer:
+class TrainerMixin:
     """
-    Utility class to perform training of models with logging and saving of best models.
+    Mix-in class implementing common functions for training.
     """
 
-    def __init__(self, model, optimizer: torch.optim.Optimizer, scheduler: torch.optim.lr_scheduler):
+    def training_step(self, batch: tuple, batch_idx: int):
         """
 
         Args:
-            model: Model to be trained.
-            optimizer: torch.Optimizer
-            scheduler: torch Scheduler.
+            batch:
+            batch_idx:
+
+        Returns:
+
         """
+        results, batch_size = self.step(batch)  # type: ignore
+        self.log_dict(  # type: ignore
+            {f"train_{key}": val for key, val in results.items()},
+            batch_size=batch_size,
+            on_epoch=True,
+            on_step=False,
+            prog_bar=True,
+        )
+
+        return results["Total_Loss"]
+
+    def on_train_epoch_end(self):
+        """
+        Step scheduler every epoch
+        """
+        sch = self.lr_schedulers()
+        sch.step()
+
+    def validation_step(self, batch: tuple, batch_idx: int):
+        """
+
+        Args:
+            batch:
+            batch_idx:
+
+        Returns:
+
+        """
+        results, batch_size = self.step(batch)  # type: ignore
+        self.log_dict(  # type: ignore
+            {f"val_{key}": val for key, val in results.items()},
+            batch_size=batch_size,
+            on_epoch=True,
+            on_step=False,
+            prog_bar=True,
+        )
+
+    def test_step(self, batch: tuple, batch_idx: int):
+        """
+
+        Args:
+            batch:
+            batch_idx:
+
+        Returns:
+
+        """
+        results, batch_size = self.step(batch)  # type: ignore
+        self.log_dict(  # type: ignore
+            {f"test_{key}": val for key, val in results.items()},
+            batch_size=batch_size,
+            on_epoch=True,
+            on_step=False,
+            prog_bar=True,
+        )
+
+    def configure_optimizers(self):
+        """
+        Configure optimizers
+        """
+        if self.optimizer is None:
+            optimizer = torch.optim.Adam(
+                self.parameters(),
+                lr=self.lr,
+                eps=1e-8,
+            )
+        else:
+            optimizer = self.optimizer
+        if self.scheduler is None:
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                optimizer,
+                T_max=self.decay_steps,
+                eta_min=self.lr * self.decay_alpha,
+            )
+        else:
+            scheduler = self.scheduler
+        return [
+            optimizer,
+        ], [
+            scheduler,
+        ]
+
+    def on_test_model_eval(self, *args, **kwargs):
+        """
+        Args:
+            *args:
+            **kwargs:
+        """
+        super().on_test_model_eval(*args, **kwargs)
+        torch.set_grad_enabled(True)
+
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        """
+        Args:
+            batch:
+            batch_idx:
+            dataloader_idx:
+
+        Returns:
+            Prediction
+        """
+        torch.set_grad_enabled(True)
+        return self(batch)
+
+
+class ModelTrainer(TrainerMixin, pl.LightningModule):
+    """
+    Trainer for MEGNet and M3GNet models
+    """
+
+    def __init__(
+        self,
+        model,
+        data_mean=None,
+        data_std=None,
+        loss: str = "mse_loss",
+        optimizer: Optimizer | None = None,
+        scheduler: lr_scheduler | None = None,
+        lr: float = 0.001,
+        decay_steps: int = 1000,
+        decay_alpha: float = 0.01,
+    ):
+        """
+
+        Args:
+            model: Which type of the model for training
+            data_mean: average of training data
+            data_std: standard deviation of training data
+            loss: loss function used for training
+            optimizer: optimizer for training
+            scheduler: scheduler for training
+            lr: learning rate for training
+            decay_steps: number of steps for decaying learning rate
+            decay_alpha: parameter determines the minimum learning rate
+        """
+        super().__init__()
+
         self.model = model
+
+        self.mae = torchmetrics.MeanAbsoluteError()
+        self.rmse = torchmetrics.MeanSquaredError(squared=False)
+        if data_mean is None:
+            data_mean = torch.zeros(1)
+        if data_std is None:
+            data_std = torch.ones(1)
+        self.data_mean = data_mean
+        self.data_std = data_std
+        self.lr = lr
+        self.decay_steps = decay_steps
+        self.decay_alpha = decay_alpha
+        if loss == "mse_loss":
+            self.loss = F.mse_loss
+        else:
+            self.loss = F.l1_loss
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.save_hyperparameters()
 
-    def train_one_step(
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+        if isinstance(self.model, M3GNet):
+            return self.model(g=g, l_g=l_g, state_attr=state_attr)
+
+        node_feat = g.ndata["node_type"]
+        edge_feat = g.edata["edge_attr"]
+        return self.model(g, edge_feat.float(), node_feat.long(), state_attr)
+
+    def step(self, batch: tuple):
+        g, labels, state_attr = batch
+        preds = self(g=g, state_attr=state_attr)
+        results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)
+        batch_size = preds.numel()
+        return results, batch_size
+
+    def loss_fn(self, loss: nn.Module, labels: tuple, preds: tuple):
+        total_loss = loss(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        mae = self.mae(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        rmse = self.rmse(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        results = {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
+        return results
+
+
+class PotentialTrainer(TrainerMixin, pl.LightningModule):
+    """
+    Trainer for MatGL potentials.
+    """
+
+    def __init__(
         self,
-        train_loss_func: nn.Module,
-        dataloader,
-    ) -> tuple[float, float]:
+        model,
+        element_refs: np.darray | None = None,
+        energy_weight: float = 1.0,
+        force_weight: float = 1.0,
+        stress_weight: float | None = None,
+        data_mean=None,
+        data_std=None,
+        calc_stress: bool = False,
+        loss: str = "mse_loss",
+        optimizer: Optimizer | None = None,
+        scheduler: lr_scheduler | None = None,
+        lr: float = 0.001,
+        decay_steps: int = 1000,
+        decay_alpha: float = 0.01,
+    ):
         """
-        Perform a single step training.
-
         Args:
-            train_loss_func: Loss function for training
-            dataloader: Data loader.
-
-        Returns:
-            avg_loss, training_time
+            model: Which type of the model for training
+            element_refs: element offset for PES
+            energy_weight: relative importance of energy
+            force_weight: relative importance of force
+            stress_weight: relative importance of stress
+            data_mean: average of training data
+            data_std: standard deviation of training data
+            calc_stress: whether stress calculation is required
+            loss: loss function used for training
+            optimizer: optimizer for training
+            scheduler: scheduler for training
+            lr: learning rate for training
+            decay_steps: number of steps for decaying learning rate
+            decay_alpha: parameter determines the minimum learning rate
         """
-        model = self.model
-        optimizer = self.optimizer
+        super().__init__()
 
-        model.train()
+        self.model = Potential(model=model, element_refs=element_refs, calc_stresses=calc_stress)
 
-        avg_loss = torch.zeros(1)
+        self.mae = torchmetrics.MeanAbsoluteError()
+        self.rmse = torchmetrics.MeanSquaredError(squared=False)
+        if data_mean is None:
+            data_mean = torch.zeros(1)
+        if data_std is None:
+            data_std = torch.ones(1)
+        self.data_mean = data_mean
+        self.data_std = data_std
+        self.energy_weight = energy_weight
+        self.force_weight = force_weight
+        self.stress_weight = stress_weight
+        self.lr = lr
+        self.decay_steps = decay_steps
+        self.decay_alpha = decay_alpha
+        if loss == "mse_loss":
+            self.loss = F.mse_loss
+        else:
+            self.loss = F.l1_loss
+        self.optimizer = optimizer
+        self.scheduler = scheduler
+        self.save_hyperparameters()
 
-        start = default_timer()
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+        e, f, s, h = self.model(g=g, l_g=l_g, state_attr=state_attr)
+        return e, f.float(), s, h
 
-        for g, labels, attrs in tqdm(dataloader):
-            optimizer.zero_grad()
-            node_feat = g.ndata["node_type"]
-            edge_feat = g.edata["edge_attr"]
-            pred = model(g, edge_feat.float(), node_feat.long(), attrs)
-            pred = torch.squeeze(pred)
-            loss = train_loss_func(pred, labels)
-            loss.backward()
-            optimizer.step()
-            avg_loss += loss.detach()
-        avg_loss = avg_loss.cpu().item() / len(dataloader)
-        return avg_loss, default_timer() - start
+    def step(self, batch: tuple):
+        torch.set_grad_enabled(True)
+        g, l_g, state_attr, energies, forces, stresses = batch
+        e, f, s, _ = self(g=g, state_attr=state_attr, l_g=l_g)
+        f = f.to(torch.float)
+        preds: tuple = (e, f, s)
+        labels: tuple = (energies, forces, stresses)
+        num_atoms = g.batch_num_nodes()
+        results = self.loss_fn_efs(
+            loss=self.loss,
+            preds=preds,
+            labels=labels,
+            energy_weight=self.energy_weight,
+            force_weight=self.force_weight,
+            stress_weight=self.stress_weight,
+            num_atoms=num_atoms,
+        )
+        batch_size = preds[0].numel()
 
-    def validate_one_step(
+        return results, batch_size
+
+    def loss_fn_efs(
         self,
-        val_loss_func: nn.Module,
-        dataloader: tuple,
-    ) -> tuple[float, float]:
-        """
-        Perform a single step validation.
+        loss: nn.Module,
+        labels: tuple,
+        preds: tuple,
+        energy_weight: float | None = None,
+        force_weight: float | None = None,
+        stress_weight: float | None = None,
+        num_atoms: int | None = None,
+    ):
+        e_target, f_target, s_target = labels
+        pred_e, pred_f, pred_s = preds
 
-        Args:
-            val_loss_func: Validation loss function.
-            dataloader: Data loader.
+        e_loss = self.loss(e_target / num_atoms, pred_e / num_atoms)
+        f_loss = self.loss(f_target, pred_f)
 
-        Returns:
-            avg_loss, training_time
-        """
-        model = self.model
-        avg_loss = torch.zeros(1)
+        e_mae = self.mae(e_target / num_atoms, pred_e / num_atoms)
+        f_mae = self.mae(f_target, pred_f)
 
-        start = default_timer()
+        e_rmse = self.rmse(e_target / num_atoms, pred_e / num_atoms)
+        f_rmse = self.rmse(f_target, pred_f)
 
-        with torch.no_grad():
-            for g, labels, attrs in dataloader:
-                node_feat = g.ndata["node_type"]
-                edge_feat = g.edata["edge_attr"]
+        s_mae = torch.zeros(1)
+        s_rmse = torch.zeros(1)
 
-                pred = model(g, edge_feat.float(), node_feat.long(), attrs)
+        if stress_weight is not None:
+            s_loss = loss(s_target, pred_s)
+            s_mae = self.mae(s_target, pred_s)
+            s_rmse = self.rmse(s_target, pred_s)
+            total_loss = energy_weight * e_loss + force_weight * f_loss + stress_weight * s_loss
+        else:
+            total_loss = energy_weight * e_loss + force_weight * f_loss
 
-                pred = torch.squeeze(pred)
-
-                loss = val_loss_func(pred, labels)
-
-                avg_loss += loss
-        avg_loss = avg_loss.cpu().item() / len(dataloader)
-        return avg_loss, default_timer() - start
-
-    def train(
-        self,
-        n_epochs: int,
-        train_loss_func: nn.Module,
-        val_loss_func: nn.Module,
-        train_loader: tuple,
-        val_loader: tuple,
-        log_path: str | Path = "matgl_training",
-    ) -> None:
-        """
-
-        Args:
-            n_epochs:
-            train_loss_func:
-            val_loss_func:
-            train_loader:
-            val_loader:
-            training_logfile:
-            log_path:
-        """
-        log_path = Path(log_path)
-        out_path = log_path / "best_model"
-        check_path = log_path / "checkpoints"
-        os.makedirs(out_path, exist_ok=True)
-        os.makedirs(check_path, exist_ok=True)
-        logger.info("## Training started ##")
-        best_val_loss = 1000.0
-
-        with codecs.open(log_path / "training_log.csv", "w", "utf-8") as fp:  # type: ignore
-            csv_log = csv.writer(fp)
-            csv_log.writerow(["epoch", "train_loss", "val_loss", "train_time", "val_time"])
-            for epoch in tqdm(range(n_epochs)):
-                train_loss, train_time = self.train_one_step(
-                    train_loss_func,
-                    train_loader,
-                )
-                val_loss, val_time = self.validate_one_step(val_loss_func, val_loader)
-
-                self.scheduler.step()
-                logger.info(
-                    f"Epoch: {epoch + 1:03} Train Loss: {train_loss:.4f} "
-                    f"Val Loss: {val_loss:.4f} Train Time: {train_time:.2f} s. "
-                    f"Val Time: {val_time:.2f} s."
-                )
-                if val_loss < best_val_loss:
-                    torch.save(
-                        {
-                            "epoch": epoch + 1,
-                            "model": self.model.state_dict(),
-                            "optimizer_state_dict": self.optimizer.state_dict(),
-                            "scheduler_state_dict": self.scheduler.state_dict(),
-                            "loss": val_loss,
-                        },
-                        check_path / f"{epoch + 1}-{val_loss}.pt",
-                    )
-                    csv_log.writerow([epoch + 1, train_loss, val_loss, train_time, val_time])
-                    best_val_loss = val_loss
-                    self.model.save(out_path)
-        logger.info("## Training finished ##")
+        results = {
+            "Total_Loss": total_loss,
+            "Energy_MAE": e_mae,
+            "Force_MAE": f_mae,
+            "Stress_MAE": s_mae,
+            "Energy_RMSE": e_rmse,
+            "Force_RMSE": f_rmse,
+            "Stress_RMSE": s_rmse,
+        }
+        return results

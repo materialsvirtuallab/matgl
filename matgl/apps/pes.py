@@ -56,6 +56,7 @@ class Potential(nn.Module):
         Args:
             g: DGL graph
             state_attr: State attrs
+            l_g: Line graph.
 
         Returns:
             energies, forces, stresses, hessian: torch.tensor

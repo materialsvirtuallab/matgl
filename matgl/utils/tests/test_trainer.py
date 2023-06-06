@@ -12,7 +12,7 @@ from pymatgen.util.testing import PymatgenTest
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
-from matgl.utils.trainer import ModelTrainer, PotentialTrainer
+from matgl.utils.training import ModelTrainer, PotentialTrainer
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
