@@ -55,7 +55,7 @@ class IOMixIn:
         torch.save(self._init_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
 
-        # This txt dump of model args is purely for ease of reference. It is not used to deserialize the model.
+        # This json dump of model args is purely for ease of reference. It is not used to deserialize the model.
         d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": self._init_args}  # type: ignore
         with open(path / "model.txt", "w") as f:
             json.dump(d, f, default=lambda o: str(o), indent=4)
