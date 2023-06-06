@@ -81,7 +81,7 @@ class M3GNet(nn.Module, IOMixIn):
             nblocks (int): number of convolution blocks
             rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
             is_intensive (bool): whether the prediction is intensive
-            readout (str): the readout function type. choose from `set2set`,
+            readout_type (str): the readout function type. choose from `set2set`,
                 `weighted_atom` and `reduce_atom`, default to `weighted_atom`
             task_type (str): `classification` or `regression`, default to
                 `regression`
@@ -96,7 +96,7 @@ class M3GNet(nn.Module, IOMixIn):
             nlayers_set2set (int): number of set2set layers
             include_state (bool): whether to include states features
             activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
-            **kwargs:
+            **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
 

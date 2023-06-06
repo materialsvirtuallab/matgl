@@ -57,13 +57,14 @@ class MEGNet(nn.Module, IOMixIn):
             dim_node_embedding: Dimension of node embedding.
             dim_edge_embedding: Dimension of edge embedding.
             dim_state_embedding: Dimension of state embedding.
+            ntypes_state: Number of state types.
             nblocks: Number of blocks.
             hidden_layer_sizes_input: Architecture of dense layers before the graph convolution
             hidden_layer_sizes_conv: Architecture of dense layers for message and update functions
             nlayers_set2set: Number of layers in Set2Set layer
             niters_set2set: Number of iterations in Set2Set layer
             hidden_layer_sizes_output: Architecture of dense layers for concatenated features after graph convolution
-            activation_types: Activation used for non-linearity
+            activation_type: Activation used for non-linearity
             is_classification: Whether this is classification task or not
             layer_node_embedding: Architecture of embedding layer for node attributes
             layer_edge_embedding: Architecture of embedding layer for edge attributes
@@ -77,7 +78,7 @@ class MEGNet(nn.Module, IOMixIn):
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
             gauss_width: width of Gaussian function for bond expansion
-            **kwargs:
+            **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
 
@@ -201,8 +202,8 @@ class MEGNet(nn.Module, IOMixIn):
         structure: Structure,
         state_feats: torch.tensor | None = None,
         graph_converter: GraphConverter | None = None,
-        data_mean=None,
-        data_std=None,
+        data_mean: float | None = None,
+        data_std: float | None = None,
     ):
         """
         Convenience method to directly predict property from structure.
@@ -211,6 +212,8 @@ class MEGNet(nn.Module, IOMixIn):
             structure (Structure): Pymatgen structure
             state_feats (torch.tensor): graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
+            data_mean: Mean of the data. Used when the original data has been scaled.
+            data_std: Std of the data. Used when the original data has been scaled.
 
         Returns:
             output (torch.tensor): output property

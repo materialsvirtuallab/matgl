@@ -114,7 +114,7 @@ class TrainerMixin:
         ]
 
     def on_test_model_eval(self, *args, **kwargs):
-        """
+        r"""
         Args:
             *args:
             **kwargs:
@@ -190,6 +190,15 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+        """
+        Args:
+            g: dgl Graph
+            l_g: Line graph
+            state_attr: State attribute
+
+        Returns:
+            Model prediction.
+        """
         if isinstance(self.model, M3GNet):
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
 
@@ -198,6 +207,13 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         return self.model(g, edge_feat.float(), node_feat.long(), state_attr)
 
     def step(self, batch: tuple):
+        """
+        Args:
+            batch:
+
+        Returns:
+            results, batch_size
+        """
         g, labels, state_attr = batch
         preds = self(g=g, state_attr=state_attr)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)
@@ -205,11 +221,19 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         return results, batch_size
 
     def loss_fn(self, loss: nn.Module, labels: tuple, preds: tuple):
+        """
+        Args:
+            loss: Loss function.
+            labels: Labels to compute the loss.
+            preds: Predictions.
+
+        Returns:
+            {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
+        """
         total_loss = loss(labels, torch.squeeze(preds * self.data_std + self.data_mean))
         mae = self.mae(labels, torch.squeeze(preds * self.data_std + self.data_mean))
         rmse = self.rmse(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        results = {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
-        return results
+        return {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
 
 
 class PotentialTrainer(TrainerMixin, pl.LightningModule):
@@ -278,10 +302,26 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+        """
+        Args:
+            g: dgl Graph
+            l_g: Line graph
+            state_attr: State attr
+
+        Returns:
+            energy, force, stress, h
+        """
         e, f, s, h = self.model(g=g, l_g=l_g, state_attr=state_attr)
         return e, f.float(), s, h
 
     def step(self, batch: tuple):
+        """
+        Args:
+            batch:
+
+        Returns:
+            results, batch_size
+        """
         torch.set_grad_enabled(True)
         g, l_g, state_attr, energies, forces, stresses = batch
         e, f, s, _ = self(g=g, state_attr=state_attr, l_g=l_g)
@@ -289,7 +329,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         preds: tuple = (e, f, s)
         labels: tuple = (energies, forces, stresses)
         num_atoms = g.batch_num_nodes()
-        results = self.loss_fn_efs(
+        results = self.loss_fn(
             loss=self.loss,
             preds=preds,
             labels=labels,
@@ -302,7 +342,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
 
         return results, batch_size
 
-    def loss_fn_efs(
+    def loss_fn(
         self,
         loss: nn.Module,
         labels: tuple,
@@ -312,6 +352,29 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         stress_weight: float | None = None,
         num_atoms: int | None = None,
     ):
+        """
+        Compute losses for EFS.
+
+        Args:
+            loss: Loss function.
+            labels: Labels.
+            preds: Predictions
+            energy_weight: Weight for energy loss.
+            force_weight: Weight for force loss.
+            stress_weight: Weight for stress loss.
+            num_atoms: Number of atoms.
+
+        Returns:
+            {
+                "Total_Loss": total_loss,
+                "Energy_MAE": e_mae,
+                "Force_MAE": f_mae,
+                "Stress_MAE": s_mae,
+                "Energy_RMSE": e_rmse,
+                "Force_RMSE": f_rmse,
+                "Stress_RMSE": s_rmse,
+            }
+        """
         e_target, f_target, s_target = labels
         pred_e, pred_f, pred_s = preds
 
@@ -335,7 +398,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         else:
             total_loss = energy_weight * e_loss + force_weight * f_loss
 
-        results = {
+        return {
             "Total_Loss": total_loss,
             "Energy_MAE": e_mae,
             "Force_MAE": f_mae,
@@ -344,4 +407,3 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
             "Force_RMSE": f_rmse,
             "Stress_RMSE": s_rmse,
         }
-        return results

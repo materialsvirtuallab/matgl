@@ -162,8 +162,8 @@ class RemoteFile:
         Exit the with context.
 
         Args:
-            exc_type:
-            exc_val:
-            exc_tb:
+            exc_type: Usual meaning in __exit__.
+            exc_val: Usual meaning in __exit__.
+            exc_tb: Usual meaning in __exit__.
         """
         self.stream.close()
