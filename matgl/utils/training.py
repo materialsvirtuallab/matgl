@@ -25,8 +25,8 @@ class TrainerMixin:
     def training_step(self, batch: tuple, batch_idx: int):
         """
         Args:
-            batch:
-            batch_idx:
+            batch: Data batch.
+            batch_idx: Batch index.
 
         Returns:
            Total loss.
@@ -51,13 +51,9 @@ class TrainerMixin:
 
     def validation_step(self, batch: tuple, batch_idx: int):
         """
-
         Args:
-            batch:
-            batch_idx:
-
-        Returns:
-
+            batch: Data batch.
+            batch_idx: Batch index.
         """
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
@@ -70,13 +66,9 @@ class TrainerMixin:
 
     def test_step(self, batch: tuple, batch_idx: int):
         """
-
         Args:
-            batch:
-            batch_idx:
-
-        Returns:
-
+            batch: Data batch.
+            batch_idx: Batch index.
         """
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
@@ -116,8 +108,8 @@ class TrainerMixin:
     def on_test_model_eval(self, *args, **kwargs):
         r"""
         Args:
-            *args:
-            **kwargs:
+            *args: Pass-through
+            **kwargs: Pass-through
         """
         super().on_test_model_eval(*args, **kwargs)
         torch.set_grad_enabled(True)
@@ -125,9 +117,9 @@ class TrainerMixin:
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         """
         Args:
-            batch:
-            batch_idx:
-            dataloader_idx:
+            batch: Data batch.
+            batch_idx: Batch index.
+            dataloader_idx: Data loader index.
 
         Returns:
             Prediction
@@ -209,7 +201,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
     def step(self, batch: tuple):
         """
         Args:
-            batch:
+            batch: Batch of training data.
 
         Returns:
             results, batch_size
@@ -317,7 +309,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
     def step(self, batch: tuple):
         """
         Args:
-            batch:
+            batch: Batch of training data.
 
         Returns:
             results, batch_size
