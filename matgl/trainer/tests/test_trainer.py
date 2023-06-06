@@ -54,7 +54,6 @@ class ModelTrainerTest(PymatgenTest):
             is_classification=False,
         )
 
-        print(model)
         lit_model = ModelTrainer(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
@@ -97,7 +96,6 @@ class ModelTrainerTest(PymatgenTest):
             element_types=element_types,
             is_intensive=False,
         )
-        print(model)
         lit_model = PotentialTrainer(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
