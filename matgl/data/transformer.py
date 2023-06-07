@@ -1,9 +1,9 @@
 """
-Module implementing various data transformers.
+Module implementing various data transformers for PyTorch
 """
 from __future__ import annotations
 
-import numpy as np
+import torch
 
 
 class Normalizer:
@@ -57,4 +57,5 @@ class Normalizer:
         Returns:
             Normalizer
         """
-        return Normalizer(np.mean(data), np.std(data))
+        data = torch.tensor(data)
+        return Normalizer(torch.mean(data), torch.std(data))
