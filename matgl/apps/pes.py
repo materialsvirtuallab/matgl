@@ -10,7 +10,6 @@ from torch import nn
 from torch.autograd import grad
 
 from matgl.layers import AtomRef
-from matgl.models import M3GNet
 
 
 class Potential(nn.Module):
@@ -20,7 +19,9 @@ class Potential(nn.Module):
 
     def __init__(
         self,
-        model: M3GNet,
+        model: nn.Module,
+        data_mean: torch.tensor | None = None,
+        data_std: torch.tensor | None = None,
         element_refs: np.ndarray | None = None,
         calc_forces: bool = True,
         calc_stresses: bool = True,
@@ -38,9 +39,14 @@ class Potential(nn.Module):
         self.calc_forces = calc_forces
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
+        self.element_refs: AtomRef | None
         if element_refs is not None:
-            self.element_ref_calc = AtomRef(property_offset=element_refs)
-        self.element_refs = element_refs
+            self.element_refs = AtomRef(property_offset=element_refs)
+        else:
+            self.element_refs = None
+
+        self.data_mean = data_mean if data_mean is not None else torch.zeros(1)
+        self.data_std = data_std if data_std is not None else torch.ones(1)
 
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None
@@ -49,6 +55,7 @@ class Potential(nn.Module):
         Args:
             g: DGL graph
             state_attr: State attrs
+            l_g: Line graph.
 
         Returns:
             energies, forces, stresses, hessian: torch.tensor
@@ -58,10 +65,11 @@ class Potential(nn.Module):
         hessian = torch.zeros(1)
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
-        total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
+        total_energies = self.data_std * self.model(g=g, state_attr=state_attr, l_g=l_g) + self.data_mean
         if self.element_refs is not None:
-            property_offset = torch.squeeze(self.element_ref_calc(g))
+            property_offset = torch.squeeze(self.element_refs(g))
             total_energies += property_offset
+
         if self.calc_forces:
             grads = grad(
                 total_energies,

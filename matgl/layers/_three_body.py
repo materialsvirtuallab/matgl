@@ -46,12 +46,10 @@ class SphericalBesselWithHarmonics(nn.Module):
         else:
             self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth)
 
-    def forward(self, graph, line_graph):
+    def forward(self, line_graph):
         sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
         shf = self.shf(line_graph.edata["cos_theta"], line_graph.edata["phi"])
-        return combine_sbf_shf(
-            sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi, use_smooth=self.use_smooth
-        )
+        return combine_sbf_shf(sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi)
 
 
 class ThreeBodyInteractions(nn.Module):
@@ -60,11 +58,11 @@ class ThreeBodyInteractions(nn.Module):
     """
 
     def __init__(self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs):
-        """
+        r"""
         Args:
             update_network_atom: MLP for node features in Eq.2
             update_network_bond: Gated-MLP for edge features in Eq.3
-            **kwargs:
+            **kwargs: Kwargs pass-through to nn.Module.__init__().
         """
         super().__init__(**kwargs)
         self.update_network_atom = update_network_atom
@@ -78,17 +76,15 @@ class ThreeBodyInteractions(nn.Module):
         three_cutoff: float,
         node_feat: torch.tensor,
         edge_feat: torch.tensor,
-        **kwargs,
     ):
         """
         Args:
             graph: dgl graph
+            line_graph: line graph.
             three_basis: three body basis expansion
             three_cutoff: cutoff radius
             node_feat: node features
             edge_feat: edge features
-            **kwargs:
-        Returns:
         """
         end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1].to(torch.int64))
         atoms = self.update_network_atom(node_feat)

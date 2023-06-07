@@ -234,7 +234,7 @@ class M3GNetGraphConv(Module):
     ):
         """
         Parameters:
-        include_states (bool): Whether including state
+        include_state (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
@@ -262,12 +262,12 @@ class M3GNetGraphConv(Module):
         M3GNetGraphConv initialization
 
         Args:
-        degree (int): max_n*max_l
-        include_states (bool): whether including state or not
-        edge_dim (list): NN architecture for edge update function
-        node_dim (list): NN architecture for node update function
-        state_dim (list): NN architecture for state update function
-        activation (nn.Nodule): activation function
+            degree (int): max_n*max_l
+            include_states (bool): whether including state or not
+            edge_dims (list): NN architecture for edge update function
+            node_dims (list): NN architecture for node update function
+            state_dims (list): NN architecture for state update function
+            activation (nn.Nodule): activation function
 
         Returns:
         M3GNetGraphConv (class)
@@ -322,10 +322,11 @@ class M3GNetGraphConv(Module):
         Perform node update.
 
         Args:
-        graph: DGL graph
+            graph: DGL graph
+            state_attr: State attributes
 
         Returns:
-        node_update: node features update
+            node_update: node features update
         """
         eij = graph.edata["e"]
         src_id = graph.edges()[0]
@@ -349,8 +350,8 @@ class M3GNetGraphConv(Module):
         Perform attribute (global state) update.
 
         Args:
-        graph: DGL graph
-        attrs: graph features
+            graph: DGL graph
+            state_attrs: graph features
 
         Returns:
         state_update: state_features update

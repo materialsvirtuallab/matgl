@@ -20,7 +20,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from tqdm import tqdm
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MEGNetDataset, MGLDataLoader, _collate_fn
+from matgl.graph.data import MEGNetDataset, MGLDataLoader, collate_fn
 from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
 from matgl.utils.io import RemoteFile
@@ -127,7 +127,7 @@ train_loader, val_loader, test_loader = MGLDataLoader(
     train_data=train_data,
     val_data=val_data,
     test_data=test_data,
-    collate_fn=_collate_fn,
+    collate_fn=collate_fn,
     batch_size=128,
     num_workers=0,
     generator=generator,

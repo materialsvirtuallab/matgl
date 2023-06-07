@@ -34,7 +34,7 @@ class TestM3GNet(unittest.TestCase):
         model.save(".")
         M3GNet.load(".")
         os.remove("model.pt")
-        os.remove("model.txt")
+        os.remove("model.json")
         os.remove("state.pt")
 
     def test_model_intensive(self):

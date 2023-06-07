@@ -63,7 +63,7 @@ class TestMEGNet(unittest.TestCase):
         model.save(".", metadata={"description": "forme model"})
         MEGNet.load(".")
         os.remove("model.pt")
-        os.remove("model.txt")
+        os.remove("model.json")
         os.remove("state.pt")
 
 

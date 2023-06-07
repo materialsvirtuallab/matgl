@@ -25,8 +25,9 @@ class Set2SetReadOut(nn.Module):
     ):
         """
         Args:
-            num_steps (int): number of LSTM steps
-            field (str): the field of MaterialGraph to perform the readout
+            num_steps (int): Number of LSTM steps
+            num_layers (int): Number of layers.
+            field (str): Field of graph to perform the readout
         """
         super().__init__()
         self.field = field
@@ -53,12 +54,12 @@ class ReduceReadOut(nn.Module):
     """
 
     def __init__(self, op: str = "mean", field: str = "node_feat"):
-        super().__init__()
         """
         Args:
             op (str): op for the reduction
-            field (str): the field of MaterialGraph to perform the reduction
+            field (str): Field of graph to perform the reduction
         """
+        super().__init__()
         self.op = op
         self.field = field
 

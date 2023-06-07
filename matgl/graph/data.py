@@ -1,5 +1,5 @@
 """
-Tools to construct a data for DGL grphs
+Tools to construct a dataset of DGL graphs
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
 
 
-def _collate_fn(batch):
+def collate_fn(batch):
     """
     Merge a list of dgl graphs to form a batch
     """
@@ -33,7 +33,7 @@ def _collate_fn(batch):
     return g, labels, state_attr
 
 
-def _collate_fn_efs(batch):
+def collate_fn_efs(batch):
     """
     Merge a list of dgl graphs to form a batch
     """

@@ -1,6 +1,9 @@
 {
     "name": "MEGNet",
-    "metadata": null,
+    "metadata": {
+        "data_std": 1.85749567,
+        "data_mean": 1.57419002
+    },
     "kwargs": {
         "dim_node_embedding": 16,
         "dim_edge_embedding": 100,

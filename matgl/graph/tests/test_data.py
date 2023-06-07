@@ -13,7 +13,7 @@ from matgl.graph.data import (
     M3GNetDataset,
     MEGNetDataset,
     MGLDataLoader,
-    _collate_fn,
+    collate_fn,
 )
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -105,7 +105,7 @@ class DatasetTest(PymatgenTest):
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=_collate_fn,
+            collate_fn=collate_fn,
             batch_size=2,
             num_workers=1,
         )
@@ -137,7 +137,7 @@ class DatasetTest(PymatgenTest):
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=_collate_fn,
+            collate_fn=collate_fn,
             batch_size=2,
             num_workers=1,
         )
@@ -175,7 +175,7 @@ class DatasetTest(PymatgenTest):
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=_collate_fn,
+            collate_fn=collate_fn,
             batch_size=2,
             num_workers=1,
         )

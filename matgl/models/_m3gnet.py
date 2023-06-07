@@ -81,7 +81,7 @@ class M3GNet(nn.Module, IOMixIn):
             nblocks (int): number of convolution blocks
             rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
             is_intensive (bool): whether the prediction is intensive
-            readout (str): the readout function type. choose from `set2set`,
+            readout_type (str): the readout function type. choose from `set2set`,
                 `weighted_atom` and `reduce_atom`, default to `weighted_atom`
             task_type (str): `classification` or `regression`, default to
                 `regression`
@@ -96,7 +96,7 @@ class M3GNet(nn.Module, IOMixIn):
             nlayers_set2set (int): number of set2set layers
             include_state (bool): whether to include states features
             activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
-            **kwargs:
+            **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
 
@@ -227,7 +227,7 @@ class M3GNet(nn.Module, IOMixIn):
             l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
-        three_body_basis = self.basis_expansion(g, l_g)
+        three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
         num_node_feats, num_edge_feats, num_state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
         for i in range(self.n_blocks):
