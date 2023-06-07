@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+- Pre-trained M3GNet universal potential
+- Pytorch lightning training utility.
+
 ## v0.3.0
 - Major refactoring of MEGNet and M3GNet models and organization of internal implementations. Only key API are exposed
   via matgl.models or matgl.layers to hide internal implementations (which may change).
