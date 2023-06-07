@@ -1,5 +1,5 @@
 """
-Tools to construct a data for DGL grphs
+Tools to construct a dataset of DGL graphs
 """
 from __future__ import annotations
 
