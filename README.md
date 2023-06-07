@@ -93,7 +93,7 @@ from pymatgen.core import Structure, Lattice
 from matgl.models import MEGNet
 
 # Load the pre-trained MEGNet model.
-model, d = MEGNet.load("pretrained_models/MEGNet-MP-2018.6.1-Eform", include_json=True)
+model, d = MEGNet.load("MEGNet-MP-2018.6.1-Eform", include_json=True)
 
 # Obtain the mean and std for formation energy model
 metadata = d["metadata"]
