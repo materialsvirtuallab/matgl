@@ -31,7 +31,7 @@
             
   <section id="module-matgl.graph.data">
 <span id="matgl-graph-data-module"></span><h1>matgl.graph.data module<a class="headerlink" href="#module-matgl.graph.data" title="Permalink to this heading">¶</a></h1>
-<p>Tools to construct a data for DGL grphs</p>
+<p>Tools to construct a dataset of DGL graphs</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="matgl.graph.data.M3GNetDataset">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">M3GNetDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stresses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="matgl.graph.converters.html#matgl.graph.converters.GraphConverter" title="matgl.graph.converters.GraphConverter"><span class="pre">GraphConverter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">threebody_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'M3GNETDataset'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.M3GNetDataset" title="Permalink to this definition">¶</a></dt>
@@ -135,6 +135,18 @@ test_data: testing data
 collate_fn:</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.graph.data.collate_fn">
+<span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">collate_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.collate_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge a list of dgl graphs to form a batch</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.graph.data.collate_fn_efs">
+<span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">collate_fn_efs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.collate_fn_efs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge a list of dgl graphs to form a batch</p>
+</dd></dl>
+
 </section>
 
 
@@ -188,7 +200,7 @@ collate_fn:</p>
       &copy;2022, Materials Virtual Lab.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

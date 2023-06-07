@@ -108,15 +108,13 @@ max_n: int max number of basis</p>
 <dt class="sig sig-object py" id="matgl.utils.maths.broadcast">
 <span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">broadcast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.broadcast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Broadcast input tensor along a given dimension to match the shape of the target tensor.
-Modified from torch_scatter library (<a class="reference external" href="https://github.com/rusty1s/pytorch_scatter">https://github.com/rusty1s/pytorch_scatter</a>).
-Args:</p>
-<blockquote>
-<div><p>input_tensor: The tensor to broadcast.
+Modified from torch_scatter library (<a class="reference external" href="https://github.com/rusty1s/pytorch_scatter">https://github.com/rusty1s/pytorch_scatter</a>).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>input_tensor: The tensor to broadcast.
 target_tensor: The tensor whose shape to match.
 dim: The dimension along which to broadcast.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>resulting inout tensor after broadcasting</p>
+</dd>
+<dt>Returns:</dt><dd><p>resulting input tensor after broadcasting</p>
 </dd>
 </dl>
 </dd></dl>
@@ -149,7 +147,7 @@ state_feat: state_feature</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.utils.maths.combine_sbf_shf">
-<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">combine_sbf_shf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_smooth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.combine_sbf_shf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">combine_sbf_shf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.combine_sbf_shf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine the spherical Bessel function and the spherical Harmonics function</p>
 <dl class="simple">
 <dt>For the spherical Bessel function, the column is ordered by</dt><dd><p>[n=[0, …, max_n-1], n=[0, …, max_n-1], …], max_l blocks,</p>
@@ -326,7 +324,7 @@ num_segments (torch.tensor): number of segments</p>
       &copy;2022, Materials Virtual Lab.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
