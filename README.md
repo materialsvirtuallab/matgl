@@ -24,13 +24,17 @@ to consistently deliver exceptional performance as surrogate models for the pred
 In this repository, we have reimplemented the [MatErials 3-body Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
 and its predecessor, [MEGNet](https://github.com/materialsvirtuallab/megnet) using the [Deep Graph Library (DGL)](https://www.dgl.ai).
 The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
-implemented in TensorFlow.
+implemented in TensorFlow (TF). Here are some key improvements over the TF implementations:
+- A more intuitive API and class structure based on the Deep Graph Library.
+- Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
 This effort is a collaboration between the [Materials Virtual Lab](http://materialsvirtuallab.org) and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
 ## Status
 
+- Jun 7 2023: Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
+  available.
 - Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
 - Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
 
