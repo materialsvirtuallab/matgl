@@ -89,14 +89,22 @@ python setup.py -e .
 
 ## Usage
 
-The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
+Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
+multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
+implemented convenience method:
+
+```python
+import matgl
+model = matgl.load_model(<name>)
+```
+
 The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
 from pymatgen.core import Lattice, Structure
-from matgl.models import TransformedTargetModel
+import matgl
 
-model = TransformedTargetModel.load("MEGNet-MP-2018.6.1-Eform")
+model = matgl.load_model("MEGNet-MP-2018.6.1-Eform")
 
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.1437), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
@@ -104,7 +112,7 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
-A full example is in [here](examples/Pre-trained%20MEGNet%20for%20Property%20Predictions.ipynb).
+More examples are available [here](examples).
 
 ## Docs
 

@@ -1,5 +1,6 @@
 {
-    "name": "TransformedTargetModel",
+    "@module": "matgl.models",
+    "@class": "TransformedTargetModel",
     "metadata": null,
     "kwargs": {
         "model": {

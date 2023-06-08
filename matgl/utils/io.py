@@ -62,9 +62,12 @@ class IOMixIn:
 
         torch.save(self._init_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
-
-        # This json dump of model args is purely for ease of reference. It is not used to deserialize the model.
-        d = {"name": self.__class__.__name__, "metadata": metadata, "kwargs": self._init_args}  # type: ignore
+        d = {
+            "@class": self.__class__.__name__,
+            "@module": self.__class__.__module__,
+            "metadata": metadata,
+            "kwargs": self._init_args,
+        }  # type: ignore
         with open(path / "model.json", "w") as f:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
@@ -74,9 +77,8 @@ class IOMixIn:
         Load the model weights from a directory.
 
         Args:
-            path (str|path): Path to saved model or name of pre-trained model. The search order is
-                path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
-                PRETRAINED_MODELS_BASE_URL.
+            path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by
+                download from PRETRAINED_MODELS_BASE_URL (with caching).
             include_json (bool): If True, the "model.json" file is also loaded. This file can contain metadata about
                 the model, e.g., if scaling was performed in training the model, this file may contain the mean and
                 standard deviation of the models, which needs to be applied to the final predictions.
@@ -93,8 +95,6 @@ class IOMixIn:
 
         if all((path / fn).exists() for fn in fnames):
             fpaths = {fn: path / fn for fn in fnames}
-        elif all((MATGL_CACHE / path / fn).exists() for fn in fnames):
-            fpaths = {fn: MATGL_CACHE / path / fn for fn in fnames}
         else:
             try:
                 fpaths = {
@@ -120,6 +120,7 @@ class IOMixIn:
                 mod = __import__(modname, globals(), locals(), [classname], 0)
                 cls_ = getattr(mod, classname)
                 d[k] = cls_(**v["init_args"])
+        d = {k: v for k, v in d.items() if not k.startswith("@")}
         model = cls(**d)
         model.load_state_dict(state)  # type: ignore
 
@@ -185,3 +186,40 @@ class RemoteFile:
             exc_tb: Usual meaning in __exit__.
         """
         self.stream.close()
+
+
+def load_model(path: Path, **kwargs):
+    r"""
+    Convenience method to load a model from a directory or name.
+
+    Args:
+        path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by
+            download from PRETRAINED_MODELS_BASE_URL (with caching).
+        **kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
+            want to update the model.
+
+    Returns:
+        Returns: model_object if include_json is false. (model_object, dict) if include_json is True.
+    """
+    path = Path(path)
+
+    fnames = ["model.pt", "state.pt", "model.json"]
+
+    if all((path / fn).exists() for fn in fnames):
+        fpaths = {fn: path / fn for fn in fnames}
+    else:
+        try:
+            fpaths = {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
+        except BaseException:
+            raise ValueError(
+                f"No valid model found in {path} or among pre-trained_models at "
+                f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
+            ) from None
+
+    with open(fpaths["model.json"]) as f:
+        d = json.load(f)
+        modname = d["@module"]
+        classname = d["@class"]
+        mod = __import__(modname, globals(), locals(), [classname], 0)
+        cls_ = getattr(mod, classname)
+        return cls_.load(path, **kwargs)
