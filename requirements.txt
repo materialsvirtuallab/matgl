@@ -5,4 +5,4 @@ torchaudio==2.0.2
 torchvision==0.15.2
 pymatgen==2023.5.31
 ase==3.22.1
-pytorch_lightning==2.0.2
+pytorch_lightning==2.0.3
