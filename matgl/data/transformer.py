@@ -9,12 +9,34 @@ import torch
 
 
 class Transformer(metaclass=abc.ABCMeta):
+    """
+    Abstract base class defining a data transformer.
+    """
+
     @abc.abstractmethod
     def transform(self, data: torch.Tensor):
+        """
+        Transformation to be performed on data.
+
+        Args:
+            data: Input data
+
+        Returns:
+            Transformed data.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def inverse_transform(self, data: torch.Tensor):
+        """
+        Inverse transformation to be performed on data.
+
+        Args:
+            data: Input data
+
+        Returns:
+            Inverse-transformed data.
+        """
         raise NotImplementedError
 
 
