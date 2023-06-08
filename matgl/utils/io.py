@@ -112,7 +112,7 @@ class IOMixIn:
             state = torch.load(fpaths["state.pt"])
         d = torch.load(fpaths["model.pt"])
 
-        # Deserialize any args that are subclasses.
+        # Deserialize any args that are IOMixIn subclasses.
         for k, v in d.items():
             if isinstance(v, dict) and "@class" in v and "@module" in v:
                 modname = v["@module"]
