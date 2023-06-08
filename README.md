@@ -94,9 +94,9 @@ The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
 from pymatgen.core import Lattice, Structure
-from matgl.models import TransformedTargetModel
+import matgl
 
-model = TransformedTargetModel.load("MEGNet-MP-2018.6.1-Eform")
+model = matgl.load_model("MEGNet-MP-2018.6.1-Eform")
 
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.1437), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])

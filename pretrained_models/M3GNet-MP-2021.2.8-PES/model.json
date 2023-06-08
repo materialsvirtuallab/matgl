@@ -1,5 +1,6 @@
 {
-    "name": "Potential",
+    "@module": "matgl.apps.pes",
+    "@class": "Potential",
     "metadata": null,
     "kwargs": {
         "model": {
