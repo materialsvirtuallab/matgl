@@ -42,6 +42,7 @@ class MEGNet(nn.Module, IOMixIn):
         is_classification: bool = False,
         include_state: bool = True,
         dropout: float | None = None,
+        graph_transformations: list | None = None,
         element_types: tuple[str, ...] | None = None,
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
@@ -71,6 +72,8 @@ class MEGNet(nn.Module, IOMixIn):
             include_state: Whether the state embedding is included
             dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
                 a Bernoulli distribution
+            graph_transformations: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
+                performing the GCL updates.
             element_types: Elements included in the training set
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
@@ -147,6 +150,7 @@ class MEGNet(nn.Module, IOMixIn):
         self.dropout = nn.Dropout(dropout) if dropout else None
 
         self.is_classification = is_classification
+        self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
         self.include_state_embedding = include_state
 
     def forward(
@@ -165,10 +169,15 @@ class MEGNet(nn.Module, IOMixIn):
         :param state_feat: State features.
         :return: Prediction
         """
+        graph_transformations = self.graph_transformations
         node_feat, edge_feat, state_feat = self.embedding(node_feat, edge_feat, state_feat)
         edge_feat = self.edge_encoder(edge_feat)
         node_feat = self.node_encoder(node_feat)
         state_feat = self.state_encoder(state_feat)
+
+        for gt, block in zip(graph_transformations, self.blocks):
+            output = block(gt(graph), edge_feat, node_feat, state_feat)
+            edge_feat, node_feat, state_feat = output
 
         node_vec = self.node_s2s(graph, node_feat)
         edge_vec = self.edge_s2s(graph, edge_feat)
@@ -193,6 +202,8 @@ class MEGNet(nn.Module, IOMixIn):
         structure: Structure,
         state_feats: torch.tensor | None = None,
         graph_converter: GraphConverter | None = None,
+        data_mean: float | None = None,
+        data_std: float | None = None,
     ):
         """
         Convenience method to directly predict property from structure.
@@ -212,6 +223,12 @@ class MEGNet(nn.Module, IOMixIn):
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
+        if data_mean is None:
+            data_mean = torch.zeros(1)
+        if data_std is None:
+            data_std = torch.ones(1)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()
+        output = data_mean + data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats)
+
+        return output.detach()
