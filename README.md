@@ -112,7 +112,7 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
-A full example is in [here](examples/Pre-trained%20MEGNet%20for%20Property%20Predictions.ipynb).
+More examples are available [here](examples).
 
 ## Docs
 
