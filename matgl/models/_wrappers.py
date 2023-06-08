@@ -16,10 +16,9 @@ class TransformedTargetModel(nn.Module):
 
     def __init__(self, model: nn.Module, target_transformer: Transformer):
         """
-
         Args:
-            model:
-            target_transformer:
+            model: Input model
+            target_transformer: Transformer for target.
         """
         self.model = model
         self.transformer = target_transformer
