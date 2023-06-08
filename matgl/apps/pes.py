@@ -10,9 +10,10 @@ from torch import nn
 from torch.autograd import grad
 
 from matgl.layers import AtomRef
+from matgl.utils.io import IOMixIn
 
 
-class Potential(nn.Module):
+class Potential(nn.Module, IOMixIn):
     """
     A class representing an interatomic potential.
     """
@@ -35,6 +36,7 @@ class Potential(nn.Module):
         :param calc_hessian: Enable hessian calculations
         """
         super().__init__()
+        self.save_args(locals(), {})
         self.model = model
         self.calc_forces = calc_forces
         self.calc_stresses = calc_stresses
