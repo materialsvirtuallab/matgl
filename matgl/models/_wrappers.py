@@ -35,3 +35,6 @@ class TransformedTargetModel(nn.Module):
         """
         output = self.model.forward(*args, **kwargs)
         return self.transformer.inverse_transform(output)
+
+    def __repr__(self):
+        return f"TransformedTargetModel:\nModel: {self.model.__repr()}\nTransformer: {self.transformer.__repr__()}"
