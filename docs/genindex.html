@@ -43,11 +43,13 @@
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -77,6 +79,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="matgl.ext.ase.html#matgl.ext.ase.M3GNetCalculator.calculate">calculate() (matgl.ext.ase.M3GNetCalculator method)</a>
 </li>
+      <li><a href="matgl.graph.data.html#matgl.graph.data.collate_fn">collate_fn() (in module matgl.graph.data)</a>
+</li>
+      <li><a href="matgl.graph.data.html#matgl.graph.data.collate_fn_efs">collate_fn_efs() (in module matgl.graph.data)</a>
+</li>
       <li><a href="matgl.utils.maths.html#matgl.utils.maths.combine_sbf_shf">combine_sbf_shf() (in module matgl.utils.maths)</a>
 </li>
       <li><a href="matgl.graph.compute.html#matgl.graph.compute.compute_3body">compute_3body() (in module matgl.graph.compute)</a>
@@ -88,6 +94,8 @@
       <li><a href="matgl.graph.compute.html#matgl.graph.compute.compute_pair_vector_and_distance">compute_pair_vector_and_distance() (in module matgl.graph.compute)</a>
 </li>
       <li><a href="matgl.graph.compute.html#matgl.graph.compute.compute_theta_and_phi">compute_theta_and_phi() (in module matgl.graph.compute)</a>
+</li>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.configure_optimizers">configure_optimizers() (matgl.utils.training.TrainerMixin method)</a>
 </li>
       <li><a href="matgl.utils.cutoff.html#matgl.utils.cutoff.cosine_cutoff">cosine_cutoff() (in module matgl.utils.cutoff)</a>
 </li>
@@ -117,6 +125,10 @@
 
       <ul>
         <li><a href="matgl.utils.maths.html#matgl.utils.maths.GaussianExpansion.forward">(matgl.utils.maths.GaussianExpansion method)</a>
+</li>
+        <li><a href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.forward">(matgl.utils.training.ModelTrainer method)</a>
+</li>
+        <li><a href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.forward">(matgl.utils.training.PotentialTrainer method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -168,6 +180,10 @@
       <li><a href="matgl.ext.ase.html#matgl.ext.ase.M3GNetCalculator.implemented_properties">implemented_properties (matgl.ext.ase.M3GNetCalculator attribute)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="matgl.utils.io.html#matgl.utils.io.IOMixIn">IOMixIn (class in matgl.utils.io)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
@@ -177,6 +193,16 @@
 
       <ul>
         <li><a href="matgl.graph.data.html#matgl.graph.data.MEGNetDataset.load">(matgl.graph.data.MEGNetDataset method)</a>
+</li>
+        <li><a href="matgl.utils.io.html#matgl.utils.io.IOMixIn.load">(matgl.utils.io.IOMixIn class method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.loss_fn">loss_fn() (matgl.utils.training.ModelTrainer method)</a>
+
+      <ul>
+        <li><a href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.loss_fn">(matgl.utils.training.PotentialTrainer method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -301,8 +327,6 @@
         <li><a href="matgl.models.html#module-matgl.models">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     matgl.utils
 
@@ -310,11 +334,20 @@
         <li><a href="matgl.utils.html#module-matgl.utils">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     matgl.utils.cutoff
 
       <ul>
         <li><a href="matgl.utils.cutoff.html#module-matgl.utils.cutoff">module</a>
+</li>
+      </ul></li>
+      <li>
+    matgl.utils.io
+
+      <ul>
+        <li><a href="matgl.utils.io.html#module-matgl.utils.io">module</a>
 </li>
       </ul></li>
       <li>
@@ -325,15 +358,17 @@
 </li>
       </ul></li>
       <li>
-    matgl.utils.remote
+    matgl.utils.training
 
       <ul>
-        <li><a href="matgl.utils.remote.html#module-matgl.utils.remote">module</a>
+        <li><a href="matgl.utils.training.html#module-matgl.utils.training">module</a>
 </li>
       </ul></li>
       <li><a href="matgl.graph.data.html#matgl.graph.data.MEGNetDataset">MEGNetDataset (class in matgl.graph.data)</a>
 </li>
       <li><a href="matgl.graph.data.html#matgl.graph.data.MGLDataLoader">MGLDataLoader() (in module matgl.graph.data)</a>
+</li>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.ModelTrainer">ModelTrainer (class in matgl.utils.training)</a>
 </li>
       <li>
     module
@@ -375,9 +410,11 @@
 </li>
         <li><a href="matgl.utils.cutoff.html#module-matgl.utils.cutoff">matgl.utils.cutoff</a>
 </li>
+        <li><a href="matgl.utils.io.html#module-matgl.utils.io">matgl.utils.io</a>
+</li>
         <li><a href="matgl.utils.maths.html#module-matgl.utils.maths">matgl.utils.maths</a>
 </li>
-        <li><a href="matgl.utils.remote.html#module-matgl.utils.remote">matgl.utils.remote</a>
+        <li><a href="matgl.utils.training.html#module-matgl.utils.training">matgl.utils.training</a>
 </li>
       </ul></li>
       <li><a href="matgl.ext.ase.html#matgl.ext.ase.MolecularDynamics">MolecularDynamics (class in matgl.ext.ase)</a>
@@ -399,6 +436,18 @@
   </ul></td>
 </tr></table>
 
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.on_test_model_eval">on_test_model_eval() (matgl.utils.training.TrainerMixin method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.on_train_epoch_end">on_train_epoch_end() (matgl.utils.training.TrainerMixin method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -406,9 +455,13 @@
 </li>
       <li><a href="matgl.utils.cutoff.html#matgl.utils.cutoff.polynomial_cutoff">polynomial_cutoff() (in module matgl.utils.cutoff)</a>
 </li>
+      <li><a href="matgl.apps.pes.html#matgl.apps.pes.Potential">Potential (class in matgl.apps.pes)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="matgl.apps.pes.html#matgl.apps.pes.Potential">Potential (class in matgl.apps.pes)</a>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer">PotentialTrainer (class in matgl.utils.training)</a>
+</li>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.predict_step">predict_step() (matgl.utils.training.TrainerMixin method)</a>
 </li>
       <li><a href="matgl.graph.data.html#matgl.graph.data.M3GNetDataset.process">process() (matgl.graph.data.M3GNetDataset method)</a>
 
@@ -430,7 +483,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="matgl.utils.remote.html#matgl.utils.remote.RemoteFile">RemoteFile (class in matgl.utils.remote)</a>
+      <li><a href="matgl.utils.io.html#matgl.utils.io.RemoteFile">RemoteFile (class in matgl.utils.io)</a>
 </li>
       <li><a href="matgl.utils.maths.html#matgl.utils.maths.repeat_with_n">repeat_with_n() (in module matgl.utils.maths)</a>
 </li>
@@ -451,7 +504,11 @@
 </li>
         <li><a href="matgl.graph.data.html#matgl.graph.data.MEGNetDataset.save">(matgl.graph.data.MEGNetDataset method)</a>
 </li>
+        <li><a href="matgl.utils.io.html#matgl.utils.io.IOMixIn.save">(matgl.utils.io.IOMixIn method)</a>
+</li>
       </ul></li>
+      <li><a href="matgl.utils.io.html#matgl.utils.io.IOMixIn.save_args">save_args() (matgl.utils.io.IOMixIn method)</a>
+</li>
       <li><a href="matgl.utils.maths.html#matgl.utils.maths.scatter_sum">scatter_sum() (in module matgl.utils.maths)</a>
 </li>
       <li><a href="matgl.ext.ase.html#matgl.ext.ase.MolecularDynamics.set_atoms">set_atoms() (matgl.ext.ase.MolecularDynamics method)</a>
@@ -472,6 +529,12 @@
 </li>
       <li><a href="matgl.utils.maths.html#matgl.utils.maths.SphericalHarmonicsFunction">SphericalHarmonicsFunction (class in matgl.utils.maths)</a>
 </li>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.step">step() (matgl.utils.training.ModelTrainer method)</a>
+
+      <ul>
+        <li><a href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.step">(matgl.utils.training.PotentialTrainer method)</a>
+</li>
+      </ul></li>
       <li><a href="matgl.ext.pymatgen.html#matgl.ext.pymatgen.Structure2Graph">Structure2Graph (class in matgl.ext.pymatgen)</a>
 </li>
   </ul></td>
@@ -500,15 +563,17 @@
 </li>
       <li><a href="matgl.graph.tests.test_data.html#matgl.graph.tests.test_data.DatasetTest.test_m3gnet_dataset">test_m3gnet_dataset() (matgl.graph.tests.test_data.DatasetTest method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="matgl.graph.tests.test_data.html#matgl.graph.tests.test_data.DatasetTest.test_megnet_dataloader">test_megnet_dataloader() (matgl.graph.tests.test_data.DatasetTest method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="matgl.graph.tests.test_data.html#matgl.graph.tests.test_data.DatasetTest.test_megnet_dataloader_for_mol">test_megnet_dataloader_for_mol() (matgl.graph.tests.test_data.DatasetTest method)</a>
 </li>
       <li><a href="matgl.graph.tests.test_data.html#matgl.graph.tests.test_data.DatasetTest.test_megnet_dataset">test_megnet_dataset() (matgl.graph.tests.test_data.DatasetTest method)</a>
 </li>
       <li><a href="matgl.graph.tests.test_data.html#matgl.graph.tests.test_data.DatasetTest.test_megnet_dataset_for_mol">test_megnet_dataset_for_mol() (matgl.graph.tests.test_data.DatasetTest method)</a>
+</li>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.test_step">test_step() (matgl.utils.training.TrainerMixin method)</a>
 </li>
       <li><a href="matgl.graph.tests.test_compute.html#matgl.graph.tests.test_compute.TestCompute">TestCompute (class in matgl.graph.tests.test_compute)</a>
 </li>
@@ -516,12 +581,16 @@
 </li>
       <li><a href="matgl.config.html#matgl.config.DataType.torch_int">torch_int (matgl.config.DataType attribute)</a>
 </li>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin">TrainerMixin (class in matgl.utils.training)</a>
+</li>
       <li><a href="matgl.apps.pes.html#matgl.apps.pes.Potential.training">training (matgl.apps.pes.Potential attribute)</a>
 
       <ul>
         <li><a href="matgl.utils.maths.html#matgl.utils.maths.GaussianExpansion.training">(matgl.utils.maths.GaussianExpansion attribute)</a>
 </li>
       </ul></li>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.training_step">training_step() (matgl.utils.training.TrainerMixin method)</a>
+</li>
       <li><a href="matgl.ext.ase.html#matgl.ext.ase.TrajectoryObserver">TrajectoryObserver (class in matgl.ext.ase)</a>
 </li>
   </ul></td>
@@ -531,6 +600,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="matgl.utils.maths.html#matgl.utils.maths.unsorted_segment_fraction">unsorted_segment_fraction() (in module matgl.utils.maths)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.validation_step">validation_step() (matgl.utils.training.TrainerMixin method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -587,7 +664,7 @@
       &copy;2022, Materials Virtual Lab.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

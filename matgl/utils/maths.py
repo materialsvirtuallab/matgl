@@ -23,7 +23,7 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 Precomputed Spherical Bessel function roots in a 2D array with dimension [128, 128]. The n-th (0-based index) root of
 order l Spherical Bessel function is the `[l, n]` entry.
 """
-SPHERICAL_BESSEL_ROOTS = np.load(os.path.join(CWD, "sb_roots.npy"))
+SPHERICAL_BESSEL_ROOTS = torch.tensor(np.load(os.path.join(CWD, "sb_roots.npy")))
 
 
 class GaussianExpansion(nn.Module):
@@ -53,16 +53,15 @@ class GaussianExpansion(nn.Module):
                 Width of Gaussian Basis functions
         """
         super().__init__()
-        self.centers = np.linspace(initial, final, num_centers)
-        self.centers = nn.Parameter(torch.tensor(self.centers).float(), requires_grad=False)  # type: ignore
+        self.centers = nn.Parameter(torch.linspace(initial, final, num_centers), requires_grad=False)  # type: ignore
         if width is None:
-            self.width = float(1.0 / np.diff(self.centers).mean())
+            self.width = 1.0 / torch.diff(self.centers).mean()
         else:
             self.width = width
 
     def reset_parameters(self):
         """Reinitialize model parameters."""
-        self.centers = nn.Parameter(self.centers.clone().detach().float(), requires_grad=False)
+        self.centers = nn.Parameter(self.centers, requires_grad=False)
 
     def forward(self, bond_dists):
         """Expand distances.
@@ -131,8 +130,6 @@ class SphericalBesselFunction:
         else:
             self.funcs = self._calculate_symbolic_funcs()
 
-        self.zeros = torch.tensor(SPHERICAL_BESSEL_ROOTS, dtype=DataType.torch_float)
-
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> list:
         """
@@ -169,7 +166,7 @@ class SphericalBesselFunction:
         return torch.t(torch.stack(results))
 
     def _call_sbf(self, r):
-        roots = self.zeros[: self.max_l, : self.max_n]
+        roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n]
 
         results = []
         factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
@@ -258,11 +255,11 @@ class SphericalHarmonicsFunction:
             of angles. The column is arranged following
             `[Y_0^0, Y_1^{-1}, Y_1^{0}, Y_1^1, Y_2^{-2}, ...]`
         """
-        costheta = torch.tensor(costheta, dtype=torch.complex64)
-        phi = torch.tensor(phi, dtype=torch.complex64)
-        results = torch.stack([func(costheta, phi) for func in self.funcs], axis=1)
-        results = results.type(dtype=DataType.torch_float)
-        return results
+        # costheta = torch.tensor(costheta, dtype=torch.complex64)
+        # phi = torch.tensor(phi, dtype=torch.complex64)
+        return torch.stack([func(costheta, phi) for func in self.funcs], axis=1)
+        # results = results.type(dtype=DataType.torch_float)
+        # return results
 
 
 def _block_repeat(array, block_size, repeats):
@@ -411,9 +408,8 @@ def get_segment_indices_from_n(ns):
 
     Returns: segment indices tensor
     """
-    B = ns
-    A = torch.arange(B.size(dim=0))
-    return A.repeat_interleave(B, dim=0)
+    a = torch.arange(ns.size(dim=0))
+    return a.repeat_interleave(ns, dim=0)
 
 
 def get_range_indices_from_n(ns):
@@ -435,25 +431,6 @@ def get_range_indices_from_n(ns):
 
     #    return matrix[mask]
     return torch.masked_select(matrix, mask)
-
-
-# def unsorted_segment_softmax(data, segment_ids, num_segments, weights=None):
-#    """
-#    Unsorted segment softmax with optional weights
-#    Args:
-#        data (tf.Tensor): original data
-#        segment_ids (tf.Tensor): tensor segment ids
-#        num_segments (int): number of segments
-#    Returns: tf.Tensor
-#    """
-#    if weights is None:
-#        weights = torch.ones(1)
-#    segment_max = scatter(data, segment_ids, dim=0, reduce="max")
-#    maxes = torch.gather(segment_max, 0, segment_ids)
-#    data -= maxes
-#    exp = torch.exp(data) * torch.squeeze(weights)
-#    softmax = torch.div(exp, torch.gather(scatter(exp, segment_ids, dim=0, reduce="sum"), 0, segment_ids))
-#    return softmax
 
 
 def repeat_with_n(ns, n):
@@ -480,7 +457,6 @@ def broadcast_states_to_bonds(g, state_feat):
         state_feat: state_feature
 
     Returns: broadcasted state attributes
-
     """
     return state_feat.repeat((g.num_edges(), 1))
 
@@ -536,8 +512,7 @@ def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num
     """
     segment_sum = scatter_sum(input_tensor=data, segment_ids=segment_ids, dim=0, num_segments=num_segments)
     sums = torch.gather(segment_sum, 0, segment_ids)
-    data = torch.div(data, sums)
-    return data
+    return torch.div(data, sums)
 
 
 def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int):
@@ -560,5 +535,4 @@ def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int)
         input_tensor = input_tensor.unsqueeze(-1)
     target_shape = list(target_tensor.shape)
     target_shape[dim] = input_tensor.shape[dim]
-    input_tensor = input_tensor.expand(target_shape)
-    return input_tensor
+    return input_tensor.expand(target_shape)

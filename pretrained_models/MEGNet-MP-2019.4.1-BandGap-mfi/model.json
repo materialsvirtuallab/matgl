@@ -1,38 +1,42 @@
 {
-    "name": "MEGNet",
-    "metadata": {
-        "data_std": 1.85749567,
-        "data_mean": 1.57419002
-    },
+    "name": "TransformedTargetModel",
+    "metadata": null,
     "kwargs": {
-        "dim_node_embedding": 16,
-        "dim_edge_embedding": 100,
-        "dim_state_embedding": 16,
-        "ntypes_state": 4,
-        "nblocks": 3,
-        "hidden_layer_sizes_input": [
-            64,
-            32
-        ],
-        "hidden_layer_sizes_conv": [
-            64,
-            64,
-            32
-        ],
-        "hidden_layer_sizes_output": [
-            32,
-            16
-        ],
-        "nlayers_set2set": 1,
-        "niters_set2set": 3,
-        "activation_type": "softplus2",
-        "is_classification": false,
-        "include_state": true,
-        "dropout": null,
-        "graph_transformations": null,
-        "element_types": null,
-        "bond_expansion": null,
-        "cutoff": 5.0,
-        "gauss_width": 0.5
+        "model": {
+            "@class": "MEGNet",
+            "@module": "matgl.models._megnet",
+            "init_args": {
+                "dim_node_embedding": 16,
+                "dim_edge_embedding": 100,
+                "dim_state_embedding": 16,
+                "ntypes_state": 4,
+                "nblocks": 3,
+                "hidden_layer_sizes_input": [
+                    64,
+                    32
+                ],
+                "hidden_layer_sizes_conv": [
+                    64,
+                    64,
+                    32
+                ],
+                "hidden_layer_sizes_output": [
+                    32,
+                    16
+                ],
+                "nlayers_set2set": 1,
+                "niters_set2set": 3,
+                "activation_type": "softplus2",
+                "is_classification": false,
+                "include_state": true,
+                "dropout": null,
+                "graph_transformations": null,
+                "element_types": null,
+                "bond_expansion": null,
+                "cutoff": 5.0,
+                "gauss_width": 0.5
+            }
+        },
+        "target_transformer": "Normalizer: Mean=1.57419002, Std: 1.85749567"
     }
 }

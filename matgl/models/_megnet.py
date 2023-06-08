@@ -202,8 +202,6 @@ class MEGNet(nn.Module, IOMixIn):
         structure: Structure,
         state_feats: torch.tensor | None = None,
         graph_converter: GraphConverter | None = None,
-        data_mean: float | None = None,
-        data_std: float | None = None,
     ):
         """
         Convenience method to directly predict property from structure.
@@ -212,8 +210,6 @@ class MEGNet(nn.Module, IOMixIn):
             structure (Structure): Pymatgen structure
             state_feats (torch.tensor): graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
-            data_mean: Mean of the data. Used when the original data has been scaled.
-            data_std: Std of the data. Used when the original data has been scaled.
 
         Returns:
             output (torch.tensor): output property
@@ -223,12 +219,6 @@ class MEGNet(nn.Module, IOMixIn):
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        if data_mean is None:
-            data_mean = torch.zeros(1)
-        if data_std is None:
-            data_std = torch.ones(1)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        output = data_mean + data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats)
-
-        return output.detach()
+        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()

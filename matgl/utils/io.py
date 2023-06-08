@@ -22,7 +22,7 @@ class IOMixIn:
     Mixin class for model saving and loading.
     """
 
-    def save_args(self, locals: dict, kwargs: dict) -> None:
+    def save_args(self, locals: dict, kwargs: dict | None = None) -> None:
         r"""
         Method to save args into a private _init_args variable. This should be called after super in the __init__
         method, e.g., `self.save_args(locals(), kwargs)`.
@@ -32,8 +32,15 @@ class IOMixIn:
             kwargs: kwargs passed to the class.
         """
         args = inspect.getfullargspec(self.__class__.__init__).args
-        self._init_args = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
-        self._init_args.update(kwargs)
+        d = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
+        if kwargs is not None:
+            d.update(kwargs)
+
+        # If one of the args is a subclass of IOMixIn, we will serialize that class.
+        for k, v in d.items():
+            if issubclass(v.__class__, IOMixIn):
+                d[k] = {"@class": v.__class__.__name__, "@module": v.__class__.__module__, "init_args": v._init_args}
+        self._init_args = d
 
     def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
         """
@@ -52,6 +59,7 @@ class IOMixIn:
         path = Path(path)
         if makedirs:
             os.makedirs(path, exist_ok=True)
+
         torch.save(self._init_args, path / "model.pt")  # type: ignore
         torch.save(self.state_dict(), path / "state.pt")  # type: ignore
 
@@ -102,7 +110,17 @@ class IOMixIn:
             state = torch.load(fpaths["state.pt"], map_location=torch.device("cpu"))
         else:
             state = torch.load(fpaths["state.pt"])
-        model = cls(**torch.load(fpaths["model.pt"]))
+        d = torch.load(fpaths["model.pt"])
+
+        # Deserialize any args that are IOMixIn subclasses.
+        for k, v in d.items():
+            if isinstance(v, dict) and "@class" in v and "@module" in v:
+                modname = v["@module"]
+                classname = v["@class"]
+                mod = __import__(modname, globals(), locals(), [classname], 0)
+                cls_ = getattr(mod, classname)
+                d[k] = cls_(**v["init_args"])
+        model = cls(**d)
         model.load_state_dict(state)  # type: ignore
 
         if include_json:

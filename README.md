@@ -17,20 +17,24 @@
 
 ## Introduction
 
-MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
-representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
-to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
+MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
+natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
+shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
 
 In this repository, we have reimplemented the [MatErials 3-body Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
 and its predecessor, [MEGNet](https://github.com/materialsvirtuallab/megnet) using the [Deep Graph Library (DGL)](https://www.dgl.ai).
 The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
-implemented in TensorFlow.
+implemented in TensorFlow (TF). Here are some key improvements over the TF implementations:
+- A more intuitive API and class structure based on the Deep Graph Library.
+- Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
 This effort is a collaboration between the [Materials Virtual Lab](http://materialsvirtuallab.org) and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
 ## Status
 
+- Jun 7 2023: Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
+  available.
 - Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
 - Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
 
@@ -89,15 +93,15 @@ The pre-trained MEGNet models for the Materials Project formation energy and mul
 The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
-from pymatgen.core import Structure, Lattice
-from matgl.models import MEGNet
+from pymatgen.core import Lattice, Structure
+from matgl.models import TransformedTargetModel
 
-## load the pre-trained MEGNet model for formation energy model.
-model = MEGNet.load("MEGNet-MP-2018.6.1-Eform")
-## This is the structure obtained from the Materials Project.
-struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.14), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-e_form = model.predict_structure(struct)
-print(f"The predicted formation energy for CsCl is {float(e_form):5f} eV/atom.")
+model = TransformedTargetModel.load("MEGNet-MP-2018.6.1-Eform")
+
+# This is the structure obtained from the Materials Project.
+struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.1437), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
+eform = model.predict_structure(struct)
+print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
 A full example is in [here](examples/Pre-trained%20MEGNet%20for%20Property%20Predictions.ipynb).

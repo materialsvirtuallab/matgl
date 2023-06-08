@@ -8,8 +8,9 @@ Submodules
    :maxdepth: 6
 
    matgl.utils.cutoff
+   matgl.utils.io
    matgl.utils.maths
-   matgl.utils.remote
+   matgl.utils.training
 
 Module contents
 ---------------
