@@ -12,6 +12,7 @@ from pymatgen.core import Structure
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
+from matgl.data.transformer import Transformer
 from matgl.ext.pymatgen import Structure2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import GraphConverter
@@ -47,6 +48,7 @@ class MEGNet(nn.Module, IOMixIn):
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
+        target_transformer: Transformer | None = None,
         **kwargs,
     ):
         """
@@ -152,6 +154,7 @@ class MEGNet(nn.Module, IOMixIn):
         self.is_classification = is_classification
         self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
         self.include_state_embedding = include_state
+        self.target_transformer = target_transformer
 
     def forward(
         self,
@@ -202,8 +205,6 @@ class MEGNet(nn.Module, IOMixIn):
         structure: Structure,
         state_feats: torch.tensor | None = None,
         graph_converter: GraphConverter | None = None,
-        data_mean: float | None = None,
-        data_std: float | None = None,
     ):
         """
         Convenience method to directly predict property from structure.
@@ -223,12 +224,10 @@ class MEGNet(nn.Module, IOMixIn):
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        if data_mean is None:
-            data_mean = torch.zeros(1)
-        if data_std is None:
-            data_std = torch.ones(1)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        output = data_mean + data_std * self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats)
+        output = self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats)
+        if self.target_transformer:
+            output = self.target_transformer.inverse_transform(output)
 
         return output.detach()

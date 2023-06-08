@@ -3,10 +3,22 @@ Module implementing various data transformers for PyTorch
 """
 from __future__ import annotations
 
+import abc
+
 import torch
 
 
-class Normalizer:
+class Transformer(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def transform(self, data: torch.Tensor):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def inverse_transform(self, data: torch.Tensor):
+        raise NotImplementedError
+
+
+class Normalizer(Transformer):
     """
     Performs a scaling of the data by centering to the mean and dividing by the standard deviation.
     """
