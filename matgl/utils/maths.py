@@ -23,7 +23,7 @@ CWD = os.path.dirname(os.path.abspath(__file__))
 Precomputed Spherical Bessel function roots in a 2D array with dimension [128, 128]. The n-th (0-based index) root of
 order l Spherical Bessel function is the `[l, n]` entry.
 """
-SPHERICAL_BESSEL_ROOTS = np.load(os.path.join(CWD, "sb_roots.npy"))
+SPHERICAL_BESSEL_ROOTS = torch.tensor(np.load(os.path.join(CWD, "sb_roots.npy")))
 
 
 class GaussianExpansion(nn.Module):
@@ -130,8 +130,6 @@ class SphericalBesselFunction:
         else:
             self.funcs = self._calculate_symbolic_funcs()
 
-        self.zeros = torch.tensor(SPHERICAL_BESSEL_ROOTS, dtype=DataType.torch_float)
-
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> list:
         """
@@ -168,7 +166,7 @@ class SphericalBesselFunction:
         return torch.t(torch.stack(results))
 
     def _call_sbf(self, r):
-        roots = self.zeros[: self.max_l, : self.max_n]
+        roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n]
 
         results = []
         factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
