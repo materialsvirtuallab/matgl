@@ -80,6 +80,8 @@ class MEGNet(nn.Module, IOMixIn):
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
             gauss_width: width of Gaussian function for bond expansion
+            target_transformer: Transformer used to transform the target. Note that the inverse transform is applied to
+                the output.
             **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()

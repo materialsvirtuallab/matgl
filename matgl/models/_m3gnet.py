@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
+from matgl.data.transformer import Transformer
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
@@ -66,6 +67,7 @@ class M3GNet(nn.Module, IOMixIn):
         field: str = "node_feat",
         include_state: bool = False,
         activation_type: str = "swish",
+        target_transformer: Transformer | None = None,
         **kwargs,
     ):
         r"""
@@ -96,6 +98,8 @@ class M3GNet(nn.Module, IOMixIn):
             nlayers_set2set (int): number of set2set layers
             include_state (bool): whether to include states features
             activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
+            target_transformer: Transformer used to transform the target. Note that the inverse transform is applied to
+                the output.
             **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
