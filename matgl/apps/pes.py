@@ -36,7 +36,7 @@ class Potential(nn.Module, IOMixIn):
         :param calc_hessian: Enable hessian calculations
         """
         super().__init__()
-        self.save_args(locals(), {})
+        self.save_args(locals())
         self.model = model
         self.calc_forces = calc_forces
         self.calc_stresses = calc_stresses

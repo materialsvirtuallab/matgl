@@ -22,7 +22,7 @@ class IOMixIn:
     Mixin class for model saving and loading.
     """
 
-    def save_args(self, locals: dict, kwargs: dict) -> None:
+    def save_args(self, locals: dict, kwargs: dict | None = None) -> None:
         r"""
         Method to save args into a private _init_args variable. This should be called after super in the __init__
         method, e.g., `self.save_args(locals(), kwargs)`.
@@ -33,7 +33,8 @@ class IOMixIn:
         """
         args = inspect.getfullargspec(self.__class__.__init__).args
         d = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
-        d.update(kwargs)
+        if kwargs is not None:
+            d.update(kwargs)
 
         # If one of the args is a subclass of IOMixIn, we will serialize that class.
         for k, v in d.items():
