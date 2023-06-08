@@ -96,8 +96,6 @@ class IOMixIn:
 
         if all((path / fn).exists() for fn in fnames):
             fpaths = {fn: path / fn for fn in fnames}
-        elif all((MATGL_CACHE / path / fn).exists() for fn in fnames):
-            fpaths = {fn: MATGL_CACHE / path / fn for fn in fnames}
         else:
             try:
                 fpaths = {
@@ -211,8 +209,6 @@ def load_model(path: Path, **kwargs):
 
     if all((path / fn).exists() for fn in fnames):
         fpaths = {fn: path / fn for fn in fnames}
-    elif all((MATGL_CACHE / path / fn).exists() for fn in fnames):
-        fpaths = {fn: MATGL_CACHE / path / fn for fn in fnames}
     else:
         try:
             fpaths = {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
@@ -228,4 +224,4 @@ def load_model(path: Path, **kwargs):
         classname = d["@class"]
         mod = __import__(modname, globals(), locals(), [classname], 0)
         cls_ = getattr(mod, classname)
-        return cls_.load(path)
+        return cls_.load(path, **kwargs)
