@@ -12,7 +12,6 @@ from pymatgen.core import Structure
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
-from matgl.data.transformer import Transformer
 from matgl.ext.pymatgen import Structure2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import GraphConverter
@@ -48,7 +47,6 @@ class MEGNet(nn.Module, IOMixIn):
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
-        target_transformer: Transformer | None = None,
         **kwargs,
     ):
         """
@@ -80,8 +78,6 @@ class MEGNet(nn.Module, IOMixIn):
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
             gauss_width: width of Gaussian function for bond expansion
-            target_transformer: Transformer used to transform the target. Note that the inverse transform is applied to
-                the output.
             **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
@@ -156,7 +152,6 @@ class MEGNet(nn.Module, IOMixIn):
         self.is_classification = is_classification
         self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
         self.include_state_embedding = include_state
-        self.target_transformer = target_transformer
 
     def forward(
         self,
@@ -228,8 +223,4 @@ class MEGNet(nn.Module, IOMixIn):
             state_feats = torch.tensor(state_feats_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        output = self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats)
-        if self.target_transformer:
-            output = self.target_transformer.inverse_transform(output)
-
-        return output.detach()
+        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()
