@@ -42,7 +42,6 @@ class MEGNet(nn.Module, IOMixIn):
         is_classification: bool = False,
         include_state: bool = True,
         dropout: float | None = None,
-        graph_transformations: list | None = None,
         element_types: tuple[str, ...] | None = None,
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
@@ -72,8 +71,6 @@ class MEGNet(nn.Module, IOMixIn):
             include_state: Whether the state embedding is included
             dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
                 a Bernoulli distribution
-            graph_transformations: Perform a graph transformation, e.g., incorporate three-body interactions, prior to
-                performing the GCL updates.
             element_types: Elements included in the training set
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
@@ -150,7 +147,6 @@ class MEGNet(nn.Module, IOMixIn):
         self.dropout = nn.Dropout(dropout) if dropout else None
 
         self.is_classification = is_classification
-        self.graph_transformations = graph_transformations or [nn.Identity()] * nblocks
         self.include_state_embedding = include_state
 
     def forward(
@@ -169,15 +165,10 @@ class MEGNet(nn.Module, IOMixIn):
         :param state_feat: State features.
         :return: Prediction
         """
-        graph_transformations = self.graph_transformations
         node_feat, edge_feat, state_feat = self.embedding(node_feat, edge_feat, state_feat)
         edge_feat = self.edge_encoder(edge_feat)
         node_feat = self.node_encoder(node_feat)
         state_feat = self.state_encoder(state_feat)
-
-        for gt, block in zip(graph_transformations, self.blocks):
-            output = block(gt(graph), edge_feat, node_feat, state_feat)
-            edge_feat, node_feat, state_feat = output
 
         node_vec = self.node_s2s(graph, node_feat)
         edge_vec = self.edge_s2s(graph, edge_feat)
