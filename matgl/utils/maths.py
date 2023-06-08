@@ -15,8 +15,6 @@ from scipy.optimize import brentq
 from scipy.special import spherical_jn
 from torch import nn
 
-from matgl.config import DataType
-
 CWD = os.path.dirname(os.path.abspath(__file__))
 
 """
@@ -191,7 +189,7 @@ class SphericalBesselFunction:
             max_n: int max number of basis
         Returns: basis function expansion using first spherical Bessel function
         """
-        n = (torch.arange(1, max_n + 1)).type(dtype=DataType.torch_float)[None, :]
+        n = (torch.arange(1, max_n + 1)).type(dtype=torch.float32)[None, :]
         r = r[:, None]
         return sqrt(2.0 / cutoff) * torch.sin(n * pi / cutoff * r) / r
 
@@ -337,7 +335,7 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
     Returns: expanded spherical harmonics with derivatives smooth at boundary
 
     """
-    n = torch.arange(max_n).type(dtype=DataType.torch_float)[None, :]
+    n = torch.arange(max_n).type(dtype=torch.float32)[None, :]
     r = r[:, None]
     fnr = (
         (-1) ** n
