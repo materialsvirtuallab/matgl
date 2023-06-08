@@ -44,7 +44,7 @@ class TestMath(unittest.TestCase):
         assert tuple(res2.shape) == (10, 3)
 
         shf = SphericalHarmonicsFunction(max_l=3, use_phi=True)
-        res_shf = shf(costheta=np.linspace(-1, 1, 10), phi=np.linspace(0, 2 * np.pi, 10))
+        res_shf = shf(costheta=torch.linspace(-1, 1, 10), phi=torch.linspace(0, 2 * np.pi, 10))
 
         assert res_shf.numpy().shape == (10, 9)
         combined = combine_sbf_shf(res, res_shf, max_n=3, max_l=3, use_phi=True)
@@ -52,7 +52,7 @@ class TestMath(unittest.TestCase):
         assert combined.shape == (10, 27)
 
         res_shf2 = SphericalHarmonicsFunction(max_l=3, use_phi=False)(
-            costheta=np.linspace(-1, 1, 10), phi=np.linspace(0, 2 * np.pi, 10)
+            costheta=torch.linspace(-1, 1, 10), phi=torch.linspace(0, 2 * np.pi, 10)
         )
         combined = combine_sbf_shf(res, res_shf2, max_n=3, max_l=3, use_phi=False)
 
