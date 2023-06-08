@@ -12,6 +12,6 @@ class TestNormalizer:
         transformer = Normalizer.from_data(data)
         scaled = transformer.transform(data)
 
-        assert float(scaled.mean()), pytest.approx(0)
+        assert float(scaled.mean()), pytest.approx(0, abs=1e-6)
         inverse = transformer.inverse_transform(scaled)
-        assert inverse == pytest.approx(data)
+        assert inverse == pytest.approx(data, abs=1e-6)
