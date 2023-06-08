@@ -93,23 +93,15 @@ The pre-trained MEGNet models for the Materials Project formation energy and mul
 The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
-from pymatgen.core import Structure, Lattice
-from matgl.models import MEGNet
+from pymatgen.core import Lattice, Structure
+from matgl.models import TransformedTargetModel
 
-# Load the pre-trained MEGNet model.
-model, d = MEGNet.load("MEGNet-MP-2018.6.1-Eform", include_json=True)
-
-# Obtain the mean and std for formation energy model
-metadata = d["metadata"]
-data_std = metadata["data_std"]
-data_mean = metadata["data_mean"]
+model = TransformedTargetModel.load("MEGNet-MP-2018.6.1-Eform")
 
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.1437), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-eform = model.predict_structure(
-    structure=struct, data_mean=data_mean, data_std=data_std
-)
-print(f"The predicted formation energy for CsCl is {float(eform):5f} eV/atom.")
+eform = model.predict_structure(struct)
+print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
 A full example is in [here](examples/Pre-trained%20MEGNet%20for%20Property%20Predictions.ipynb).
