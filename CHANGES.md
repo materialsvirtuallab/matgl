@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+- Model serialization has been completely rewritten to make it easier to use models out of the box.
+- Convenience method `matgl.load_model` is now the default way to load models.
+- Added a TransformedTargetModel.
+- Enable serialization of Potential.
+- IMPORTANT: Pre-trained models have been reserialized. These models can only be used with v0.5.0+!
+
 ## 0.4.0
 - Pre-trained M3GNet universal potential
 - Pytorch lightning training utility.

@@ -89,7 +89,15 @@ python setup.py -e .
 
 ## Usage
 
-The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
+Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
+multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
+implemented convenience method:
+
+```python
+import matgl
+model = matgl.load_model(<name>)
+```
+
 The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
