@@ -77,9 +77,8 @@ class IOMixIn:
         Load the model weights from a directory.
 
         Args:
-            path (str|path): Path to saved model or name of pre-trained model. The search order is
-                path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
-                PRETRAINED_MODELS_BASE_URL.
+            path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by
+                download from PRETRAINED_MODELS_BASE_URL (with caching).
             include_json (bool): If True, the "model.json" file is also loaded. This file can contain metadata about
                 the model, e.g., if scaling was performed in training the model, this file may contain the mean and
                 standard deviation of the models, which needs to be applied to the final predictions.
@@ -191,12 +190,11 @@ class RemoteFile:
 
 def load_model(path: Path, **kwargs):
     r"""
-    Load the model weights from a directory.
+    Convenience method to load a model from a directory or name.
 
     Args:
-        path (str|path): Path to saved model or name of pre-trained model. The search order is
-            path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
-            PRETRAINED_MODELS_BASE_URL.
+        path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by
+            download from PRETRAINED_MODELS_BASE_URL (with caching).
         **kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
             want to update the model.
 
