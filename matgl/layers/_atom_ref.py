@@ -1,5 +1,5 @@
 """
-atomic energy offset. Used for predicting extensive properties.
+Atomic energy offset. Used for predicting extensive properties.
 """
 from __future__ import annotations
 
