@@ -21,19 +21,19 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
 shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
 
-In this repository, we have reimplemented the [MatErials 3-body Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
-and its predecessor, [MEGNet](https://github.com/materialsvirtuallab/megnet) using the [Deep Graph Library (DGL)](https://www.dgl.ai).
+In this repository, we have reimplemented the [MatErials 3-body Graph Network (m3gnet)][1]
+and its predecessor, [MEGNet][2] using the [Deep Graph Library (DGL)][3].
 The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
 implemented in TensorFlow (TF). Here are some key improvements over the TF implementations:
 - A more intuitive API and class structure based on the Deep Graph Library.
 - Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
-This effort is a collaboration between the [Materials Virtual Lab](http://materialsvirtuallab.org) and Intel Labs
+This effort is a collaboration between the [Materials Virtual Lab][4] and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).
 
 ## Status
 
-Major milestones are summarized below. Full change log is provided [here](https://materialsvirtuallab.github.io/matgl/changes).
+Major milestones are summarized below. Please refer to [change log](https://materialsvirtuallab.github.io/matgl/changes) for details.
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
 - v0.4.0 (Jun 7 2023): Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
@@ -69,7 +69,7 @@ As a framework, M3GNet has diverse applications, including:
   machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
   flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
   *universal IP* that can work across the entire periodic table of the elements by training on relaxations performed
-  in the [Materials Project](http://materialsproject.org).
+  in the [Materials Project][5].
 - **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
   surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
   state-of-the-art ML models.
@@ -128,31 +128,32 @@ Colab. This will be the primary form of usage documentation.
 
 Please cite the following works:
 
-- MEGNet
+> ### MEGNet
+>
+> Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
+> Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
 
-    ```txt
-    Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-    Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
-    ```
+> ### Multi-fidelity MEGNet
+>
+> Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
+> Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.
 
-- Multi-fidelity MEGNet
+> ### M3GNet
+>
+> Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
+>  2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
 
-    ```txt
-    Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
-    Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.
-    ```
-
-- M3GNet
-
-    ```txt
-    Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
-    2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
-    ```
 
 ## Acknowledgments
 
-This work was primarily supported by the Materials Project, funded by the U.S. Department of Energy, Office of Science,
-Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.
+This work was primarily supported by the [Materials Project][5], funded by the U.S. Department of Energy, Office of
+Science, Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.
 DE-AC02-05-CH11231: Materials Project program KC23MP. This work used the Expanse supercomputing cluster at the Extreme
 Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation grant number
 ACI-1548562.
+
+[1]: https://github.com/materialsvirtuallab/m3gnet
+[2]: https://github.com/materialsvirtuallab/megnet
+[3]: https://www.dgl.ai
+[4]: http://materialsvirtuallab.org
+[5]: http://materialsproject.org
