@@ -1,11 +1,13 @@
 {
     "@module": "matgl.models",
     "@class": "TransformedTargetModel",
+    "@model_version": 1,
     "metadata": null,
     "kwargs": {
         "model": {
             "@class": "MEGNet",
             "@module": "matgl.models._megnet",
+            "@model_version": 1,
             "init_args": {
                 "dim_node_embedding": 16,
                 "dim_edge_embedding": 100,

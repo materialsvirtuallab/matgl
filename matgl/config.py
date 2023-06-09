@@ -107,8 +107,22 @@ DTYPES = {
     "int16": {"numpy": np.int16, "torch": torch.int16},
 }
 
+"""
+Default location of the cache for matgl, e.g., for storing downloaded models.
+"""
 MATGL_CACHE = Path(os.path.expanduser("~")) / ".matgl"
+
+"""
+Download url for pre-trained models.
+"""
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
+
+"""
+This is an int representing a serialization scheme version. It is mainly for detecting very old pre-trained models in
+cache and invalidating them. This version number is different from the code version number because it depends on
+whether backward-incompatible architectural changes are made.
+"""
+MODEL_VERSION = 1
 
 
 def clear_cache():

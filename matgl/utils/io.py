@@ -7,12 +7,13 @@ import inspect
 import json
 import logging
 import os
+import warnings
 from pathlib import Path
 
 import requests
 import torch
 
-from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
+from matgl.config import MATGL_CACHE, MODEL_VERSION, PRETRAINED_MODELS_BASE_URL
 
 logger = logging.getLogger(__file__)
 
@@ -42,6 +43,7 @@ class IOMixIn:
                 d[k] = {
                     "@class": v.__class__.__name__,
                     "@module": v.__class__.__module__,
+                    "@model_version": MODEL_VERSION,
                     "init_args": v._init_args,
                 }
         self._init_args = d
@@ -69,6 +71,7 @@ class IOMixIn:
         d = {
             "@class": self.__class__.__name__,
             "@module": self.__class__.__module__,
+            "@model_version": MODEL_VERSION,
             "metadata": metadata,
             "kwargs": self._init_args,
         }  # type: ignore
@@ -224,6 +227,16 @@ def load_model(path: Path, **kwargs):
         d = json.load(f)
         modname = d["@module"]
         classname = d["@class"]
+        model_version = d["@model_version"]
+        if model_version < MODEL_VERSION:
+            warnings.warn(
+                "Incompatible model version detected! The code will continue to load the model but it is "
+                "recommended that you provide a path to an updated model, increment your @model_version in model.json "
+                "if you are confident that the changes are not problematic, or clear your ~/.matgl cache using "
+                '`python -c "import matgl; matgl.clear_cache()"`',
+                DeprecationWarning,
+                stacklevel=2,
+            )
         mod = __import__(modname, globals(), locals(), [classname], 0)
         cls_ = getattr(mod, classname)
         return cls_.load(path, **kwargs)
