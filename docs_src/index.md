@@ -1,4 +1,4 @@
-# matGL
+# MatGL (Materials Graph Library)
 
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE)
 [![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
@@ -33,6 +33,7 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 
 ## Status
 
+- Jun 8 2023: Simplified saving and loading of models. Now models can be loaded with one line of code!
 - Jun 7 2023: Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
   available.
 - Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
@@ -95,7 +96,7 @@ implemented convenience method:
 
 ```python
 import matgl
-model = matgl.load_model(<name>)
+model = matgl.load_model("<model_name>")
 ```
 
 The following is an example of a prediction of the formation energy for CsCl.

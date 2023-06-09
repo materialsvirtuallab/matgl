@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>matGL &#8212; matgl  documentation</title>
+    <title>MatGL (Materials Graph Library) &#8212; matgl  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -29,8 +29,8 @@
 
           <div class="body" role="main">
             
-  <section id="matgl">
-<h1>matGL<a class="headerlink" href="#matgl" title="Permalink to this heading">¶</a></h1>
+  <section id="matgl-materials-graph-library">
+<h1>MatGL (Materials Graph Library)<a class="headerlink" href="#matgl-materials-graph-library" title="Permalink to this heading">¶</a></h1>
 <p><a class="reference external" href="https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/materialsvirtuallab/matgl" /></a>
 <a class="reference external" href="https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg"><img alt="Linting" src="https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg" /></a>
 <a class="reference external" href="https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg"><img alt="Testing" src="https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg" /></a>
@@ -66,6 +66,7 @@ implemented in TensorFlow (TF). Here are some key improvements over the TF imple
 <section id="status">
 <h2>Status<a class="headerlink" href="#status" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
+<li><p>Jun 8 2023: Simplified saving and loading of models. Now models can be loaded with one line of code!</p></li>
 <li><p>Jun 7 2023: Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
 available.</p></li>
 <li><p>Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!</p></li>
@@ -122,7 +123,7 @@ state-of-the-art ML models.</p></li>
 multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
 implemented convenience method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matgl</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">matgl</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="o">&lt;</span><span class="n">name</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">matgl</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The following is an example of a prediction of the formation energy for CsCl.</p>
