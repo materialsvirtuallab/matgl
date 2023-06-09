@@ -20,9 +20,9 @@ The reported numbers are mean absolute error of formation energy in eV/atom.
 
 Train: 0.010 eV/atom
 
-Valid: 0.0293 eV/atom
+Valid: 0.029 eV/atom
 
-Test: 0.0276 eV/atom
+Test: 0.028 eV/atom
 
 # References
 
