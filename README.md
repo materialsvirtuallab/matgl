@@ -118,6 +118,10 @@ Colab. This will be the primary form of usage documentation.
 
 <http://materialsvirtuallab.github.io/matgl>
 
+## Developer's Guide
+
+A basic [developer's guide](developer.md) has been written to outline the key design elements of matgl.
+
 ## References
 
 Please cite the following works:

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Developer’s guide &#8212; matgl  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="developer-s-guide">
+<h1>Developer’s guide<a class="headerlink" href="#developer-s-guide" title="Permalink to this heading">¶</a></h1>
+<p>This is a developer’s guide to writing new models in matgl. It is still a work in progress.</p>
+<p>MatGL is based on the <a class="reference external" href="https://www.dgl.ai">Deep Graph Library (DGL)</a>. Most of the questions relating to how to implement graph deep
+learning models, etc. is already covered in the extensive documentation for DGL. You are encouraged to read those. Here,
+we will focus our discussion on improvements / additions / design elements specifically for matgl.</p>
+<section id="modular-components">
+<h2>Modular components<a class="headerlink" href="#modular-components" title="Permalink to this heading">¶</a></h2>
+<p>To maintain maximum flexibility, we have implemented the steps of using graph deep learning for materials in separate,
+reusable modular components. These steps include:</p>
+<ul class="simple">
+<li><p>Converting materials to DGL graphs from pymatgen, ase and other materials science codes (<code class="docutils literal notranslate"><span class="pre">matgl.ext</span></code>).</p></li>
+<li><p>Dataset loading (<code class="docutils literal notranslate"><span class="pre">matgl.graphs</span></code>).</p></li>
+<li><p>Actual graph model implementations (<code class="docutils literal notranslate"><span class="pre">matgl.models</span></code>) and their internal components (<code class="docutils literal notranslate"><span class="pre">matgl.layers</span></code>).</p></li>
+<li><p>Special use cases of models, e.g., for interatomic potentials (<code class="docutils literal notranslate"><span class="pre">matgl.apps</span></code>).</p></li>
+</ul>
+</section>
+<section id="nested-models">
+<h2>Nested Models<a class="headerlink" href="#nested-models" title="Permalink to this heading">¶</a></h2>
+<p>Often, a simple input-&gt;output model architecture is often insufficient. For instance, one might want to fit a model
+on a scaled or transformed version of the target. For instance, the current best practice is to fit models to the log
+of the bulk modulus as it spans several orders of magnitude. Similarly, an interatomic potential has to compute
+derivatives such as forces and stresses from the energies. This presents a difficulty when the model is actually
+being used for end predictions as the user has to remember to invert the scaling or transformation or perform
+additional steps.</p>
+<p>To make matgl models much more friendly for end users, we implement a nested model concept. Examples include
+<code class="docutils literal notranslate"><span class="pre">matgl.apps.pes.Potential</span></code>, which is an interatomic potential model that wraps around a graph model (e.g. M3GNet),
+and the TransformedTargetModel, which is modelled after scikit-learn’s TransformedTargetRegressor. The goal is for
+users to be able to use such models directly without having to worry about the internal transformations.</p>
+</section>
+<section id="model-io">
+<h2>Model IO<a class="headerlink" href="#model-io" title="Permalink to this heading">¶</a></h2>
+<p>All models subclass the <code class="docutils literal notranslate"><span class="pre">matgl.utils.io.IOMixIn</span></code> class, which is basically a wrapper around PyTorch’s mechanisms for
+loading and saving model state but with additional metadata to make it simpler to load models. To use this class
+properly, models should subclass <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> <em>and</em> <code class="docutils literal notranslate"><span class="pre">IOMixIn</span></code>. In addition, the <code class="docutils literal notranslate"><span class="pre">save_args</span></code> method should be
+called after the super class call. A simpel example is as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">matgl.utils.io</span> <span class="kn">import</span> <span class="n">IOMixIn</span>
+
+<span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">IOMixIn</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_args</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Models implementing this protocol can be saved and loaded using <code class="docutils literal notranslate"><span class="pre">model.save(path)</span></code>, <code class="docutils literal notranslate"><span class="pre">Model.load(path)</span></code> and the
+convenience <code class="docutils literal notranslate"><span class="pre">matgl.load_model(path)</span></code> methods. There is also a basic versioning implemented.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">matgl</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Materials Virtual Lab.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/developer.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

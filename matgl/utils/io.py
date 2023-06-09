@@ -20,7 +20,13 @@ logger = logging.getLogger(__file__)
 
 class IOMixIn:
     """
-    Mixin class for model saving and loading.
+    Mixin class for model saving and loading. For proper usage, models should subclass nn.Module and IOMix and the
+    `save_args` method should be called immediately after the `super().__init__()` call.
+
+    ```
+    super().__init__()
+    self.save_args(locals(), kwargs)
+    ```
     """
 
     def save_args(self, locals: dict, kwargs: dict | None = None) -> None:
