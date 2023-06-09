@@ -227,7 +227,7 @@ def load_model(path: Path, **kwargs):
         d = json.load(f)
         modname = d["@module"]
         classname = d["@class"]
-        model_version = d.get("@model_version", 1)
+        model_version = d.get("@model_version", 0)
         if model_version < MODEL_VERSION:
             warnings.warn(
                 "Incompatible model version detected! The code will continue to load the model but it is "
