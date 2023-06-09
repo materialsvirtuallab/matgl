@@ -5,9 +5,9 @@ import os
 import shutil
 from pathlib import Path
 
-import numpy as np
-import torch
-
+"""
+Default set of elements supported by universal matgl models.
+"""
 DEFAULT_ELEMENT_TYPES = (
     "H",
     "He",
@@ -100,13 +100,6 @@ DEFAULT_ELEMENT_TYPES = (
     "Pu",
 )
 
-DTYPES = {
-    "float32": {"numpy": np.float32, "torch": torch.float32},
-    "float16": {"numpy": np.float16, "torch": torch.float16},
-    "int32": {"numpy": np.int32, "torch": torch.int32},
-    "int16": {"numpy": np.int16, "torch": torch.int16},
-}
-
 """
 Default location of the cache for matgl, e.g., for storing downloaded models.
 """
@@ -118,9 +111,9 @@ Download url for pre-trained models.
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 """
-This is an int representing a serialization scheme version. It is mainly for detecting very old pre-trained models in
-cache and invalidating them. This version number is different from the code version number because it depends on
-whether backward-incompatible architectural changes are made.
+This is an int representing a model version. It is mainly for detecting and warning abou the use of old pre-trained
+models. This version number is different from the code version number because it depends on whether
+backward-incompatible architectural changes are made (which hopefully should be less often than regular code changes).
 """
 MODEL_VERSION = 1
 
