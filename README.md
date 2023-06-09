@@ -12,7 +12,8 @@
 - [Architectures](#architectures)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Docs](#docs)
+- [API Docs](#api-docs)
+- [Developer's Guide](#developers-guide)
 - [References](#references)
 
 ## Introduction
@@ -28,8 +29,8 @@ over the TF implementations:
 - A more intuitive API and class structure based on DGL.
 - Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
-This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs
-(Santiago Miret, Marcel Nassar, Carmelo Gonzales).
+This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
+Nassar, Carmelo Gonzales). Please refer to the [official documentation][doc] for more details.
 
 ## Status
 
@@ -114,9 +115,9 @@ print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV
 We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on Google
 Colab. This will be the primary form of usage documentation.
 
-### Docs
+## API Docs
 
-<http://materialsvirtuallab.github.io/matgl>
+The Sphinx-generated API docs are available [here][apidocs].
 
 ## Developer's Guide
 
@@ -160,3 +161,5 @@ ACI-1548562.
 [mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
 [m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
+[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html
+[doc]: http://materialsvirtuallab.github.io/matgl

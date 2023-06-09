@@ -46,6 +46,14 @@ reusable modular components. These steps include:</p>
 <li><p>Special use cases of models, e.g., for interatomic potentials (<code class="docutils literal notranslate"><span class="pre">matgl.apps</span></code>).</p></li>
 </ul>
 </section>
+<section id="controlled-api-exposure">
+<h2>Controlled API exposure<a class="headerlink" href="#controlled-api-exposure" title="Permalink to this heading">¶</a></h2>
+<p>The exposed API is controlled to allow for code refactoring and development. Any module that is preceded by an
+underscore is a “private” implementation by convention and there are no guarantees as to backwards compatibility.
+For example, the MEGNet and M3GNet models are exposed via <code class="docutils literal notranslate"><span class="pre">matgl.models</span></code> in the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> while the actual
+implementations are in <code class="docutils literal notranslate"><span class="pre">_megnet.py</span></code> and <code class="docutils literal notranslate"><span class="pre">_m3gnet.py</span></code>, respectively. This is similar to the convention adopted by
+scikit-learn. As far as possible, do imports only from exposed APIs.</p>
+</section>
 <section id="nested-models">
 <h2>Nested Models<a class="headerlink" href="#nested-models" title="Permalink to this heading">¶</a></h2>
 <p>Often, a simple input-&gt;output model architecture is often insufficient. For instance, one might want to fit a model
@@ -56,8 +64,8 @@ being used for end predictions as the user has to remember to invert the scaling
 additional steps.</p>
 <p>To make matgl models much more friendly for end users, we implement a nested model concept. Examples include
 <code class="docutils literal notranslate"><span class="pre">matgl.apps.pes.Potential</span></code>, which is an interatomic potential model that wraps around a graph model (e.g. M3GNet),
-and the TransformedTargetModel, which is modelled after scikit-learn’s TransformedTargetRegressor. The goal is for
-users to be able to use such models directly without having to worry about the internal transformations.</p>
+and the <code class="docutils literal notranslate"><span class="pre">matgl.models.TransformedTargetModel</span></code>, which is modelled after scikit-learn’s TransformedTargetRegressor. The
+goal is for users to be able to use such models directly without having to worry about the internal transformations.</p>
 </section>
 <section id="model-io">
 <h2>Model IO<a class="headerlink" href="#model-io" title="Permalink to this heading">¶</a></h2>
