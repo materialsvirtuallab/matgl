@@ -1,5 +1,5 @@
 """
-Generate bond features based on spherical bessel functions or gaussian expansion
+Generate bond features based on spherical bessel functions or gaussian expansion.
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class BondExpansion(nn.Module):
             initial (float): initial point for gaussian expansion
             final (float): final point for gaussian expansion
             num_centers (int): Number of centers for gaussian expansion.
-            width (float): width of gaussian function
+            width (float): width of gaussian function.
         """
         super().__init__()
 
@@ -59,7 +59,7 @@ class BondExpansion(nn.Module):
 
     def forward(self, bond_dist: torch.tensor):
         """
-        Forward
+        Forward.
 
         Args:
         bond_dist: Bond distance

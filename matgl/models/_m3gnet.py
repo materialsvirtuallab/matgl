@@ -1,5 +1,5 @@
 """
-Core M3GNet model
+Core M3GNet model.
 """
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__file__)
 
 class M3GNet(nn.Module, IOMixIn):
     """
-    The main M3GNet model
+    The main M3GNet model.
     """
 
     def __init__(

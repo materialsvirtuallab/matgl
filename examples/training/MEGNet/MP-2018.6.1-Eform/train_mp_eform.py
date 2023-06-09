@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import logging
-import math
 import os
 import zipfile
 
@@ -24,7 +23,7 @@ from matgl.graph.data import MEGNetDataset, MGLDataLoader, collate_fn
 from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
 from matgl.utils.io import RemoteFile
-from matgl.utils.training import ModelTrainer
+from matgl.utils.training import ModelTrainer, xavier_init
 
 SEED = 42
 EPOCHS = 2000
@@ -37,8 +36,12 @@ generator = torch.Generator(device="cpu")
 logging.basicConfig(level=logging.INFO)
 
 
-# define a raw data loading function
-def load_dataset():
+def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
+    """Raw data loading function.
+
+    Returns:
+        tuple[list[Structure], list[str], list[float]]: structures, mp_id, Eform_per_atom
+    """
     if not os.path.exists("mp.2018.6.1.json"):
         logging.info("Downloading...")
         f = RemoteFile("https://figshare.com/ndownloader/files/15087992")
@@ -99,20 +102,6 @@ model = MEGNet(
     cutoff=4.0,
     gauss_width=0.5,
 )
-
-
-# define the weight initialization using Xavier scheme
-def xavier_init(model):
-    for name, param in model.named_parameters():
-        if name.endswith(".bias"):
-            param.data.fill_(0)
-        else:
-            if param.dim() < 2:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[0])
-                param.data.uniform_(-bound, bound)
-            else:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[1])
-                param.data.uniform_(-bound, bound)
 
 
 xavier_init(model)

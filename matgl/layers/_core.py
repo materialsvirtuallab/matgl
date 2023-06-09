@@ -73,7 +73,7 @@ class MLP(nn.Module):
 
     @property
     def in_features(self) -> int:
-        """Return input features of MLP"""
+        """Return input features of MLP."""
         return self.layers[0].in_features
 
     @property

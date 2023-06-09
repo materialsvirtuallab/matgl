@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.1
+- Model versioning scheme implemented.
+- Added convenience method to clear cache.
+
+## 0.5.0
+- Model serialization has been completely rewritten to make it easier to use models out of the box.
+- Convenience method `matgl.load_model` is now the default way to load models.
+- Added a TransformedTargetModel.
+- Enable serialization of Potential.
+- IMPORTANT: Pre-trained models have been reserialized. These models can only be used with v0.5.0+!
+
+## 0.4.0
+- Pre-trained M3GNet universal potential
+- Pytorch lightning training utility.
+
 ## v0.3.0
 - Major refactoring of MEGNet and M3GNet models and organization of internal implementations. Only key API are exposed
   via matgl.models or matgl.layers to hide internal implementations (which may change).

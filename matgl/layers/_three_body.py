@@ -19,7 +19,7 @@ from matgl.utils.maths import (
 
 class SphericalBesselWithHarmonics(nn.Module):
     """
-    Expansion of basis using Spherical Bessel and Harmonics
+    Expansion of basis using Spherical Bessel and Harmonics.
     """
 
     def __init__(self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool):
@@ -54,7 +54,7 @@ class SphericalBesselWithHarmonics(nn.Module):
 
 class ThreeBodyInteractions(nn.Module):
     """
-    Include 3D interactions to the bond update
+    Include 3D interactions to the bond update.
     """
 
     def __init__(self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs):
@@ -84,7 +84,7 @@ class ThreeBodyInteractions(nn.Module):
             three_basis: three body basis expansion
             three_cutoff: cutoff radius
             node_feat: node features
-            edge_feat: edge features
+            edge_feat: edge features.
         """
         end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1].to(torch.int64))
         atoms = self.update_network_atom(node_feat)

@@ -31,6 +31,11 @@
             
   <section id="matgl-utils-package">
 <h1>matgl.utils package<a class="headerlink" href="#matgl-utils-package" title="Permalink to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
@@ -38,6 +43,17 @@
 <li class="toctree-l1"><a class="reference internal" href="matgl.utils.cutoff.html">matgl.utils.cutoff module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="matgl.utils.cutoff.html#matgl.utils.cutoff.cosine_cutoff"><code class="docutils literal notranslate"><span class="pre">cosine_cutoff()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="matgl.utils.cutoff.html#matgl.utils.cutoff.polynomial_cutoff"><code class="docutils literal notranslate"><span class="pre">polynomial_cutoff()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="matgl.utils.io.html">matgl.utils.io module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn"><code class="docutils literal notranslate"><span class="pre">IOMixIn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn.load"><code class="docutils literal notranslate"><span class="pre">IOMixIn.load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn.save"><code class="docutils literal notranslate"><span class="pre">IOMixIn.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn.save_args"><code class="docutils literal notranslate"><span class="pre">IOMixIn.save_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.RemoteFile"><code class="docutils literal notranslate"><span class="pre">RemoteFile</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.load_model"><code class="docutils literal notranslate"><span class="pre">load_model()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="matgl.utils.maths.html">matgl.utils.maths module</a><ul>
@@ -66,8 +82,30 @@
 <li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.unsorted_segment_fraction"><code class="docutils literal notranslate"><span class="pre">unsorted_segment_fraction()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="matgl.utils.remote.html">matgl.utils.remote module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.remote.html#matgl.utils.remote.RemoteFile"><code class="docutils literal notranslate"><span class="pre">RemoteFile</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="matgl.utils.training.html">matgl.utils.training module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer"><code class="docutils literal notranslate"><span class="pre">ModelTrainer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.forward"><code class="docutils literal notranslate"><span class="pre">ModelTrainer.forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.loss_fn"><code class="docutils literal notranslate"><span class="pre">ModelTrainer.loss_fn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.step"><code class="docutils literal notranslate"><span class="pre">ModelTrainer.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.forward"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer.forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.loss_fn"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer.loss_fn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.step"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin"><code class="docutils literal notranslate"><span class="pre">TrainerMixin</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.configure_optimizers"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.configure_optimizers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.on_test_model_eval"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.on_test_model_eval()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.on_train_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.on_train_epoch_end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.predict_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.predict_step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.test_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.test_step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.training_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.training_step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.validation_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.validation_step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.xavier_init"><code class="docutils literal notranslate"><span class="pre">xavier_init()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -130,7 +168,7 @@
       &copy;2022, Materials Virtual Lab.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

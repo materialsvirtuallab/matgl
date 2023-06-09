@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Table of Contents &#8212; matgl  documentation</title>
+    <title>MatGL (Materials Graph Library) &#8212; matgl  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -29,49 +29,58 @@
 
           <div class="body" role="main">
             
-  <p><a class="reference external" href="https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/materialsvirtuallab/matgl" /></a>
+  <section id="matgl-materials-graph-library">
+<h1>MatGL (Materials Graph Library)<a class="headerlink" href="#matgl-materials-graph-library" title="Permalink to this heading">¶</a></h1>
+<p><a class="reference external" href="https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/materialsvirtuallab/matgl" /></a>
 <a class="reference external" href="https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg"><img alt="Linting" src="https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg" /></a>
 <a class="reference external" href="https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg"><img alt="Testing" src="https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg" /></a>
 <a class="reference external" href="https://pepy.tech/project/matgl"><img alt="Downloads" src="https://pepy.tech/badge/matgl" /></a></p>
 <section id="table-of-contents">
-<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h1>
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><span class="xref myst">Introduction</span></p></li>
 <li><p><span class="xref myst">Status</span></p></li>
 <li><p><span class="xref myst">Architectures</span></p></li>
 <li><p><span class="xref myst">Installation</span></p></li>
 <li><p><span class="xref myst">Usage</span></p></li>
-<li><p><span class="xref myst">Documentation</span></p></li>
+<li><p><span class="xref myst">Docs</span></p></li>
 <li><p><span class="xref myst">References</span></p></li>
 </ul>
-<p><a name="introduction"></a></p>
 </section>
 <section id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h1>
-<p>MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
-representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
-to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.</p>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p>MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
+natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
+shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.</p>
 <p>In this repository, we have reimplemented the <a class="reference external" href="https://github.com/materialsvirtuallab/m3gnet">MatErials 3-body Graph Network (m3gnet)</a>
 and its predecessor, <a class="reference external" href="https://github.com/materialsvirtuallab/megnet">MEGNet</a> using the <a class="reference external" href="https://www.dgl.ai">Deep Graph Library (DGL)</a>.
 The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
-implemented in TensorFlow.</p>
+implemented in TensorFlow (TF). Here are some key improvements over the TF implementations:</p>
+<ul class="simple">
+<li><p>A more intuitive API and class structure based on the Deep Graph Library.</p></li>
+<li><p>Multi-GPU support via PyTorch Lightning. A training utility module has been developed.</p></li>
+</ul>
 <p>This effort is a collaboration between the <a class="reference external" href="http://materialsvirtuallab.org">Materials Virtual Lab</a> and Intel Labs
 (Santiago Miret, Marcel Nassar, Carmelo Gonzales).</p>
-<p><a name="status"></a></p>
 </section>
 <section id="status">
-<h1>Status<a class="headerlink" href="#status" title="Permalink to this heading">¶</a></h1>
+<h2>Status<a class="headerlink" href="#status" title="Permalink to this heading">¶</a></h2>
+<p>Major milestones are summarized below. Full change log is provided <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/changes">here</a>.</p>
 <ul class="simple">
-<li><p>Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!</p></li>
-<li><p>Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!</p></li>
+<li><p>v0.5.1 (Jun 9 2023): Model versioning implemented.</p></li>
+<li><p>v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!</p></li>
+<li><p>v0.4.0 (Jun 7 2023): Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
+available.</p></li>
+<li><p>v0.1.0 (Feb 16 2023): Initial implementations of M3GNet and MEGNet architectures have been completed. Expect
+bugs!</p></li>
 </ul>
-<p><a name="architectures"></a></p>
 </section>
 <section id="architectures">
-<h1>Architectures<a class="headerlink" href="#architectures" title="Permalink to this heading">¶</a></h1>
+<h2>Architectures<a class="headerlink" href="#architectures" title="Permalink to this heading">¶</a></h2>
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic" width="50%">
+</section>
 <section id="megnet">
 <h2>MEGNet<a class="headerlink" href="#megnet" title="Permalink to this heading">¶</a></h2>
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MEGNet.png?raw=true"  width="50%">
 <p>The MatErials Graph Network (MEGNet) is an implementation of DeepMind’s graph networks for universal machine
 learning in materials science. We have demonstrated its success in achieving very low prediction errors in a broad
 array of properties in both molecules and crystals (see “Graph Networks as a Universal Machine Learning Framework for
@@ -82,7 +91,6 @@ attributes are updated using information from each other, generating an output g
 </section>
 <section id="m3gnet">
 <h2>M3GNet<a class="headerlink" href="#m3gnet" title="Permalink to this heading">¶</a></h2>
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/M3GNet.png?raw=true"  width="50%">
 <p><a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">M3GNet</a> is a new materials graph neural network architecture that
 incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
 the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
@@ -90,58 +98,60 @@ stresses via auto-differentiation.</p>
 <p>As a framework, M3GNet has diverse applications, including:</p>
 <ul class="simple">
 <li><p><strong>Interatomic potential development.</strong> With the same training data, M3GNet performs similarly to state-of-the-art
-machine learning interatomic potentials (ML-IAPs). However, a key feature of a graph representation is its
+machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
 flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
-<em>universal IAP</em> that can work across the entire periodic table of the elements by training on relaxations performed
+<em>universal IP</em> that can work across the entire periodic table of the elements by training on relaxations performed
 in the <a class="reference external" href="http://materialsproject.org">Materials Project</a>.</p></li>
 <li><p><strong>Surrogate models for property predictions.</strong> Like the previous MEGNet architecture, M3GNet can be used to develop
-surrogate models for property predictions, achieving in many cases accuracies that better or similar to other
+surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
 state-of-the-art ML models.</p></li>
 </ul>
-<p>For detailed performance benchmarks, please refer to the publication in the <span class="xref myst">References</span> section.</p>
-<p><a name="installation"></a></p>
-</section>
+<p>For detailed performance benchmarks, please refer to the publications in the <span class="xref myst">References</span> section.</p>
 </section>
 <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <p>Matgl can be installed via pip for the latest stable version:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install matgl
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>matgl
 </pre></div>
 </div>
 <p>For the latest dev version, please clone this repo and install using:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python setup.py -e .
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>setup.py<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
-<p><a name="usage"></a></p>
 </section>
 <section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h1>
-<p>The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
-The following is an example of a prediction of the formation energy for CsCl.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">Lattice</span>
-<span class="kn">from</span> <span class="nn">matgl.models._megnet</span> <span class="kn">import</span> <span class="n">MEGNet</span>
-
-<span class="c1"># load the pre-trained MEGNet model for formation energy model.</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">MEGNet</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MEGNet-MP-2018.6.1-Eform&quot;</span><span class="p">)</span>
-<span class="c1"># This is the structure obtained from the Materials Project.</span>
-<span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_spacegroup</span><span class="p">(</span><span class="s2">&quot;Pm-3m&quot;</span><span class="p">,</span> <span class="n">Lattice</span><span class="o">.</span><span class="n">cubic</span><span class="p">(</span><span class="mf">4.14</span><span class="p">),</span> <span class="p">[</span><span class="s2">&quot;Cs&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">],</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span>
-<span class="n">eform</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_structure</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The predicted formation energy for CsCl is </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">eform</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span><span class="si">:</span><span class="s2">5f</span><span class="si">}</span><span class="s2"> eV/atom.&quot;</span><span class="p">)</span>
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h2>
+<p>Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
+multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
+implemented convenience method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matgl</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">matgl</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>A full example is in <span class="xref myst">here</span>.</p>
-<p><a name="documentation"></a></p>
+<p>The following is an example of a prediction of the formation energy for CsCl.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Lattice</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">import</span> <span class="nn">matgl</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">matgl</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;MEGNet-MP-2018.6.1-Eform&quot;</span><span class="p">)</span>
+
+<span class="c1"># This is the structure obtained from the Materials Project.</span>
+<span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_spacegroup</span><span class="p">(</span><span class="s2">&quot;Pm-3m&quot;</span><span class="p">,</span> <span class="n">Lattice</span><span class="o">.</span><span class="n">cubic</span><span class="p">(</span><span class="mf">4.1437</span><span class="p">),</span> <span class="p">[</span><span class="s2">&quot;Cs&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">],</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span>
+<span class="n">eform</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_structure</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The predicted formation energy for CsCl is </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">eform</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> eV/atom.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="jupyter-notebooks">
+<h3>Jupyter notebooks<a class="headerlink" href="#jupyter-notebooks" title="Permalink to this heading">¶</a></h3>
+<p>We have written several <span class="xref myst">Jupyter notebooks</span> on the use of MatGL. These notebooks can be run on Google
+Colab. This will be the primary form of usage documentation.</p>
 </section>
-<section id="additional-information">
-<h1>Additional information<a class="headerlink" href="#additional-information" title="Permalink to this heading">¶</a></h1>
-<ul class="simple">
-<li><p><a class="reference external" href="http://materialsvirtuallab.github.io/matgl">Documentation Page</a></p></li>
-<li><p><a class="reference external" href="https://materialsvirtuallab.github.io/matgl/modules.html">API documentation</a></p></li>
-</ul>
-<p><a name="references"></a></p>
+<section id="docs">
+<h3>Docs<a class="headerlink" href="#docs" title="Permalink to this heading">¶</a></h3>
+<p><a class="reference external" href="http://materialsvirtuallab.github.io/matgl">http://materialsvirtuallab.github.io/matgl</a></p>
+</section>
 </section>
 <section id="references">
-<h1>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h1>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <p>Please cite the following works:</p>
 <ul>
 <li><p>MEGNet</p>
@@ -164,13 +174,14 @@ Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.
 </li>
 </ul>
 </section>
-<section id="acknowledgements">
-<h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this heading">¶</a></h1>
+<section id="acknowledgments">
+<h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this heading">¶</a></h2>
 <p>This work was primarily supported by the Materials Project, funded by the U.S. Department of Energy, Office of Science,
 Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.
 DE-AC02-05-CH11231: Materials Project program KC23MP. This work used the Expanse supercomputing cluster at the Extreme
 Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation grant number
 ACI-1548562.</p>
+</section>
 </section>
 
 
@@ -224,7 +235,7 @@ ACI-1548562.</p>
       &copy;2022, Materials Virtual Lab.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

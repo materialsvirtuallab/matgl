@@ -12,7 +12,7 @@ from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 
 
-class TestMEGNet(unittest.TestCase):
+class MEGNetTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])

@@ -45,7 +45,7 @@ order l Spherical Bessel function is the <cite>[l, n]</cite> entry.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Gaussian Radial Expansion.
 The bond distance is expanded to a vector of shape [m],
-where m is the number of Gaussian basis centers</p>
+where m is the number of Gaussian basis centers.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.utils.maths.GaussianExpansion.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bond_dists</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.GaussianExpansion.forward" title="Permalink to this definition">¶</a></dt>
@@ -80,12 +80,12 @@ where m is the number of Gaussian basis centers</p>
 <dt class="sig sig-object py" id="matgl.utils.maths.SphericalBesselFunction">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">SphericalBesselFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.SphericalBesselFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Calculate the spherical Bessel function based on sympy + pytorch implementations</p>
+<p>Calculate the spherical Bessel function based on sympy + pytorch implementations.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.utils.maths.SphericalBesselFunction.rbf_j0">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rbf_j0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.SphericalBesselFunction.rbf_j0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Spherical Bessel function of order 0, ensuring the function value
-vanishes at cutoff</p>
+vanishes at cutoff.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>r: torch.tensor pytorch tensors
 cutoff: float, the cutoff radius
@@ -101,22 +101,20 @@ max_n: int max number of basis</p>
 <dt class="sig sig-object py" id="matgl.utils.maths.SphericalHarmonicsFunction">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">SphericalHarmonicsFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.SphericalHarmonicsFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Spherical Harmonics function</p>
+<p>Spherical Harmonics function.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.utils.maths.broadcast">
 <span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">broadcast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.broadcast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Broadcast input tensor along a given dimension to match the shape of the target tensor.
-Modified from torch_scatter library (<a class="reference external" href="https://github.com/rusty1s/pytorch_scatter">https://github.com/rusty1s/pytorch_scatter</a>).
-Args:</p>
-<blockquote>
-<div><p>input_tensor: The tensor to broadcast.
+Modified from torch_scatter library (<a class="reference external" href="https://github.com/rusty1s/pytorch_scatter">https://github.com/rusty1s/pytorch_scatter</a>).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>input_tensor: The tensor to broadcast.
 target_tensor: The tensor whose shape to match.
 dim: The dimension along which to broadcast.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>resulting inout tensor after broadcasting</p>
+</dd>
+<dt>Returns:</dt><dd><p>resulting input tensor after broadcasting</p>
 </dd>
 </dl>
 </dd></dl>
@@ -125,7 +123,7 @@ dim: The dimension along which to broadcast.</p>
 <dt class="sig sig-object py" id="matgl.utils.maths.broadcast_states_to_atoms">
 <span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">broadcast_states_to_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.broadcast_states_to_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Broadcast state attributes of shape [Ns, Nstate] to
-bond attributes shape [Nb, Nstate]</p>
+bond attributes shape [Nb, Nstate].</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>g: DGL graph
 state_feat: state_feature</p>
@@ -138,7 +136,7 @@ state_feat: state_feature</p>
 <dt class="sig sig-object py" id="matgl.utils.maths.broadcast_states_to_bonds">
 <span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">broadcast_states_to_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.broadcast_states_to_bonds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Broadcast state attributes of shape [Ns, Nstate] to
-bond attributes shape [Nb, Nstate]</p>
+bond attributes shape [Nb, Nstate].</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>g: DGL graph
 state_feat: state_feature</p>
@@ -149,8 +147,8 @@ state_feat: state_feature</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.utils.maths.combine_sbf_shf">
-<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">combine_sbf_shf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_smooth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.combine_sbf_shf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine the spherical Bessel function and the spherical Harmonics function</p>
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">combine_sbf_shf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.combine_sbf_shf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the spherical Bessel function and the spherical Harmonics function.</p>
 <dl class="simple">
 <dt>For the spherical Bessel function, the column is ordered by</dt><dd><p>[n=[0, …, max_n-1], n=[0, …, max_n-1], …], max_l blocks,</p>
 </dd>
@@ -172,7 +170,7 @@ use_phi: whether to use phi</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.utils.maths.get_range_indices_from_n">
 <span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">get_range_indices_from_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.get_range_indices_from_n" title="Permalink to this definition">¶</a></dt>
-<dd><p>Give ns = [2, 3], return [0, 1, 0, 1, 2]</p>
+<dd><p>Give ns = [2, 3], return [0, 1, 0, 1, 2].</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>ns: torch.tensor, the number of atoms/bonds array</p>
 </dd>
@@ -184,7 +182,7 @@ use_phi: whether to use phi</p>
 <dt class="sig sig-object py" id="matgl.utils.maths.get_segment_indices_from_n">
 <span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">get_segment_indices_from_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.get_segment_indices_from_n" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get segment indices from number array. For example if
-ns = [2, 3], then the function will return [0, 0, 1, 1, 1]</p>
+ns = [2, 3], then the function will return [0, 0, 1, 1, 1].</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>ns: torch.tensor, the number of atoms/bonds array</p>
 </dd>
@@ -230,7 +228,7 @@ spherical bessel function is the <cite>[l, n]</cite> entry of the return matrix.
 The calculation is based on the fact that the n-root for l-th
 spherical Bessel function <cite>j_l</cite>, i.e., <cite>z_{j, n}</cite> is in the range
 <cite>[z_{j-1,n}, z_{j-1, n+1}]</cite>. On the other hand we know precisely the
-roots for j0, i.e., sinc(x)</p>
+roots for j0, i.e., sinc(x).</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>max_l: max order of spherical bessel function
 max_n: max number of roots</p>
@@ -245,7 +243,7 @@ max_n: max number of roots</p>
 <dd><p>This is an orthogonal basis with first
 and second derivative at the cutoff
 equals to zero. The function was derived from the order 0 spherical Bessel
-function, and was expanded by the different zero roots</p>
+function, and was expanded by the different zero roots.</p>
 <dl class="simple">
 <dt>Ref:</dt><dd><p><a class="reference external" href="https://arxiv.org/pdf/1907.02374.pdf">https://arxiv.org/pdf/1907.02374.pdf</a></p>
 </dd>
@@ -268,7 +266,7 @@ segment_ids (torch.tensor): segment ids
 num_segments (torch.tensor): number of segments</p>
 </div></blockquote>
 <dl class="simple">
-<dt>Returns:</dt><dd><p>data (torch.tensor): data after fraction</p>
+<dt>Returns:</dt><dd><p>data (torch.tensor): data after fraction.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -326,7 +324,7 @@ num_segments (torch.tensor): number of segments</p>
       &copy;2022, Materials Virtual Lab.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
