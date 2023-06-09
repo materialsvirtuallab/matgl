@@ -45,7 +45,13 @@ setup(
         "matgl.utils": ["*.npy"],
     },
     include_package_data=True,
-    install_requires=("torch", "dgl"),
+    install_requires=(
+        "ase",
+        "dgl",
+        "pymatgen",
+        "pytorch_lightning",
+        "torch",
+    ),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
