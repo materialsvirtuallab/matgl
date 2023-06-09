@@ -4,6 +4,8 @@ Utils for training MatGL models.
 
 from __future__ import annotations
 
+import math
+
 import dgl
 import numpy as np
 import pytorch_lightning as pl
@@ -399,3 +401,21 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
             "Force_RMSE": f_rmse,
             "Stress_RMSE": s_rmse,
         }
+
+
+def xavier_init(model: nn.Module) -> None:
+    """Xavier initialization scheme for the model.
+
+    Args:
+        model (nn.Module): The model to be Xavier-initialized.
+    """
+    for name, param in model.named_parameters():
+        if name.endswith(".bias"):
+            param.data.fill_(0)
+        else:
+            if param.dim() < 2:
+                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[0])
+                param.data.uniform_(-bound, bound)
+            else:
+                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[1])
+                param.data.uniform_(-bound, bound)
