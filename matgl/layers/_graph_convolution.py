@@ -7,7 +7,7 @@ from __future__ import annotations
 import dgl
 import dgl.function as fn
 import torch
-from torch import nn
+from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
 
 from matgl.layers._core import MLP, GatedMLP
@@ -41,13 +41,16 @@ class MEGNetGraphConv(Module):
         state_dims: list[int],
         activation: Module,
     ) -> MEGNetGraphConv:
-        """
-        TODO: Add docs.
-        :param edge_dims: dense layers for message functions
-        :param node_dims: dense layers for node update functions
-        :param state_dims: dense layers for state update functions
-        :param activation: activation function
-        :return:
+        """Create a MEGNet graph convolution layer from dimensions.
+
+        Args:
+            edge_dims (list[int]): Edge dimensions.
+            node_dims (list[int]): Node dimensions.
+            state_dims (list[int]): State dimensions.
+            activation (Module): Activation function.
+
+        Returns:
+            MEGNetGraphConv: MEGNet graph convolution layer.
         """
         # TODO(marcel): Softplus doesn't exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
@@ -65,7 +68,7 @@ class MEGNetGraphConv(Module):
         mij = {"mij": self.edge_func(inputs)}
         return mij
 
-    def edge_update_(self, graph: dgl.DGLGraph) -> torch.Tensor:
+    def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
         """
         Perform edge update.
 
@@ -76,7 +79,7 @@ class MEGNetGraphConv(Module):
         graph.edata["e"] = graph.edata.pop("mij")
         return graph.edata["e"]
 
-    def node_update_(self, graph: dgl.DGLGraph) -> torch.Tensor:
+    def node_update_(self, graph: dgl.DGLGraph) -> Tensor:
         """
         Perform node update.
 
@@ -91,7 +94,7 @@ class MEGNetGraphConv(Module):
         graph.ndata["v"] = self.node_func(inputs)
         return graph.ndata["v"]
 
-    def state_update_(self, graph: dgl.DGLGraph, state_attrs: torch.Tensor) -> torch.Tensor:
+    def state_update_(self, graph: dgl.DGLGraph, state_attrs: Tensor) -> Tensor:
         """
         Perform attribute (global state) update.
 
@@ -110,10 +113,10 @@ class MEGNetGraphConv(Module):
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_feat: torch.Tensor,
-        node_feat: torch.Tensor,
-        state_attr: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        edge_feat: Tensor,
+        node_feat: Tensor,
+        state_attr: Tensor,
+    ) -> tuple[Tensor, Tensor, Tensor]:
         """
         Perform sequence of edge->node->attribute updates.
 
@@ -186,17 +189,21 @@ class MEGNetBlock(Module):
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_feat: torch.Tensor,
-        node_feat: torch.Tensor,
-        state_attr: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        TODO: Add docs.
-        :param graph:
-        :param edge_feat:
-        :param node_feat:
-        :param state_attr:
-        :return:
+        edge_feat: Tensor,
+        node_feat: Tensor,
+        state_attr: Tensor,
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        """MEGNetBlock forward pass.
+
+        Args:
+            graph (dgl.DGLGraph): A DGLGraph.
+            edge_feat (Tensor): Edge features.
+            node_feat (Tensor): Node features.
+            state_attr (Tensor): Graph attributes (global state).
+
+        Returns:
+            tuple[Tensor, Tensor, Tensor]: Updated (edge features,
+                node features, graph attributes)
         """
         inputs = (edge_feat, node_feat, state_attr)
         edge_feat = self.edge_func(edge_feat)
@@ -303,7 +310,7 @@ class M3GNetGraphConv(Module):
         mij = {"mij": self.edge_update_func(inputs) * self.edge_weight_func(rbf)}
         return mij
 
-    def edge_update_(self, graph: dgl.DGLGraph) -> torch.Tensor:
+    def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
         """
         Perform edge update.
 
@@ -317,7 +324,7 @@ class M3GNetGraphConv(Module):
         edge_update = graph.edata.pop("mij")
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, state_attr: torch.Tensor) -> torch.Tensor:
+    def node_update_(self, graph: dgl.DGLGraph, state_attr: Tensor) -> Tensor:
         """
         Perform node update.
 
@@ -345,7 +352,7 @@ class M3GNetGraphConv(Module):
         node_update = graph.ndata.pop("ve")
         return node_update
 
-    def state_update_(self, graph: dgl.DGLGraph, state_attrs: torch.Tensor) -> torch.Tensor:
+    def state_update_(self, graph: dgl.DGLGraph, state_attrs: Tensor) -> Tensor:
         """
         Perform attribute (global state) update.
 
@@ -365,10 +372,10 @@ class M3GNetGraphConv(Module):
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_feat: torch.Tensor,
-        node_feat: torch.Tensor,
-        state_attr: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        edge_feat: Tensor,
+        node_feat: Tensor,
+        state_attr: Tensor,
+    ) -> tuple[Tensor, Tensor, Tensor]:
         """
         Perform sequence of edge->node->states updates.
 
@@ -454,9 +461,9 @@ class M3GNetBlock(Module):
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_feat: torch.tensor,
-        node_feat: torch.tensor,
-        state_feat: torch.tensor,
+        edge_feat: Tensor,
+        node_feat: Tensor,
+        state_feat: Tensor,
     ) -> tuple:
         """
         :param graph: DGL graph

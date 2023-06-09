@@ -57,14 +57,23 @@ def MGLDataLoader(
     pin_memory: bool = False,
     test_data: dgl.data.utils.Subset | None = None,
     generator: torch.Generator | None = None,
-):
-    """
-    Dataloader for MEGNet training
+) -> tuple[GraphDataLoader, ...]:
+    """Dataloader for MEGNet training.
+
     Args:
-    train_data: training data
-    val_data: validation data
-    test_data: testing data
-    collate_fn:
+        train_data (dgl.data.utils.Subset): Training dataset.
+        val_data (dgl.data.utils.Subset): Validation dataset.
+        collate_fn (Callable): Collate function.
+        batch_size (int): Batch size.
+        num_workers (int): Number of workers.
+        use_ddp (bool, optional): Whether to use DDP. Defaults to False.
+        pin_memory (bool, optional): Whether to pin memory. Defaults to False.
+        test_data (dgl.data.utils.Subset | None, optional): Test dataset. Defaults to None.
+        generator (torch.Generator | None, optional): Random number generator. Defaults to None.
+
+    Returns:
+        tuple[GraphDataLoader, ...]: Train, validation and test data loaders. Test data
+            loader is None if test_data is None.
     """
     train_loader = GraphDataLoader(
         train_data,

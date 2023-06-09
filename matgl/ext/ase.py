@@ -285,10 +285,7 @@ class TrajectoryObserver:
         self.cells.append(self.atoms.get_cell()[:])
 
     def compute_energy(self) -> float:
-        """
-        calculate the energy, here we just use the potential energy
-        Returns:
-        """
+        """Calculate the potential energy."""
         energy = self.atoms.get_potential_energy()
         return energy
 
@@ -429,11 +426,10 @@ class MolecularDynamics:
 
     def run(self, steps: int):
         """
-        Thin wrapper of ase MD run
+        Thin wrapper of ase MD run.
+
         Args:
             steps (int): number of MD steps
-        Returns:
-
         """
         self.dyn.run(steps)
 

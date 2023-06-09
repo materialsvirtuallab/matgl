@@ -11,9 +11,7 @@ from torch import nn
 
 
 class AtomRef(nn.Module):
-    """
-    Get total property offset for a system:
-    """
+    """Get total property offset for a system."""
 
     def __init__(
         self,

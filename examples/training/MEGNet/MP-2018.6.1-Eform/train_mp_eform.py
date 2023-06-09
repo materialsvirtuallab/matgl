@@ -36,8 +36,12 @@ generator = torch.Generator(device="cpu")
 logging.basicConfig(level=logging.INFO)
 
 
-# define a raw data loading function
-def load_dataset():
+def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
+    """Raw data loading function.
+
+    Returns:
+        tuple[list[Structure], list[str], list[float]]: structures, mp_id, Eform_per_atom
+    """
     if not os.path.exists("mp.2018.6.1.json"):
         logging.info("Downloading...")
         f = RemoteFile("https://figshare.com/ndownloader/files/15087992")
