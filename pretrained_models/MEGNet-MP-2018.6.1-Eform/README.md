@@ -13,7 +13,7 @@ Number of structures for testing: 3463
 
 # Performance metrics
 
-The reported numbers are mean absolute error of formation energy in eV
+The reported numbers are mean absolute error of formation energy in eV/atom
 Train: 0.010 eV/atom
 Valid: 0.0293 eV/atom
 Test: 0.0276 eV/atom
