@@ -49,9 +49,9 @@
 </section>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
-<p>MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
-representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
-to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.</p>
+<p>MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
+natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
+shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.</p>
 <p>In this repository, we have reimplemented the <a class="reference external" href="https://github.com/materialsvirtuallab/m3gnet">MatErials 3-body Graph Network (m3gnet)</a>
 and its predecessor, <a class="reference external" href="https://github.com/materialsvirtuallab/megnet">MEGNet</a> using the <a class="reference external" href="https://www.dgl.ai">Deep Graph Library (DGL)</a>.
 The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
@@ -118,28 +118,26 @@ state-of-the-art ML models.</p></li>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h2>
-<p>The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
-The following is an example of a prediction of the formation energy for CsCl.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">Lattice</span>
-<span class="kn">from</span> <span class="nn">matgl.models</span> <span class="kn">import</span> <span class="n">MEGNet</span>
+<p>Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
+multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
+implemented convenience method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matgl</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">matgl</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="o">&lt;</span><span class="n">name</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following is an example of a prediction of the formation energy for CsCl.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Lattice</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">import</span> <span class="nn">matgl</span>
 
-<span class="c1"># Load the pre-trained MEGNet model.</span>
-<span class="n">model</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">MEGNet</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;MEGNet-MP-2018.6.1-Eform&quot;</span><span class="p">,</span> <span class="n">include_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1"># Obtain the mean and std for formation energy model</span>
-<span class="n">metadata</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">]</span>
-<span class="n">data_std</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;data_std&quot;</span><span class="p">]</span>
-<span class="n">data_mean</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;data_mean&quot;</span><span class="p">]</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">matgl</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;MEGNet-MP-2018.6.1-Eform&quot;</span><span class="p">)</span>
 
 <span class="c1"># This is the structure obtained from the Materials Project.</span>
 <span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_spacegroup</span><span class="p">(</span><span class="s2">&quot;Pm-3m&quot;</span><span class="p">,</span> <span class="n">Lattice</span><span class="o">.</span><span class="n">cubic</span><span class="p">(</span><span class="mf">4.1437</span><span class="p">),</span> <span class="p">[</span><span class="s2">&quot;Cs&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">],</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span>
-<span class="n">eform</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_structure</span><span class="p">(</span>
-    <span class="n">structure</span><span class="o">=</span><span class="n">struct</span><span class="p">,</span> <span class="n">data_mean</span><span class="o">=</span><span class="n">data_mean</span><span class="p">,</span> <span class="n">data_std</span><span class="o">=</span><span class="n">data_std</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The predicted formation energy for CsCl is </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">eform</span><span class="p">)</span><span class="si">:</span><span class="s2">5f</span><span class="si">}</span><span class="s2"> eV/atom.&quot;</span><span class="p">)</span>
+<span class="n">eform</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_structure</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The predicted formation energy for CsCl is </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">eform</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> eV/atom.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>A full example is in <span class="xref myst">here</span>.</p>
+<p>More examples are available <span class="xref myst">here</span>.</p>
 </section>
 <section id="docs">
 <h2>Docs<a class="headerlink" href="#docs" title="Permalink to this heading">¶</a></h2>

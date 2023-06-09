@@ -1,13 +1,20 @@
 matgl.data package
 ==================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 6
+
+
 Submodules
 ----------
 
 .. toctree::
    :maxdepth: 6
 
-   matgl.data.dataset
+   matgl.data.transformer
 
 Module contents
 ---------------

@@ -1,6 +1,13 @@
 matgl.utils package
 ===================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 6
+
+
 Submodules
 ----------
 

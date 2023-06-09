@@ -1,12 +1,5 @@
-matgl.apps package
-==================
-
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 6
-
+matgl.data.tests package
+========================
 
 Submodules
 ----------
@@ -14,12 +7,11 @@ Submodules
 .. toctree::
    :maxdepth: 6
 
-   matgl.apps.pes
+   matgl.data.tests.test_transformer
 
 Module contents
 ---------------
 
-.. automodule:: matgl.apps
    :members:
    :undoc-members:
    :show-inheritance:

@@ -17,9 +17,9 @@
 
 ## Introduction
 
-MatGL (Materials Graph Library) is a graph deep learning library for materials. Mathematical graphs are a natural
-representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been shown
-to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
+MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
+natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
+shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
 
 In this repository, we have reimplemented the [MatErials 3-body Graph Network (m3gnet)](https://github.com/materialsvirtuallab/m3gnet)
 and its predecessor, [MEGNet](https://github.com/materialsvirtuallab/megnet) using the [Deep Graph Library (DGL)](https://www.dgl.ai).
@@ -89,30 +89,30 @@ python setup.py -e .
 
 ## Usage
 
-The pre-trained MEGNet models for the Materials Project formation energy and multi-fidelity band gap are now available.
+Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
+multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
+implemented convenience method:
+
+```python
+import matgl
+model = matgl.load_model(<name>)
+```
+
 The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
-from pymatgen.core import Structure, Lattice
-from matgl.models import MEGNet
+from pymatgen.core import Lattice, Structure
+import matgl
 
-# Load the pre-trained MEGNet model.
-model, d = MEGNet.load("MEGNet-MP-2018.6.1-Eform", include_json=True)
-
-# Obtain the mean and std for formation energy model
-metadata = d["metadata"]
-data_std = metadata["data_std"]
-data_mean = metadata["data_mean"]
+model = matgl.load_model("MEGNet-MP-2018.6.1-Eform")
 
 # This is the structure obtained from the Materials Project.
 struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.1437), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-eform = model.predict_structure(
-    structure=struct, data_mean=data_mean, data_std=data_std
-)
-print(f"The predicted formation energy for CsCl is {float(eform):5f} eV/atom.")
+eform = model.predict_structure(struct)
+print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
-A full example is in [here](examples/Pre-trained%20MEGNet%20for%20Property%20Predictions.ipynb).
+More examples are available [here](examples).
 
 ## Docs
 
