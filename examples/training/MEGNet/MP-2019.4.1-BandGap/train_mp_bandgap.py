@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import gzip
 import json
-import math
 import os
 from copy import deepcopy
 
@@ -22,7 +21,7 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import MEGNetDataset, MGLDataLoader, collate_fn
 from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
-from matgl.utils.training import ModelTrainer
+from matgl.utils.training import ModelTrainer, xavier_init
 
 ALL_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
 TRAIN_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
@@ -98,7 +97,7 @@ print("Train, val and test data sizes are ", len(train_ids), len(val_ids), len(t
 # get the train, val and test graph-target pairs
 def get_graphs_targets(ids):
     """
-    Get graphs and targets list from the ids
+    Get graphs and targets list from the ids.
 
     Args:
         ids (List): list of ids
@@ -169,20 +168,6 @@ model = MEGNet(
     cutoff=5.0,
     gauss_width=0.5,
 )
-
-
-# setup the weight initialization using Xavier scheme
-def xavier_init(model):
-    for name, param in model.named_parameters():
-        if name.endswith(".bias"):
-            param.data.fill_(0)
-        else:
-            if param.dim() < 2:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[0])
-                param.data.uniform_(-bound, bound)
-            else:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[1])
-                param.data.uniform_(-bound, bound)
 
 
 xavier_init(model)

@@ -1,5 +1,5 @@
 """
-Readout layer for M3GNet
+Readout layer for M3GNet.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from matgl.layers._core import EdgeSet2Set, GatedMLP
 
 class Set2SetReadOut(nn.Module):
     """
-    The Set2Set readout function
+    The Set2Set readout function.
     """
 
     def __init__(
@@ -27,7 +27,7 @@ class Set2SetReadOut(nn.Module):
         Args:
             num_steps (int): Number of LSTM steps
             num_layers (int): Number of layers.
-            field (str): Field of graph to perform the readout
+            field (str): Field of graph to perform the readout.
         """
         super().__init__()
         self.field = field
@@ -57,7 +57,7 @@ class ReduceReadOut(nn.Module):
         """
         Args:
             op (str): op for the reduction
-            field (str): Field of graph to perform the reduction
+            field (str): Field of graph to perform the reduction.
         """
         super().__init__()
         self.op = op
@@ -68,7 +68,7 @@ class ReduceReadOut(nn.Module):
         Args:
             g: DGL graph
         Returns:
-            torch.tensor
+            torch.tensor.
         """
         if self.field == "node_feat":
             reduced_tensor = dgl.readout_nodes(g, feat="node_feat", op=self.op)
@@ -87,7 +87,7 @@ class WeightedReadOut(nn.Module):
         Args:
            in_feats: input features (nodes)
            dims: NN architecture for Gated MLP
-           num_targets: number of target properties
+           num_targets: number of target properties.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -99,7 +99,7 @@ class WeightedReadOut(nn.Module):
         Args:
             g: DGL graph
         Returns:
-            atomic_properties: torch.tensor
+            atomic_properties: torch.tensor.
         """
         atomic_properties = self.gated(g.ndata["node_feat"])
         return atomic_properties

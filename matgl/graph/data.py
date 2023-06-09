@@ -1,5 +1,5 @@
 """
-Tools to construct a dataset of DGL graphs
+Tools to construct a dataset of DGL graphs.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 def collate_fn(batch):
     """
-    Merge a list of dgl graphs to form a batch
+    Merge a list of dgl graphs to form a batch.
     """
     graphs, labels, state_attr = map(list, zip(*batch))
     g = dgl.batch(graphs)
@@ -35,7 +35,7 @@ def collate_fn(batch):
 
 def collate_fn_efs(batch):
     """
-    Merge a list of dgl graphs to form a batch
+    Merge a list of dgl graphs to form a batch.
     """
     graphs, line_graphs, state_attr, energies, forces, stresses = map(list, zip(*batch))
     g = dgl.batch(graphs)
@@ -57,14 +57,23 @@ def MGLDataLoader(
     pin_memory: bool = False,
     test_data: dgl.data.utils.Subset | None = None,
     generator: torch.Generator | None = None,
-):
-    """
-    Dataloader for MEGNet training
+) -> tuple[GraphDataLoader, ...]:
+    """Dataloader for MEGNet training.
+
     Args:
-    train_data: training data
-    val_data: validation data
-    test_data: testing data
-    collate_fn:
+        train_data (dgl.data.utils.Subset): Training dataset.
+        val_data (dgl.data.utils.Subset): Validation dataset.
+        collate_fn (Callable): Collate function.
+        batch_size (int): Batch size.
+        num_workers (int): Number of workers.
+        use_ddp (bool, optional): Whether to use DDP. Defaults to False.
+        pin_memory (bool, optional): Whether to pin memory. Defaults to False.
+        test_data (dgl.data.utils.Subset | None, optional): Test dataset. Defaults to None.
+        generator (torch.Generator | None, optional): Random number generator. Defaults to None.
+
+    Returns:
+        tuple[GraphDataLoader, ...]: Train, validation and test data loaders. Test data
+            loader is None if test_data is None.
     """
     train_loader = GraphDataLoader(
         train_data,
@@ -100,7 +109,7 @@ def MGLDataLoader(
 
 class MEGNetDataset(DGLDataset):
     """
-    Create a dataset including dgl graphs
+    Create a dataset including dgl graphs.
     """
 
     def __init__(
@@ -127,7 +136,7 @@ class MEGNetDataset(DGLDataset):
         num_centers: number of Gaussian functions
         width: width of Gaussian functions
         name: Name of dataset
-        graph_labels: graph attributes either integers and floating point numbers
+        graph_labels: graph attributes either integers and floating point numbers.
         """
         self.converter = converter
         self.structures = structures
@@ -152,7 +161,7 @@ class MEGNetDataset(DGLDataset):
 
     def process(self) -> tuple:
         """
-        Convert Pymatgen structure into dgl graphs
+        Convert Pymatgen structure into dgl graphs.
         """
         num_graphs = self.labels.shape[0]
         self.graphs = []
@@ -182,7 +191,7 @@ class MEGNetDataset(DGLDataset):
         Save dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename_state_attr: Name of file storing graph attrs
+        :filename_state_attr: Name of file storing graph attrs.
         """
         labels_with_key = {self.label_name: self.labels}
         save_graphs(filename, self.graphs, labels_with_key)
@@ -193,7 +202,7 @@ class MEGNetDataset(DGLDataset):
         Load dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename: Name of file storing state attrs
+        :filename: Name of file storing state attrs.
         """
         self.graphs, label_dict = load_graphs(filename)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
@@ -201,20 +210,20 @@ class MEGNetDataset(DGLDataset):
 
     def __getitem__(self, idx: int):
         """
-        Get graph and label with idx
+        Get graph and label with idx.
         """
         return self.graphs[idx], self.labels[idx], self.state_attr[idx]
 
     def __len__(self):
         """
-        Get size of dataset
+        Get size of dataset.
         """
         return len(self.graphs)
 
 
 class M3GNetDataset(DGLDataset):
     """
-    Create a dataset including dgl graphs
+    Create a dataset including dgl graphs.
     """
 
     def __init__(
@@ -237,7 +246,7 @@ class M3GNetDataset(DGLDataset):
         converter: dgl graph converter
         threebody_cutoff: cutoff for three body
         name: name of dataset
-        graph_labels: state attributes
+        graph_labels: state attributes.
         """
         self.converter = converter
         self.structures = structures
@@ -259,7 +268,7 @@ class M3GNetDataset(DGLDataset):
 
     def process(self) -> tuple:
         """
-        Convert Pymatgen structure into dgl graphs
+        Convert Pymatgen structure into dgl graphs.
         """
         num_graphs = len(self.energies)
         self.graphs = []
@@ -295,7 +304,7 @@ class M3GNetDataset(DGLDataset):
         Save dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename_state_attr: Name of file storing graph attrs
+        :filename_state_attr: Name of file storing graph attrs.
         """
         labels_with_key = {"energies": self.energies, "forces": self.forces, "stresses": self.stresses}
         save_graphs(filename, self.graphs)
@@ -314,7 +323,7 @@ class M3GNetDataset(DGLDataset):
         Load dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename: Name of file storing state attrs
+        :filename: Name of file storing state attrs.
         """
         self.graphs = load_graphs(filename)
         self.line_graphs = load_graphs(filename_line_graph)
@@ -327,7 +336,7 @@ class M3GNetDataset(DGLDataset):
 
     def __getitem__(self, idx: int):
         """
-        Get graph and label with idx
+        Get graph and label with idx.
         """
         return (
             self.graphs[idx],
@@ -340,6 +349,6 @@ class M3GNetDataset(DGLDataset):
 
     def __len__(self):
         """
-        Get size of dataset
+        Get size of dataset.
         """
         return len(self.graphs)

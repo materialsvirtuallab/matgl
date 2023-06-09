@@ -1,5 +1,5 @@
 """
-Computing various graph based operations
+Computing various graph based operations.
 """
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import torch
 
 def compute_3body(g: dgl.DGLGraph):
     """
-    Calculate the three body indices from pair atom indices
+    Calculate the three body indices from pair atom indices.
 
     Args:
         g: DGL graph
@@ -74,7 +74,7 @@ def compute_3body(g: dgl.DGLGraph):
 
 def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     """
-    Calculate bond vectors and distances using dgl graphs
+    Calculate bond vectors and distances using dgl graphs.
 
     Args:
     g: DGL graph
@@ -97,7 +97,7 @@ def compute_pair_vector_and_distance(g: dgl.DGLGraph):
 
 def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     """
-    Calculate bond angle Theta and Phi using dgl graphs
+    Calculate bond angle Theta and Phi using dgl graphs.
 
     Args:
     edges: DGL graph edges
@@ -119,7 +119,7 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
 
 def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
     """
-    Calculate the three body indices from pair atom indices
+    Calculate the three body indices from pair atom indices.
 
     Args:
         g_batched: Batched DGL graph

@@ -1,5 +1,5 @@
 """
-Implementation of Interatomic Potentials
+Implementation of Interatomic Potentials.
 """
 from __future__ import annotations
 

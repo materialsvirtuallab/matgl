@@ -14,7 +14,7 @@ def polynomial_cutoff(r, cutoff: float):
     Polynomial cutoff function
     Args:
         r (torch.tensor): radius distance tensor
-        cutoff (float): cutoff distance
+        cutoff (float): cutoff distance.
 
     Returns: polynomial cutoff functions
 
@@ -28,7 +28,7 @@ def cosine_cutoff(r: torch.Tensor, cutoff: float) -> torch.Tensor:
     Cosine cutoff function
     Args:
         r (torch.tensor): radius distance tensor
-        cutoff (float): cutoff distance
+        cutoff (float): cutoff distance.
 
     Returns: cosine cutoff functions
 
