@@ -31,7 +31,7 @@
             
   <section id="module-matgl.data.transformer">
 <span id="matgl-data-transformer-module"></span><h1>matgl.data.transformer module<a class="headerlink" href="#module-matgl.data.transformer" title="Permalink to this heading">¶</a></h1>
-<p>Module implementing various data transformers for PyTorch</p>
+<p>Module implementing various data transformers for PyTorch.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="matgl.data.transformer.LogTransformer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.data.transformer.</span></span><span class="sig-name descname"><span class="pre">LogTransformer</span></span><a class="headerlink" href="#matgl.data.transformer.LogTransformer" title="Permalink to this definition">¶</a></dt>
@@ -40,7 +40,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.data.transformer.LogTransformer.inverse_transform">
 <span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.LogTransformer.inverse_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invert the log (exp)</p>
+<dd><p>Invert the log (exp).</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>data: Input data</p>
 </dd>
@@ -52,7 +52,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.data.transformer.LogTransformer.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.LogTransformer.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Take the</p>
+<dd><p>Take the log of the data.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>data: Input data</p>
 </dd>
@@ -71,12 +71,10 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.data.transformer.Normalizer.from_data">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Normalizer.from_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create Normalizer from data
-Args:</p>
-<blockquote>
-<div><p>data: Input data</p>
-</div></blockquote>
+<dd><p>Create Normalizer from data.</p>
 <dl class="simple">
+<dt>Args:</dt><dd><p>data: Input data.</p>
+</dd>
 <dt>Returns:</dt><dd><p>Normalizer</p>
 </dd>
 </dl>
@@ -85,7 +83,7 @@ Args:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.data.transformer.Normalizer.inverse_transform">
 <span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Normalizer.inverse_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invert the scaling</p>
+<dd><p>Invert the scaling.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>data: Scaled data</p>
 </dd>
@@ -97,7 +95,7 @@ Args:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.data.transformer.Normalizer.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Normalizer.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Scale the data.</p>
+<dd><p>z-score the data by subtracting the mean and dividing by the standard deviation.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>data: Input data</p>
 </dd>

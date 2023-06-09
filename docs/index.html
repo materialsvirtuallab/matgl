@@ -65,12 +65,14 @@ implemented in TensorFlow (TF). Here are some key improvements over the TF imple
 </section>
 <section id="status">
 <h2>Status<a class="headerlink" href="#status" title="Permalink to this heading">¶</a></h2>
+<p>Major milestones are summarized below. Full change log is provided <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/changes">here</a>.</p>
 <ul class="simple">
-<li><p>Jun 8 2023: Simplified saving and loading of models. Now models can be loaded with one line of code!</p></li>
-<li><p>Jun 7 2023: Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
+<li><p>v0.5.1 (Jun 9 2023): Model versioning implemented.</p></li>
+<li><p>v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!</p></li>
+<li><p>v0.4.0 (Jun 7 2023): Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
 available.</p></li>
-<li><p>Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!</p></li>
-<li><p>Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!</p></li>
+<li><p>v0.1.0 (Feb 16 2023): Initial implementations of M3GNet and MEGNet architectures have been completed. Expect
+bugs!</p></li>
 </ul>
 </section>
 <section id="architectures">
@@ -138,11 +140,15 @@ implemented convenience method:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The predicted formation energy for CsCl is </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">eform</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> eV/atom.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>More examples are available <span class="xref myst">here</span>.</p>
+<section id="jupyter-notebooks">
+<h3>Jupyter notebooks<a class="headerlink" href="#jupyter-notebooks" title="Permalink to this heading">¶</a></h3>
+<p>We have written several <span class="xref myst">Jupyter notebooks</span> on the use of MatGL. These notebooks can be run on Google
+Colab. This will be the primary form of usage documentation.</p>
 </section>
 <section id="docs">
-<h2>Docs<a class="headerlink" href="#docs" title="Permalink to this heading">¶</a></h2>
+<h3>Docs<a class="headerlink" href="#docs" title="Permalink to this heading">¶</a></h3>
 <p><a class="reference external" href="http://materialsvirtuallab.github.io/matgl">http://materialsvirtuallab.github.io/matgl</a></p>
+</section>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>

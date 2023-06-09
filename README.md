@@ -115,11 +115,12 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
-## Example notebooks
+### Jupyter notebooks
 
-Primary usage documentation will be done via Jupyter notes, which are available [here](examples).
+We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on Google
+Colab. This will be the primary form of usage documentation.
 
-## Docs
+### Docs
 
 <http://materialsvirtuallab.github.io/matgl>
 
