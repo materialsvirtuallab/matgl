@@ -93,3 +93,39 @@ class Normalizer(Transformer):
         """
         data = torch.tensor(data)
         return Normalizer(torch.mean(data), torch.std(data))
+
+
+class LogTransformer(Transformer):
+    """
+    Performs a natural log of the data.
+    """
+
+    def __init__(self):
+        pass
+
+    def transform(self, data):
+        """
+        Take the
+
+        Args:
+            data: Input data
+
+        Returns:
+            Scaled data
+        """
+        return torch.log(data)
+
+    def inverse_transform(self, data):
+        """
+        Invert the log (exp)
+
+        Args:
+            data: Input data
+
+        Returns:
+            exp(data)
+        """
+        return torch.exp(data)
+
+    def __repr__(self):
+        return "LogTransformer"
