@@ -7,13 +7,17 @@ version of the MEGNet band gap model originally implemented in tensorflow.
 # Training dataset
 
 MP-2019.4.1: Materials Project formation energy as of 2019.4.1.
+
 Number of structures for training: 48912
+
 Number of structures for validation: 879
 
 # Performance metrics
 
 The reported numbers are mean absolute error of formation energy in eV
+
 Train: 0.075 eV
+
 Valid: 0.314 eV
 
 # References
