@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -108,3 +109,12 @@ DTYPES = {
 
 MATGL_CACHE = Path(os.path.expanduser("~")) / ".matgl"
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
+
+
+def clear_cache():
+    """
+    Deletes all files in the matgl.cache. This is used to clean out downloaded models.
+    """
+    r = input(f"Do you really want to delete everything in {MATGL_CACHE} (y|n)? ")
+    if r.lower() == "y":
+        shutil.rmtree(MATGL_CACHE)
