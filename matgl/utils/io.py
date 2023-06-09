@@ -39,7 +39,11 @@ class IOMixIn:
         # If one of the args is a subclass of IOMixIn, we will serialize that class.
         for k, v in d.items():
             if issubclass(v.__class__, IOMixIn):
-                d[k] = {"@class": v.__class__.__name__, "@module": v.__class__.__module__, "init_args": v._init_args}
+                d[k] = {
+                    "@class": v.__class__.__name__,
+                    "@module": v.__class__.__module__,
+                    "init_args": v._init_args,
+                }
         self._init_args = d
 
     def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
