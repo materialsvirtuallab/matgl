@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+- Model versioning scheme implemented.
+- Added convenience method to clear cache.
+
 ## 0.5.0
 - Model serialization has been completely rewritten to make it easier to use models out of the box.
 - Convenience method `matgl.load_model` is now the default way to load models.

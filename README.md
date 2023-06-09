@@ -33,11 +33,13 @@ This effort is a collaboration between the [Materials Virtual Lab](http://materi
 
 ## Status
 
-- Jun 8 2023: Simplified saving and loading of models. Now models can be loaded with one line of code!
-- Jun 7 2023: Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
+Major milestones are summarized below. Full change log is provided [here](https://materialsvirtuallab.github.io/matgl/changes).
+- v0.5.1 (Jun 9 2023): Model versioning implemented.
+- v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
+- v0.4.0 (Jun 7 2023): Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
   available.
-- Apr 26 2023: Pre-trained MEGNet models now available for formation energies and band gaps!
-- Feb 16 2023: Both initial implementations of M3GNet and MEGNet architectures have been completed. Expect bugs!
+- v0.1.0 (Feb 16 2023): Initial implementations of M3GNet and MEGNet architectures have been completed. Expect
+  bugs!
 
 ## Architectures
 
@@ -113,7 +115,9 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
-More examples are available [here](examples).
+## Example notebooks
+
+Primary usage documentation will be done via Jupyter notes, which are available [here](examples).
 
 ## Docs
 

@@ -7,22 +7,16 @@ originally implemented in tensorflow.
 # Training dataset
 
 MP-2018.6.1: Materials Project formation energy as of 2018.6.1.
-
-Number of structures for training: 62315
-
-Number of structures for validation: 3461
-
-Number of structures for testing: 3463
+- Training set size: : 62315
+- Validation set size: 3461
+- Test set size: 3463
 
 # Performance metrics
 
-The reported numbers are mean absolute error of formation energy in eV/atom.
-
-Train: 0.010 eV/atom
-
-Valid: 0.029 eV/atom
-
-Test: 0.028 eV/atom
+MAE of formation energy in eV/atom.
+- Training: 0.010 eV/atom
+- Validation: 0.029 eV/atom
+- Test: 0.028 eV/atom
 
 # References
 
