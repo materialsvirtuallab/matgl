@@ -112,7 +112,7 @@ class Atoms2Graph(GraphConverter):
 
 class M3GNetCalculator(Calculator):
     """
-    M3GNet calculator based on ase Calculator
+    M3GNet calculator based on ase Calculator.
     """
 
     implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian"]
@@ -176,7 +176,7 @@ class M3GNetCalculator(Calculator):
 
 class Relaxer:
     """
-    Relaxer is a class for structural relaxation
+    Relaxer is a class for structural relaxation.
     """
 
     def __init__(
@@ -195,7 +195,7 @@ class Relaxer:
             optimizer (str or ase Optimizer): the optimization algorithm.
                 Defaults to "FIRE"
             relax_cell (bool): whether to relax the lattice cell
-            stress_weight (float): the stress weight for relaxation
+            stress_weight (float): the stress weight for relaxation.
         """
         if isinstance(optimizer, str):
             optimizer_obj = OPTIMIZERS.get(optimizer, None)
@@ -259,13 +259,13 @@ class Relaxer:
 class TrajectoryObserver:
     """
     Trajectory observer is a hook in the relaxation process that saves the
-    intermediate structures
+    intermediate structures.
     """
 
-    def __init__(self, atoms: Atoms):
+    def __init__(self, atoms: Atoms) -> None:
         """
         Args:
-            atoms (Atoms): the structure to observe
+            atoms (Atoms): the structure to observe.
         """
         self.atoms = atoms
         self.energies: list[float] = []
@@ -274,10 +274,9 @@ class TrajectoryObserver:
         self.atom_positions: list[np.ndarray] = []
         self.cells: list[np.ndarray] = []
 
-    def __call__(self):
+    def __call__(self) -> None:
         """
-        The logic for saving the properties of an Atoms during the relaxation
-        Returns:
+        The logic for saving the properties of an Atoms during the relaxation.
         """
         self.energies.append(self.compute_energy())
         self.forces.append(self.atoms.get_forces())
@@ -293,30 +292,27 @@ class TrajectoryObserver:
         energy = self.atoms.get_potential_energy()
         return energy
 
-    def save(self, filename: str):
+    def save(self, filename: str) -> None:
         """
         Save the trajectory to file
         Args:
-            filename (str): filename to save the trajectory
-        Returns:
+            filename (str): filename to save the trajectory.
         """
-        with open(filename, "wb") as f:
-            pickle.dump(
-                {
-                    "energy": self.energies,
-                    "forces": self.forces,
-                    "stresses": self.stresses,
-                    "atom_positions": self.atom_positions,
-                    "cell": self.cells,
-                    "atomic_number": self.atoms.get_atomic_numbers(),
-                },
-                f,
-            )
+        out = {
+            "energy": self.energies,
+            "forces": self.forces,
+            "stresses": self.stresses,
+            "atom_positions": self.atom_positions,
+            "cell": self.cells,
+            "atomic_number": self.atoms.get_atomic_numbers(),
+        }
+        with open(filename, "wb") as file:
+            pickle.dump(out, file)
 
 
 class MolecularDynamics:
     """
-    Molecular dynamics class
+    Molecular dynamics class.
     """
 
     def __init__(
@@ -353,7 +349,7 @@ class MolecularDynamics:
             trajectory (str or Trajectory): Attach trajectory object
             logfile (str): open this file for recording MD outputs
             loginterval (int): write to log file every interval steps
-            append_trajectory (bool): Whether to append to prev trajectory
+            append_trajectory (bool): Whether to append to prev trajectory.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
@@ -445,7 +441,7 @@ class MolecularDynamics:
         """
         Set new atoms to run MD
         Args:
-            atoms (Atoms): new atoms for running MD
+            atoms (Atoms): new atoms for running MD.
         """
         calculator = self.atoms.calc
         self.atoms = atoms

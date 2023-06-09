@@ -98,7 +98,7 @@ print("Train, val and test data sizes are ", len(train_ids), len(val_ids), len(t
 # get the train, val and test graph-target pairs
 def get_graphs_targets(ids):
     """
-    Get graphs and targets list from the ids
+    Get graphs and targets list from the ids.
 
     Args:
         ids (List): list of ids

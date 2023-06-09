@@ -44,7 +44,7 @@ class TrainerMixin:
 
     def on_train_epoch_end(self):
         """
-        Step scheduler every epoch
+        Step scheduler every epoch.
         """
         sch = self.lr_schedulers()
         sch.step()
@@ -81,7 +81,7 @@ class TrainerMixin:
 
     def configure_optimizers(self):
         """
-        Configure optimizers
+        Configure optimizers.
         """
         if self.optimizer is None:
             optimizer = torch.optim.Adam(
@@ -109,7 +109,7 @@ class TrainerMixin:
         r"""
         Args:
             *args: Pass-through
-            **kwargs: Pass-through
+            **kwargs: Pass-through.
         """
         super().on_test_model_eval(*args, **kwargs)
         torch.set_grad_enabled(True)
@@ -130,7 +130,7 @@ class TrainerMixin:
 
 class ModelTrainer(TrainerMixin, pl.LightningModule):
     """
-    Trainer for MEGNet and M3GNet models
+    Trainer for MEGNet and M3GNet models.
     """
 
     def __init__(
@@ -156,7 +156,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
             scheduler: scheduler for training
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
-            decay_alpha: parameter determines the minimum learning rate
+            decay_alpha: parameter determines the minimum learning rate.
         """
         super().__init__()
 
@@ -186,7 +186,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         Args:
             g: dgl Graph
             l_g: Line graph
-            state_attr: State attribute
+            state_attr: State attribute.
 
         Returns:
             Model prediction.
@@ -265,7 +265,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
             scheduler: scheduler for training
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
-            decay_alpha: parameter determines the minimum learning rate
+            decay_alpha: parameter determines the minimum learning rate.
         """
         super().__init__()
 
@@ -298,7 +298,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         Args:
             g: dgl Graph
             l_g: Line graph
-            state_attr: State attr
+            state_attr: State attr.
 
         Returns:
             energy, force, stress, h

@@ -1,5 +1,5 @@
 """
-Tools to construct a dataset of DGL graphs
+Tools to construct a dataset of DGL graphs.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 def collate_fn(batch):
     """
-    Merge a list of dgl graphs to form a batch
+    Merge a list of dgl graphs to form a batch.
     """
     graphs, labels, state_attr = map(list, zip(*batch))
     g = dgl.batch(graphs)
@@ -35,7 +35,7 @@ def collate_fn(batch):
 
 def collate_fn_efs(batch):
     """
-    Merge a list of dgl graphs to form a batch
+    Merge a list of dgl graphs to form a batch.
     """
     graphs, line_graphs, state_attr, energies, forces, stresses = map(list, zip(*batch))
     g = dgl.batch(graphs)
@@ -100,7 +100,7 @@ def MGLDataLoader(
 
 class MEGNetDataset(DGLDataset):
     """
-    Create a dataset including dgl graphs
+    Create a dataset including dgl graphs.
     """
 
     def __init__(
@@ -127,7 +127,7 @@ class MEGNetDataset(DGLDataset):
         num_centers: number of Gaussian functions
         width: width of Gaussian functions
         name: Name of dataset
-        graph_labels: graph attributes either integers and floating point numbers
+        graph_labels: graph attributes either integers and floating point numbers.
         """
         self.converter = converter
         self.structures = structures
@@ -152,7 +152,7 @@ class MEGNetDataset(DGLDataset):
 
     def process(self) -> tuple:
         """
-        Convert Pymatgen structure into dgl graphs
+        Convert Pymatgen structure into dgl graphs.
         """
         num_graphs = self.labels.shape[0]
         self.graphs = []
@@ -182,7 +182,7 @@ class MEGNetDataset(DGLDataset):
         Save dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename_state_attr: Name of file storing graph attrs
+        :filename_state_attr: Name of file storing graph attrs.
         """
         labels_with_key = {self.label_name: self.labels}
         save_graphs(filename, self.graphs, labels_with_key)
@@ -193,7 +193,7 @@ class MEGNetDataset(DGLDataset):
         Load dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename: Name of file storing state attrs
+        :filename: Name of file storing state attrs.
         """
         self.graphs, label_dict = load_graphs(filename)
         self.label = torch.stack([label_dict[key] for key in self.label_keys], dim=1)
@@ -201,20 +201,20 @@ class MEGNetDataset(DGLDataset):
 
     def __getitem__(self, idx: int):
         """
-        Get graph and label with idx
+        Get graph and label with idx.
         """
         return self.graphs[idx], self.labels[idx], self.state_attr[idx]
 
     def __len__(self):
         """
-        Get size of dataset
+        Get size of dataset.
         """
         return len(self.graphs)
 
 
 class M3GNetDataset(DGLDataset):
     """
-    Create a dataset including dgl graphs
+    Create a dataset including dgl graphs.
     """
 
     def __init__(
@@ -237,7 +237,7 @@ class M3GNetDataset(DGLDataset):
         converter: dgl graph converter
         threebody_cutoff: cutoff for three body
         name: name of dataset
-        graph_labels: state attributes
+        graph_labels: state attributes.
         """
         self.converter = converter
         self.structures = structures
@@ -259,7 +259,7 @@ class M3GNetDataset(DGLDataset):
 
     def process(self) -> tuple:
         """
-        Convert Pymatgen structure into dgl graphs
+        Convert Pymatgen structure into dgl graphs.
         """
         num_graphs = len(self.energies)
         self.graphs = []
@@ -295,7 +295,7 @@ class M3GNetDataset(DGLDataset):
         Save dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename_state_attr: Name of file storing graph attrs
+        :filename_state_attr: Name of file storing graph attrs.
         """
         labels_with_key = {"energies": self.energies, "forces": self.forces, "stresses": self.stresses}
         save_graphs(filename, self.graphs)
@@ -314,7 +314,7 @@ class M3GNetDataset(DGLDataset):
         Load dgl graphs
         Args:
         :filename: Name of file storing dgl graphs
-        :filename: Name of file storing state attrs
+        :filename: Name of file storing state attrs.
         """
         self.graphs = load_graphs(filename)
         self.line_graphs = load_graphs(filename_line_graph)
@@ -327,7 +327,7 @@ class M3GNetDataset(DGLDataset):
 
     def __getitem__(self, idx: int):
         """
-        Get graph and label with idx
+        Get graph and label with idx.
         """
         return (
             self.graphs[idx],
@@ -340,6 +340,6 @@ class M3GNetDataset(DGLDataset):
 
     def __len__(self):
         """
-        Get size of dataset
+        Get size of dataset.
         """
         return len(self.graphs)

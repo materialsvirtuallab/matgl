@@ -150,7 +150,7 @@ class MEGNetBlock(Module):
         :param act: activation type
         :param dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
             to a Bernoulli distribution
-        :param skip: residual block
+        :param skip: residual block.
         """
         super().__init__()
         self.has_dense = len(dims) > 1
@@ -239,7 +239,7 @@ class M3GNetGraphConv(Module):
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
         node_weight_func (Module): Weight function for radial basis functions (Eq. 5)
-        attr_update_func (Module): Update function for state feats (Eq. 6)
+        attr_update_func (Module): Update function for state feats (Eq. 6).
         """
         super().__init__()
         self.include_states = include_states
@@ -259,7 +259,7 @@ class M3GNetGraphConv(Module):
         activation: Module,
     ) -> M3GNetGraphConv:
         """
-        M3GNetGraphConv initialization
+        M3GNetGraphConv initialization.
 
         Args:
             degree (int): max_n*max_l
@@ -284,7 +284,7 @@ class M3GNetGraphConv(Module):
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
         """
-        Edge update functions
+        Edge update functions.
 
         Args:
         edges (DGL graph): edges in dgl graph
