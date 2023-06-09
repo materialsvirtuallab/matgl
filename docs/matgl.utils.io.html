@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>matgl.utils.io module &#8212; matgl  documentation</title>
+    <title>&lt;no title&gt; &#8212; matgl  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -29,98 +29,11 @@
 
           <div class="body" role="main">
             
-  <section id="module-matgl.utils.io">
-<span id="matgl-utils-io-module"></span><h1>matgl.utils.io module<a class="headerlink" href="#module-matgl.utils.io" title="Permalink to this heading">¶</a></h1>
-<p>Provides utilities for managing models and data.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">IOMixIn</span></span><a class="headerlink" href="#matgl.utils.io.IOMixIn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Mixin class for model saving and loading. For proper usage, models should subclass nn.Module and IOMix and the
-<cite>save_args</cite> method should be called immediately after the <cite>super().__init__()</cite> call.</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">super().__init__()</span>
-<span class="pre">self.save_args(locals(),</span> <span class="pre">kwargs)</span>
-<span class="pre">`</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.load">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.IOMixIn.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load the model weights from a directory.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by</dt><dd><p>download from PRETRAINED_MODELS_BASE_URL (with caching).</p>
-</dd>
-<dt>include_json (bool): If True, the “model.json” file is also loaded. This file can contain metadata about</dt><dd><p>the model, e.g., if scaling was performed in training the model, this file may contain the mean and
-standard deviation of the models, which needs to be applied to the final predictions.</p>
-</dd>
-<dt>kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you</dt><dd><p>want to update the model.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p>Returns: model_object if include_json is false. (model_object, dict) if include_json is True.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">makedirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.IOMixIn.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save model to a directory. Three files will be saved.
-- path/model.pt, which contains the torch serialized model args.
-- path/state.pt, which contains the saved state_dict from the model.
-- path/model.json, a txt version of model.pt that is purely meant for ease of reference.</p>
-<dl>
-<dt>Args:</dt><dd><p>path: String or Path object to directory for model saving. Defaults to current working directory (“.”).
-metadata: Any additional metadata to be saved into the model.json file. For example, a good use would be</p>
-<blockquote>
-<div><p>a description of model purpose, the training set used, etc.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>makedirs: Whether to create the directory using os.makedirs(exist_ok=True). Note that if the directory</dt><dd><p>already exists, makedirs will not do anything.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.save_args">
-<span class="sig-name descname"><span class="pre">save_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#matgl.utils.io.IOMixIn.save_args" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method to save args into a private _init_args variable. This should be called after super in the __init__
-method, e.g., <cite>self.save_args(locals(), kwargs)</cite>.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>locals: The result of locals().
-kwargs: kwargs passed to the class.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.utils.io.RemoteFile">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">RemoteFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PosixPath('/Users/shyue/.matgl')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.RemoteFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Handling of download of remote files to a local cache.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="matgl.utils.io.load_model">
-<span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.load_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience method to load a model from a directory or name.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by</dt><dd><p>download from PRETRAINED_MODELS_BASE_URL (with caching).</p>
-</dd>
-<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you</dt><dd><p>want to update the model.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>Returns: model_object if include_json is false. (model_object, dict) if include_json is True.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
+  <p>matgl.utils.io module
+matgl.utils.io module
+=====================
+=====================</p>
+<span class="target" id="module-matgl.utils.io"></span><p>Provides utilities for managing models and data.</p>
 
 
           </div>

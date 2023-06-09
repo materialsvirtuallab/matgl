@@ -17,10 +17,10 @@ reusable modular components. These steps include:
 
 ## Controlled API exposure
 
-The exposed API is controlled to allow for code refactoring and development. Any module that is preceded by an 
-underscore is a "private" implementation by convention and there are no guarantees as to backwards compatibility. 
-For example, the MEGNet and M3GNet models are exposed via `matgl.models` in the `__init__.py` while the actual 
-implementations are in `_megnet.py` and `_m3gnet.py`, respectively. This is similar to the convention adopted by 
+The exposed API is controlled to allow for code refactoring and development. Any module that is preceded by an
+underscore is a "private" implementation by convention and there are no guarantees as to backwards compatibility.
+For example, the MEGNet and M3GNet models are exposed via `matgl.models` in the `__init__.py` while the actual
+implementations are in `_megnet.py` and `_m3gnet.py`, respectively. This is similar to the convention adopted by
 scikit-learn. As far as possible, do imports only from exposed APIs.
 
 ## Nested Models
@@ -34,7 +34,7 @@ additional steps.
 
 To make matgl models much more friendly for end users, we implement a nested model concept. Examples include
 `matgl.apps.pes.Potential`, which is an interatomic potential model that wraps around a graph model (e.g. M3GNet),
-and the `matgl.models.TransformedTargetModel`, which is modelled after scikit-learn's TransformedTargetRegressor. The 
+and the `matgl.models.TransformedTargetModel`, which is modelled after scikit-learn's TransformedTargetRegressor. The
 goal is for users to be able to use such models directly without having to worry about the internal transformations.
 
 ## Model IO

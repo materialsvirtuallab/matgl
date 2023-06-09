@@ -34,6 +34,7 @@ def make_doc(ctx):
                 with open(f) as fid:
                     for line in fid:
                         clean = line.strip()
+                        newoutput.append(line)
                         if clean == "Subpackages":
                             subpackage = True
                         if not subpackage and not clean.endswith("tests"):

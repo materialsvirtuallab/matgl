@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>matgl.data.transformer module &#8212; matgl  documentation</title>
+    <title>&lt;no title&gt; &#8212; matgl  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -29,115 +29,11 @@
 
           <div class="body" role="main">
             
-  <section id="module-matgl.data.transformer">
-<span id="matgl-data-transformer-module"></span><h1>matgl.data.transformer module<a class="headerlink" href="#module-matgl.data.transformer" title="Permalink to this heading">¶</a></h1>
-<p>Module implementing various data transformers for PyTorch.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.data.transformer.LogTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.data.transformer.</span></span><span class="sig-name descname"><span class="pre">LogTransformer</span></span><a class="headerlink" href="#matgl.data.transformer.LogTransformer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#matgl.data.transformer.Transformer" title="matgl.data.transformer.Transformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transformer</span></code></a></p>
-<p>Performs a natural log of the data.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.data.transformer.LogTransformer.inverse_transform">
-<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.LogTransformer.inverse_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invert the log (exp).</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>data: Input data</p>
-</dd>
-<dt>Returns:</dt><dd><p>exp(data)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.data.transformer.LogTransformer.transform">
-<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.LogTransformer.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Take the log of the data.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>data: Input data</p>
-</dd>
-<dt>Returns:</dt><dd><p>Scaled data</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.data.transformer.Normalizer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.data.transformer.</span></span><span class="sig-name descname"><span class="pre">Normalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Normalizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#matgl.data.transformer.Transformer" title="matgl.data.transformer.Transformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transformer</span></code></a></p>
-<p>Performs a scaling of the data by centering to the mean and dividing by the standard deviation.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.data.transformer.Normalizer.from_data">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Normalizer.from_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create Normalizer from data.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>data: Input data.</p>
-</dd>
-<dt>Returns:</dt><dd><p>Normalizer</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.data.transformer.Normalizer.inverse_transform">
-<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Normalizer.inverse_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invert the scaling.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>data: Scaled data</p>
-</dd>
-<dt>Returns:</dt><dd><p>Unscaled data</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.data.transformer.Normalizer.transform">
-<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Normalizer.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>z-score the data by subtracting the mean and dividing by the standard deviation.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>data: Input data</p>
-</dd>
-<dt>Returns:</dt><dd><p>Scaled data</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="matgl.data.transformer.Transformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.data.transformer.</span></span><span class="sig-name descname"><span class="pre">Transformer</span></span><a class="headerlink" href="#matgl.data.transformer.Transformer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Abstract base class defining a data transformer.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.data.transformer.Transformer.inverse_transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Transformer.inverse_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inverse transformation to be performed on data.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>data: Input data</p>
-</dd>
-<dt>Returns:</dt><dd><p>Inverse-transformed data.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="matgl.data.transformer.Transformer.transform">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.data.transformer.Transformer.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transformation to be performed on data.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>data: Input data</p>
-</dd>
-<dt>Returns:</dt><dd><p>Transformed data.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-</section>
+  <p>matgl.data.transformer module
+matgl.data.transformer module
+=============================
+=============================</p>
+<span class="target" id="module-matgl.data.transformer"></span><p>Module implementing various data transformers for PyTorch.</p>
 
 
           </div>

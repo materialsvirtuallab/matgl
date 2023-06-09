@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>matgl.graph.compute module &#8212; matgl  documentation</title>
+    <title>&lt;no title&gt; &#8212; matgl  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -29,62 +29,11 @@
 
           <div class="body" role="main">
             
-  <section id="module-matgl.graph.compute">
-<span id="matgl-graph-compute-module"></span><h1>matgl.graph.compute module<a class="headerlink" href="#module-matgl.graph.compute" title="Permalink to this heading">¶</a></h1>
-<p>Computing various graph based operations.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="matgl.graph.compute.compute_3body">
-<span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">compute_3body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.compute_3body" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the three body indices from pair atom indices.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>g: DGL graph</p>
-</dd>
-<dt>Returns:</dt><dd><p>l_g: DGL graph containing three body information from graph
-triple_bond_indices (np.ndarray): bond indices that form three-body
-n_triple_ij (np.ndarray): number of three-body angles for each bond
-n_triple_i (np.ndarray): number of three-body angles each atom
-n_triple_s (np.ndarray): number of three-body angles for each structure</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="matgl.graph.compute.compute_pair_vector_and_distance">
-<span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">compute_pair_vector_and_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.compute_pair_vector_and_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate bond vectors and distances using dgl graphs.</p>
-<p>Args:
-g: DGL graph</p>
-<p>Returns:
-bond_vec (torch.tensor): bond distance between two atoms
-bond_dist (torch.tensor): vector from src node to dst node</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="matgl.graph.compute.compute_theta_and_phi">
-<span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">compute_theta_and_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EdgeBatch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.compute_theta_and_phi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate bond angle Theta and Phi using dgl graphs.</p>
-<p>Args:
-edges: DGL graph edges</p>
-<p>Returns:
-cos_theta: torch.tensor
-phi: torch.tensor
-triple_bond_lengths (torch.tensor):</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="matgl.graph.compute.create_line_graph">
-<span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">create_line_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g_batched</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threebody_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.create_line_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the three body indices from pair atom indices.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>g_batched: Batched DGL graph
-threebody_cutoff (float): cutoff for three-body interactions</p>
-</dd>
-<dt>Returns:</dt><dd><p>l_g: DGL graph containing three body information from graph</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
+  <p>matgl.graph.compute module
+matgl.graph.compute module
+==========================
+==========================</p>
+<span class="target" id="module-matgl.graph.compute"></span><p>Computing various graph based operations.</p>
 
 
           </div>

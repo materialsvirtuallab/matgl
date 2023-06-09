@@ -29,7 +29,7 @@ over the TF implementations:
 - A more intuitive API and class structure based on DGL.
 - Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
-This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel 
+This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
 Nassar, Carmelo Gonzales). Please refer to the [official documentation][doc] for more details.
 
 ## Status
