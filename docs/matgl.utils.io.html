@@ -36,17 +36,28 @@
 <dt class="sig sig-object py" id="matgl.utils.io.IOMixIn">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">IOMixIn</span></span><a class="headerlink" href="#matgl.utils.io.IOMixIn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Mixin class for model saving and loading.</p>
+<p>Mixin class for model saving and loading. For proper usage, models should subclass nn.Module and IOMix and the
+<cite>save_args</cite> method should be called immediately after the <cite>super().__init__()</cite> call.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">super().__init__()</span>
+<span class="pre">self.save_args(locals(),</span> <span class="pre">kwargs)</span>
+<span class="pre">`</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.load">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.IOMixIn.load" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.IOMixIn.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the model weights from a directory.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by</dt><dd><p>download from PRETRAINED_MODELS_BASE_URL (with caching).</p>
-</dd>
-<dt>include_json (bool): If True, the “model.json” file is also loaded. This file can contain metadata about</dt><dd><p>the model, e.g., if scaling was performed in training the model, this file may contain the mean and
-standard deviation of the models, which needs to be applied to the final predictions.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>path (str|path|dict): Path to saved model or name of pre-trained model. If it is a dict, it is assumed to</dt><dd><p>be of the form
+{</p>
+<blockquote>
+<div><p>“model.pt”: path to model.pt file,
+“state.pt”: path to state file,
+“model.json”: path to model.json file</p>
+</div></blockquote>
+<p>}
+Otherwise, the search order is path, followed by download from PRETRAINED_MODELS_BASE_URL
+(with caching).</p>
 </dd>
 <dt>kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you</dt><dd><p>want to update the model.</p>
 </dd>
@@ -96,6 +107,16 @@ kwargs: kwargs passed to the class.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">RemoteFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PosixPath('/Users/shyue/.matgl')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.RemoteFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Handling of download of remote files to a local cache.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.io.get_available_pretrained_models">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">get_available_pretrained_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.utils.io.get_available_pretrained_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks Github for available pretrained_models for download. These can be used with load_model.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>List of available models.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

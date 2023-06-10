@@ -1,6 +1,12 @@
 matgl.ext package
 =================
 
+.. automodule:: matgl.ext
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
 Subpackages
 -----------
 
@@ -16,11 +22,3 @@ Submodules
 
    matgl.ext.ase
    matgl.ext.pymatgen
-
-Module contents
----------------
-
-.. automodule:: matgl.ext
-   :members:
-   :undoc-members:
-   :show-inheritance:

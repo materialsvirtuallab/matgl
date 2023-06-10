@@ -110,13 +110,6 @@ Download url for pre-trained models.
 """
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
-"""
-This is an int representing a model version. It is mainly for detecting and warning about the use of old pre-trained
-models. This version number is different from the code version number because it depends on whether
-backward-incompatible architectural changes are made (which hopefully should be less often than regular code changes).
-"""
-MODEL_VERSION = 1
-
 
 def clear_cache():
     """

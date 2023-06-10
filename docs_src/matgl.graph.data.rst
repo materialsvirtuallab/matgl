@@ -5,3 +5,4 @@ matgl.graph.data module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

@@ -47,7 +47,7 @@ OPTIMIZERS = {
 
 class Atoms2Graph(GraphConverter):
     """
-    Construct a DGL graph from ASE atoms.
+    Construct a DGL graph from ASE Atoms.
     """
 
     def __init__(
@@ -56,21 +56,24 @@ class Atoms2Graph(GraphConverter):
         cutoff: float = 5.0,
     ):
         """
-        Parameters
-        ----------
-        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
-            constructed with the same dimensionality of features.
-        cutoff: Cutoff radius for graph representation
+        Init Atoms2Graph from element types and cutoff radius.
+
+        Args:
+            element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
+                constructed with the same dimensionality of features.
+            cutoff: Cutoff radius for graph representation
         """
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
     def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, list]:
         """
-        Get a DGL graph from an input Structure.
+        Get a DGL graph from an input Atoms.
 
-        :param structure: pymatgen structure object
-        :return:
+        Args:
+            atoms: Atoms object.
+
+        Returns:
             g: DGL graph
             state_attr: state features
         """
@@ -100,7 +103,7 @@ class Atoms2Graph(GraphConverter):
         u, v = tensor(src_id), tensor(dst_id)
         g = dgl.graph((u, v))
         g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor([[lattice_matrix] for i in range(g.num_edges())])
+        g.edata["lattice"] = tensor(np.stack([lattice_matrix for _ in range(g.num_edges())]))
         g.ndata["attr"] = tensor(Z)
         g.ndata["node_type"] = tensor(np.hstack([[element_types.index(i.symbol)] for i in atoms]))
         g.ndata["pos"] = tensor(cart_coords)

@@ -40,6 +40,9 @@ class M3GNet(nn.Module, IOMixIn):
     The main M3GNet model.
     """
 
+    # Model version number.
+    __version__ = 1
+
     def __init__(
         self,
         element_types: tuple[str],

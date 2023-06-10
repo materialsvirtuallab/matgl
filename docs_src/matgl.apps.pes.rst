@@ -5,3 +5,4 @@ matgl.apps.pes module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

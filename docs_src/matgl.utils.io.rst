@@ -5,3 +5,4 @@ matgl.utils.io module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

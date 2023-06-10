@@ -1,6 +1,12 @@
 matgl.graph package
 ===================
 
+.. automodule:: matgl.graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
 Subpackages
 -----------
 
@@ -17,11 +23,3 @@ Submodules
    matgl.graph.compute
    matgl.graph.converters
    matgl.graph.data
-
-Module contents
----------------
-
-.. automodule:: matgl.graph
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -5,3 +5,4 @@ matgl.utils.cutoff module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

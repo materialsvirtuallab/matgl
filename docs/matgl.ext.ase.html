@@ -36,17 +36,15 @@
 <dt class="sig sig-object py" id="matgl.ext.ase.Atoms2Graph">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.ext.ase.</span></span><span class="sig-name descname"><span class="pre">Atoms2Graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.ext.ase.Atoms2Graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="matgl.graph.converters.html#matgl.graph.converters.GraphConverter" title="matgl.graph.converters.GraphConverter"><code class="xref py py-class docutils literal notranslate"><span class="pre">GraphConverter</span></code></a></p>
-<p>Construct a DGL graph from ASE atoms.</p>
+<p>Construct a DGL graph from ASE Atoms.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.ext.ase.Atoms2Graph.get_graph">
 <span class="sig-name descname"><span class="pre">get_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Atoms</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dgl.heterograph.DGLGraph</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.ext.ase.Atoms2Graph.get_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a DGL graph from an input Structure.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>structure</strong> – pymatgen structure object</p>
+<dd><p>Get a DGL graph from an input Atoms.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>atoms: Atoms object.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>g: DGL graph
+<dt>Returns:</dt><dd><p>g: DGL graph
 state_attr: state features</p>
 </dd>
 </dl>

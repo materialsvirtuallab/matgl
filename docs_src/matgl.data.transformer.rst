@@ -5,3 +5,4 @@ matgl.data.transformer module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:

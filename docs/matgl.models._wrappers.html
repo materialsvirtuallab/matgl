@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>matgl.models._wrappers module &#8212; matgl  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-matgl.models._wrappers">
+<span id="matgl-models-wrappers-module"></span><h1>matgl.models._wrappers module<a class="headerlink" href="#module-matgl.models._wrappers" title="Permalink to this heading">¶</a></h1>
+<p>Implementations of pseudomodels that wraps other models.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.models._wrappers.TransformedTargetModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.models._wrappers.</span></span><span class="sig-name descname"><span class="pre">TransformedTargetModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_transformer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="matgl.data.transformer.html#matgl.data.transformer.Transformer" title="matgl.data.transformer.Transformer"><span class="pre">Transformer</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.models._wrappers.TransformedTargetModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code>, <a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn" title="matgl.utils.io.IOMixIn"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOMixIn</span></code></a></p>
+<p>A model where the target is first transformed prior to training and the reverse transformation is performed for
+predictions. This is modelled after scikit-learn’s TransformedTargetRegressor. It should be noted that this model
+is almost never used for training since the general idea is to use the transformed target for loss computation.
+Instead, it is created after a model has been fitted for serialization for end user to call the model to perform
+predictions without having to worry about what target transformations have been performed.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.models._wrappers.TransformedTargetModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.models._wrappers.TransformedTargetModel.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p><a href="#id1"><span class="problematic" id="id2">*</span></a>args: Passthrough to parent model.forward method.
+<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Passthrough to parent model.forward method.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Inverse transformed output.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.models._wrappers.TransformedTargetModel.predict_structure">
+<span class="sig-name descname"><span class="pre">predict_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.models._wrappers.TransformedTargetModel.predict_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass through to parent model.predict_structure with inverse transform.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p><a href="#id5"><span class="problematic" id="id6">*</span></a>args: Pass-through to self.model.predict_structure.
+<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: Pass-through to self.model.predict_structure.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Transformed answer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matgl.models._wrappers.TransformedTargetModel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.models._wrappers.TransformedTargetModel.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">matgl</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Materials Virtual Lab.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/matgl.models._wrappers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

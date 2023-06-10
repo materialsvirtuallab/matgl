@@ -43,7 +43,8 @@
 <li><p><span class="xref myst">Architectures</span></p></li>
 <li><p><span class="xref myst">Installation</span></p></li>
 <li><p><span class="xref myst">Usage</span></p></li>
-<li><p><span class="xref myst">Docs</span></p></li>
+<li><p><span class="xref myst">API Docs</span></p></li>
+<li><p><span class="xref myst">Developer’s Guide</span></p></li>
 <li><p><span class="xref myst">References</span></p></li>
 </ul>
 </section>
@@ -52,20 +53,20 @@
 <p>MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
 natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
 shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.</p>
-<p>In this repository, we have reimplemented the <a class="reference external" href="https://github.com/materialsvirtuallab/m3gnet">MatErials 3-body Graph Network (m3gnet)</a>
-and its predecessor, <a class="reference external" href="https://github.com/materialsvirtuallab/megnet">MEGNet</a> using the <a class="reference external" href="https://www.dgl.ai">Deep Graph Library (DGL)</a>.
-The goal is to improve the usability, extensibility and scalability of these models. The original M3GNet and MEGNet were
-implemented in TensorFlow (TF). Here are some key improvements over the TF implementations:</p>
+<p>In this repository, we have reimplemented the original Tensorflow <a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">MatErials 3-body Graph Network (m3gnet)</a>
+and its predecessor, <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">MEGNet</a>, using the <a class="reference external" href="https://www.dgl.ai">Deep Graph Library (DGL)</a> and PyTorch.
+The goal is to improve the usability, extensibility and scalability of these models. Here are some key improvements
+over the TF implementations:</p>
 <ul class="simple">
-<li><p>A more intuitive API and class structure based on the Deep Graph Library.</p></li>
+<li><p>A more intuitive API and class structure based on DGL.</p></li>
 <li><p>Multi-GPU support via PyTorch Lightning. A training utility module has been developed.</p></li>
 </ul>
-<p>This effort is a collaboration between the <a class="reference external" href="http://materialsvirtuallab.org">Materials Virtual Lab</a> and Intel Labs
-(Santiago Miret, Marcel Nassar, Carmelo Gonzales).</p>
+<p>This effort is a collaboration between the <a class="reference external" href="http://materialsvirtuallab.org">Materials Virtual Lab</a> and Intel Labs (Santiago Miret, Marcel
+Nassar, Carmelo Gonzales). Please refer to the <a class="reference external" href="http://materialsvirtuallab.github.io/matgl">official documentation</a> for more details.</p>
 </section>
 <section id="status">
 <h2>Status<a class="headerlink" href="#status" title="Permalink to this heading">¶</a></h2>
-<p>Major milestones are summarized below. Full change log is provided <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/changes">here</a>.</p>
+<p>Major milestones are summarized below. Please refer to <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/changes">change log</a> for details.</p>
 <ul class="simple">
 <li><p>v0.5.1 (Jun 9 2023): Model versioning implemented.</p></li>
 <li><p>v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!</p></li>
@@ -81,21 +82,17 @@ bugs!</p></li>
 </section>
 <section id="megnet">
 <h2>MEGNet<a class="headerlink" href="#megnet" title="Permalink to this heading">¶</a></h2>
-<p>The MatErials Graph Network (MEGNet) is an implementation of DeepMind’s graph networks for universal machine
-learning in materials science. We have demonstrated its success in achieving very low prediction errors in a broad
-array of properties in both molecules and crystals (see “Graph Networks as a Universal Machine Learning Framework for
-Molecules and Crystals”). New releases have included our recent work on multi-fidelity materials property modeling
-(See “Learning properties of ordered and disordered materials from multi-fidelity data”).</p>
-<p>Briefly, Figure 1 shows the sequential update steps of the graph network, whereby bonds, atoms, and global state
-attributes are updated using information from each other, generating an output graph.</p>
+<p>The <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">MatErials Graph Network (MEGNet)</a> is an implementation of DeepMind’s <a class="reference external" href="https://arxiv.org/abs/1806.01261">graph networks</a> for
+machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
+array of properties in both <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">molecules and crystals</a>. New releases have included our recent work on
+<a class="reference external" href="https://www.nature.com/articles/s43588-020-00002-x">multi-fidelity materials property modeling</a>. Figure 1 shows the sequential update steps of the graph
+network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an output graph.</p>
 </section>
 <section id="m3gnet">
 <h2>M3GNet<a class="headerlink" href="#m3gnet" title="Permalink to this heading">¶</a></h2>
-<p><a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">M3GNet</a> is a new materials graph neural network architecture that
-incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
+<p><a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">M3GNet</a> is a new materials graph neural network architecture that incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
 the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
-stresses via auto-differentiation.</p>
-<p>As a framework, M3GNet has diverse applications, including:</p>
+stresses via auto-differentiation. As a framework, M3GNet has diverse applications, including:</p>
 <ul class="simple">
 <li><p><strong>Interatomic potential development.</strong> With the same training data, M3GNet performs similarly to state-of-the-art
 machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
@@ -145,39 +142,38 @@ implemented convenience method:</p>
 <p>We have written several <span class="xref myst">Jupyter notebooks</span> on the use of MatGL. These notebooks can be run on Google
 Colab. This will be the primary form of usage documentation.</p>
 </section>
-<section id="docs">
-<h3>Docs<a class="headerlink" href="#docs" title="Permalink to this heading">¶</a></h3>
-<p><a class="reference external" href="http://materialsvirtuallab.github.io/matgl">http://materialsvirtuallab.github.io/matgl</a></p>
 </section>
+<section id="api-docs">
+<h2>API Docs<a class="headerlink" href="#api-docs" title="Permalink to this heading">¶</a></h2>
+<p>The Sphinx-generated API docs are available <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/matgl.html">here</a>.</p>
+</section>
+<section id="developer-s-guide">
+<h2>Developer’s Guide<a class="headerlink" href="#developer-s-guide" title="Permalink to this heading">¶</a></h2>
+<p>A basic <a class="reference internal" href="developer.html"><span class="doc std std-doc">developer’s guide</span></a> has been written to outline the key design elements of matgl.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <p>Please cite the following works:</p>
-<ul>
-<li><p>MEGNet</p>
-<div class="highlight-txt notranslate"><div class="highlight"><pre><span></span>Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
-</pre></div>
-</div>
-</li>
-<li><p>Multi-fidelity MEGNet</p>
-<div class="highlight-txt notranslate"><div class="highlight"><pre><span></span>Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
-Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.
-</pre></div>
-</div>
-</li>
-<li><p>M3GNet</p>
-<div class="highlight-txt notranslate"><div class="highlight"><pre><span></span>Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
-2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
-</pre></div>
-</div>
-</li>
-</ul>
+<section id="id1">
+<h3>MEGNet<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<p>Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
+Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.</p>
+</section>
+<section id="multi-fidelity-megnet">
+<h3>Multi-fidelity MEGNet<a class="headerlink" href="#multi-fidelity-megnet" title="Permalink to this heading">¶</a></h3>
+<p>Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
+Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.</p>
+</section>
+<section id="id2">
+<h3>M3GNet<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<p>Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
+2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.</p>
+</section>
 </section>
 <section id="acknowledgments">
 <h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this heading">¶</a></h2>
-<p>This work was primarily supported by the Materials Project, funded by the U.S. Department of Energy, Office of Science,
-Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.
+<p>This work was primarily supported by the <a class="reference external" href="http://materialsproject.org">Materials Project</a>, funded by the U.S. Department of Energy, Office of
+Science, Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.
 DE-AC02-05-CH11231: Materials Project program KC23MP. This work used the Expanse supercomputing cluster at the Extreme
 Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation grant number
 ACI-1548562.</p>

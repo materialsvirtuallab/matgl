@@ -1,6 +1,12 @@
 matgl.data package
 ==================
 
+.. automodule:: matgl.data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
 Subpackages
 -----------
 
@@ -15,11 +21,3 @@ Submodules
    :maxdepth: 6
 
    matgl.data.transformer
-
-Module contents
----------------
-
-.. automodule:: matgl.data
-   :members:
-   :undoc-members:
-   :show-inheritance:

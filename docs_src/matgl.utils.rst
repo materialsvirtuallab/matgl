@@ -1,6 +1,12 @@
 matgl.utils package
 ===================
 
+.. automodule:: matgl.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
 Subpackages
 -----------
 
@@ -18,11 +24,3 @@ Submodules
    matgl.utils.io
    matgl.utils.maths
    matgl.utils.training
-
-Module contents
----------------
-
-.. automodule:: matgl.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:

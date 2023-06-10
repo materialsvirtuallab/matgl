@@ -1,6 +1,12 @@
 matgl package
 =============
 
+.. automodule:: matgl
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
 Subpackages
 -----------
 
@@ -22,11 +28,3 @@ Submodules
    :maxdepth: 6
 
    matgl.config
-
-Module contents
----------------
-
-.. automodule:: matgl
-   :members:
-   :undoc-members:
-   :show-inheritance:

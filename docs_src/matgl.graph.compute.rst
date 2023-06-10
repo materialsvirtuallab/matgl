@@ -5,3 +5,4 @@ matgl.graph.compute module
    :members:
    :undoc-members:
    :show-inheritance:
+   :private-members:
