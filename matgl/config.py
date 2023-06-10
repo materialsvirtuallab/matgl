@@ -103,7 +103,7 @@ DEFAULT_ELEMENT_TYPES = (
 """
 Default location of the cache for matgl, e.g., for storing downloaded models.
 """
-MATGL_CACHE = Path(os.path.expanduser("~")) / ".matgl"
+MATGL_CACHE = Path(os.path.expanduser("~")) / ".cache/matgl"
 
 """
 Download url for pre-trained models.
