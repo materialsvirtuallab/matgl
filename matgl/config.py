@@ -5,9 +5,7 @@ import os
 import shutil
 from pathlib import Path
 
-"""
-Default set of elements supported by universal matgl models.
-"""
+# Default set of elements supported by universal matgl models.
 DEFAULT_ELEMENT_TYPES = (
     "H",
     "He",
@@ -100,14 +98,11 @@ DEFAULT_ELEMENT_TYPES = (
     "Pu",
 )
 
-"""
-Default location of the cache for matgl, e.g., for storing downloaded models.
-"""
+# Default location of the cache for matgl, e.g., for storing downloaded models.
 MATGL_CACHE = Path(os.path.expanduser("~")) / ".cache/matgl"
+os.makedirs(MATGL_CACHE, exist_ok=True)
 
-"""
-Download url for pre-trained models.
-"""
+# Download url for pre-trained models.
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 
