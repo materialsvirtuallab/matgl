@@ -109,15 +109,7 @@ class IOMixIn:
         with open(fpaths["model.json"]) as f:
             model_data = json.load(f)
 
-        if model_data.get("@model_version", 1) < getattr(cls, "__version__", 0):
-            warnings.warn(
-                "Incompatible model version detected! The code will continue to load the model but it is "
-                "recommended that you provide a path to an updated model, increment your @model_version in model.json "
-                "if you are confident that the changes are not problematic, or clear your ~/.matgl cache using "
-                '`python -c "import matgl; matgl.clear_cache()"`',
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        _check_ver(cls, model_data)
 
         if not torch.cuda.is_available():
             state = torch.load(fpaths["state.pt"], map_location=torch.device("cpu"))
@@ -132,6 +124,7 @@ class IOMixIn:
                 classname = v["@class"]
                 mod = __import__(modname, globals(), locals(), [classname], 0)
                 cls_ = getattr(mod, classname)
+                _check_ver(cls_, v)  # Check version of any subclasses too.
                 d[k] = cls_(**v["init_args"])
         d = {k: v for k, v in d.items() if not k.startswith("@")}
         model = cls(**d)
@@ -251,3 +244,25 @@ def _get_file_paths(path: Path, **kwargs):
             f"No valid model found in {path} or among pre-trained_models at "
             f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
         ) from None
+
+
+def _check_ver(cls_, d):
+    """
+    Check version of cls_ in current matgl against those noted in a dict.
+
+    Args:
+        cls_: Class object.
+        version: version number.
+
+    Raises:
+        Deprecation warning if the code is
+    """
+    if getattr(cls_, "__version__", 0) > d.get("@model_version", 0):
+        warnings.warn(
+            "Incompatible model version detected! The code will continue to load the model but it is "
+            "recommended that you provide a path to an updated model, increment your @model_version in model.json "
+            "if you are confident that the changes are not problematic, or clear your ~/.matgl cache using "
+            '`python -c "import matgl; matgl.clear_cache()"`',
+            DeprecationWarning,
+            stacklevel=2,
+        )
