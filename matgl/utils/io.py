@@ -205,14 +205,20 @@ def load_model(path: Path, **kwargs):
 
     fpaths = _get_file_paths(path, **kwargs)
 
-    with open(fpaths["model.json"]) as f:
-        d = json.load(f)
-        modname = d["@module"]
-        classname = d["@class"]
+    try:
+        with open(fpaths["model.json"]) as f:
+            d = json.load(f)
+            modname = d["@module"]
+            classname = d["@class"]
 
-        mod = __import__(modname, globals(), locals(), [classname], 0)
-        cls_ = getattr(mod, classname)
-        return cls_.load(fpaths, **kwargs)
+            mod = __import__(modname, globals(), locals(), [classname], 0)
+            cls_ = getattr(mod, classname)
+            return cls_.load(fpaths, **kwargs)
+    except BaseException:
+        raise ValueError(
+            "Bad serialized model detected. It is possible that you have an older model cached. Please "
+            'clear your cache by running `python -c "import matgl; matgl.clear_cache()"`'
+        ) from None
 
 
 def _get_file_paths(path: Path, **kwargs):
