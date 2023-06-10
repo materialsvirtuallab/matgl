@@ -56,6 +56,8 @@ class Atoms2Graph(GraphConverter):
         cutoff: float = 5.0,
     ):
         """
+        Init Atoms2Graph from element types and cutoff radius.
+
         Args:
             element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
                 constructed with the same dimensionality of features.
