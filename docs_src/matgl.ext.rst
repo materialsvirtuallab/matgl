@@ -1,24 +1,12 @@
 matgl.ext package
-matgl.ext package
-=================
 =================
 
+.. automodule:: matgl.ext
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.ext.tests
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.ext.ase
 Subpackages
 -----------
 
@@ -34,20 +22,3 @@ Submodules
 
    matgl.ext.ase
    matgl.ext.pymatgen
-   matgl.ext.pymatgen
-
-
-Module contents
-Module contents
----------------
----------------
-
-
-.. automodule:: matgl.ext
-.. automodule:: matgl.ext
-   :members:
-   :members:
-   :undoc-members:
-   :undoc-members:
-   :show-inheritance:
-   :show-inheritance:

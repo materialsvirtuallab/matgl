@@ -26,6 +26,7 @@ class MEGNet(nn.Module, IOMixIn):
     DGL implementation of MEGNet.
     """
 
+    # Model version number.
     __version__ = 1
 
     def __init__(

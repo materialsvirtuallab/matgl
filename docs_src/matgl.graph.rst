@@ -1,24 +1,12 @@
 matgl.graph package
-matgl.graph package
-===================
 ===================
 
+.. automodule:: matgl.graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.graph.tests
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.graph.compute
 Subpackages
 -----------
 
@@ -34,22 +22,4 @@ Submodules
 
    matgl.graph.compute
    matgl.graph.converters
-   matgl.graph.converters
    matgl.graph.data
-   matgl.graph.data
-
-
-Module contents
-Module contents
----------------
----------------
-
-
-.. automodule:: matgl.graph
-.. automodule:: matgl.graph
-   :members:
-   :members:
-   :undoc-members:
-   :undoc-members:
-   :show-inheritance:
-   :show-inheritance:

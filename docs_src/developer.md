@@ -50,12 +50,20 @@ from matgl.utils.io import IOMixIn
 
 class MyModel(torch.nn.Module, IOMixIn):
 
+    __version__ = 1
+
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.save_args(locals(), kwargs)
 ```
 
 Models implementing this protocol can be saved and loaded using `model.save(path)`, `Model.load(path)` and the
-convenience `matgl.load_model(path)` methods. There is also a basic versioning implemented.
+convenience `matgl.load_model(path)` methods.
+
+## Model versioning
+
+The IOMixIn supports optional model versioning. To enable this, the model class should have an integer `__version__`
+class variable. The goal is to increment this variable when architectural changes occur and saved pre-trained models
+need to be invalidated. If not specified, the model is not versioned at all.
 
 [dgl]: https://www.dgl.ai "DGL website"

@@ -1,24 +1,12 @@
 matgl.apps package
-matgl.apps package
-==================
 ==================
 
+.. automodule:: matgl.apps
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.apps.tests
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.apps.pes
 Subpackages
 -----------
 
@@ -33,19 +21,3 @@ Submodules
    :maxdepth: 6
 
    matgl.apps.pes
-
-
-Module contents
-Module contents
----------------
----------------
-
-
-.. automodule:: matgl.apps
-.. automodule:: matgl.apps
-   :members:
-   :members:
-   :undoc-members:
-   :undoc-members:
-   :show-inheritance:
-   :show-inheritance:

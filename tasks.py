@@ -24,8 +24,9 @@ def make_doc(ctx):
     ctx.run("cp changes.md docs_src/changes.md")
     ctx.run("cp developer.md docs_src/developer.md")
     with cd("docs_src"):
-        ctx.run("rm *tests*.rst", warn=True)
-        ctx.run("sphinx-apidoc --separate -d 6 -o . -f ../matgl")
+        ctx.run("rm matgl.*.rst", warn=True)
+        ctx.run("sphinx-apidoc --separate -P -M -d 6 -o . -f ../matgl")
+        ctx.run("rm matgl.*tests*.rst", warn=True)
         for f in glob.glob("*.rst"):
             if f.startswith("matgl") and f.endswith("rst"):
                 newoutput = []
@@ -34,7 +35,6 @@ def make_doc(ctx):
                 with open(f) as fid:
                     for line in fid:
                         clean = line.strip()
-                        newoutput.append(line)
                         if clean == "Subpackages":
                             subpackage = True
                         if not subpackage and not clean.endswith("tests"):

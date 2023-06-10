@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>&lt;no title&gt; &#8212; matgl  documentation</title>
+    <title>matgl.graph.data module &#8212; matgl  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -29,11 +29,137 @@
 
           <div class="body" role="main">
             
-  <p>matgl.graph.data module
-matgl.graph.data module
-=======================
-=======================</p>
-<span class="target" id="module-matgl.graph.data"></span><p>Tools to construct a dataset of DGL graphs.</p>
+  <section id="module-matgl.graph.data">
+<span id="matgl-graph-data-module"></span><h1>matgl.graph.data module<a class="headerlink" href="#module-matgl.graph.data" title="Permalink to this heading">¶</a></h1>
+<p>Tools to construct a dataset of DGL graphs.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.graph.data.M3GNetDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">M3GNetDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stresses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="matgl.graph.converters.html#matgl.graph.converters.GraphConverter" title="matgl.graph.converters.GraphConverter"><span class="pre">GraphConverter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">threebody_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'M3GNETDataset'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.M3GNetDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">DGLDataset</span></code></p>
+<p>Create a dataset including dgl graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.M3GNetDataset.has_cache">
+<span class="sig-name descname"><span class="pre">has_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_graph.bin'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#matgl.graph.data.M3GNetDataset.has_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the dgl_graph.bin exists or not
+Args:</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">filename<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of file storing dgl graphs</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Returns: True if file exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.M3GNetDataset.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_graph.bin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_line_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_line_graph.bin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'state_attr.pt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.M3GNetDataset.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load dgl graphs
+Args:
+:filename: Name of file storing dgl graphs
+:filename: Name of file storing state attrs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.M3GNetDataset.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#matgl.graph.data.M3GNetDataset.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Pymatgen structure into dgl graphs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.M3GNetDataset.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_graph.bin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_line_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_line_graph.bin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'state_attr.pt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.M3GNetDataset.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save dgl graphs
+Args:
+:filename: Name of file storing dgl graphs
+:filename_state_attr: Name of file storing graph attrs.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.graph.data.MEGNetDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">MEGNetDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structures</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="matgl.graph.converters.html#matgl.graph.converters.GraphConverter" title="matgl.graph.converters.GraphConverter"><span class="pre">GraphConverter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_centers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'MEGNETDataset'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.MEGNetDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">DGLDataset</span></code></p>
+<p>Create a dataset including dgl graphs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.MEGNetDataset.has_cache">
+<span class="sig-name descname"><span class="pre">has_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_graph.bin'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#matgl.graph.data.MEGNetDataset.has_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the dgl_graph.bin exists or not
+Args:</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">filename<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Name of file storing dgl graphs</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Returns: True if file exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.MEGNetDataset.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_graph.bin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'state_attr.pt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.MEGNetDataset.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load dgl graphs
+Args:
+:filename: Name of file storing dgl graphs
+:filename: Name of file storing state attrs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.MEGNetDataset.process">
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span></span></span><a class="headerlink" href="#matgl.graph.data.MEGNetDataset.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Pymatgen structure into dgl graphs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.graph.data.MEGNetDataset.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dgl_graph.bin'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'state_attr.pt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.MEGNetDataset.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save dgl graphs
+Args:
+:filename: Name of file storing dgl graphs
+:filename_state_attr: Name of file storing graph attrs.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.graph.data.MGLDataLoader">
+<span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">MGLDataLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.data.utils.Subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.data.utils.Subset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collate_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_ddp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin_memory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.data.utils.Subset</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Generator</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">GraphDataLoader</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.graph.data.MGLDataLoader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dataloader for MEGNet training.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>train_data (dgl.data.utils.Subset): Training dataset.
+val_data (dgl.data.utils.Subset): Validation dataset.
+collate_fn (Callable): Collate function.
+batch_size (int): Batch size.
+num_workers (int): Number of workers.
+use_ddp (bool, optional): Whether to use DDP. Defaults to False.
+pin_memory (bool, optional): Whether to pin memory. Defaults to False.
+test_data (dgl.data.utils.Subset | None, optional): Test dataset. Defaults to None.
+generator (torch.Generator | None, optional): Random number generator. Defaults to None.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>tuple[GraphDataLoader, …]: Train, validation and test data loaders. Test data</dt><dd><p>loader is None if test_data is None.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.graph.data.collate_fn">
+<span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">collate_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.collate_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge a list of dgl graphs to form a batch.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.graph.data.collate_fn_efs">
+<span class="sig-prename descclassname"><span class="pre">matgl.graph.data.</span></span><span class="sig-name descname"><span class="pre">collate_fn_efs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.data.collate_fn_efs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge a list of dgl graphs to form a batch.</p>
+</dd></dl>
+
+</section>
 
 
           </div>

@@ -1,24 +1,12 @@
 matgl.utils package
-matgl.utils package
-===================
 ===================
 
+.. automodule:: matgl.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.utils.tests
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.utils.cutoff
 Subpackages
 -----------
 
@@ -34,24 +22,5 @@ Submodules
 
    matgl.utils.cutoff
    matgl.utils.io
-   matgl.utils.io
-   matgl.utils.maths
    matgl.utils.maths
    matgl.utils.training
-   matgl.utils.training
-
-
-Module contents
-Module contents
----------------
----------------
-
-
-.. automodule:: matgl.utils
-.. automodule:: matgl.utils
-   :members:
-   :members:
-   :undoc-members:
-   :undoc-members:
-   :show-inheritance:
-   :show-inheritance:

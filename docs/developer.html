@@ -78,13 +78,21 @@ called after the super class call. A simpel example is as follows:</p>
 
 <span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">IOMixIn</span><span class="p">):</span>
 
+    <span class="n">__version__</span> <span class="o">=</span> <span class="mi">1</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_args</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Models implementing this protocol can be saved and loaded using <code class="docutils literal notranslate"><span class="pre">model.save(path)</span></code>, <code class="docutils literal notranslate"><span class="pre">Model.load(path)</span></code> and the
-convenience <code class="docutils literal notranslate"><span class="pre">matgl.load_model(path)</span></code> methods. There is also a basic versioning implemented.</p>
+convenience <code class="docutils literal notranslate"><span class="pre">matgl.load_model(path)</span></code> methods.</p>
+</section>
+<section id="model-versioning">
+<h2>Model versioning<a class="headerlink" href="#model-versioning" title="Permalink to this heading">¶</a></h2>
+<p>The IOMixIn supports optional model versioning. To enable this, the model class should have an integer <code class="docutils literal notranslate"><span class="pre">__version__</span></code>
+class variable. The goal is to increment this variable when architectural changes occur and saved pre-trained models
+need to be invalidated. If not specified, the model is not versioned at all.</p>
 </section>
 </section>
 

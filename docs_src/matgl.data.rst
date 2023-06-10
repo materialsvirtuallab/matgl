@@ -1,24 +1,12 @@
 matgl.data package
-matgl.data package
-==================
 ==================
 
+.. automodule:: matgl.data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.data.tests
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 6
-
-   matgl.data.transformer
 Subpackages
 -----------
 
@@ -33,19 +21,3 @@ Submodules
    :maxdepth: 6
 
    matgl.data.transformer
-
-
-Module contents
-Module contents
----------------
----------------
-
-
-.. automodule:: matgl.data
-.. automodule:: matgl.data
-   :members:
-   :members:
-   :undoc-members:
-   :undoc-members:
-   :show-inheritance:
-   :show-inheritance:
