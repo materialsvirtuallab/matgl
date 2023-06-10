@@ -119,4 +119,7 @@ def clear_cache():
     while answer not in ("y", "n"):
         answer = input(f"Do you really want to delete everything in {MATGL_CACHE} (y|n)?").lower().strip()
     if answer == "y":
-        shutil.rmtree(MATGL_CACHE)
+        try:
+            shutil.rmtree(MATGL_CACHE)
+        except FileNotFoundError:
+            print(f"matgl cache dir {MATGL_CACHE!r} not found")
