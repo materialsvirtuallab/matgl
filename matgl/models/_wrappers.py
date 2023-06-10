@@ -12,7 +12,10 @@ from matgl.utils.io import IOMixIn
 class TransformedTargetModel(nn.Module, IOMixIn):
     """
     A model where the target is first transformed prior to training and the reverse transformation is performed for
-    predictions. This is modelled after scikit-learn's TransformedTargetRegressor.
+    predictions. This is modelled after scikit-learn's TransformedTargetRegressor. It should be noted that this model
+    is almost never used for training since the general idea is to use the transformed target for loss computation.
+    Instead, it is created after a model has been fitted for serialization for end user to call the model to perform
+    predictions without having to worry about what target transformations have been performed.
     """
 
     # Model version number.
@@ -42,7 +45,7 @@ class TransformedTargetModel(nn.Module, IOMixIn):
         return self.transformer.inverse_transform(output)
 
     def __repr__(self):
-        return f"TransformedTargetModel:\nModel: {self.model.__repr()}\nTransformer: {self.transformer.__repr__()}"
+        return f"TransformedTargetModel:\n\tModel: {self.model.__repr()}\n\tTransformer: {self.transformer.__repr__()}"
 
     def predict_structure(self, *args, **kwargs):
         """
