@@ -15,7 +15,7 @@ from matgl.graph.converters import GraphConverter
 
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]:
-    """Get the dictionary containing elements in the training set for atomic features
+    """Get the dictionary containing elements in the training set for atomic features.
 
     Args:
         train_structures: pymatgen Molecule/Structure object

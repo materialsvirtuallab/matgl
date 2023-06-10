@@ -43,8 +43,7 @@
 <dd><p>Load the model weights from a directory.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
-<dt>path (str|path): Path to saved model or name of pre-trained model. The search order is</dt><dd><p>path, followed by model name in PRETRAINED_MODELS_PATH, followed by download from
-PRETRAINED_MODELS_BASE_URL.</p>
+<dt>path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by</dt><dd><p>download from PRETRAINED_MODELS_BASE_URL (with caching).</p>
 </dd>
 <dt>include_json (bool): If True, the “model.json” file is also loaded. This file can contain metadata about</dt><dd><p>the model, e.g., if scaling was performed in training the model, this file may contain the mean and
 standard deviation of the models, which needs to be applied to the final predictions.</p>
@@ -80,7 +79,7 @@ metadata: Any additional metadata to be saved into the model.json file. For exam
 
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.save_args">
-<span class="sig-name descname"><span class="pre">save_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#matgl.utils.io.IOMixIn.save_args" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">save_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#matgl.utils.io.IOMixIn.save_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method to save args into a private _init_args variable. This should be called after super in the __init__
 method, e.g., <cite>self.save_args(locals(), kwargs)</cite>.</p>
 <dl class="simple">
@@ -97,6 +96,23 @@ kwargs: kwargs passed to the class.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">RemoteFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PosixPath('/Users/shyue/.matgl')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.RemoteFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Handling of download of remote files to a local cache.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.io.load_model">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method to load a model from a directory or name.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by</dt><dd><p>download from PRETRAINED_MODELS_BASE_URL (with caching).</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you</dt><dd><p>want to update the model.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>Returns: model_object if include_json is false. (model_object, dict) if include_json is True.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

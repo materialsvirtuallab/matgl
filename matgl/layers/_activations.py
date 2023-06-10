@@ -1,5 +1,5 @@
 """
-Custom activation functions
+Custom activation functions.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ class SoftPlus2(nn.Module):
     """
     SoftPlus2 activation function:
     out = log(exp(x)+1) - log(2)
-    softplus function that is 0 at x=0, the implementation aims at avoiding overflow
+    softplus function that is 0 at x=0, the implementation aims at avoiding overflow.
     """
 
     def __init__(self) -> None:
@@ -39,7 +39,7 @@ class SoftExponential(nn.Module):
     Soft exponential activation.
     When x < 0, SoftExponential(x,alpha) = -log(1-alpha(x+alpha))/alpha
     When x = 0, SoftExponential(x,alpha) = 0
-    When x > 0, SoftExponential(x,alpha) = (exp(alpha*x)-1)/alpha + alpha
+    When x > 0, SoftExponential(x,alpha) = (exp(alpha*x)-1)/alpha + alpha.
 
 
     References:
@@ -51,7 +51,7 @@ class SoftExponential(nn.Module):
     def __init__(self, alpha: float = None):
         """
         Args:
-            alpha (float): adjustable Torch parameter during the training
+            alpha (float): adjustable Torch parameter during the training.
         """
         super().__init__()
 

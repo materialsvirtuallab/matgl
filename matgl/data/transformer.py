@@ -1,5 +1,5 @@
 """
-Module implementing various data transformers for PyTorch
+Module implementing various data transformers for PyTorch.
 """
 from __future__ import annotations
 
@@ -49,14 +49,14 @@ class Normalizer(Transformer):
         """
         Args:
             mean: Mean of the data
-            std: Standard deviation of the data
+            std: Standard deviation of the data.
         """
         self.mean = mean
         self.std = std
 
     def transform(self, data):
         """
-        Scale the data.
+        z-score the data by subtracting the mean and dividing by the standard deviation.
 
         Args:
             data: Input data
@@ -68,7 +68,7 @@ class Normalizer(Transformer):
 
     def inverse_transform(self, data):
         """
-        Invert the scaling
+        Invert the scaling.
 
         Args:
             data: Scaled data
@@ -84,12 +84,49 @@ class Normalizer(Transformer):
     @classmethod
     def from_data(cls, data):
         """
-        Create Normalizer from data
+        Create Normalizer from data.
+
         Args:
-            data: Input data
+            data: Input data.
 
         Returns:
             Normalizer
         """
         data = torch.tensor(data)
         return Normalizer(torch.mean(data), torch.std(data))
+
+
+class LogTransformer(Transformer):
+    """
+    Performs a natural log of the data.
+    """
+
+    def __init__(self):
+        pass
+
+    def transform(self, data):
+        """
+        Take the log of the data.
+
+        Args:
+            data: Input data
+
+        Returns:
+            Scaled data
+        """
+        return torch.log(data)
+
+    def inverse_transform(self, data):
+        """
+        Invert the log (exp).
+
+        Args:
+            data: Input data
+
+        Returns:
+            exp(data)
+        """
+        return torch.exp(data)
+
+    def __repr__(self):
+        return "LogTransformer"

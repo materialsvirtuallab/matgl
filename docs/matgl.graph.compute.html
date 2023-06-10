@@ -31,11 +31,11 @@
             
   <section id="module-matgl.graph.compute">
 <span id="matgl-graph-compute-module"></span><h1>matgl.graph.compute module<a class="headerlink" href="#module-matgl.graph.compute" title="Permalink to this heading">¶</a></h1>
-<p>Computing various graph based operations</p>
+<p>Computing various graph based operations.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.graph.compute.compute_3body">
 <span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">compute_3body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.compute_3body" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the three body indices from pair atom indices</p>
+<dd><p>Calculate the three body indices from pair atom indices.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>g: DGL graph</p>
 </dd>
@@ -51,7 +51,7 @@ n_triple_s (np.ndarray): number of three-body angles for each structure</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.graph.compute.compute_pair_vector_and_distance">
 <span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">compute_pair_vector_and_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.compute_pair_vector_and_distance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate bond vectors and distances using dgl graphs</p>
+<dd><p>Calculate bond vectors and distances using dgl graphs.</p>
 <p>Args:
 g: DGL graph</p>
 <p>Returns:
@@ -62,7 +62,7 @@ bond_dist (torch.tensor): vector from src node to dst node</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.graph.compute.compute_theta_and_phi">
 <span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">compute_theta_and_phi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EdgeBatch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.compute_theta_and_phi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate bond angle Theta and Phi using dgl graphs</p>
+<dd><p>Calculate bond angle Theta and Phi using dgl graphs.</p>
 <p>Args:
 edges: DGL graph edges</p>
 <p>Returns:
@@ -74,7 +74,7 @@ triple_bond_lengths (torch.tensor):</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="matgl.graph.compute.create_line_graph">
 <span class="sig-prename descclassname"><span class="pre">matgl.graph.compute.</span></span><span class="sig-name descname"><span class="pre">create_line_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g_batched</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threebody_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.graph.compute.create_line_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the three body indices from pair atom indices</p>
+<dd><p>Calculate the three body indices from pair atom indices.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>g_batched: Batched DGL graph
 threebody_cutoff (float): cutoff for three-body interactions</p>

@@ -8,19 +8,16 @@ in the dataset.
 # Training dataset
 
 MP-2021.2.8: Materials Project structure relaxations as of 2021.2.8.
-
-Number of structures for training: 167237
-
-Number of structures for validation: 18584
+- Training set size: 167237
+- Validation set size: 18584
 
 # Performance metrics
 
 ## Training and validation errors
-The reported numbers are mean absolute error of energies, forces and stresses.
 
-Train: 19.977 eV/atom, 0.063 eV/A, 0.272 GPa
-
-Valid: 23.713 eV/atom, 0.070 eV/A, 0.394 GPa
+MAEs of energies, forces and stresses, respectively
+- Training: 19.977 eV/atom, 0.063 eV/A, 0.272 GPa
+- Validation: 23.713 eV/atom, 0.070 eV/A, 0.394 GPa
 
 ## Cubic crystals benchmark
 

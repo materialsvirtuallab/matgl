@@ -1,6 +1,13 @@
 matgl.apps package
 ==================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 6
+
+
 Submodules
 ----------
 

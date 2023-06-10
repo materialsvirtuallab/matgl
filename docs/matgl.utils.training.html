@@ -36,14 +36,14 @@
 <dt class="sig sig-object py" id="matgl.utils.training.ModelTrainer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.training.</span></span><span class="sig-name descname"><span class="pre">ModelTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mse_loss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optimizer</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lr_scheduler</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.ModelTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matgl.utils.training.TrainerMixin" title="matgl.utils.training.TrainerMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainerMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code></p>
-<p>Trainer for MEGNet and M3GNet models</p>
+<p>Trainer for MEGNet and M3GNet models.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.utils.training.ModelTrainer.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.DGLGraph</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.ModelTrainer.forward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Args:</dt><dd><p>g: dgl Graph
 l_g: Line graph
-state_attr: State attribute</p>
+state_attr: State attribute.</p>
 </dd>
 <dt>Returns:</dt><dd><p>Model prediction.</p>
 </dd>
@@ -87,7 +87,7 @@ preds: Predictions.</p>
 <dd><dl class="simple">
 <dt>Args:</dt><dd><p>g: dgl Graph
 l_g: Line graph
-state_attr: State attr</p>
+state_attr: State attr.</p>
 </dd>
 <dt>Returns:</dt><dd><p>energy, force, stress, h</p>
 </dd>
@@ -143,7 +143,7 @@ num_atoms: Number of atoms.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.configure_optimizers">
 <span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.configure_optimizers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configure optimizers</p>
+<dd><p>Configure optimizers.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -151,7 +151,7 @@ num_atoms: Number of atoms.</p>
 <span class="sig-name descname"><span class="pre">on_test_model_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.on_test_model_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Args:</dt><dd><p><a href="#id1"><span class="problematic" id="id2">*</span></a>args: Pass-through
-<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Pass-through</p>
+<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Pass-through.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -159,7 +159,7 @@ num_atoms: Number of atoms.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.on_train_epoch_end">
 <span class="sig-name descname"><span class="pre">on_train_epoch_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.on_train_epoch_end" title="Permalink to this definition">¶</a></dt>
-<dd><p>Step scheduler every epoch</p>
+<dd><p>Step scheduler every epoch.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -207,6 +207,16 @@ batch_idx: Batch index.</p>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.training.xavier_init">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.training.</span></span><span class="sig-name descname"><span class="pre">xavier_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#matgl.utils.training.xavier_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Xavier initialization scheme for the model.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>model (nn.Module): The model to be Xavier-initialized.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

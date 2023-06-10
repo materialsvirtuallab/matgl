@@ -1,6 +1,13 @@
 matgl.ext package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 6
+
+
 Submodules
 ----------
 
