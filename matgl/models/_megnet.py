@@ -46,7 +46,7 @@ class MEGNet(nn.Module, IOMixIn):
         include_state: bool = True,
         dropout: float | None = None,
         graph_transformations: list | None = None,
-        element_types: tuple[str, ...] = tuple(DEFAULT_ELEMENT_TYPES),
+        element_types: tuple[str, ...] = DEFAULT_ELEMENT_TYPES,
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
