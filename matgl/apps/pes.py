@@ -18,6 +18,8 @@ class Potential(nn.Module, IOMixIn):
     A class representing an interatomic potential.
     """
 
+    __version__ = 1
+
     def __init__(
         self,
         model: nn.Module,

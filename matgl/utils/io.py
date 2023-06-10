@@ -13,7 +13,7 @@ from pathlib import Path
 import requests
 import torch
 
-from matgl.config import MATGL_CACHE, MODEL_VERSION, PRETRAINED_MODELS_BASE_URL
+from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
 
 logger = logging.getLogger(__file__)
 
@@ -49,7 +49,7 @@ class IOMixIn:
                 d[k] = {
                     "@class": v.__class__.__name__,
                     "@module": v.__class__.__module__,
-                    "@model_version": MODEL_VERSION,
+                    "@model_version": getattr(v, "__version__", 0),
                     "init_args": v._init_args,
                 }
         self._init_args = d
@@ -77,7 +77,7 @@ class IOMixIn:
         d = {
             "@class": self.__class__.__name__,
             "@module": self.__class__.__module__,
-            "@model_version": MODEL_VERSION,
+            "@model_version": getattr(self, "__version__", 0),
             "metadata": metadata,
             "kwargs": self._init_args,
         }  # type: ignore
@@ -85,39 +85,56 @@ class IOMixIn:
             json.dump(d, f, default=lambda o: str(o), indent=4)
 
     @classmethod
-    def load(cls, path: str | Path, include_json=False, **kwargs):
+    def load(cls, path: str | Path | dict, **kwargs):
         """
         Load the model weights from a directory.
 
         Args:
-            path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by
-                download from PRETRAINED_MODELS_BASE_URL (with caching).
-            include_json (bool): If True, the "model.json" file is also loaded. This file can contain metadata about
-                the model, e.g., if scaling was performed in training the model, this file may contain the mean and
-                standard deviation of the models, which needs to be applied to the final predictions.
+            path (str|path|dict): Path to saved model or name of pre-trained model. If it is a dict, it is assumed to
+                be of the form
+                {
+                    "model.pt": path to model.pt file,
+                    "state.pt": path to state file,
+                    "model.json": path to model.json file
+                }
+                Otherwise, the search order is path, followed by download from PRETRAINED_MODELS_BASE_URL
+                (with caching).
             kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
                 want to update the model.
 
         Returns: model_object if include_json is false. (model_object, dict) if include_json is True.
         """
-        path = Path(path)
-
-        fnames = ["model.pt", "state.pt"]
-        if include_json:
-            fnames.append("model.json")
-
-        if all((path / fn).exists() for fn in fnames):
-            fpaths = {fn: path / fn for fn in fnames}
+        if isinstance(path, dict):
+            fpaths = path
         else:
-            try:
-                fpaths = {
-                    fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames
-                }
-            except BaseException:
-                raise ValueError(
-                    f"No valid model found in {path} or among pre-trained_models at "
-                    f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-                ) from None
+            path = Path(path)
+
+            fnames = ("model.pt", "state.pt", "model.json")
+
+            if all((path / fn).exists() for fn in fnames):
+                fpaths = {fn: path / fn for fn in fnames}
+            else:
+                try:
+                    fpaths = {
+                        fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames
+                    }
+                except BaseException:
+                    raise ValueError(
+                        f"No valid model found in {path} or among pre-trained_models at "
+                        f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
+                    ) from None
+        with open(fpaths["model.json"]) as f:
+            model_data = json.load(f)
+
+        if model_data.get("@model_version", 1) < getattr(cls, "__version__", 0):
+            warnings.warn(
+                "Incompatible model version detected! The code will continue to load the model but it is "
+                "recommended that you provide a path to an updated model, increment your @model_version in model.json "
+                "if you are confident that the changes are not problematic, or clear your ~/.matgl cache using "
+                '`python -c "import matgl; matgl.clear_cache()"`',
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if not torch.cuda.is_available():
             state = torch.load(fpaths["state.pt"], map_location=torch.device("cpu"))
@@ -136,12 +153,6 @@ class IOMixIn:
         d = {k: v for k, v in d.items() if not k.startswith("@")}
         model = cls(**d)
         model.load_state_dict(state)  # type: ignore
-
-        if include_json:
-            with open(fpaths["model.json"]) as f:
-                model_data = json.load(f)
-
-            return model, model_data
 
         return model
 
@@ -233,16 +244,7 @@ def load_model(path: Path, **kwargs):
         d = json.load(f)
         modname = d["@module"]
         classname = d["@class"]
-        model_version = d.get("@model_version", 0)
-        if model_version < MODEL_VERSION:
-            warnings.warn(
-                "Incompatible model version detected! The code will continue to load the model but it is "
-                "recommended that you provide a path to an updated model, increment your @model_version in model.json "
-                "if you are confident that the changes are not problematic, or clear your ~/.matgl cache using "
-                '`python -c "import matgl; matgl.clear_cache()"`',
-                DeprecationWarning,
-                stacklevel=2,
-            )
+
         mod = __import__(modname, globals(), locals(), [classname], 0)
         cls_ = getattr(mod, classname)
-        return cls_.load(path, **kwargs)
+        return cls_.load(fpaths, **kwargs)

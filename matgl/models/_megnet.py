@@ -26,6 +26,8 @@ class MEGNet(nn.Module, IOMixIn):
     DGL implementation of MEGNet.
     """
 
+    __version__ = 1
+
     def __init__(
         self,
         dim_node_embedding: int = 16,

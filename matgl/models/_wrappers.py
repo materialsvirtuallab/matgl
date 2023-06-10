@@ -15,6 +15,8 @@ class TransformedTargetModel(nn.Module, IOMixIn):
     predictions. This is modelled after scikit-learn's TransformedTargetRegressor.
     """
 
+    __version__ = 1
+
     def __init__(self, model: nn.Module, target_transformer: Transformer):
         """
         Args:
