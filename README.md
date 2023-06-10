@@ -15,6 +15,8 @@
 - [API Docs](#api-docs)
 - [Developer's Guide](#developers-guide)
 - [References](#references)
+- [FAQs](#faqs)
+- [Acknowledgements](#acknowledgments)
 
 ## Introduction
 
@@ -142,6 +144,23 @@ Please cite the following works:
 > Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
 >  2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
 
+## FAQs
+
+1. The `M3GNet-MP-2021.2.8-PES` does not agree completely with the original TF implementation!
+
+   Ans: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
+   It is not expected to reproduce the original TF implementation exactly. We have conducted reasonable benchmarks
+   to ensure that the new implementation reproduces the broad error characteristics of the original TF
+   implementation (see [examples](examples)). It is meant to serve as a baseline for future model improvements.
+
+2. I am getting errors with `matgl.load_model`!
+
+   Ans: The most likely reason is that you have an old version of the model cached. Refactoring models is common to
+   ensure the best implementation. This can usually be solved by clearing your cache using:
+
+   ```bash
+   python -c "import matgl; matgl.clear_cache()"
+   ```
 
 ## Acknowledgments
 
