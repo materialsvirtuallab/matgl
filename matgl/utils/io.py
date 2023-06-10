@@ -104,25 +104,8 @@ class IOMixIn:
 
         Returns: model_object if include_json is false. (model_object, dict) if include_json is True.
         """
-        if isinstance(path, dict):
-            fpaths = path
-        else:
-            path = Path(path)
+        fpaths = path if isinstance(path, dict) else _get_file_paths(Path(path), **kwargs)
 
-            fnames = ("model.pt", "state.pt", "model.json")
-
-            if all((path / fn).exists() for fn in fnames):
-                fpaths = {fn: path / fn for fn in fnames}
-            else:
-                try:
-                    fpaths = {
-                        fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames
-                    }
-                except BaseException:
-                    raise ValueError(
-                        f"No valid model found in {path} or among pre-trained_models at "
-                        f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-                    ) from None
         with open(fpaths["model.json"]) as f:
             model_data = json.load(f)
 
@@ -227,18 +210,7 @@ def load_model(path: Path, **kwargs):
     """
     path = Path(path)
 
-    fnames = ["model.pt", "state.pt", "model.json"]
-
-    if all((path / fn).exists() for fn in fnames):
-        fpaths = {fn: path / fn for fn in fnames}
-    else:
-        try:
-            fpaths = {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
-        except BaseException:
-            raise ValueError(
-                f"No valid model found in {path} or among pre-trained_models at "
-                f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-            ) from None
+    fpaths = _get_file_paths(path, **kwargs)
 
     with open(fpaths["model.json"]) as f:
         d = json.load(f)
@@ -248,3 +220,34 @@ def load_model(path: Path, **kwargs):
         mod = __import__(modname, globals(), locals(), [classname], 0)
         cls_ = getattr(mod, classname)
         return cls_.load(fpaths, **kwargs)
+
+
+def _get_file_paths(path: Path, **kwargs):
+    """
+    Search path for files.
+
+    Args:
+        path (Path): Path to saved model or name of pre-trained model. The search order is path, followed by
+            download from PRETRAINED_MODELS_BASE_URL (with caching).
+        **kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
+            want to update the model.
+
+    Returns:
+        {
+            "model.pt": path to model.pt file,
+            "state.pt": path to state file,
+            "model.json": path to model.json file
+        }
+    """
+    fnames = ("model.pt", "state.pt", "model.json")
+
+    if all((path / fn).exists() for fn in fnames):
+        return {fn: path / fn for fn in fnames}
+
+    try:
+        return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
+    except BaseException:
+        raise ValueError(
+            f"No valid model found in {path} or among pre-trained_models at "
+            f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
+        ) from None

@@ -47,7 +47,7 @@ OPTIMIZERS = {
 
 class Atoms2Graph(GraphConverter):
     """
-    Construct a DGL graph from ASE atoms.
+    Construct a DGL graph from ASE Atoms.
     """
 
     def __init__(
@@ -56,21 +56,21 @@ class Atoms2Graph(GraphConverter):
         cutoff: float = 5.0,
     ):
         """
-        Parameters
-        ----------
-        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
-            constructed with the same dimensionality of features.
-        cutoff: Cutoff radius for graph representation
+        Args:
+            element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
+                constructed with the same dimensionality of features.
+            cutoff: Cutoff radius for graph representation
         """
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
     def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, list]:
         """
-        Get a DGL graph from an input Structure.
+        Get a DGL graph from an input Atoms.
+        Args:
+            atoms: Atoms object.
 
-        :param structure: pymatgen structure object
-        :return:
+        Returns:
             g: DGL graph
             state_attr: state features
         """
