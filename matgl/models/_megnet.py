@@ -46,7 +46,7 @@ class MEGNet(nn.Module, IOMixIn):
         include_state: bool = True,
         dropout: float | None = None,
         graph_transformations: list | None = None,
-        element_types: tuple[str, ...] | None = None,
+        element_types: tuple[str, ...] = tuple(DEFAULT_ELEMENT_TYPES),
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
@@ -87,7 +87,7 @@ class MEGNet(nn.Module, IOMixIn):
 
         self.save_args(locals(), kwargs)
 
-        self.element_types = element_types or DEFAULT_ELEMENT_TYPES
+        self.element_types = element_types
         self.cutoff = cutoff
         self.bond_expansion = bond_expansion or BondExpansion(
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width

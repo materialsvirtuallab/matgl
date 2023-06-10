@@ -28,6 +28,7 @@ In this repository, we have reimplemented the original Tensorflow [MatErials 3-b
 and its predecessor, [MEGNet][megnet], using the [Deep Graph Library (DGL)][dgl] and PyTorch.
 The goal is to improve the usability, extensibility and scalability of these models. Here are some key improvements
 over the TF implementations:
+
 - A more intuitive API and class structure based on DGL.
 - Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
@@ -37,6 +38,7 @@ Nassar, Carmelo Gonzales). Please refer to the [official documentation][doc] for
 ## Status
 
 Major milestones are summarized below. Please refer to [change log][changelog] for details.
+
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
 - v0.4.0 (Jun 7 2023): Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
@@ -132,30 +134,30 @@ Please cite the following works:
 > ### MEGNet
 >
 > Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-> Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
+> Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. <https://doi.org/10.1021/acs.chemmater.9b01294>.
 
 > ### Multi-fidelity MEGNet
 >
 > Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
-> Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.
+> Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. <https://doi.org/10.1038/s43588-020-00002-x>.
 
 > ### M3GNet
 >
 > Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
->  2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
+> 2, 718–728 (2022). <https://doi.org/10.1038/s43588-022-00349-3>.
 
 ## FAQs
 
-1. The `M3GNet-MP-2021.2.8-PES` does not agree completely with the original TF implementation!
+1. The `M3GNet-MP-2021.2.8-PES` differs from the original TF implementation!
 
-   Ans: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
+   Answer: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
    It is not expected to reproduce the original TF implementation exactly. We have conducted reasonable benchmarks
    to ensure that the new implementation reproduces the broad error characteristics of the original TF
    implementation (see [examples](examples)). It is meant to serve as a baseline for future model improvements.
 
-2. I am getting errors with `matgl.load_model`!
+1. I am getting errors with `matgl.load_model()`!
 
-   Ans: The most likely reason is that you have an old version of the model cached. Refactoring models is common to
+   Answer: The most likely reason is that you have an old version of the model cached. Refactoring models is common to
    ensure the best implementation. This can usually be solved by clearing your cache using:
 
    ```bash
