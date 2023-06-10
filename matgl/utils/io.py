@@ -266,3 +266,14 @@ def _check_ver(cls_, d: dict):
             DeprecationWarning,
             stacklevel=2,
         )
+
+
+def get_available_pretrained_models() -> list[str]:
+    """
+    Checks Github for available pretrained_models for download. These can be used with load_model.
+
+    Returns:
+        List of available models.
+    """
+    r = requests.get("https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
+    return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"]

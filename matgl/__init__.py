@@ -6,7 +6,7 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 
 from .config import clear_cache
-from .utils.io import load_model
+from .utils.io import get_available_pretrained_models, load_model
 
 try:
     __version__ = version("matgl")
