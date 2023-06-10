@@ -69,6 +69,7 @@ class Atoms2Graph(GraphConverter):
     def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, list]:
         """
         Get a DGL graph from an input Atoms.
+
         Args:
             atoms: Atoms object.
 
