@@ -246,13 +246,13 @@ def _get_file_paths(path: Path, **kwargs):
         ) from None
 
 
-def _check_ver(cls_, d):
+def _check_ver(cls_, d: dict):
     """
-    Check version of cls_ in current matgl against those noted in a dict.
+    Check version of cls_ in current matgl against those noted in a model.json dict.
 
     Args:
         cls_: Class object.
-        version: version number.
+        d: Dict from serialized json.
 
     Raises:
         Deprecation warning if the code is
