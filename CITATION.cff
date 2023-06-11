@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Ko
+    given-names: Tsz Wai
+  - family-names: Nassar
+    given-names: Marcel
+  - family-names: Miret
+    given-names: Santiago
+  - family-names: Liu
+    given-names: Elliott
+  - family-names: Ong
+    given-names: Shyue Ping
+    orcid: https://orcid.org/0000-0001-5726-2587
+title: "Materials Graph Library"
+version: 0.5.3
+doi: 10.5281/zenodo.8025189
+date-released: 2021-06-11

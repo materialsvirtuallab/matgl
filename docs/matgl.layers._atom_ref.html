@@ -64,11 +64,13 @@ offset_per_graph:</p>
 <dt class="sig sig-object py" id="matgl.layers._atom_ref.AtomRef.get_feature_matrix">
 <span class="sig-name descname"><span class="pre">get_feature_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structs_or_graphs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">np.typing.NDArray</span></span></span><a class="headerlink" href="#matgl.layers._atom_ref.AtomRef.get_feature_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the number of atoms for different elements in the structure.</p>
-<p>Args:
-structs_or_graphs (list): a list of pymatgen Structure or dgl graph
+<dl class="simple">
+<dt>Args:</dt><dd><p>structs_or_graphs (list): a list of pymatgen Structure or dgl graph
 element_list: a dictionary containing element types in the training set</p>
-<p>Returns:
-features (np.array): a matrix (num_structures, num_elements)</p>
+</dd>
+<dt>Returns:</dt><dd><p>features (np.array): a matrix (num_structures, num_elements)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">

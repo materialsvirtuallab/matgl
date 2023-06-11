@@ -8,11 +8,9 @@ import logging
 import dgl
 import torch
 from dgl.nn import Set2Set
-from pymatgen.core import Structure
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
-from matgl.ext.pymatgen import Structure2Graph
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.graph.converters import GraphConverter
 from matgl.layers import MLP, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock, SoftExponential, SoftPlus2
@@ -46,7 +44,7 @@ class MEGNet(nn.Module, IOMixIn):
         include_state: bool = True,
         dropout: float | None = None,
         graph_transformations: list | None = None,
-        element_types: tuple[str, ...] | None = None,
+        element_types: tuple[str, ...] = DEFAULT_ELEMENT_TYPES,
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
@@ -87,7 +85,7 @@ class MEGNet(nn.Module, IOMixIn):
 
         self.save_args(locals(), kwargs)
 
-        self.element_types = element_types or DEFAULT_ELEMENT_TYPES
+        self.element_types = element_types
         self.cutoff = cutoff
         self.bond_expansion = bond_expansion or BondExpansion(
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
@@ -202,7 +200,7 @@ class MEGNet(nn.Module, IOMixIn):
 
     def predict_structure(
         self,
-        structure: Structure,
+        structure,
         state_feats: torch.tensor | None = None,
         graph_converter: GraphConverter | None = None,
     ):
@@ -210,14 +208,16 @@ class MEGNet(nn.Module, IOMixIn):
         Convenience method to directly predict property from structure.
 
         Args:
-            structure (Structure): Pymatgen structure
-            state_feats (torch.tensor): graph attributes
+            structure: An input crystal/molecule.
+            state_feats (torch.tensor): Graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
 
         Returns:
             output (torch.tensor): output property
         """
         if graph_converter is None:
+            from matgl.ext.pymatgen import Structure2Graph
+
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:

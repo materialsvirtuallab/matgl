@@ -75,10 +75,10 @@ ignore = [
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
+extend-exclude = ["tests"]
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
-"*/tests/*" = ["D"]
 "tasks.py" = ["D"]
 
 [tool.pytest.ini_options]

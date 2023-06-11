@@ -5,9 +5,7 @@ import os
 import shutil
 from pathlib import Path
 
-"""
-Default set of elements supported by universal matgl models.
-"""
+# Default set of elements supported by universal matgl models.
 DEFAULT_ELEMENT_TYPES = (
     "H",
     "He",
@@ -100,14 +98,11 @@ DEFAULT_ELEMENT_TYPES = (
     "Pu",
 )
 
-"""
-Default location of the cache for matgl, e.g., for storing downloaded models.
-"""
-MATGL_CACHE = Path(os.path.expanduser("~")) / ".matgl"
+# Default location of the cache for matgl, e.g., for storing downloaded models.
+MATGL_CACHE = Path(os.path.expanduser("~")) / ".cache/matgl"
+os.makedirs(MATGL_CACHE, exist_ok=True)
 
-"""
-Download url for pre-trained models.
-"""
+# Download url for pre-trained models.
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 
@@ -115,6 +110,11 @@ def clear_cache():
     """
     Deletes all files in the matgl.cache. This is used to clean out downloaded models.
     """
-    r = input(f"Do you really want to delete everything in {MATGL_CACHE} (y|n)? ")
-    if r.lower() == "y":
-        shutil.rmtree(MATGL_CACHE)
+    answer = ""
+    while answer not in ("y", "n"):
+        answer = input(f"Do you really want to delete everything in {MATGL_CACHE} (y|n)?").lower().strip()
+    if answer == "y":
+        try:
+            shutil.rmtree(MATGL_CACHE)
+        except FileNotFoundError:
+            print(f"matgl cache dir {MATGL_CACHE!r} not found")

@@ -8,7 +8,7 @@ import torch
 from pymatgen.core.structure import Lattice, Structure
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.models._m3gnet import M3GNet
+from matgl.models import M3GNet
 
 
 class TestM3GNet(unittest.TestCase):

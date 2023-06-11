@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from pymatgen.core.structure import Lattice, Molecule, Structure
+from pymatgen.core import Lattice, Molecule, Structure
 
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.compute import compute_pair_vector_and_distance

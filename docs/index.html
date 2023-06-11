@@ -38,14 +38,16 @@
 <section id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><span class="xref myst">Introduction</span></p></li>
-<li><p><span class="xref myst">Status</span></p></li>
-<li><p><span class="xref myst">Architectures</span></p></li>
-<li><p><span class="xref myst">Installation</span></p></li>
-<li><p><span class="xref myst">Usage</span></p></li>
-<li><p><span class="xref myst">API Docs</span></p></li>
-<li><p><span class="xref myst">Developer’s Guide</span></p></li>
-<li><p><span class="xref myst">References</span></p></li>
+<li><p><a class="reference internal" href="#introduction"><span class="std std-doc">Introduction</span></a></p></li>
+<li><p><a class="reference internal" href="#status"><span class="std std-doc">Status</span></a></p></li>
+<li><p><a class="reference internal" href="#architectures"><span class="std std-doc">Architectures</span></a></p></li>
+<li><p><a class="reference internal" href="#installation"><span class="std std-doc">Installation</span></a></p></li>
+<li><p><a class="reference internal" href="#usage"><span class="std std-doc">Usage</span></a></p></li>
+<li><p><a class="reference internal" href="#api-docs"><span class="std std-doc">API Docs</span></a></p></li>
+<li><p><a class="reference internal" href="#developer-s-guide"><span class="std std-doc">Developer’s Guide</span></a></p></li>
+<li><p><a class="reference internal" href="#references"><span class="std std-doc">References</span></a></p></li>
+<li><p><a class="reference internal" href="#faqs"><span class="std std-doc">FAQs</span></a></p></li>
+<li><p><a class="reference internal" href="#acknowledgments"><span class="std std-doc">Acknowledgements</span></a></p></li>
 </ul>
 </section>
 <section id="introduction">
@@ -103,7 +105,7 @@ in the <a class="reference external" href="http://materialsproject.org">Material
 surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
 state-of-the-art ML models.</p></li>
 </ul>
-<p>For detailed performance benchmarks, please refer to the publications in the <span class="xref myst">References</span> section.</p>
+<p>For detailed performance benchmarks, please refer to the publications in the <a class="reference internal" href="#references"><span class="std std-doc">References</span></a> section.</p>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
@@ -120,12 +122,8 @@ state-of-the-art ML models.</p></li>
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h2>
 <p>Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
 multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
-implemented convenience method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matgl</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">matgl</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;&lt;model_name&gt;&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The following is an example of a prediction of the formation energy for CsCl.</p>
+implemented <code class="docutils literal notranslate"><span class="pre">matgl.load_model</span></code> convenience method. The following is an example of a prediction of the formation
+energy for CsCl.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Lattice</span><span class="p">,</span> <span class="n">Structure</span>
 <span class="kn">import</span> <span class="nn">matgl</span>
 
@@ -137,10 +135,15 @@ implemented convenience method:</p>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The predicted formation energy for CsCl is </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">eform</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> eV/atom.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="jupyter-notebooks">
-<h3>Jupyter notebooks<a class="headerlink" href="#jupyter-notebooks" title="Permalink to this heading">¶</a></h3>
-<p>We have written several <span class="xref myst">Jupyter notebooks</span> on the use of MatGL. These notebooks can be run on Google
-Colab. This will be the primary form of usage documentation.</p>
+<p>To obtain a listing of available pre-trained models,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matgl</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">matgl</span><span class="o">.</span><span class="n">get_available_pretrained_models</span><span class="p">())</span>
+</pre></div>
+</div>
+<section id="jupyter-tutorials">
+<h3>Jupyter Tutorials<a class="headerlink" href="#jupyter-tutorials" title="Permalink to this heading">¶</a></h3>
+<p>We have written several <span class="xref myst">Jupyter notebooks</span> on the use of MatGL. These notebooks can be run on <a class="reference external" href="http://colab.google.com">Google
+Colab</a>. This will be the primary form of tutorials.</p>
 </section>
 </section>
 <section id="api-docs">
@@ -149,26 +152,52 @@ Colab. This will be the primary form of usage documentation.</p>
 </section>
 <section id="developer-s-guide">
 <h2>Developer’s Guide<a class="headerlink" href="#developer-s-guide" title="Permalink to this heading">¶</a></h2>
-<p>A basic <a class="reference internal" href="developer.html"><span class="doc std std-doc">developer’s guide</span></a> has been written to outline the key design elements of matgl.</p>
+<p>A basic <a class="reference internal" href="developer.html"><span class="doc std std-doc">developer’s guide</span></a> has been written to outline the key design elements of matgl. This serves
+as a guiding documentation for developers wishing to train and contribute matgl models.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
-<p>Please cite the following works:</p>
+<p>A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
+information. If you are using any of the pretrained models, please cite the relevant works below:</p>
 <section id="id1">
 <h3>MEGNet<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
-<p>Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.</p>
+<p>Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. <em>Graph Networks as a Universal Machine Learning Framework for
+Molecules and Crystals.</em> Chem. Mater. 2019, 31 (9), 3564–3572. DOI: <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">10.1021/acs.chemmater.9b01294</a>.</p>
 </section>
 <section id="multi-fidelity-megnet">
 <h3>Multi-fidelity MEGNet<a class="headerlink" href="#multi-fidelity-megnet" title="Permalink to this heading">¶</a></h3>
-<p>Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
-Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.</p>
+<p>Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. <em>Learning Properties of Ordered and Disordered Materials from
+Multi-Fidelity Data.</em> Nature Computational Science, 2021, 1, 46–53. DOI: <a class="reference external" href="https://www.nature.com/articles/s43588-020-00002-x">10.1038/s43588-020-00002-x</a>.</p>
 </section>
 <section id="id2">
 <h3>M3GNet<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
-<p>Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
-2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.</p>
+<p>Chen, C., Ong, S.P. <em>A universal graph deep learning interatomic potential for the periodic table.</em> Nature
+Computational Science, 2023, 2, 718–728. DOI: <a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">10.1038/s43588-022-00349-3</a>.</p>
 </section>
+</section>
+<section id="faqs">
+<h2>FAQs<a class="headerlink" href="#faqs" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">M3GNet-MP-2021.2.8-PES</span></code> differs from the original tensorflow (TF) implementation!</p>
+<p>Answer: <code class="docutils literal notranslate"><span class="pre">M3GNet-MP-2021.2.8-PES</span></code> is a refitted model with some data improvements and minor architectural changes.
+Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
+to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
+(see <span class="xref myst">examples</span>). However, it is not expected to reproduce the TF version exactly. This refitted model
+serves as a baseline for future model improvements. We do not believe there is value in expending the resources
+to reproduce the TF version exactly.</p>
+</li>
+<li><p>I am getting errors with <code class="docutils literal notranslate"><span class="pre">matgl.load_model()</span></code>!</p>
+<p>Answer: The most likely reason is that you have a cached older version of the model cached. Refactoring models is
+common to ensure the best implementation. This can usually be solved by updating your matgl to the latest version
+and clearing your cache using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>matgl<span class="w"> </span>--upgrade
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import matgl; matgl.clear_cache()&quot;</span>
+</pre></div>
+</div>
+<p>On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
+versioning scheme that will detect code vs model version incompatibilities and alert the user of such problems.</p>
+</li>
+</ol>
 </section>
 <section id="acknowledgments">
 <h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this heading">¶</a></h2>

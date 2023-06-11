@@ -12,8 +12,8 @@ with open(os.path.join(this_dir, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="matgl",
-    version="0.5.2",
-    author="Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Shyue Ping Ong",
+    version="0.5.3",
+    author="Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Eliott Liu, Shyue Ping Ong",
     author_email="t1ko@ucsd.edu, ongsp@ucsd.edu",
     maintainer="Shyue Ping Ong",
     maintainer_email="ongsp@ucsd.edu",

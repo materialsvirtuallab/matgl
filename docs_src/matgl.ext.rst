@@ -7,13 +7,6 @@ matgl.ext package
    :show-inheritance:
    :private-members:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 6
-
-
 Submodules
 ----------
 

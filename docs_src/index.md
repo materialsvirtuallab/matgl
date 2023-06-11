@@ -15,6 +15,8 @@
 - [API Docs](#api-docs)
 - [Developer's Guide](#developers-guide)
 - [References](#references)
+- [FAQs](#faqs)
+- [Acknowledgements](#acknowledgments)
 
 ## Introduction
 
@@ -26,6 +28,7 @@ In this repository, we have reimplemented the original Tensorflow [MatErials 3-b
 and its predecessor, [MEGNet][megnet], using the [Deep Graph Library (DGL)][dgl] and PyTorch.
 The goal is to improve the usability, extensibility and scalability of these models. Here are some key improvements
 over the TF implementations:
+
 - A more intuitive API and class structure based on DGL.
 - Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
@@ -35,6 +38,7 @@ Nassar, Carmelo Gonzales). Please refer to the [official documentation][doc] for
 ## Status
 
 Major milestones are summarized below. Please refer to [change log][changelog] for details.
+
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
 - v0.4.0 (Jun 7 2023): Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
@@ -89,14 +93,8 @@ python setup.py -e .
 
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
 multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
-implemented convenience method:
-
-```python
-import matgl
-model = matgl.load_model("<model_name>")
-```
-
-The following is an example of a prediction of the formation energy for CsCl.
+implemented `matgl.load_model` convenience method. The following is an example of a prediction of the formation
+energy for CsCl.
 
 ```python
 from pymatgen.core import Lattice, Structure
@@ -110,10 +108,17 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
-### Jupyter notebooks
+To obtain a listing of available pre-trained models,
 
-We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on Google
-Colab. This will be the primary form of usage documentation.
+```python
+import matgl
+print(matgl.get_available_pretrained_models())
+```
+
+### Jupyter Tutorials
+
+We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on [Google
+Colab][colab]. This will be the primary form of tutorials.
 
 ## API Docs
 
@@ -121,27 +126,53 @@ The Sphinx-generated API docs are available [here][apidocs].
 
 ## Developer's Guide
 
-A basic [developer's guide](developer.md) has been written to outline the key design elements of matgl.
+A basic [developer's guide](developer.md) has been written to outline the key design elements of matgl. This serves
+as a guiding documentation for developers wishing to train and contribute matgl models.
 
 ## References
 
-Please cite the following works:
+A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
+information. If you are using any of the pretrained models, please cite the relevant works below:
 
 > ### MEGNet
 >
-> Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-> Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.
+> Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
+> Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564–3572. DOI: [10.1021/acs.chemmater.9b01294][megnet].
 
 > ### Multi-fidelity MEGNet
 >
-> Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
-> Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.
+> Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. _Learning Properties of Ordered and Disordered Materials from
+> Multi-Fidelity Data._ Nature Computational Science, 2021, 1, 46–53. DOI: [10.1038/s43588-020-00002-x][mfimegnet].
 
 > ### M3GNet
 >
-> Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
->  2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
+> Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
+> Computational Science, 2023, 2, 718–728. DOI: [10.1038/s43588-022-00349-3][m3gnet].
 
+## FAQs
+
+1. The `M3GNet-MP-2021.2.8-PES` differs from the original tensorflow (TF) implementation!
+
+   Answer: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
+   Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
+   to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
+   (see [examples](examples)). However, it is not expected to reproduce the TF version exactly. This refitted model
+   serves as a baseline for future model improvements. We do not believe there is value in expending the resources
+   to reproduce the TF version exactly.
+
+2. I am getting errors with `matgl.load_model()`!
+
+   Answer: The most likely reason is that you have a cached older version of the model cached. Refactoring models is
+   common to ensure the best implementation. This can usually be solved by updating your matgl to the latest version
+   and clearing your cache using:
+
+   ```bash
+   pip install matgl --upgrade
+   python -c "import matgl; matgl.clear_cache()"
+   ```
+
+   On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
+   versioning scheme that will detect code vs model version incompatibilities and alert the user of such problems.
 
 ## Acknowledgments
 
@@ -161,5 +192,6 @@ ACI-1548562.
 [mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
 [m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
-[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html
-[doc]: http://materialsvirtuallab.github.io/matgl
+[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html "MatGL API docs"
+[doc]: http://materialsvirtuallab.github.io/matgl "MatGL Documentation"
+[colab]: http://colab.google.com "Google Colab"
