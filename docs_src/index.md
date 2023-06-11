@@ -150,23 +150,25 @@ Please cite the following works:
 
 1. The `M3GNet-MP-2021.2.8-PES` differs from the original tensorflow (TF) implementation!
 
-   Answer: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes. 
+   Answer: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
    Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
    to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
-   (see [examples](examples)). However, it is not expected to reproduce the original TF implementation exactly. This 
-   refitted model is meant to serve as a baseline for future model improvements. We do not believe there is value in
-   expending the resources to reproduce the TF version exactly.
+   (see [examples](examples)). However, it is not expected to reproduce the TF version exactly. This refitted model
+   serves as a baseline for future model improvements. We do not believe there is value in expending the resources
+   to reproduce the TF version exactly.
 
 2. I am getting errors with `matgl.load_model()`!
 
-   Answer: The most likely reason is that you have a cached older version of the model cached. Refactoring models is 
-   common to ensure the best implementation. This can usually be solved by clearing your cache using:
+   Answer: The most likely reason is that you have a cached older version of the model cached. Refactoring models is
+   common to ensure the best implementation. This can usually be solved by updating your matgl to the latest version
+   and clearing your cache using:
 
    ```bash
+   pip install matgl --upgrade
    python -c "import matgl; matgl.clear_cache()"
    ```
-   
-   On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model 
+
+   On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
    versioning scheme that will detect code vs model version incompatibilities and alert the user of such problems.
 
 ## Acknowledgments

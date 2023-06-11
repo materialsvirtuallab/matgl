@@ -179,14 +179,16 @@ Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. <a class="re
 <p>Answer: <code class="docutils literal notranslate"><span class="pre">M3GNet-MP-2021.2.8-PES</span></code> is a refitted model with some data improvements and minor architectural changes.
 Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
 to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
-(see <span class="xref myst">examples</span>). However, it is not expected to reproduce the original TF implementation exactly. This
-refitted model is meant to serve as a baseline for future model improvements. We do not believe there is value in
-expending the resources to reproduce the TF version exactly.</p>
+(see <span class="xref myst">examples</span>). However, it is not expected to reproduce the TF version exactly. This refitted model
+serves as a baseline for future model improvements. We do not believe there is value in expending the resources
+to reproduce the TF version exactly.</p>
 </li>
 <li><p>I am getting errors with <code class="docutils literal notranslate"><span class="pre">matgl.load_model()</span></code>!</p>
 <p>Answer: The most likely reason is that you have a cached older version of the model cached. Refactoring models is
-common to ensure the best implementation. This can usually be solved by clearing your cache using:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import matgl; matgl.clear_cache()&quot;</span>
+common to ensure the best implementation. This can usually be solved by updating your matgl to the latest version
+and clearing your cache using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>matgl<span class="w"> </span>--upgrade
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import matgl; matgl.clear_cache()&quot;</span>
 </pre></div>
 </div>
 <p>On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
