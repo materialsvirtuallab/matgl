@@ -31,11 +31,11 @@ class AtomRef(nn.Module):
         Get the number of atoms for different elements in the structure.
 
         Args:
-        structs_or_graphs (list): a list of pymatgen Structure or dgl graph
-        element_list: a dictionary containing element types in the training set
+            structs_or_graphs (list): a list of pymatgen Structure or dgl graph
+            element_list: a dictionary containing element types in the training set
 
         Returns:
-        features (np.array): a matrix (num_structures, num_elements)
+            features (np.array): a matrix (num_structures, num_elements)
         """
         n = len(structs_or_graphs)
         features = np.zeros(shape=(n, self.max_z))

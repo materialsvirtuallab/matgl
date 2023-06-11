@@ -10,7 +10,7 @@ import dgl
 
 class GraphConverter(metaclass=abc.ABCMeta):
     """
-    Abstract base class for converters from input structures/molecules to graphs.
+    Abstract base class for converters from input crystals/molecules to graphs.
     """
 
     @abc.abstractmethod
@@ -18,7 +18,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         """
 
         Args:
-            structure: Input structure or molecule.
+            structure: Input crystals or molecule.
 
         Returns:
             DGLGraph object, state_attr
