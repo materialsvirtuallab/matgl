@@ -38,14 +38,16 @@
 <section id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><span class="xref myst">Introduction</span></p></li>
-<li><p><span class="xref myst">Status</span></p></li>
-<li><p><span class="xref myst">Architectures</span></p></li>
-<li><p><span class="xref myst">Installation</span></p></li>
-<li><p><span class="xref myst">Usage</span></p></li>
-<li><p><span class="xref myst">API Docs</span></p></li>
-<li><p><span class="xref myst">Developer’s Guide</span></p></li>
-<li><p><span class="xref myst">References</span></p></li>
+<li><p><a class="reference internal" href="#introduction"><span class="std std-doc">Introduction</span></a></p></li>
+<li><p><a class="reference internal" href="#status"><span class="std std-doc">Status</span></a></p></li>
+<li><p><a class="reference internal" href="#architectures"><span class="std std-doc">Architectures</span></a></p></li>
+<li><p><a class="reference internal" href="#installation"><span class="std std-doc">Installation</span></a></p></li>
+<li><p><a class="reference internal" href="#usage"><span class="std std-doc">Usage</span></a></p></li>
+<li><p><a class="reference internal" href="#api-docs"><span class="std std-doc">API Docs</span></a></p></li>
+<li><p><a class="reference internal" href="#developer-s-guide"><span class="std std-doc">Developer’s Guide</span></a></p></li>
+<li><p><a class="reference internal" href="#references"><span class="std std-doc">References</span></a></p></li>
+<li><p><a class="reference internal" href="#faqs"><span class="std std-doc">FAQs</span></a></p></li>
+<li><p><a class="reference internal" href="#acknowledgments"><span class="std std-doc">Acknowledgements</span></a></p></li>
 </ul>
 </section>
 <section id="introduction">
@@ -103,7 +105,7 @@ in the <a class="reference external" href="http://materialsproject.org">Material
 surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
 state-of-the-art ML models.</p></li>
 </ul>
-<p>For detailed performance benchmarks, please refer to the publications in the <span class="xref myst">References</span> section.</p>
+<p>For detailed performance benchmarks, please refer to the publications in the <a class="reference internal" href="#references"><span class="std std-doc">References</span></a> section.</p>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
@@ -157,18 +159,36 @@ Colab. This will be the primary form of usage documentation.</p>
 <section id="id1">
 <h3>MEGNet<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <p>Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. https://doi.org/10.1021/acs.chemmater.9b01294.</p>
+Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. <a class="reference external" href="https://doi.org/10.1021/acs.chemmater.9b01294">https://doi.org/10.1021/acs.chemmater.9b01294</a>.</p>
 </section>
 <section id="multi-fidelity-megnet">
 <h3>Multi-fidelity MEGNet<a class="headerlink" href="#multi-fidelity-megnet" title="Permalink to this heading">¶</a></h3>
 <p>Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
-Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.</p>
+Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. <a class="reference external" href="https://doi.org/10.1038/s43588-020-00002-x">https://doi.org/10.1038/s43588-020-00002-x</a>.</p>
 </section>
 <section id="id2">
 <h3>M3GNet<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <p>Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
-2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.</p>
+2, 718–728 (2022). <a class="reference external" href="https://doi.org/10.1038/s43588-022-00349-3">https://doi.org/10.1038/s43588-022-00349-3</a>.</p>
 </section>
+</section>
+<section id="faqs">
+<h2>FAQs<a class="headerlink" href="#faqs" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">M3GNet-MP-2021.2.8-PES</span></code> differs from the original TF implementation!</p>
+<p>Answer: <code class="docutils literal notranslate"><span class="pre">M3GNet-MP-2021.2.8-PES</span></code> is a refitted model with some data improvements and minor architectural changes.
+It is not expected to reproduce the original TF implementation exactly. We have conducted reasonable benchmarks
+to ensure that the new implementation reproduces the broad error characteristics of the original TF
+implementation (see <span class="xref myst">examples</span>). It is meant to serve as a baseline for future model improvements.</p>
+</li>
+<li><p>I am getting errors with <code class="docutils literal notranslate"><span class="pre">matgl.load_model()</span></code>!</p>
+<p>Answer: The most likely reason is that you have an old version of the model cached. Refactoring models is common to
+ensure the best implementation. This can usually be solved by clearing your cache using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import matgl; matgl.clear_cache()&quot;</span>
+</pre></div>
+</div>
+</li>
+</ol>
 </section>
 <section id="acknowledgments">
 <h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this heading">¶</a></h2>

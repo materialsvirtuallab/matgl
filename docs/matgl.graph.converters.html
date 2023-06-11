@@ -36,12 +36,12 @@
 <dt class="sig sig-object py" id="matgl.graph.converters.GraphConverter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.graph.converters.</span></span><span class="sig-name descname"><span class="pre">GraphConverter</span></span><a class="headerlink" href="#matgl.graph.converters.GraphConverter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Abstract base class for converters from input structures/molecules to graphs.</p>
+<p>Abstract base class for converters from input crystals/molecules to graphs.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="matgl.graph.converters.GraphConverter.get_graph">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dgl.heterograph.DGLGraph</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.graph.converters.GraphConverter.get_graph" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Args:</dt><dd><p>structure: Input structure or molecule.</p>
+<dt>Args:</dt><dd><p>structure: Input crystals or molecule.</p>
 </dd>
 <dt>Returns:</dt><dd><p>DGLGraph object, state_attr</p>
 </dd>
