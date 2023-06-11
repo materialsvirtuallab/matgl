@@ -93,14 +93,8 @@ python setup.py -e .
 
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
 multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
-implemented convenience method:
-
-```python
-import matgl
-model = matgl.load_model("<model_name>")
-```
-
-The following is an example of a prediction of the formation energy for CsCl.
+implemented `matgl.load_model` convenience method. The following is an example of a prediction of the formation
+energy for CsCl.
 
 ```python
 from pymatgen.core import Lattice, Structure
@@ -114,10 +108,17 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform.numpy()):.3f} eV/atom.")
 ```
 
-### Jupyter notebooks
+To obtain a listing of available pre-trained models,
 
-We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on Google
-Colab. This will be the primary form of usage documentation.
+```python
+import matgl
+print(matgl.get_available_pretrained_models())
+```
+
+### Jupyter Tutorials
+
+We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on [Google
+Colab][colab]. This will be the primary form of tutorials.
 
 ## API Docs
 
@@ -125,26 +126,28 @@ The Sphinx-generated API docs are available [here][apidocs].
 
 ## Developer's Guide
 
-A basic [developer's guide](developer.md) has been written to outline the key design elements of matgl.
+A basic [developer's guide](developer.md) has been written to outline the key design elements of matgl. This serves
+as a guiding documentation for developers wishing to train and contribute matgl models.
 
 ## References
 
-Please cite the following works:
+A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
+information. If you are using any of the pretrained models, please cite the relevant works below:
 
 > ### MEGNet
 >
-> Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. Graph Networks as a Universal Machine Learning Framework for
-> Molecules and Crystals. Chem. Mater. 2019, 31 (9), 3564–3572. <https://doi.org/10.1021/acs.chemmater.9b01294>.
+> Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
+> Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564–3572. DOI: [10.1021/acs.chemmater.9b01294][megnet].
 
 > ### Multi-fidelity MEGNet
 >
-> Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from
-> Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. <https://doi.org/10.1038/s43588-020-00002-x>.
+> Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. _Learning Properties of Ordered and Disordered Materials from
+> Multi-Fidelity Data._ Nature Computational Science, 2021, 1, 46–53. DOI: [10.1038/s43588-020-00002-x][mfimegnet].
 
 > ### M3GNet
 >
-> Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
-> 2, 718–728 (2022). <https://doi.org/10.1038/s43588-022-00349-3>.
+> Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
+> Computational Science, 2023, 2, 718–728. DOI: [10.1038/s43588-022-00349-3][m3gnet].
 
 ## FAQs
 
@@ -189,5 +192,6 @@ ACI-1548562.
 [mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
 [m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
-[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html
-[doc]: http://materialsvirtuallab.github.io/matgl
+[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html "MatGL API docs"
+[doc]: http://materialsvirtuallab.github.io/matgl "MatGL Documentation"
+[colab]: http://colab.google.com "Google Colab"
