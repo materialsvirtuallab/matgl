@@ -189,5 +189,5 @@ ACI-1548562.
 [mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
 [m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
-[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html
-[doc]: http://materialsvirtuallab.github.io/matgl
+[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html "MatGL API docs"
+[doc]: http://materialsvirtuallab.github.io/matgl "MatGL Documentation"
