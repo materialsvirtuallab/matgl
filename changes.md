@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.3
+- Minor doc and code usability improvvements.
+
 ## 0.5.2
 - Minor improvements to model versioning scheme.
 - Added `matgl.get_available_pretrained_models()` to help with model discovery.
