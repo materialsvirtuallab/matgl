@@ -1,4 +1,7 @@
-# Changelog
+---
+layout: page
+title: Changelog
+---
 
 ## 0.5.3
 - Minor doc and code usability improvvements.

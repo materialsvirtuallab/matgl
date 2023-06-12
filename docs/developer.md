@@ -1,4 +1,7 @@
-# Developer's guide
+---
+layout: page
+title: Developer's Guide
+---
 
 This is a developer's guide to writing new models in matgl. It is still a work in progress.
 
