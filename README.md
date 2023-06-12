@@ -3,8 +3,9 @@
 [![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 
-# Materials Graph Library <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/matgl.png?raw=true" alt="matgl" width="25%">
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 
+# Materials Graph Library
 
 ## Table of Contents
 
