@@ -20,10 +20,11 @@ NEW_VER = matgl.__version__
 
 @task
 def make_doc(ctx):
-    ctx.run("cp README.md docs_src/index.md")
-    ctx.run("cp changes.md docs_src/changes.md")
-    ctx.run("cp developer.md docs_src/developer.md")
+    #ctx.run("cp README.md docs_src/index.md")
+    #ctx.run("cp changes.md docs_src/changes.md")
+    #ctx.run("cp developer.md docs_src/developer.md")
     with cd("docs_src"):
+        ctx.run("touch index.md")
         ctx.run("rm matgl.*.rst", warn=True)
         ctx.run("sphinx-apidoc --separate -P -M -d 6 -o . -f ../matgl")
         ctx.run("rm matgl.*tests*.rst", warn=True)
@@ -52,14 +53,17 @@ def make_doc(ctx):
     ctx.run("sphinx-build -b html docs_src docs")
 
     with cd("docs"):
-        ctx.run("rm -r .doctrees")
-        ctx.run("rm *tests*.html", warn=True)
-        ctx.run("rm -r _sources")
+        for d in (".doctrees", "*tests*.html", "_sources", "static"):
+            ctx.run(f"rm -r {d}", warn=True)
 
-        # This makes sure pymatgen.org works to redirect to the Gihub page
-        # ctx.run("echo \"pymatgen.org\" > CNAME")
-        # Avoid the use of jekyll so that _dir works as intended.
-        ctx.run("touch .nojekyll")
+        ctx.run("mv _static static")
+        ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
+        ctx.run("rm *.orig")
+        ctx.run("rm index.html")
+        ctx.run("cp ../README.md index.md")
+        for fn in ("changes.md", "developer.md"):
+            ctx.run(f"cp ../{fn} {fn}")
+        ctx.run("rm *.orig")
 
 
 @task
