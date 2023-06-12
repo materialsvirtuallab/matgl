@@ -58,11 +58,15 @@ def make_doc(ctx):
 
         ctx.run("mv _static static")
         ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
-        ctx.run("rm *.orig")
         ctx.run("rm index.html index.markdown", warn=True)
         ctx.run("cp ../*.md .")
         ctx.run(f"mv README.md index.md")
-        ctx.run("rm -rf *.orig _site doctrees")
+        ctx.run("rm -rf *.orig _site doctrees", warn=True)
+
+        with open("index.md", "rt") as f:
+            index = f.read()
+        with open("index.md", "wt") as f:
+            f.write("---\nlayout: default\ntitle: Home\n---\n\n" + index)
 
 
 @task
