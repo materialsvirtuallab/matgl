@@ -162,8 +162,8 @@ information. If you are using any of the pretrained models, please cite the rele
 
 2. I am getting errors with `matgl.load_model()`!
 
-   Answer: The most likely reason is that you have a cached older version of the model cached. Refactoring models is
-   common to ensure the best implementation. This can usually be solved by updating your matgl to the latest version
+   Answer: The most likely reason is that you have a cached older version of the model. We often refactor models to
+   ensure the best implementation. This can usually be solved by updating your matgl to the latest version
    and clearing your cache using:
 
    ```bash
@@ -172,7 +172,7 @@ information. If you are using any of the pretrained models, please cite the rele
    ```
 
    On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
-   versioning scheme that will detect code vs model version incompatibilities and alert the user of such problems.
+   versioning scheme that will detect code vs model version conflicts and alert the user of such problems.
 
 ## Acknowledgments
 
@@ -186,12 +186,12 @@ ACI-1548562.
 [megnetrepo]: https://github.com/materialsvirtuallab/megnet "MEGNet repo"
 [dgl]: https://www.dgl.ai "DGL website"
 [mavrl]: http://materialsvirtuallab.org "MAVRL website"
-[changelog]: https://materialsvirtuallab.github.io/matgl/changes "Changelog"
+[changelog]: https://matgl.ai/changes "Changelog"
 [graphnetwork]: https://arxiv.org/abs/1806.01261 "Deepmind's paper"
 [megnet]: https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294 "MEGNet paper"
 [mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
 [m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
 [apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html "MatGL API docs"
-[doc]: http://materialsvirtuallab.github.io/matgl "MatGL Documentation"
+[doc]: https://matgl.ai "MatGL Documentation"
 [colab]: http://colab.google.com "Google Colab"

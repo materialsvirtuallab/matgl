@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>MatGL (Materials Graph Library) &#8212; matgl  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -38,16 +39,16 @@
 <section id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="#introduction"><span class="std std-doc">Introduction</span></a></p></li>
-<li><p><a class="reference internal" href="#status"><span class="std std-doc">Status</span></a></p></li>
-<li><p><a class="reference internal" href="#architectures"><span class="std std-doc">Architectures</span></a></p></li>
-<li><p><a class="reference internal" href="#installation"><span class="std std-doc">Installation</span></a></p></li>
-<li><p><a class="reference internal" href="#usage"><span class="std std-doc">Usage</span></a></p></li>
-<li><p><a class="reference internal" href="#api-docs"><span class="std std-doc">API Docs</span></a></p></li>
-<li><p><a class="reference internal" href="#developer-s-guide"><span class="std std-doc">Developer’s Guide</span></a></p></li>
-<li><p><a class="reference internal" href="#references"><span class="std std-doc">References</span></a></p></li>
-<li><p><a class="reference internal" href="#faqs"><span class="std std-doc">FAQs</span></a></p></li>
-<li><p><a class="reference internal" href="#acknowledgments"><span class="std std-doc">Acknowledgements</span></a></p></li>
+<li><p><a class="reference internal" href="#introduction">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#status">Status</a></p></li>
+<li><p><a class="reference internal" href="#architectures">Architectures</a></p></li>
+<li><p><a class="reference internal" href="#installation">Installation</a></p></li>
+<li><p><a class="reference internal" href="#usage">Usage</a></p></li>
+<li><p><a class="reference internal" href="#api-docs">API Docs</a></p></li>
+<li><p><a class="reference internal" href="#developer-s-guide">Developer’s Guide</a></p></li>
+<li><p><a class="reference internal" href="#references">References</a></p></li>
+<li><p><a class="reference internal" href="#faqs">FAQs</a></p></li>
+<li><p><a class="reference internal" href="#acknowledgments">Acknowledgements</a></p></li>
 </ul>
 </section>
 <section id="introduction">
@@ -55,20 +56,20 @@
 <p>MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
 natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
 shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.</p>
-<p>In this repository, we have reimplemented the original Tensorflow <a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">MatErials 3-body Graph Network (m3gnet)</a>
-and its predecessor, <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">MEGNet</a>, using the <a class="reference external" href="https://www.dgl.ai">Deep Graph Library (DGL)</a> and PyTorch.
+<p>In this repository, we have reimplemented the original Tensorflow <a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3" title="M3GNet paper">MatErials 3-body Graph Network (m3gnet)</a>
+and its predecessor, <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294" title="MEGNet paper">MEGNet</a>, using the <a class="reference external" href="https://www.dgl.ai" title="DGL website">Deep Graph Library (DGL)</a> and PyTorch.
 The goal is to improve the usability, extensibility and scalability of these models. Here are some key improvements
 over the TF implementations:</p>
 <ul class="simple">
 <li><p>A more intuitive API and class structure based on DGL.</p></li>
 <li><p>Multi-GPU support via PyTorch Lightning. A training utility module has been developed.</p></li>
 </ul>
-<p>This effort is a collaboration between the <a class="reference external" href="http://materialsvirtuallab.org">Materials Virtual Lab</a> and Intel Labs (Santiago Miret, Marcel
-Nassar, Carmelo Gonzales). Please refer to the <a class="reference external" href="http://materialsvirtuallab.github.io/matgl">official documentation</a> for more details.</p>
+<p>This effort is a collaboration between the <a class="reference external" href="http://materialsvirtuallab.org" title="MAVRL website">Materials Virtual Lab</a> and Intel Labs (Santiago Miret, Marcel
+Nassar, Carmelo Gonzales). Please refer to the <a class="reference external" href="https://matgl.ai" title="MatGL Documentation">official documentation</a> for more details.</p>
 </section>
 <section id="status">
 <h2>Status<a class="headerlink" href="#status" title="Permalink to this heading">¶</a></h2>
-<p>Major milestones are summarized below. Please refer to <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/changes">change log</a> for details.</p>
+<p>Major milestones are summarized below. Please refer to <a class="reference external" href="https://matgl.ai/changes" title="Changelog">change log</a> for details.</p>
 <ul class="simple">
 <li><p>v0.5.1 (Jun 9 2023): Model versioning implemented.</p></li>
 <li><p>v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!</p></li>
@@ -84,15 +85,15 @@ bugs!</p></li>
 </section>
 <section id="megnet">
 <h2>MEGNet<a class="headerlink" href="#megnet" title="Permalink to this heading">¶</a></h2>
-<p>The <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">MatErials Graph Network (MEGNet)</a> is an implementation of DeepMind’s <a class="reference external" href="https://arxiv.org/abs/1806.01261">graph networks</a> for
+<p>The <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294" title="MEGNet paper">MatErials Graph Network (MEGNet)</a> is an implementation of DeepMind’s <a class="reference external" href="https://arxiv.org/abs/1806.01261" title="Deepmind's paper">graph networks</a> for
 machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
-array of properties in both <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">molecules and crystals</a>. New releases have included our recent work on
-<a class="reference external" href="https://www.nature.com/articles/s43588-020-00002-x">multi-fidelity materials property modeling</a>. Figure 1 shows the sequential update steps of the graph
+array of properties in both <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294" title="MEGNet paper">molecules and crystals</a>. New releases have included our recent work on
+<a class="reference external" href="https://www.nature.com/articles/s43588-020-00002-x" title="mfi MEGNet paper">multi-fidelity materials property modeling</a>. Figure 1 shows the sequential update steps of the graph
 network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an output graph.</p>
 </section>
 <section id="m3gnet">
 <h2>M3GNet<a class="headerlink" href="#m3gnet" title="Permalink to this heading">¶</a></h2>
-<p><a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">M3GNet</a> is a new materials graph neural network architecture that incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
+<p><a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3" title="M3GNet paper">M3GNet</a> is a new materials graph neural network architecture that incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
 the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
 stresses via auto-differentiation. As a framework, M3GNet has diverse applications, including:</p>
 <ul class="simple">
@@ -100,12 +101,12 @@ stresses via auto-differentiation. As a framework, M3GNet has diverse applicatio
 machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
 flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
 <em>universal IP</em> that can work across the entire periodic table of the elements by training on relaxations performed
-in the <a class="reference external" href="http://materialsproject.org">Materials Project</a>.</p></li>
+in the <a class="reference external" href="http://materialsproject.org" title="Materials Project">Materials Project</a>.</p></li>
 <li><p><strong>Surrogate models for property predictions.</strong> Like the previous MEGNet architecture, M3GNet can be used to develop
 surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
 state-of-the-art ML models.</p></li>
 </ul>
-<p>For detailed performance benchmarks, please refer to the publications in the <a class="reference internal" href="#references"><span class="std std-doc">References</span></a> section.</p>
+<p>For detailed performance benchmarks, please refer to the publications in the <a class="reference internal" href="#references">References</a> section.</p>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
@@ -142,38 +143,38 @@ energy for CsCl.</p>
 </div>
 <section id="jupyter-tutorials">
 <h3>Jupyter Tutorials<a class="headerlink" href="#jupyter-tutorials" title="Permalink to this heading">¶</a></h3>
-<p>We have written several <span class="xref myst">Jupyter notebooks</span> on the use of MatGL. These notebooks can be run on <a class="reference external" href="http://colab.google.com">Google
+<p>We have written several <a class="reference internal" href="#examples"><span class="xref myst">Jupyter notebooks</span></a> on the use of MatGL. These notebooks can be run on <a class="reference external" href="http://colab.google.com" title="Google Colab">Google
 Colab</a>. This will be the primary form of tutorials.</p>
 </section>
 </section>
 <section id="api-docs">
 <h2>API Docs<a class="headerlink" href="#api-docs" title="Permalink to this heading">¶</a></h2>
-<p>The Sphinx-generated API docs are available <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/matgl.html">here</a>.</p>
+<p>The Sphinx-generated API docs are available <a class="reference external" href="https://materialsvirtuallab.github.io/matgl/matgl.html" title="MatGL API docs">here</a>.</p>
 </section>
 <section id="developer-s-guide">
 <h2>Developer’s Guide<a class="headerlink" href="#developer-s-guide" title="Permalink to this heading">¶</a></h2>
-<p>A basic <a class="reference internal" href="developer.html"><span class="doc std std-doc">developer’s guide</span></a> has been written to outline the key design elements of matgl. This serves
+<p>A basic <a class="reference internal" href="developer.html"><span class="std std-doc">developer’s guide</span></a> has been written to outline the key design elements of matgl. This serves
 as a guiding documentation for developers wishing to train and contribute matgl models.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <p>A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
 information. If you are using any of the pretrained models, please cite the relevant works below:</p>
-<section id="id1">
-<h3>MEGNet<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<blockquote>
+<div><h3 class="rubric" id="id1">MEGNet</h3>
 <p>Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. <em>Graph Networks as a Universal Machine Learning Framework for
-Molecules and Crystals.</em> Chem. Mater. 2019, 31 (9), 3564–3572. DOI: <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294">10.1021/acs.chemmater.9b01294</a>.</p>
-</section>
-<section id="multi-fidelity-megnet">
-<h3>Multi-fidelity MEGNet<a class="headerlink" href="#multi-fidelity-megnet" title="Permalink to this heading">¶</a></h3>
+Molecules and Crystals.</em> Chem. Mater. 2019, 31 (9), 3564–3572. DOI: <a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294" title="MEGNet paper">10.1021/acs.chemmater.9b01294</a>.</p>
+</div></blockquote>
+<blockquote>
+<div><h3 class="rubric" id="multi-fidelity-megnet">Multi-fidelity MEGNet</h3>
 <p>Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. <em>Learning Properties of Ordered and Disordered Materials from
-Multi-Fidelity Data.</em> Nature Computational Science, 2021, 1, 46–53. DOI: <a class="reference external" href="https://www.nature.com/articles/s43588-020-00002-x">10.1038/s43588-020-00002-x</a>.</p>
-</section>
-<section id="id2">
-<h3>M3GNet<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+Multi-Fidelity Data.</em> Nature Computational Science, 2021, 1, 46–53. DOI: <a class="reference external" href="https://www.nature.com/articles/s43588-020-00002-x" title="mfi MEGNet paper">10.1038/s43588-020-00002-x</a>.</p>
+</div></blockquote>
+<blockquote>
+<div><h3 class="rubric" id="id2">M3GNet</h3>
 <p>Chen, C., Ong, S.P. <em>A universal graph deep learning interatomic potential for the periodic table.</em> Nature
-Computational Science, 2023, 2, 718–728. DOI: <a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3">10.1038/s43588-022-00349-3</a>.</p>
-</section>
+Computational Science, 2023, 2, 718–728. DOI: <a class="reference external" href="https://www.nature.com/articles/s43588-022-00349-3" title="M3GNet paper">10.1038/s43588-022-00349-3</a>.</p>
+</div></blockquote>
 </section>
 <section id="faqs">
 <h2>FAQs<a class="headerlink" href="#faqs" title="Permalink to this heading">¶</a></h2>
@@ -182,26 +183,26 @@ Computational Science, 2023, 2, 718–728. DOI: <a class="reference external" hr
 <p>Answer: <code class="docutils literal notranslate"><span class="pre">M3GNet-MP-2021.2.8-PES</span></code> is a refitted model with some data improvements and minor architectural changes.
 Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
 to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
-(see <span class="xref myst">examples</span>). However, it is not expected to reproduce the TF version exactly. This refitted model
+(see <a class="reference internal" href="#examples"><span class="xref myst">examples</span></a>). However, it is not expected to reproduce the TF version exactly. This refitted model
 serves as a baseline for future model improvements. We do not believe there is value in expending the resources
 to reproduce the TF version exactly.</p>
 </li>
 <li><p>I am getting errors with <code class="docutils literal notranslate"><span class="pre">matgl.load_model()</span></code>!</p>
-<p>Answer: The most likely reason is that you have a cached older version of the model cached. Refactoring models is
-common to ensure the best implementation. This can usually be solved by updating your matgl to the latest version
+<p>Answer: The most likely reason is that you have a cached older version of the model. We often refactor models to
+ensure the best implementation. This can usually be solved by updating your matgl to the latest version
 and clearing your cache using:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>matgl<span class="w"> </span>--upgrade
 python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import matgl; matgl.clear_cache()&quot;</span>
 </pre></div>
 </div>
 <p>On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
-versioning scheme that will detect code vs model version incompatibilities and alert the user of such problems.</p>
+versioning scheme that will detect code vs model version conflicts and alert the user of such problems.</p>
 </li>
 </ol>
 </section>
 <section id="acknowledgments">
 <h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this heading">¶</a></h2>
-<p>This work was primarily supported by the <a class="reference external" href="http://materialsproject.org">Materials Project</a>, funded by the U.S. Department of Energy, Office of
+<p>This work was primarily supported by the <a class="reference external" href="http://materialsproject.org" title="Materials Project">Materials Project</a>, funded by the U.S. Department of Energy, Office of
 Science, Office of Basic Energy Sciences, Materials Sciences and Engineering Division under contract no.
 DE-AC02-05-CH11231: Materials Project program KC23MP. This work used the Expanse supercomputing cluster at the Extreme
 Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation grant number
@@ -260,8 +261,8 @@ ACI-1548562.</p>
       &copy;2022, Materials Virtual Lab.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/index.md.txt"
