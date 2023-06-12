@@ -59,11 +59,10 @@ def make_doc(ctx):
         ctx.run("mv _static static")
         ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
         ctx.run("rm *.orig")
-        ctx.run("rm index.html")
-        ctx.run("cp ../README.md index.md")
-        for fn in ("changes.md", "developer.md"):
-            ctx.run(f"cp ../{fn} {fn}")
-        ctx.run("rm *.orig")
+        ctx.run("rm index.html index.markdown", warn=True)
+        ctx.run("cp ../*.md .")
+        ctx.run(f"mv README.md index.md")
+        ctx.run("rm -rf *.orig _site doctrees")
 
 
 @task
