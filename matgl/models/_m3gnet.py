@@ -257,12 +257,12 @@ class M3GNet(nn.Module, IOMixIn):
         return torch.squeeze(output)
 
     def predict_structure(
-        self, structure, state_feats: torch.tensor() | None = None, graph_converter: GraphConverter | None = None
+        self, structure, state_feats: torch.tensor | None = None, graph_converter: GraphConverter | None = None
     ):
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
 
-            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
         g, stare_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(stare_feats_default)
