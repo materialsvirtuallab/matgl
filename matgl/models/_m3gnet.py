@@ -1,5 +1,14 @@
 """
-Core M3GNet model.
+Implementation of Materials 3-body Graph Network (M3GNet) model.
+
+The main improvement over MEGNet is the addition of many-body interactios terms, which improves efficiency of
+representation of local interactions for applications such as interatomic potentials. For more details on M3GNet,
+please refer to::
+
+```
+Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
+Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
+```
 """
 from __future__ import annotations
 
@@ -41,7 +50,6 @@ class M3GNet(nn.Module, IOMixIn):
     The main M3GNet model.
     """
 
-    # Model version number.
     __version__ = 1
 
     def __init__(
@@ -202,19 +210,13 @@ class M3GNet(nn.Module, IOMixIn):
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.
 
-        Parameters
-        ----------
-        g : DGLGraph
-            DGLGraph for a batch of graphs.
-        state_attr : torch.tensor
-            State attrs for a batch of graphs.
-        l_g : DGLGraph
-            DGLGraph for a batch of line graphs.
+        Args:
+            g : DGLGraph for a batch of graphs.
+            state_attr: State attrs for a batch of graphs.
+            l_g : DGLGraph for a batch of line graphs.
 
         Returns:
-        -------
-        output : torch.tensor
-            Output property for a batch of graphs
+            output: Output property for a batch of graphs
         """
         node_types = g.ndata["node_type"]
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)

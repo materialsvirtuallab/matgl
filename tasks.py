@@ -20,49 +20,72 @@ NEW_VER = matgl.__version__
 
 @task
 def make_doc(ctx):
-    #ctx.run("cp README.md docs_src/index.md")
-    #ctx.run("cp changes.md docs_src/changes.md")
-    #ctx.run("cp developer.md docs_src/developer.md")
-    with cd("docs_src"):
-        ctx.run("touch index.md")
-        ctx.run("rm matgl.*.rst", warn=True)
-        ctx.run("sphinx-apidoc --separate -P -M -d 6 -o . -f ../matgl")
-        ctx.run("rm matgl.*tests*.rst", warn=True)
-        for f in glob.glob("*.rst"):
-            if f.startswith("matgl") and f.endswith("rst"):
-                newoutput = []
-                suboutput = []
-                subpackage = False
-                with open(f) as fid:
-                    for line in fid:
-                        clean = line.strip()
-                        if clean == "Subpackages":
-                            subpackage = True
-                        if not subpackage and not clean.endswith("tests"):
-                            newoutput.append(line)
-                        else:
-                            if not clean.endswith("tests"):
-                                suboutput.append(line)
-                            if clean.startswith("matgl") and not clean.endswith("tests"):
-                                newoutput.extend(suboutput)
-                                subpackage = False
-                                suboutput = []
+    """
+    This new version requires markdown builder.
 
-                with open(f, "w") as fid:
-                    fid.write("".join(newoutput))
-    ctx.run("sphinx-build -b html docs_src docs")
+        pip install sphinx-markdown-builder
 
+    Adding the following to conf.py
+
+        extensions = [
+            'sphinx_markdown_builder'
+        ]
+
+    Build markdown files with sphinx-build command
+
+        sphinx-build -M markdown ./ build
+    """
     with cd("docs"):
-        for d in (".doctrees", "*tests*.html", "_sources", "static"):
+        ctx.run("rm matgl.*.rst", warn=True)
+        ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
+        ctx.run("rm matgl.*tests*.rst", warn=True)
+        # ctx.run("rm matgl*.html", warn=True)
+        # ctx.run("sphinx-build -b html . ../docs")  # HTML building.
+        ctx.run("sphinx-build -M markdown . .")
+        ctx.run("rm *.rst", warn=True)
+        ctx.run("mv markdown/matgl*.md .")
+        for fn in glob.glob("matgl*.md"):
+            with open(fn, "rt") as f:
+                lines = f.readlines()
+            lines = [l for l in lines if "Submodules" not in l]
+            if fn == "matgl.md":
+                preamble = [
+                    "---",
+                    "layout: default",
+                    "title: API Documentation",
+                    "nav_order: 4",
+                    "---"
+                ]
+            else:
+                preamble = [
+                    "---",
+                    "layout: default",
+                    "title: " + fn,
+                    "nav_exclude: true",
+                    "---"
+                ]
+            with open(fn, "wt") as f:
+                f.write("\n".join(preamble) + "\n" + "".join(lines))
+
+        for d in (".doctrees", "markdown"):
             ctx.run(f"rm -r {d}", warn=True)
 
-        ctx.run("mv _static static")
-        ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
-        ctx.run("rm *.orig")
-        ctx.run("rm index.html index.markdown", warn=True)
+        # ctx.run("mv _static static")
+        # ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
+        # ctx.run("rm index.html", warn=True)
         ctx.run("cp ../*.md .")
         ctx.run(f"mv README.md index.md")
-        ctx.run("rm -rf *.orig _site doctrees")
+        ctx.run("rm -rf *.orig _site doctrees", warn=True)
+
+        with open("index.md", "rt") as f:
+            contents = f.read()
+        with open("index.md", "wt") as f:
+            contents = contents.replace(
+                "\nOfficial Documentation: [link][doc]",
+                "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n")
+            contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents
+
+            f.write(contents)
 
 
 @task

@@ -1,5 +1,13 @@
 """
-Implementation of MEGNet model.
+Implementation of MatErials Graph Network (MEGNet) model.
+
+Graph networks are a new machine learning (ML) paradigm that supports both relational reasoning and combinatorial
+generalization. For more details on MEGNet, please refer to::
+
+```
+Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
+Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564-3572. DOI: 10.1021/acs.chemmater.9b01294.
+```
 """
 from __future__ import annotations
 
@@ -24,7 +32,6 @@ class MEGNet(nn.Module, IOMixIn):
     DGL implementation of MEGNet.
     """
 
-    # Model version number.
     __version__ = 1
 
     def __init__(
@@ -51,8 +58,7 @@ class MEGNet(nn.Module, IOMixIn):
         **kwargs,
     ):
         """
-        Construct a MEGNet model. Useful defaults for all arguments have been specified based on MEGNet formation energy
-        model.
+        Useful defaults for all arguments have been specified based on MEGNet formation energy model.
 
         Args:
             dim_node_embedding: Dimension of node embedding.
@@ -164,11 +170,14 @@ class MEGNet(nn.Module, IOMixIn):
         """
         Forward pass of MEGnet. Executes all blocks.
 
-        :param graph: Input graph
-        :param edge_feat: Edge features
-        :param node_feat: Node features
-        :param state_feat: State features.
-        :return: Prediction
+        Args:
+            graph: Input graph
+            edge_feat: Edge features
+            node_feat: Node features
+            state_feat: State features.
+
+        Returns:
+            Prediction
         """
         graph_transformations = self.graph_transformations
         node_feat, edge_feat, state_feat = self.embedding(node_feat, edge_feat, state_feat)

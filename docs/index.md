@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Home
+nav_order: 1
 ---
 
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE)
@@ -8,20 +9,16 @@ title: Home
 [![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
+
 # Materials Graph Library
+{: .no_toc }
 
-## Table of Contents
+## Table of contents
+{: .no_toc .text-delta }
+* TOC
+{:toc}
 
-- [Introduction](#introduction)
-- [Status](#status)
-- [Architectures](#architectures)
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Docs](#api-docs)
-- [Developer's Guide](#developers-guide)
-- [References](#references)
-- [FAQs](#faqs)
-- [Acknowledgements](#acknowledgments)
 
 ## Introduction
 
@@ -120,18 +117,12 @@ import matgl
 print(matgl.get_available_pretrained_models())
 ```
 
-### Jupyter Tutorials
+## Resources
 
-We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on [Google
-Colab][colab]. This will be the primary form of tutorials.
-
-## API Docs
-
-The Sphinx-generated API docs are available [here][apidocs].
-
-## Developer's Guide
-
-A basic [developer's guide](developer.md) has been written to outline the key design elements of matgl. This serves
+- [Jupyter notebooks][jupyternb] on the use of MatGL. These notebooks can be run on [Google Colab][colab]. This will
+  be the primary form of tutorials for now.
+- [API documentation][apidocs] for all classes and methods.
+- [Developer's Guide](developer.md) has been written to outline the key design elements of matgl. This serves
 as a guiding documentation for developers wishing to train and contribute matgl models.
 
 ## References
@@ -139,17 +130,17 @@ as a guiding documentation for developers wishing to train and contribute matgl 
 A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
 information. If you are using any of the pretrained models, please cite the relevant works below:
 
-> ### MEGNet
+> **MEGNet**
 >
 > Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
 > Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564–3572. DOI: [10.1021/acs.chemmater.9b01294][megnet].
 
-> ### Multi-fidelity MEGNet
+> **Multi-fidelity MEGNet**
 >
 > Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. _Learning Properties of Ordered and Disordered Materials from
 > Multi-Fidelity Data._ Nature Computational Science, 2021, 1, 46–53. DOI: [10.1038/s43588-020-00002-x][mfimegnet].
 
-> ### M3GNet
+> **M3GNet**
 >
 > Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
 > Computational Science, 2023, 2, 718–728. DOI: [10.1038/s43588-022-00349-3][m3gnet].
@@ -161,7 +152,7 @@ information. If you are using any of the pretrained models, please cite the rele
    Answer: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
    Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
    to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
-   (see [examples](examples)). However, it is not expected to reproduce the TF version exactly. This refitted model
+   (see [examples][jupyternb]). However, it is not expected to reproduce the TF version exactly. This refitted model
    serves as a baseline for future model improvements. We do not believe there is value in expending the resources
    to reproduce the TF version exactly.
 
@@ -197,6 +188,7 @@ ACI-1548562.
 [mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
 [m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
-[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html "MatGL API docs"
+[apidocs]: https://matgl.ai/matgl.html "MatGL API docs"
 [doc]: https://matgl.ai "MatGL Documentation"
 [colab]: http://colab.google.com "Google Colab"
+[jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples

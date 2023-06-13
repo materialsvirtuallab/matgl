@@ -1,7 +1,10 @@
 ---
 layout: page
-title: Developer's Guide
+title: Developer Guide
+nav_order: 3
 ---
+
+# Developer Guide
 
 This is a developer's guide to writing new models in matgl. It is still a work in progress.
 
@@ -68,5 +71,9 @@ convenience `matgl.load_model(path)` methods.
 The IOMixIn supports optional model versioning. To enable this, the model class should have an integer `__version__`
 class variable. The goal is to increment this variable when architectural changes occur and saved pre-trained models
 need to be invalidated. If not specified, the model is not versioned at all.
+
+## Documentation
+
+We use Google doc style.
 
 [dgl]: https://www.dgl.ai "DGL website"
