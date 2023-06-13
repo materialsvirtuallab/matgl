@@ -117,18 +117,12 @@ import matgl
 print(matgl.get_available_pretrained_models())
 ```
 
-### Jupyter Tutorials
+## Resources
 
-We have written several [Jupyter notebooks](examples) on the use of MatGL. These notebooks can be run on [Google
-Colab][colab]. This will be the primary form of tutorials.
-
-## API Docs
-
-The Sphinx-generated API docs are available [here][apidocs].
-
-## Developer's Guide
-
-A basic [developer's guide](developer.md) has been written to outline the key design elements of matgl. This serves
+- [Jupyter notebooks][jupyternb] on the use of MatGL. These notebooks can be run on [Google Colab][colab]. This will
+  be the primary form of tutorials for now.
+- [API documentation][apidocs] for all classes and methods.
+- [Developer's Guide](developer.md) has been written to outline the key design elements of matgl. This serves
 as a guiding documentation for developers wishing to train and contribute matgl models.
 
 ## References
@@ -194,6 +188,7 @@ ACI-1548562.
 [mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
 [m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
-[apidocs]: https://materialsvirtuallab.github.io/matgl/matgl.html "MatGL API docs"
+[apidocs]: https://matgl.ai/matgl.html "MatGL API docs"
 [doc]: https://matgl.ai "MatGL Documentation"
 [colab]: http://colab.google.com "Google Colab"
+[jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples

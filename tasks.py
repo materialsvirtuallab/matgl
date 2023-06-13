@@ -81,12 +81,12 @@ def make_doc(ctx):
         with open("matgl.md", "wt") as f:
             f.write(f"---\nlayout: default\ntitle: API Documentation\nnav_order: 4\n---\n\n" + contents)
 
-        for d in (".doctrees", "_sources", "static", "markdown", "modules*"):
+        for d in (".doctrees", "markdown"):
             ctx.run(f"rm -r {d}", warn=True)
 
-        ctx.run("mv _static static")
-        ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
-        ctx.run("rm index.html", warn=True)
+        # ctx.run("mv _static static")
+        # ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
+        # ctx.run("rm index.html", warn=True)
         ctx.run("cp ../*.md .")
         ctx.run(f"mv README.md index.md")
         ctx.run("rm -rf *.orig _site doctrees", warn=True)
