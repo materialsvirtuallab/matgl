@@ -87,7 +87,7 @@ class MEGNet(nn.Module, IOMixIn):
 
         self.save_args(locals(), kwargs)
 
-        self.element_types = element_types
+        self.element_types = element_types or DEFAULT_ELEMENT_TYPES
         self.cutoff = cutoff
         self.bond_expansion = bond_expansion or BondExpansion(
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width

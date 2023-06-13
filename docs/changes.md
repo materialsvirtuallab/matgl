@@ -6,6 +6,9 @@ nav_order: 2
 
 # Change Log
 
+## 0.5.5
+- Critical bug fix for code regression affecting pre-loaded models.
+
 ## 0.5.4
 - M3GNet Formation energy model added, with example notebook.
 - M3GNet.predict_structure method added.
