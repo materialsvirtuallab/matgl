@@ -8,6 +8,7 @@
 *.pyd
 dist
 _build
+_site
 build
 .project
 .pydevproject

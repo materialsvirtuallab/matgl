@@ -20,9 +20,21 @@ NEW_VER = matgl.__version__
 
 @task
 def make_doc(ctx):
-    #ctx.run("cp README.md docs_src/index.md")
-    #ctx.run("cp changes.md docs_src/changes.md")
-    #ctx.run("cp developer.md docs_src/developer.md")
+    """
+    This new version requires markdown builder.
+
+        pip install sphinx-markdown-builder
+
+    Adding the following to conf.py
+
+        extensions = [
+            'sphinx_markdown_builder'
+        ]
+
+    Build markdown files with sphinx-build command
+
+        sphinx-build -M markdown ./ build
+    """
     with cd("docs_src"):
         ctx.run("touch index.md")
         ctx.run("rm matgl.*.rst", warn=True)
@@ -50,12 +62,26 @@ def make_doc(ctx):
 
                 with open(f, "w") as fid:
                     fid.write("".join(newoutput))
-        ctx.run("rm ../docs/matgl*.html")
-        ctx.run("sphinx-build -b html . ../docs")
-        ctx.run("rm matgl*.rst")
+        ctx.run("rm ../docs/matgl*.html", warn=True)
+        # ctx.run("sphinx-build -b html . ../docs")  # HTML building.
+        ctx.run("sphinx-build -M markdown . ../docs")
+        ctx.run("rm matgl*.rst", warn=True)
 
     with cd("docs"):
-        for d in (".doctrees", "_sources", "static"):
+
+        ctx.run("mv markdown/matgl*.md .")
+        for fn in glob.glob("matgl.*.md"):
+            with open(fn, "rt") as f:
+                contents = f.read()
+            with open(fn, "wt") as f:
+                f.write(f"---\nlayout: default\ntitle: Home\nnav_exclude: true\n---\n\n" + contents)
+
+        with open("matgl.md", "rt") as f:
+            contents = f.read()
+        with open("matgl.md", "wt") as f:
+            f.write(f"---\nlayout: default\ntitle: API Documentation\nnav_order: 4\n---\n\n" + contents)
+
+        for d in (".doctrees", "_sources", "static", "markdown", "modules*"):
             ctx.run(f"rm -r {d}", warn=True)
 
         ctx.run("mv _static static")
@@ -68,7 +94,7 @@ def make_doc(ctx):
         with open("index.md", "rt") as f:
             index = f.read()
         with open("index.md", "wt") as f:
-            f.write("---\nlayout: default\ntitle: Home\n---\n\n" + index)
+            f.write("---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + index)
 
 
 @task

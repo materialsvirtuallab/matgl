@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Changelog
+nav_order: 2
 ---
 
 ## 0.5.3

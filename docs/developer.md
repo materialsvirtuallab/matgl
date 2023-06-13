@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Developer's Guide
+nav_order: 3
 ---
 
 This is a developer's guide to writing new models in matgl. It is still a work in progress.
