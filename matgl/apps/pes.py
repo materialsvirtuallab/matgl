@@ -27,17 +27,15 @@ class Potential(nn.Module, IOMixIn):
         calc_hessian: bool = False,
     ):
         """
-
         Args:
-            model: M3GNet model
+            model: Model for predicting energies.
             data_mean: Mean of target.
             data_std: Std dev of target.
-            element_refs: Element reference values for each element
-            calc_forces: Enable force calculations
-            calc_stresses: Enable stress calculations
-            calc_hessian: Enable hessian calculations
+            element_refs: Element reference values for each element.
+            calc_forces: Enable force calculations.
+            calc_stresses: Enable stress calculations.
+            calc_hessian: Enable hessian calculations.
         """
-
         super().__init__()
         self.save_args(locals())
         self.model = model
