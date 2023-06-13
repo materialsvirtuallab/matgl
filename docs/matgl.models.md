@@ -1,14 +1,12 @@
 ---
 layout: default
-title: Home
+title: matgl.models.md
 nav_exclude: true
 ---
-
 # matgl.models package
 
 Package containing model implementations.
 
-## Submodules
 
 ## matgl.models._m3gnet module
 

@@ -1,15 +1,13 @@
 ---
 layout: default
-title: Home
+title: matgl.apps.md
 nav_exclude: true
 ---
-
 # matgl.apps package
 
 This package implements specific applications of matgl models. An example is their use for fitting interatomic
 potentials parameterizing the potential energy surface (PES).
 
-## Submodules
 
 ## matgl.apps.pes module
 

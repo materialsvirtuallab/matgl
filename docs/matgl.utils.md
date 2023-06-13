@@ -1,14 +1,12 @@
 ---
 layout: default
-title: Home
+title: matgl.utils.md
 nav_exclude: true
 ---
-
 # matgl.utils package
 
 Implementation of various utility methods and classes.
 
-## Submodules
 
 ## matgl.utils.cutoff module
 

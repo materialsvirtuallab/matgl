@@ -1,14 +1,12 @@
 ---
 layout: default
-title: Home
+title: matgl.graph.md
 nav_exclude: true
 ---
-
 # matgl.graph package
 
 Package for creating and manipulating graphs.
 
-## Submodules
 
 ## matgl.graph.compute module
 

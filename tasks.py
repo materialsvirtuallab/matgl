@@ -70,16 +70,28 @@ def make_doc(ctx):
     with cd("docs"):
 
         ctx.run("mv markdown/matgl*.md .")
-        for fn in glob.glob("matgl.*.md"):
+        for fn in glob.glob("matgl*.md"):
             with open(fn, "rt") as f:
-                contents = f.read()
+                lines = f.readlines()
+            lines = [l for l in lines if "Submodules" not in l]
+            if fn == "matgl.md":
+                preamble = [
+                    "---",
+                    "layout: default",
+                    "title: API Documentation",
+                    "nav_order: 4",
+                    "---"
+                ]
+            else:
+                preamble = [
+                    "---",
+                    "layout: default",
+                    "title: " + fn,
+                    "nav_exclude: true",
+                    "---"
+                ]
             with open(fn, "wt") as f:
-                f.write(f"---\nlayout: default\ntitle: Home\nnav_exclude: true\n---\n\n" + contents)
-
-        with open("matgl.md", "rt") as f:
-            contents = f.read()
-        with open("matgl.md", "wt") as f:
-            f.write(f"---\nlayout: default\ntitle: API Documentation\nnav_order: 4\n---\n\n" + contents)
+                f.write("\n".join(preamble) + "\n" + "".join(lines))
 
         for d in (".doctrees", "markdown"):
             ctx.run(f"rm -r {d}", warn=True)

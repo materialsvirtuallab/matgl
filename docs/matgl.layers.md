@@ -1,14 +1,12 @@
 ---
 layout: default
-title: Home
+title: matgl.layers.md
 nav_exclude: true
 ---
-
 # matgl.layers package
 
 This package implements the layers for M\*GNet.
 
-## Submodules
 
 ## matgl.layers._activations module
 

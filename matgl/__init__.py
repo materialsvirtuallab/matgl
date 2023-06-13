@@ -1,5 +1,5 @@
 """
-This package implements graph networks for materials science.
+MatGL (Materials Graph Library) is a graph deep learning library for materials science.
 """
 from __future__ import annotations
 

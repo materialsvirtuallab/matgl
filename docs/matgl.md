@@ -3,10 +3,9 @@ layout: default
 title: API Documentation
 nav_order: 4
 ---
-
 # matgl package
 
-This package implements graph networks for materials science.
+MatGL (Materials Graph Library) is a graph deep learning library for materials science.
 
 ## Subpackages
 
@@ -14,7 +13,6 @@ This package implements graph networks for materials science.
 * [matgl.apps package](matgl.apps.md)
 
 
-    * [Submodules](matgl.apps.md#submodules)
 
 
     * [matgl.apps.pes module](matgl.apps.md#module-matgl.apps.pes)
@@ -32,7 +30,6 @@ This package implements graph networks for materials science.
 * [matgl.data package](matgl.data.md)
 
 
-    * [Submodules](matgl.data.md#submodules)
 
 
     * [matgl.data.transformer module](matgl.data.md#module-matgl.data.transformer)
@@ -71,7 +68,6 @@ This package implements graph networks for materials science.
 * [matgl.ext package](matgl.ext.md)
 
 
-    * [Submodules](matgl.ext.md#submodules)
 
 
     * [matgl.ext.ase module](matgl.ext.md#module-matgl.ext.ase)
@@ -137,7 +133,6 @@ This package implements graph networks for materials science.
 * [matgl.graph package](matgl.graph.md)
 
 
-    * [Submodules](matgl.graph.md#submodules)
 
 
     * [matgl.graph.compute module](matgl.graph.md#module-matgl.graph.compute)
@@ -209,7 +204,6 @@ This package implements graph networks for materials science.
 * [matgl.layers package](matgl.layers.md)
 
 
-    * [Submodules](matgl.layers.md#submodules)
 
 
     * [matgl.layers._activations module](matgl.layers.md#module-matgl.layers._activations)
@@ -446,7 +440,6 @@ This package implements graph networks for materials science.
 * [matgl.models package](matgl.models.md)
 
 
-    * [Submodules](matgl.models.md#submodules)
 
 
     * [matgl.models._m3gnet module](matgl.models.md#module-matgl.models._m3gnet)
@@ -494,7 +487,6 @@ This package implements graph networks for materials science.
 * [matgl.utils package](matgl.utils.md)
 
 
-    * [Submodules](matgl.utils.md#submodules)
 
 
     * [matgl.utils.cutoff module](matgl.utils.md#module-matgl.utils.cutoff)
@@ -644,7 +636,6 @@ This package implements graph networks for materials science.
         * [`xavier_init()`](matgl.utils.md#matgl.utils.training.xavier_init)
 
 
-## Submodules
 
 ## matgl.config module
 

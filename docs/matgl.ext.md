@@ -1,14 +1,12 @@
 ---
 layout: default
-title: Home
+title: matgl.ext.md
 nav_exclude: true
 ---
-
 # matgl.ext package
 
 This package implements interfaces to external packages such as Pymatgen and the Atomic Simulation Environment.
 
-## Submodules
 
 ## matgl.ext.ase module
 
