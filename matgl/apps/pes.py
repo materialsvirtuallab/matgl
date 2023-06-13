@@ -26,7 +26,8 @@ class Potential(nn.Module, IOMixIn):
         calc_stresses: bool = True,
         calc_hessian: bool = False,
     ):
-        """
+        """Initialize Potential from a model and elemental references.
+
         Args:
             model: Model for predicting energies.
             data_mean: Mean of target.

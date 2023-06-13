@@ -1,4 +1,4 @@
-name: Testing - main
+name: Testing
 
 on: [push, pull_request]
 
