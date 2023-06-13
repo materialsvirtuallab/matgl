@@ -1,12 +1,14 @@
 """
-Implementation of Materials 3-body Graph Network (M3GNet) model. The main improvement over MEGNet is the addition of
-many-body interactios terms, which improves efficiency of representation of local interactions for applications such as
-interatomic potentials. For more details on M3GNet, please refer to::
+Implementation of Materials 3-body Graph Network (M3GNet) model.
 
-    ```
-    Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
-    Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
-    ```
+The main improvement over MEGNet is the addition of many-body interactios terms, which improves efficiency of
+representation of local interactions for applications such as interatomic potentials. For more details on M3GNet,
+please refer to::
+
+```
+Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
+Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
+```
 """
 from __future__ import annotations
 
@@ -209,8 +211,8 @@ class M3GNet(nn.Module, IOMixIn):
 
         Args:
             g : DGLGraph for a batch of graphs.
-        state_attr: State attrs for a batch of graphs.
-        l_g : DGLGraph for a batch of line graphs.
+            state_attr: State attrs for a batch of graphs.
+            l_g : DGLGraph for a batch of line graphs.
 
         Returns:
             output: Output property for a batch of graphs

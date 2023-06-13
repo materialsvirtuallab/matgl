@@ -1,11 +1,13 @@
 """
-Implementation of MatErials Graph Network (MEGNet) model. Graph networks are a new machine learning (ML) paradigm that
-supports both relational reasoning and combinatorial generalization. For more details on MEGNet, please refer to::
+Implementation of MatErials Graph Network (MEGNet) model.
 
-    ```
-    Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
-    Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564-3572. DOI: 10.1021/acs.chemmater.9b01294.
-    ```
+Graph networks are a new machine learning (ML) paradigm that supports both relational reasoning and combinatorial
+generalization. For more details on MEGNet, please refer to::
+
+```
+Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
+Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564-3572. DOI: 10.1021/acs.chemmater.9b01294.
+```
 """
 from __future__ import annotations
 
