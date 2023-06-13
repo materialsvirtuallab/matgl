@@ -4,6 +4,8 @@ title: Developer's Guide
 nav_order: 3
 ---
 
+# Developer's Guide
+
 This is a developer's guide to writing new models in matgl. It is still a work in progress.
 
 MatGL is based on the [Deep Graph Library (DGL)][dgl]. Most of the questions relating to how to implement graph deep

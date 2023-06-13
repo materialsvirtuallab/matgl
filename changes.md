@@ -4,6 +4,8 @@ title: Changelog
 nav_order: 2
 ---
 
+# Change Log
+
 ## 0.5.3
 - Minor doc and code usability improvvements.
 
