@@ -15,7 +15,7 @@ nav_order: 2
 - Massively improved documentation at http://matgl.ai.
 
 ## 0.5.3
-- Minor doc and code usability improvvements.
+- Minor doc and code usability improvements.
 
 ## 0.5.2
 - Minor improvements to model versioning scheme.

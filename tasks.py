@@ -97,10 +97,7 @@ def publish(ctx):
 
 @task
 def release_github(ctx):
-    with open("changes.md") as f:
-        contents = f.read()
-    toks = re.split(r"\#+", contents)
-    desc = toks[1].strip()
+    desc = get_changelog(ctx)
     payload = {
         "tag_name": "v" + NEW_VER,
         "target_commitish": "main",
@@ -124,3 +121,12 @@ def release(ctx, notest=False):
         ctx.run("pytest matgl")
     publish(ctx)
     release_github(ctx)
+
+@task
+def get_changelog(ctx):
+    with open("changes.md", "rt") as f:
+        contents = f.read()
+        i = contents.find(f"{NEW_VER}")
+        contents = contents[i+len(NEW_VER):]
+        i = contents.find("#")
+        return contents[:i].strip()
