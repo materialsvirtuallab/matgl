@@ -35,40 +35,14 @@ def make_doc(ctx):
 
         sphinx-build -M markdown ./ build
     """
-    with cd("docs_src"):
-        ctx.run("touch index.md")
+    with cd("docs"):
         ctx.run("rm matgl.*.rst", warn=True)
         ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
         ctx.run("rm matgl.*tests*.rst", warn=True)
-        for f in glob.glob("*.rst"):
-            if f.startswith("matgl") and f.endswith("rst"):
-                newoutput = []
-                suboutput = []
-                subpackage = False
-                with open(f) as fid:
-                    for line in fid:
-                        clean = line.strip()
-                        if clean == "Subpackages":
-                            subpackage = True
-                        if not subpackage and not clean.endswith("tests"):
-                            newoutput.append(line)
-                        else:
-                            if not clean.endswith("tests"):
-                                suboutput.append(line)
-                            if clean.startswith("matgl") and not clean.endswith("tests"):
-                                newoutput.extend(suboutput)
-                                subpackage = False
-                                suboutput = []
-
-                with open(f, "w") as fid:
-                    fid.write("".join(newoutput))
-        ctx.run("rm ../docs/matgl*.html", warn=True)
+        # ctx.run("rm matgl*.html", warn=True)
         # ctx.run("sphinx-build -b html . ../docs")  # HTML building.
-        ctx.run("sphinx-build -M markdown . ../docs")
-        ctx.run("rm matgl*.rst", warn=True)
-
-    with cd("docs"):
-
+        ctx.run("sphinx-build -M markdown . .")
+        ctx.run("rm *.rst", warn=True)
         ctx.run("mv markdown/matgl*.md .")
         for fn in glob.glob("matgl*.md"):
             with open(fn, "rt") as f:
