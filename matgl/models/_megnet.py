@@ -224,7 +224,6 @@ class MEGNet(nn.Module, IOMixIn):
         Returns:
             output (torch.tensor): output property
         """
-
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
 
