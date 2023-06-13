@@ -12,8 +12,12 @@ remote_theme: just-the-docs/just-the-docs
 plugins:
   - jekyll-feed
 
+favicon_ico: "/assets/favicon.ico"
+
+nav_external_links:
+  - title: "MatGL on GitHub"
+    url: "https://github.com/materialsvirtuallab/matgl"
+
 aux_links:
-  "MatGL on GitHub":
-    - "https://github.com/materialsvirtuallab/matgl"
   "Materials Virtual Lab":
     - "https://materialsvirtuallab.org"
