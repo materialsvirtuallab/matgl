@@ -40,13 +40,11 @@ M3GNet calculator based on ase Calculator.
 
 #### calculate(atoms: Atoms | None = None, properties: list | None = None, system_changes: list | None = None)
 Args:
-
-    atoms (ase.Atoms): ase Atoms object
-    properties (list): list of properties to calculate
-    system_changes (list): monitor which properties of atoms were
-
-    > changed for new calculation. If not, the previous calculation
-    > results will be loaded.
+atoms (ase.Atoms): ase Atoms object
+properties (list): list of properties to calculate
+system_changes (list): monitor which properties of atoms were
+changed for new calculation. If not, the previous calculation
+results will be loaded.
 
 
 #### implemented_properties(_: List[str_ _ = ['energy', 'free_energy', 'forces', 'stress', 'hessian'_ )
@@ -82,23 +80,20 @@ Relaxer is a class for structural relaxation.
 
 #### relax(atoms: Atoms, fmax: float = 0.1, steps: int = 500, traj_file: str | None = None, interval=1, verbose=False, \*\*kwargs)
 Args:
-
-    atoms (Atoms): the atoms for relaxation
-    fmax (float): total force tolerance for relaxation convergence.
-
-    > Here fmax is a sum of force and stress forces
-
-    steps (int): max number of steps for relaxation
-    traj_file (str): the trajectory file for saving
-    interval (int): the step interval for saving the trajectories
-    verbose (bool): Whether to have verbose output.
+atoms (Atoms): the atoms for relaxation
+fmax (float): total force tolerance for relaxation convergence.
+Here fmax is a sum of force and stress forces
+steps (int): max number of steps for relaxation
+traj_file (str): the trajectory file for saving
+interval (int): the step interval for saving the trajectories
+verbose (bool): Whether to have verbose output.
 
 
-    ```
-    **
-    ```
+```
+**
+```
 
-    kwargs: Kwargs pass-through to optimizer.
+kwargs: Kwargs pass-through to optimizer.
 
 
 ### _class_ matgl.ext.ase.TrajectoryObserver(atoms: Atoms)

@@ -615,13 +615,12 @@ Include 3D interactions to the bond update.
 
 #### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: tensor, three_cutoff: float, node_feat: tensor, edge_feat: tensor)
 Args:
-
-    graph: dgl graph
-    line_graph: line graph.
-    three_basis: three body basis expansion
-    three_cutoff: cutoff radius
-    node_feat: node features
-    edge_feat: edge features.
+graph: dgl graph
+line_graph: line graph.
+three_basis: three body basis expansion
+three_cutoff: cutoff radius
+node_feat: node features
+edge_feat: edge features.
 
 
 #### training(_: boo_ )

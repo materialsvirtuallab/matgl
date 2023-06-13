@@ -56,6 +56,20 @@ Returns:
     output: Output property for a batch of graphs
 
 
+#### predict_structure(structure, state_feats: torch.tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
+Convenience method to directly predict property from structure.
+
+Args:
+
+    structure: An input crystal/molecule.
+    state_feats (torch.tensor): Graph attributes
+    graph_converter: Object that implements a get_graph_from_structure.
+
+Returns:
+
+    output (torch.tensor): output property
+
+
 #### training(_: boo_ )
 ## matgl.models._megnet module
 

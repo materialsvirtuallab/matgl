@@ -40,8 +40,10 @@ Provides utilities for managing models and data.
 ### _class_ matgl.utils.io.IOMixIn()
 Bases: `object`
 
-Mixin class for model saving and loading. For proper usage, models should subclass nn.Module and IOMix and the
-save_args method should be called immediately after the super().__init__() call.
+Mixin class for model saving and loading.
+
+For proper usage, models should subclass nn.Module and IOMix and the save_args method should be called
+immediately after the super().__init__() call.
 
 `\`
 super().__init__()
@@ -75,7 +77,9 @@ Returns: model_object if include_json is false. (model_object, dict) if include_
 
 
 #### save(path: str | Path = '.', metadata: dict | None = None, makedirs: bool = True)
-Save model to a directory. Three files will be saved.
+Save model to a directory.
+
+Three files will be saved.
 - path/model.pt, which contains the torch serialized model args.
 - path/state.pt, which contains the saved state_dict from the model.
 - path/model.json, a txt version of model.pt that is purely meant for ease of reference.
@@ -93,8 +97,9 @@ Args:
 
 
 #### save_args(locals: dict, kwargs: dict | None = None)
-Method to save args into a private _init_args variable. This should be called after super in the __init__
-method, e.g., self.save_args(locals(), kwargs).
+Method to save args into a private _init_args variable.
+
+This should be called after super in the __init__ method, e.g., self.save_args(locals(), kwargs).
 
 Args:
 
@@ -479,20 +484,19 @@ Configure optimizers.
 #### on_test_model_eval(\*args, \*\*kwargs)
 Args:
 
-    
 
-    ```
-    *
-    ```
+```
+*
+```
 
-    args: Pass-through
+args: Pass-through
 
 
-    ```
-    **
-    ```
+```
+**
+```
 
-    kwargs: Pass-through.
+kwargs: Pass-through.
 
 
 #### on_train_epoch_end()
@@ -513,9 +517,8 @@ Returns:
 
 #### test_step(batch: tuple, batch_idx: int)
 Args:
-
-    batch: Data batch.
-    batch_idx: Batch index.
+batch: Data batch.
+batch_idx: Batch index.
 
 
 #### training_step(batch: tuple, batch_idx: int)
@@ -531,9 +534,8 @@ Returns:
 
 #### validation_step(batch: tuple, batch_idx: int)
 Args:
-
-    batch: Data batch.
-    batch_idx: Batch index.
+batch: Data batch.
+batch_idx: Batch index.
 
 
 ### matgl.utils.training.xavier_init(model: Module)

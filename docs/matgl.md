@@ -451,6 +451,9 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
             * [`M3GNet.forward()`](matgl.models.md#matgl.models._m3gnet.M3GNet.forward)
 
 
+            * [`M3GNet.predict_structure()`](matgl.models.md#matgl.models._m3gnet.M3GNet.predict_structure)
+
+
             * [`M3GNet.training`](matgl.models.md#matgl.models._m3gnet.M3GNet.training)
 
 
