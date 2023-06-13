@@ -1,6 +1,4 @@
-"""
-Interface with pymatgen objects.
-"""
+"""Interface with pymatgen objects."""
 from __future__ import annotations
 
 import dgl
@@ -30,17 +28,14 @@ def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]
 
 
 class Molecule2Graph(GraphConverter):
-    """
-    Construct a DGL graph from Pymatgen Molecules.
-    """
+    """Construct a DGL graph from Pymatgen Molecules."""
 
     def __init__(
         self,
         element_types: tuple[str, ...],
         cutoff: float = 5.0,
     ):
-        """
-        Parameters
+        """Parameters
         ----------
         element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
             constructed with the same dimensionality of features.
@@ -50,8 +45,7 @@ class Molecule2Graph(GraphConverter):
         self.cutoff = cutoff
 
     def get_graph(self, mol: Molecule) -> tuple[dgl.DGLGraph, list]:
-        """
-        Get a DGL graph from an input molecule.
+        """Get a DGL graph from an input molecule.
 
         :param mol: pymatgen molecule object
         :return: (dgl graph, state features)
@@ -83,17 +77,14 @@ class Molecule2Graph(GraphConverter):
 
 
 class Structure2Graph(GraphConverter):
-    """
-    Construct a DGL graph from Pymatgen Structure.
-    """
+    """Construct a DGL graph from Pymatgen Structure."""
 
     def __init__(
         self,
         element_types: tuple[str, ...],
         cutoff: float = 5.0,
     ):
-        """
-        Parameters
+        """Parameters
         ----------
         element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
             constructed with the same dimensionality of features.
@@ -103,8 +94,7 @@ class Structure2Graph(GraphConverter):
         self.cutoff = cutoff
 
     def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, list]:
-        """
-        Get a DGL graph from an input Structure.
+        """Get a DGL graph from an input Structure.
 
         :param structure: pymatgen structure object
         :return:

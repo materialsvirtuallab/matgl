@@ -1,6 +1,4 @@
-"""
-Implementations of math functions.
-"""
+"""Implementations of math functions."""
 
 from __future__ import annotations
 
@@ -25,8 +23,7 @@ SPHERICAL_BESSEL_ROOTS = torch.tensor(np.load(os.path.join(CWD, "sb_roots.npy"))
 
 
 class GaussianExpansion(nn.Module):
-    r"""
-    Gaussian Radial Expansion.
+    r"""Gaussian Radial Expansion.
     The bond distance is expanded to a vector of shape [m],
     where m is the number of Gaussian basis centers.
     """
@@ -38,8 +35,7 @@ class GaussianExpansion(nn.Module):
         num_centers: int = 20,
         width: None | float = 0.5,
     ):
-        """
-        Parameters
+        """Parameters
         ----------
         initial : float
                 Location of initial Gaussian basis center.
@@ -79,8 +75,7 @@ class GaussianExpansion(nn.Module):
 
 @lru_cache(maxsize=128)
 def spherical_bessel_roots(max_l: int, max_n: int):
-    """
-    Calculate the spherical Bessel roots. The n-th root of the l-th
+    """Calculate the spherical Bessel roots. The n-th root of the l-th
     spherical bessel function is the `[l, n]` entry of the return matrix.
     The calculation is based on the fact that the n-root for l-th
     spherical Bessel function `j_l`, i.e., `z_{j, n}` is in the range
@@ -107,17 +102,14 @@ def spherical_bessel_roots(max_l: int, max_n: int):
 
 
 class SphericalBesselFunction:
-    """
-    Calculate the spherical Bessel function based on sympy + pytorch implementations.
-    """
+    """Calculate the spherical Bessel function based on sympy + pytorch implementations."""
 
     def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
-        """
-        Args:
-            max_l: int, max order (excluding l)
-            max_n: int, max number of roots used in each l
-            cutoff: float, cutoff radius
-            smooth: Whether to smooth the function.
+        """Args:
+        max_l: int, max order (excluding l)
+        max_n: int, max number of roots used in each l
+        cutoff: float, cutoff radius
+        smooth: Whether to smooth the function.
         """
         self.max_l = max_l
         self.max_n = max_n
@@ -130,8 +122,7 @@ class SphericalBesselFunction:
 
     @lru_cache(maxsize=128)
     def _calculate_symbolic_funcs(self) -> list:
-        """
-        Spherical basis functions based on Rayleigh formula. This function
+        """Spherical basis functions based on Rayleigh formula. This function
         generates
         symbolic formula.
 
@@ -147,8 +138,7 @@ class SphericalBesselFunction:
         return _get_lambda_func(max_n=self.max_n, cutoff=self.cutoff)
 
     def __call__(self, r):
-        """
-        Args:
+        """Args:
             r: torch.tensor, distance tensor, 1D.
 
 
@@ -179,8 +169,7 @@ class SphericalBesselFunction:
 
     @staticmethod
     def rbf_j0(r, cutoff: float = 5.0, max_n: int = 3):
-        """
-        Spherical Bessel function of order 0, ensuring the function value
+        """Spherical Bessel function of order 0, ensuring the function value
         vanishes at cutoff.
 
         Args:
@@ -195,8 +184,7 @@ class SphericalBesselFunction:
 
 
 def _y00(theta, phi):
-    r"""
-    Spherical Harmonics with `l=m=0`.
+    r"""Spherical Harmonics with `l=m=0`.
 
     ..math::
         Y_0^0 = \frac{1}{2} \sqrt{\frac{1}{\pi}}
@@ -216,16 +204,13 @@ def _conjugate(x):
 
 
 class SphericalHarmonicsFunction:
-    """
-    Spherical Harmonics function.
-    """
+    """Spherical Harmonics function."""
 
     def __init__(self, max_l: int, use_phi: bool = True):
-        """
-        Args:
-            max_l: int, max l (excluding l)
-            use_phi: bool, whether to use the polar angle. If not,
-                the function will compute `Y_l^0`.
+        """Args:
+        max_l: int, max l (excluding l)
+        use_phi: bool, whether to use the polar angle. If not,
+        the function will compute `Y_l^0`.
         """
         self.max_l = max_l
         self.use_phi = use_phi
@@ -244,8 +229,7 @@ class SphericalHarmonicsFunction:
         self.funcs[0] = _y00
 
     def __call__(self, costheta, phi=None):
-        """
-        Args:
+        """Args:
             costheta: Cosine of the azimuthal angle
             phi: torch.tensor, the polar angle.
 
@@ -273,8 +257,7 @@ def _block_repeat(array, block_size, repeats):
 
 
 def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
-    """
-    Combine the spherical Bessel function and the spherical Harmonics function.
+    """Combine the spherical Bessel function and the spherical Harmonics function.
 
     For the spherical Bessel function, the column is ordered by
         [n=[0, ..., max_n-1], n=[0, ..., max_n-1], ...], max_l blocks,
@@ -318,8 +301,7 @@ def _sinc(x):
 
 
 def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
-    """
-    This is an orthogonal basis with first
+    """This is an orthogonal basis with first
     and second derivative at the cutoff
     equals to zero. The function was derived from the order 0 spherical Bessel
     function, and was expanded by the different zero roots.
@@ -394,8 +376,7 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
 
 
 def get_segment_indices_from_n(ns):
-    """
-    Get segment indices from number array. For example if
+    """Get segment indices from number array. For example if
     ns = [2, 3], then the function will return [0, 0, 1, 1, 1].
 
     Args:
@@ -411,8 +392,7 @@ def get_segment_indices_from_n(ns):
 
 
 def get_range_indices_from_n(ns):
-    """
-    Give ns = [2, 3], return [0, 1, 0, 1, 2].
+    """Give ns = [2, 3], return [0, 1, 0, 1, 2].
 
     Args:
         ns: torch.tensor, the number of atoms/bonds array
@@ -432,8 +412,7 @@ def get_range_indices_from_n(ns):
 
 
 def repeat_with_n(ns, n):
-    """
-    Repeat the first dimension according to n array.
+    """Repeat the first dimension according to n array.
 
     Args:
         ns (torch.tensor): tensor
@@ -446,8 +425,7 @@ def repeat_with_n(ns, n):
 
 
 def broadcast_states_to_bonds(g, state_feat):
-    """
-    Broadcast state attributes of shape [Ns, Nstate] to
+    """Broadcast state attributes of shape [Ns, Nstate] to
     bond attributes shape [Nb, Nstate].
 
     Args:
@@ -460,8 +438,7 @@ def broadcast_states_to_bonds(g, state_feat):
 
 
 def broadcast_states_to_atoms(g, state_feat):
-    """
-    Broadcast state attributes of shape [Ns, Nstate] to
+    """Broadcast state attributes of shape [Ns, Nstate] to
     bond attributes shape [Nb, Nstate].
 
     Args:
@@ -475,8 +452,7 @@ def broadcast_states_to_atoms(g, state_feat):
 
 
 def scatter_sum(input_tensor: torch.tensor, segment_ids: torch.tensor, num_segments: int, dim: int) -> torch.tensor:
-    """
-    Scatter sum operation along the specified dimension. Modified from the
+    """Scatter sum operation along the specified dimension. Modified from the
     torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
 
     Args:
@@ -499,8 +475,7 @@ def scatter_sum(input_tensor: torch.tensor, segment_ids: torch.tensor, num_segme
 
 
 def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num_segments: torch.tensor):
-    """
-    Segment fraction
+    """Segment fraction
     Args:
         data (torch.tensor): original data
         segment_ids (torch.tensor): segment ids
@@ -514,8 +489,7 @@ def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num
 
 
 def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int):
-    """
-    Broadcast input tensor along a given dimension to match the shape of the target tensor.
+    """Broadcast input tensor along a given dimension to match the shape of the target tensor.
     Modified from torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
 
     Args:

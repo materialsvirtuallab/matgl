@@ -1,6 +1,4 @@
-"""
-Package containing model implementations.
-"""
+"""Package containing model implementations."""
 
 from __future__ import annotations
 

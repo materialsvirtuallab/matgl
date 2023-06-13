@@ -1,6 +1,4 @@
-"""
-Implementation of Interatomic Potentials.
-"""
+"""Implementation of Interatomic Potentials."""
 from __future__ import annotations
 
 import dgl
@@ -14,9 +12,7 @@ from matgl.utils.io import IOMixIn
 
 
 class Potential(nn.Module, IOMixIn):
-    """
-    A class representing an interatomic potential.
-    """
+    """A class representing an interatomic potential."""
 
     # Model version number.
     __version__ = 1
@@ -31,8 +27,7 @@ class Potential(nn.Module, IOMixIn):
         calc_stresses: bool = True,
         calc_hessian: bool = False,
     ):
-        """
-        :param model: M3GNet model
+        """:param model: M3GNet model
         :param element_refs: Element reference values for each element
         :param calc_forces: Enable force calculations
         :param calc_stresses: Enable stress calculations
@@ -56,8 +51,7 @@ class Potential(nn.Module, IOMixIn):
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None
     ) -> tuple:
-        """
-        Args:
+        """Args:
             g: DGL graph
             state_attr: State attrs
             l_g: Line graph.

@@ -1,6 +1,4 @@
-"""
-Utils for training MatGL models.
-"""
+"""Utils for training MatGL models."""
 
 from __future__ import annotations
 
@@ -20,13 +18,10 @@ from matgl.models import M3GNet
 
 
 class TrainerMixin:
-    """
-    Mix-in class implementing common functions for training.
-    """
+    """Mix-in class implementing common functions for training."""
 
     def training_step(self, batch: tuple, batch_idx: int):
-        """
-        Args:
+        """Args:
             batch: Data batch.
             batch_idx: Batch index.
 
@@ -45,17 +40,14 @@ class TrainerMixin:
         return results["Total_Loss"]
 
     def on_train_epoch_end(self):
-        """
-        Step scheduler every epoch.
-        """
+        """Step scheduler every epoch."""
         sch = self.lr_schedulers()
         sch.step()
 
     def validation_step(self, batch: tuple, batch_idx: int):
-        """
-        Args:
-            batch: Data batch.
-            batch_idx: Batch index.
+        """Args:
+        batch: Data batch.
+        batch_idx: Batch index.
         """
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
@@ -67,10 +59,9 @@ class TrainerMixin:
         )
 
     def test_step(self, batch: tuple, batch_idx: int):
-        """
-        Args:
-            batch: Data batch.
-            batch_idx: Batch index.
+        """Args:
+        batch: Data batch.
+        batch_idx: Batch index.
         """
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
@@ -82,9 +73,7 @@ class TrainerMixin:
         )
 
     def configure_optimizers(self):
-        """
-        Configure optimizers.
-        """
+        """Configure optimizers."""
         if self.optimizer is None:
             optimizer = torch.optim.Adam(
                 self.parameters(),
@@ -108,17 +97,15 @@ class TrainerMixin:
         ]
 
     def on_test_model_eval(self, *args, **kwargs):
-        r"""
-        Args:
-            *args: Pass-through
-            **kwargs: Pass-through.
+        r"""Args:
+        *args: Pass-through
+        **kwargs: Pass-through.
         """
         super().on_test_model_eval(*args, **kwargs)
         torch.set_grad_enabled(True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
-        """
-        Args:
+        """Args:
             batch: Data batch.
             batch_idx: Batch index.
             dataloader_idx: Data loader index.
@@ -131,9 +118,7 @@ class TrainerMixin:
 
 
 class ModelTrainer(TrainerMixin, pl.LightningModule):
-    """
-    Trainer for MEGNet and M3GNet models.
-    """
+    """Trainer for MEGNet and M3GNet models."""
 
     def __init__(
         self,
@@ -147,18 +132,16 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
     ):
-        """
-
-        Args:
-            model: Which type of the model for training
-            data_mean: average of training data
-            data_std: standard deviation of training data
-            loss: loss function used for training
-            optimizer: optimizer for training
-            scheduler: scheduler for training
-            lr: learning rate for training
-            decay_steps: number of steps for decaying learning rate
-            decay_alpha: parameter determines the minimum learning rate.
+        """Args:
+        model: Which type of the model for training
+        data_mean: average of training data
+        data_std: standard deviation of training data
+        loss: loss function used for training
+        optimizer: optimizer for training
+        scheduler: scheduler for training
+        lr: learning rate for training
+        decay_steps: number of steps for decaying learning rate
+        decay_alpha: parameter determines the minimum learning rate.
         """
         super().__init__()
 
@@ -184,8 +167,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
-        """
-        Args:
+        """Args:
             g: dgl Graph
             l_g: Line graph
             state_attr: State attribute.
@@ -201,8 +183,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         return self.model(g, edge_feat.float(), node_feat.long(), state_attr)
 
     def step(self, batch: tuple):
-        """
-        Args:
+        """Args:
             batch: Batch of training data.
 
         Returns:
@@ -215,8 +196,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         return results, batch_size
 
     def loss_fn(self, loss: nn.Module, labels: tuple, preds: tuple):
-        """
-        Args:
+        """Args:
             loss: Loss function.
             labels: Labels to compute the loss.
             preds: Predictions.
@@ -231,9 +211,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
 
 
 class PotentialTrainer(TrainerMixin, pl.LightningModule):
-    """
-    Trainer for MatGL potentials.
-    """
+    """Trainer for MatGL potentials."""
 
     def __init__(
         self,
@@ -252,22 +230,21 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
     ):
-        """
-        Args:
-            model: Which type of the model for training
-            element_refs: element offset for PES
-            energy_weight: relative importance of energy
-            force_weight: relative importance of force
-            stress_weight: relative importance of stress
-            data_mean: average of training data
-            data_std: standard deviation of training data
-            calc_stress: whether stress calculation is required
-            loss: loss function used for training
-            optimizer: optimizer for training
-            scheduler: scheduler for training
-            lr: learning rate for training
-            decay_steps: number of steps for decaying learning rate
-            decay_alpha: parameter determines the minimum learning rate.
+        """Args:
+        model: Which type of the model for training
+        element_refs: element offset for PES
+        energy_weight: relative importance of energy
+        force_weight: relative importance of force
+        stress_weight: relative importance of stress
+        data_mean: average of training data
+        data_std: standard deviation of training data
+        calc_stress: whether stress calculation is required
+        loss: loss function used for training
+        optimizer: optimizer for training
+        scheduler: scheduler for training
+        lr: learning rate for training
+        decay_steps: number of steps for decaying learning rate
+        decay_alpha: parameter determines the minimum learning rate.
         """
         super().__init__()
 
@@ -296,8 +273,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
-        """
-        Args:
+        """Args:
             g: dgl Graph
             l_g: Line graph
             state_attr: State attr.
@@ -309,8 +285,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         return e, f.float(), s, h
 
     def step(self, batch: tuple):
-        """
-        Args:
+        """Args:
             batch: Batch of training data.
 
         Returns:
@@ -346,8 +321,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         stress_weight: float | None = None,
         num_atoms: int | None = None,
     ):
-        """
-        Compute losses for EFS.
+        """Compute losses for EFS.
 
         Args:
             loss: Loss function.

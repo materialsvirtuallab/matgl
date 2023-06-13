@@ -1,6 +1,4 @@
-"""
-Readout layer for M3GNet.
-"""
+"""Readout layer for M3GNet."""
 
 from __future__ import annotations
 
@@ -13,9 +11,7 @@ from matgl.layers._core import EdgeSet2Set, GatedMLP
 
 
 class Set2SetReadOut(nn.Module):
-    """
-    The Set2Set readout function.
-    """
+    """The Set2Set readout function."""
 
     def __init__(
         self,
@@ -23,11 +19,10 @@ class Set2SetReadOut(nn.Module):
         num_layers: int,
         field: str,
     ):
-        """
-        Args:
-            num_steps (int): Number of LSTM steps
-            num_layers (int): Number of layers.
-            field (str): Field of graph to perform the readout.
+        """Args:
+        num_steps (int): Number of LSTM steps
+        num_layers (int): Number of layers.
+        field (str): Field of graph to perform the readout.
         """
         super().__init__()
         self.field = field
@@ -48,24 +43,21 @@ class Set2SetReadOut(nn.Module):
 
 
 class ReduceReadOut(nn.Module):
-    """
-    Reduce atom or bond attributes into lower dimensional tensors as readout.
+    """Reduce atom or bond attributes into lower dimensional tensors as readout.
     This could be summing up the atoms or bonds, or taking the mean, etc.
     """
 
     def __init__(self, op: str = "mean", field: str = "node_feat"):
-        """
-        Args:
-            op (str): op for the reduction
-            field (str): Field of graph to perform the reduction.
+        """Args:
+        op (str): op for the reduction
+        field (str): Field of graph to perform the reduction.
         """
         super().__init__()
         self.op = op
         self.field = field
 
     def forward(self, g: dgl.DGLGraph):
-        """
-        Args:
+        """Args:
             g: DGL graph
         Returns:
             torch.tensor.
@@ -78,16 +70,13 @@ class ReduceReadOut(nn.Module):
 
 
 class WeightedReadOut(nn.Module):
-    """
-    Feed node features into Gated MLP as readout.
-    """
+    """Feed node features into Gated MLP as readout."""
 
     def __init__(self, in_feats: int, dims: list[int], num_targets: int):
-        """
-        Args:
-           in_feats: input features (nodes)
-           dims: NN architecture for Gated MLP
-           num_targets: number of target properties.
+        """Args:
+        in_feats: input features (nodes)
+        dims: NN architecture for Gated MLP
+        num_targets: number of target properties.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -95,8 +84,7 @@ class WeightedReadOut(nn.Module):
         self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False)
 
     def forward(self, g: dgl.DGLGraph):
-        """
-        Args:
+        """Args:
             g: DGL graph
         Returns:
             atomic_properties: torch.tensor.
@@ -106,9 +94,7 @@ class WeightedReadOut(nn.Module):
 
 
 class WeightedReadOutPair(nn.Module):
-    """
-    Feed the average of atomic features i and j into weighted readout layer.
-    """
+    """Feed the average of atomic features i and j into weighted readout layer."""
 
     def __init__(self, in_feats, dims, num_targets, activation=None):
         super().__init__()

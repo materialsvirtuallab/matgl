@@ -1,6 +1,4 @@
-"""
-Atomic energy offset. Used for predicting extensive properties.
-"""
+"""Atomic energy offset. Used for predicting extensive properties."""
 from __future__ import annotations
 
 import dgl
@@ -17,8 +15,7 @@ class AtomRef(nn.Module):
         self,
         property_offset: np.array,  # type: ignore
     ) -> None:
-        """
-        Args:
+        """Args:
         -----------
         property_offset (np.array): a array of elemental property offset.
         """
@@ -27,8 +24,7 @@ class AtomRef(nn.Module):
         self.max_z = self.property_offset.size(dim=0)
 
     def get_feature_matrix(self, structs_or_graphs: list, element_list: tuple[str]) -> np.typing.NDArray:
-        """
-        Get the number of atoms for different elements in the structure.
+        """Get the number of atoms for different elements in the structure.
 
         Args:
             structs_or_graphs (list): a list of pymatgen Structure or dgl graph
@@ -49,8 +45,7 @@ class AtomRef(nn.Module):
         return features
 
     def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> None:
-        """
-        Fit the elemental reference values for the properties.
+        """Fit the elemental reference values for the properties.
 
         Args:
             structs_or_graphs: pymatgen Structures or dgl graphs
@@ -62,8 +57,7 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(self.property_offset)
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None):
-        """
-        Get the total property offset for a system.
+        """Get the total property offset for a system.
 
         Args:
         g: a batch of dgl graphs

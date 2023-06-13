@@ -1,6 +1,4 @@
-"""
-Provides utilities for managing models and data.
-"""
+"""Provides utilities for managing models and data."""
 from __future__ import annotations
 
 import inspect
@@ -19,9 +17,10 @@ logger = logging.getLogger(__file__)
 
 
 class IOMixIn:
-    """
-    Mixin class for model saving and loading. For proper usage, models should subclass nn.Module and IOMix and the
-    `save_args` method should be called immediately after the `super().__init__()` call.
+    """Mixin class for model saving and loading.
+
+    For proper usage, models should subclass nn.Module and IOMix and the `save_args` method should be called
+    immediately after the `super().__init__()` call.
 
     ```
     super().__init__()
@@ -30,9 +29,9 @@ class IOMixIn:
     """
 
     def save_args(self, locals: dict, kwargs: dict | None = None) -> None:
-        r"""
-        Method to save args into a private _init_args variable. This should be called after super in the __init__
-        method, e.g., `self.save_args(locals(), kwargs)`.
+        r"""Method to save args into a private _init_args variable.
+
+        This should be called after super in the __init__ method, e.g., `self.save_args(locals(), kwargs)`.
 
         Args:
             locals: The result of locals().
@@ -55,8 +54,9 @@ class IOMixIn:
         self._init_args = d
 
     def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
-        """
-        Save model to a directory. Three files will be saved.
+        """Save model to a directory.
+
+        Three files will be saved.
         - path/model.pt, which contains the torch serialized model args.
         - path/state.pt, which contains the saved state_dict from the model.
         - path/model.json, a txt version of model.pt that is purely meant for ease of reference.
@@ -86,8 +86,7 @@ class IOMixIn:
 
     @classmethod
     def load(cls, path: str | Path | dict, **kwargs):
-        """
-        Load the model weights from a directory.
+        """Load the model weights from a directory.
 
         Args:
             path (str|path|dict): Path to saved model or name of pre-trained model. If it is a dict, it is assumed to
@@ -134,19 +133,15 @@ class IOMixIn:
 
 
 class RemoteFile:
-    """
-    Handling of download of remote files to a local cache.
-    """
+    """Handling of download of remote files to a local cache."""
 
     def __init__(self, uri: str, cache_location: str | Path = MATGL_CACHE, force_download: bool = False):
-        """
-
-        Args:
-            uri: Uniform resource identifier.
-            cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
-                $HOME/.matgl.
-            force_download: To speed up access, a model with the same name in the cache location will be used if
-                present. If you want to force a re-download, set this to True.
+        """Args:
+        uri: Uniform resource identifier.
+        cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
+        $HOME/.matgl.
+        force_download: To speed up access, a model with the same name in the cache location will be used if
+        present. If you want to force a re-download, set this to True.
         """
         self.uri = uri
         toks = uri.split("/")
@@ -167,8 +162,7 @@ class RemoteFile:
             f.write(r.content)
 
     def __enter__(self):
-        """
-        Support with context.
+        """Support with context.
 
         Returns:
             Stream on local path.
@@ -177,8 +171,7 @@ class RemoteFile:
         return self.stream
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """
-        Exit the with context.
+        """Exit the with context.
 
         Args:
             exc_type: Usual meaning in __exit__.
@@ -189,8 +182,7 @@ class RemoteFile:
 
 
 def load_model(path: Path, **kwargs):
-    r"""
-    Convenience method to load a model from a directory or name.
+    r"""Convenience method to load a model from a directory or name.
 
     Args:
         path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by
@@ -222,8 +214,7 @@ def load_model(path: Path, **kwargs):
 
 
 def _get_file_paths(path: Path, **kwargs):
-    """
-    Search path for files.
+    """Search path for files.
 
     Args:
         path (Path): Path to saved model or name of pre-trained model. The search order is path, followed by
@@ -253,8 +244,7 @@ def _get_file_paths(path: Path, **kwargs):
 
 
 def _check_ver(cls_, d: dict):
-    """
-    Check version of cls_ in current matgl against those noted in a model.json dict.
+    """Check version of cls_ in current matgl against those noted in a model.json dict.
 
     Args:
         cls_: Class object.
@@ -275,8 +265,7 @@ def _check_ver(cls_, d: dict):
 
 
 def get_available_pretrained_models() -> list[str]:
-    """
-    Checks Github for available pretrained_models for download. These can be used with load_model.
+    """Checks Github for available pretrained_models for download. These can be used with load_model.
 
     Returns:
         List of available models.

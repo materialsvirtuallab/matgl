@@ -1,6 +1,4 @@
-"""
-Cutoff functions for constructing M3GNet potentials.
-"""
+"""Cutoff functions for constructing M3GNet potentials."""
 
 from __future__ import annotations
 
@@ -10,8 +8,7 @@ import torch
 
 
 def polynomial_cutoff(r, cutoff: float):
-    """
-    Polynomial cutoff function
+    """Polynomial cutoff function
     Args:
         r (torch.tensor): radius distance tensor
         cutoff (float): cutoff distance.
@@ -24,8 +21,7 @@ def polynomial_cutoff(r, cutoff: float):
 
 
 def cosine_cutoff(r: torch.Tensor, cutoff: float) -> torch.Tensor:
-    """
-    Cosine cutoff function
+    """Cosine cutoff function
     Args:
         r (torch.tensor): radius distance tensor
         cutoff (float): cutoff distance.

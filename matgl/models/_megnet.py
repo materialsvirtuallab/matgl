@@ -1,5 +1,4 @@
-"""
-Implementation of MatErials Graph Network (MEGNet) model.
+"""Implementation of MatErials Graph Network (MEGNet) model.
 
 Graph networks are a new machine learning (ML) paradigm that supports both relational reasoning and combinatorial
 generalization. For more details on MEGNet, please refer to::
@@ -28,9 +27,7 @@ logger = logging.getLogger(__file__)
 
 
 class MEGNet(nn.Module, IOMixIn):
-    """
-    DGL implementation of MEGNet.
-    """
+    """DGL implementation of MEGNet."""
 
     __version__ = 1
 
@@ -57,8 +54,7 @@ class MEGNet(nn.Module, IOMixIn):
         gauss_width: float = 0.5,
         **kwargs,
     ):
-        """
-        Useful defaults for all arguments have been specified based on MEGNet formation energy model.
+        """Useful defaults for all arguments have been specified based on MEGNet formation energy model.
 
         Args:
             dim_node_embedding: Dimension of node embedding.
@@ -167,8 +163,7 @@ class MEGNet(nn.Module, IOMixIn):
         node_feat: torch.Tensor,
         state_feat: torch.Tensor,
     ):
-        """
-        Forward pass of MEGnet. Executes all blocks.
+        """Forward pass of MEGnet. Executes all blocks.
 
         Args:
             graph: Input graph
@@ -213,8 +208,7 @@ class MEGNet(nn.Module, IOMixIn):
         state_feats: torch.tensor | None = None,
         graph_converter: GraphConverter | None = None,
     ):
-        """
-        Convenience method to directly predict property from structure.
+        """Convenience method to directly predict property from structure.
 
         Args:
             structure: An input crystal/molecule.

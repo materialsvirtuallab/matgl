@@ -1,6 +1,4 @@
-"""
-Module implementing various data transformers for PyTorch.
-"""
+"""Module implementing various data transformers for PyTorch."""
 from __future__ import annotations
 
 import abc
@@ -9,14 +7,11 @@ import torch
 
 
 class Transformer(metaclass=abc.ABCMeta):
-    """
-    Abstract base class defining a data transformer.
-    """
+    """Abstract base class defining a data transformer."""
 
     @abc.abstractmethod
     def transform(self, data: torch.Tensor):
-        """
-        Transformation to be performed on data.
+        """Transformation to be performed on data.
 
         Args:
             data: Input data
@@ -28,8 +23,7 @@ class Transformer(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def inverse_transform(self, data: torch.Tensor):
-        """
-        Inverse transformation to be performed on data.
+        """Inverse transformation to be performed on data.
 
         Args:
             data: Input data
@@ -41,22 +35,18 @@ class Transformer(metaclass=abc.ABCMeta):
 
 
 class Normalizer(Transformer):
-    """
-    Performs a scaling of the data by centering to the mean and dividing by the standard deviation.
-    """
+    """Performs a scaling of the data by centering to the mean and dividing by the standard deviation."""
 
     def __init__(self, mean: float, std: float):
-        """
-        Args:
-            mean: Mean of the data
-            std: Standard deviation of the data.
+        """Args:
+        mean: Mean of the data
+        std: Standard deviation of the data.
         """
         self.mean = mean
         self.std = std
 
     def transform(self, data):
-        """
-        z-score the data by subtracting the mean and dividing by the standard deviation.
+        """z-score the data by subtracting the mean and dividing by the standard deviation.
 
         Args:
             data: Input data
@@ -67,8 +57,7 @@ class Normalizer(Transformer):
         return (data - self.mean) / self.std
 
     def inverse_transform(self, data):
-        """
-        Invert the scaling.
+        """Invert the scaling.
 
         Args:
             data: Scaled data
@@ -83,8 +72,7 @@ class Normalizer(Transformer):
 
     @classmethod
     def from_data(cls, data):
-        """
-        Create Normalizer from data.
+        """Create Normalizer from data.
 
         Args:
             data: Input data.
@@ -97,16 +85,10 @@ class Normalizer(Transformer):
 
 
 class LogTransformer(Transformer):
-    """
-    Performs a natural log of the data.
-    """
-
-    def __init__(self):
-        pass
+    """Performs a natural log of the data."""
 
     def transform(self, data):
-        """
-        Take the log of the data.
+        """Take the log of the data.
 
         Args:
             data: Input data
@@ -117,8 +99,7 @@ class LogTransformer(Transformer):
         return torch.log(data)
 
     def inverse_transform(self, data):
-        """
-        Invert the log (exp).
+        """Invert the log (exp).
 
         Args:
             data: Input data

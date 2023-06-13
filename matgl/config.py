@@ -107,9 +107,7 @@ PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/m
 
 
 def clear_cache():
-    """
-    Deletes all files in the matgl.cache. This is used to clean out downloaded models.
-    """
+    """Deletes all files in the matgl.cache. This is used to clean out downloaded models."""
     answer = ""
     while answer not in ("y", "n"):
         answer = input(f"Do you really want to delete everything in {MATGL_CACHE} (y|n)?").lower().strip()
