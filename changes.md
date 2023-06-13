@@ -6,6 +6,11 @@ nav_order: 2
 
 # Change Log
 
+## 0.5.4
+- M3GNet Formation energy model added, with example notebook.
+- M3GNet.predict_structure method added.
+- Massively improved documentation at http://matgl.ai.
+
 ## 0.5.3
 - Minor doc and code usability improvvements.
 
