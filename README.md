@@ -7,17 +7,7 @@
 
 # Materials Graph Library
 
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Status](#status)
-- [Architectures](#architectures)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Resources](#resources)
-- [References](#references)
-- [FAQs](#faqs)
-- [Acknowledgements](#acknowledgments)
+Official Documentation: [link][doc]
 
 ## Introduction
 
@@ -129,17 +119,17 @@ as a guiding documentation for developers wishing to train and contribute matgl 
 A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
 information. If you are using any of the pretrained models, please cite the relevant works below:
 
-> ### MEGNet
+> **MEGNet**
 >
 > Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
 > Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564–3572. DOI: [10.1021/acs.chemmater.9b01294][megnet].
 
-> ### Multi-fidelity MEGNet
+> **Multi-fidelity MEGNet**
 >
 > Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. _Learning Properties of Ordered and Disordered Materials from
 > Multi-Fidelity Data._ Nature Computational Science, 2021, 1, 46–53. DOI: [10.1038/s43588-020-00002-x][mfimegnet].
 
-> ### M3GNet
+> **M3GNet**
 >
 > Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
 > Computational Science, 2023, 2, 718–728. DOI: [10.1038/s43588-022-00349-3][m3gnet].

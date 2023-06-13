@@ -19,7 +19,7 @@ interatomic potentials. For more details on M3GNet, please refer to:
 ```default
 ```
 Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
-Computational Science, 2023, 2, 718–728. DOI: 10.1038/s43588-022-00349-3.
+Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
 ```
 ```
 

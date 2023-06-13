@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Changelog
+title: Change Log
 nav_order: 2
 ---
 

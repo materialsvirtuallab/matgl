@@ -92,9 +92,14 @@ def make_doc(ctx):
         ctx.run("rm -rf *.orig _site doctrees", warn=True)
 
         with open("index.md", "rt") as f:
-            index = f.read()
+            contents = f.read()
         with open("index.md", "wt") as f:
-            f.write("---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + index)
+            contents = contents.replace(
+                "\nOfficial Documentation: [link][doc]",
+                "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n")
+            contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents
+
+            f.write(contents)
 
 
 @task
