@@ -14,7 +14,6 @@ from matgl.utils.io import IOMixIn
 class Potential(nn.Module, IOMixIn):
     """A class representing an interatomic potential."""
 
-    # Model version number.
     __version__ = 1
 
     def __init__(
@@ -27,12 +26,18 @@ class Potential(nn.Module, IOMixIn):
         calc_stresses: bool = True,
         calc_hessian: bool = False,
     ):
-        """:param model: M3GNet model
-        :param element_refs: Element reference values for each element
-        :param calc_forces: Enable force calculations
-        :param calc_stresses: Enable stress calculations
-        :param calc_hessian: Enable hessian calculations
         """
+
+        Args:
+            model: M3GNet model
+            data_mean: Mean of target.
+            data_std: Std dev of target.
+            element_refs: Element reference values for each element
+            calc_forces: Enable force calculations
+            calc_stresses: Enable stress calculations
+            calc_hessian: Enable hessian calculations
+        """
+
         super().__init__()
         self.save_args(locals())
         self.model = model
