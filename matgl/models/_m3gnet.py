@@ -259,6 +259,18 @@ class M3GNet(nn.Module, IOMixIn):
     def predict_structure(
         self, structure, state_feats: torch.tensor | None = None, graph_converter: GraphConverter | None = None
     ):
+        """
+        Convenience method to directly predict property from structure.
+
+        Args:
+            structure: An input crystal/molecule.
+            state_feats (torch.tensor): Graph attributes
+            graph_converter: Object that implements a get_graph_from_structure.
+
+        Returns:
+            output (torch.tensor): output property
+        """
+
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
 
