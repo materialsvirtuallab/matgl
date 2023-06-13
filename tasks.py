@@ -26,7 +26,7 @@ def make_doc(ctx):
     with cd("docs_src"):
         ctx.run("touch index.md")
         ctx.run("rm matgl.*.rst", warn=True)
-        ctx.run("sphinx-apidoc --separate -P -M -d 6 -o . -f ../matgl")
+        ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
         ctx.run("rm matgl.*tests*.rst", warn=True)
         for f in glob.glob("*.rst"):
             if f.startswith("matgl") and f.endswith("rst"):
@@ -50,15 +50,17 @@ def make_doc(ctx):
 
                 with open(f, "w") as fid:
                     fid.write("".join(newoutput))
-    ctx.run("sphinx-build -b html docs_src docs")
+        ctx.run("rm ../docs/matgl*.html")
+        ctx.run("sphinx-build -b html . ../docs")
+        ctx.run("rm matgl*.rst")
 
     with cd("docs"):
-        for d in (".doctrees", "*tests*.html", "_sources", "static"):
+        for d in (".doctrees", "_sources", "static"):
             ctx.run(f"rm -r {d}", warn=True)
 
         ctx.run("mv _static static")
         ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
-        ctx.run("rm index.html index.markdown", warn=True)
+        ctx.run("rm index.html", warn=True)
         ctx.run("cp ../*.md .")
         ctx.run(f"mv README.md index.md")
         ctx.run("rm -rf *.orig _site doctrees", warn=True)

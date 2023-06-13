@@ -35,79 +35,576 @@
 <p>Implementation of various utility methods and classes.</p>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="matgl.utils.cutoff.html">matgl.utils.cutoff module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.cutoff.html#matgl.utils.cutoff.cosine_cutoff"><code class="docutils literal notranslate"><span class="pre">cosine_cutoff()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.cutoff.html#matgl.utils.cutoff.polynomial_cutoff"><code class="docutils literal notranslate"><span class="pre">polynomial_cutoff()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="matgl.utils.io.html">matgl.utils.io module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn"><code class="docutils literal notranslate"><span class="pre">IOMixIn</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn.load"><code class="docutils literal notranslate"><span class="pre">IOMixIn.load()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn.save"><code class="docutils literal notranslate"><span class="pre">IOMixIn.save()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.IOMixIn.save_args"><code class="docutils literal notranslate"><span class="pre">IOMixIn.save_args()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.RemoteFile"><code class="docutils literal notranslate"><span class="pre">RemoteFile</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.get_available_pretrained_models"><code class="docutils literal notranslate"><span class="pre">get_available_pretrained_models()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.io.html#matgl.utils.io.load_model"><code class="docutils literal notranslate"><span class="pre">load_model()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="matgl.utils.maths.html">matgl.utils.maths module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.CWD"><code class="docutils literal notranslate"><span class="pre">CWD</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.GaussianExpansion"><code class="docutils literal notranslate"><span class="pre">GaussianExpansion</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.GaussianExpansion.forward"><code class="docutils literal notranslate"><span class="pre">GaussianExpansion.forward()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.GaussianExpansion.reset_parameters"><code class="docutils literal notranslate"><span class="pre">GaussianExpansion.reset_parameters()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.GaussianExpansion.training"><code class="docutils literal notranslate"><span class="pre">GaussianExpansion.training</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.SphericalBesselFunction"><code class="docutils literal notranslate"><span class="pre">SphericalBesselFunction</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.SphericalBesselFunction.rbf_j0"><code class="docutils literal notranslate"><span class="pre">SphericalBesselFunction.rbf_j0()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.SphericalHarmonicsFunction"><code class="docutils literal notranslate"><span class="pre">SphericalHarmonicsFunction</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.broadcast"><code class="docutils literal notranslate"><span class="pre">broadcast()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.broadcast_states_to_atoms"><code class="docutils literal notranslate"><span class="pre">broadcast_states_to_atoms()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.broadcast_states_to_bonds"><code class="docutils literal notranslate"><span class="pre">broadcast_states_to_bonds()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.combine_sbf_shf"><code class="docutils literal notranslate"><span class="pre">combine_sbf_shf()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.get_range_indices_from_n"><code class="docutils literal notranslate"><span class="pre">get_range_indices_from_n()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.get_segment_indices_from_n"><code class="docutils literal notranslate"><span class="pre">get_segment_indices_from_n()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.repeat_with_n"><code class="docutils literal notranslate"><span class="pre">repeat_with_n()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.scatter_sum"><code class="docutils literal notranslate"><span class="pre">scatter_sum()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.spherical_bessel_roots"><code class="docutils literal notranslate"><span class="pre">spherical_bessel_roots()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.spherical_bessel_smooth"><code class="docutils literal notranslate"><span class="pre">spherical_bessel_smooth()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.maths.html#matgl.utils.maths.unsorted_segment_fraction"><code class="docutils literal notranslate"><span class="pre">unsorted_segment_fraction()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="matgl.utils.training.html">matgl.utils.training module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer"><code class="docutils literal notranslate"><span class="pre">ModelTrainer</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.forward"><code class="docutils literal notranslate"><span class="pre">ModelTrainer.forward()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.loss_fn"><code class="docutils literal notranslate"><span class="pre">ModelTrainer.loss_fn()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.ModelTrainer.step"><code class="docutils literal notranslate"><span class="pre">ModelTrainer.step()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.forward"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer.forward()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.loss_fn"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer.loss_fn()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.PotentialTrainer.step"><code class="docutils literal notranslate"><span class="pre">PotentialTrainer.step()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin"><code class="docutils literal notranslate"><span class="pre">TrainerMixin</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.configure_optimizers"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.configure_optimizers()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.on_test_model_eval"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.on_test_model_eval()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.on_train_epoch_end"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.on_train_epoch_end()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.predict_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.predict_step()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.test_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.test_step()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.training_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.training_step()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.TrainerMixin.validation_step"><code class="docutils literal notranslate"><span class="pre">TrainerMixin.validation_step()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="matgl.utils.training.html#matgl.utils.training.xavier_init"><code class="docutils literal notranslate"><span class="pre">xavier_init()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</div>
+</section>
+<section id="module-matgl.utils.cutoff">
+<span id="matgl-utils-cutoff-module"></span><h2>matgl.utils.cutoff module<a class="headerlink" href="#module-matgl.utils.cutoff" title="Permalink to this heading">¶</a></h2>
+<p>Cutoff functions for constructing M3GNet potentials.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.cutoff.cosine_cutoff">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.cutoff.</span></span><span class="sig-name descname"><span class="pre">cosine_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#matgl.utils.cutoff.cosine_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cosine cutoff function
+Args:</p>
+<blockquote>
+<div><p>r (torch.tensor): radius distance tensor
+cutoff (float): cutoff distance.</p>
+</div></blockquote>
+<p>Returns: cosine cutoff functions</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.cutoff.polynomial_cutoff">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.cutoff.</span></span><span class="sig-name descname"><span class="pre">polynomial_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.cutoff.polynomial_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polynomial cutoff function
+Args:</p>
+<blockquote>
+<div><p>r (torch.tensor): radius distance tensor
+cutoff (float): cutoff distance.</p>
+</div></blockquote>
+<p>Returns: polynomial cutoff functions</p>
+</dd></dl>
+
+</section>
+<section id="module-matgl.utils.io">
+<span id="matgl-utils-io-module"></span><h2>matgl.utils.io module<a class="headerlink" href="#module-matgl.utils.io" title="Permalink to this heading">¶</a></h2>
+<p>Provides utilities for managing models and data.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">IOMixIn</span></span><a class="headerlink" href="#matgl.utils.io.IOMixIn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Mixin class for model saving and loading. For proper usage, models should subclass nn.Module and IOMix and the
+<cite>save_args</cite> method should be called immediately after the <cite>super().__init__()</cite> call.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">super().__init__()</span>
+<span class="pre">self.save_args(locals(),</span> <span class="pre">kwargs)</span>
+<span class="pre">`</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.load">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.IOMixIn.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the model weights from a directory.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>path (str|path|dict): Path to saved model or name of pre-trained model. If it is a dict, it is assumed to</dt><dd><p>be of the form
+{</p>
+<blockquote>
+<div><p>“model.pt”: path to model.pt file,
+“state.pt”: path to state file,
+“model.json”: path to model.json file</p>
+</div></blockquote>
+<p>}
+Otherwise, the search order is path, followed by download from PRETRAINED_MODELS_BASE_URL
+(with caching).</p>
+</dd>
+<dt>kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you</dt><dd><p>want to update the model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Returns: model_object if include_json is false. (model_object, dict) if include_json is True.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">makedirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.IOMixIn.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save model to a directory. Three files will be saved.
+- path/model.pt, which contains the torch serialized model args.
+- path/state.pt, which contains the saved state_dict from the model.
+- path/model.json, a txt version of model.pt that is purely meant for ease of reference.</p>
+<dl>
+<dt>Args:</dt><dd><p>path: String or Path object to directory for model saving. Defaults to current working directory (“.”).
+metadata: Any additional metadata to be saved into the model.json file. For example, a good use would be</p>
+<blockquote>
+<div><p>a description of model purpose, the training set used, etc.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>makedirs: Whether to create the directory using os.makedirs(exist_ok=True). Note that if the directory</dt><dd><p>already exists, makedirs will not do anything.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.io.IOMixIn.save_args">
+<span class="sig-name descname"><span class="pre">save_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">locals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#matgl.utils.io.IOMixIn.save_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to save args into a private _init_args variable. This should be called after super in the __init__
+method, e.g., <cite>self.save_args(locals(), kwargs)</cite>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>locals: The result of locals().
+kwargs: kwargs passed to the class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.io.RemoteFile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">RemoteFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PosixPath('/Users/shyue/.cache/matgl')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.RemoteFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Handling of download of remote files to a local cache.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.io.get_available_pretrained_models">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">get_available_pretrained_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#matgl.utils.io.get_available_pretrained_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks Github for available pretrained_models for download. These can be used with load_model.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>List of available models.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.io.load_model">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.io.</span></span><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.io.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method to load a model from a directory or name.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>path (str|path): Path to saved model or name of pre-trained model. The search order is path, followed by</dt><dd><p>download from PRETRAINED_MODELS_BASE_URL (with caching).</p>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you</dt><dd><p>want to update the model.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>Returns: model_object if include_json is false. (model_object, dict) if include_json is True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-matgl.utils.maths">
+<span id="matgl-utils-maths-module"></span><h2>matgl.utils.maths module<a class="headerlink" href="#module-matgl.utils.maths" title="Permalink to this heading">¶</a></h2>
+<p>Implementations of math functions.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="matgl.utils.maths.CWD">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">CWD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/Users/shyue/repos/matgl/matgl/utils'</span></em><a class="headerlink" href="#matgl.utils.maths.CWD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precomputed Spherical Bessel function roots in a 2D array with dimension [128, 128]. The n-th (0-based index) root of
+order l Spherical Bessel function is the <cite>[l, n]</cite> entry.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.maths.GaussianExpansion">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">GaussianExpansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_centers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.GaussianExpansion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Gaussian Radial Expansion.
+The bond distance is expanded to a vector of shape [m],
+where m is the number of Gaussian basis centers.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.maths.GaussianExpansion.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bond_dists</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.GaussianExpansion.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand distances.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading">¶</a></h3>
+<dl class="simple">
+<dt>bond_dists :</dt><dd><p>Bond (edge) distances between two atoms (nodes)</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns:<a class="headerlink" href="#returns" title="Permalink to this heading">¶</a></h3>
+<p>A vector of expanded distance with shape [num_centers]</p>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.maths.GaussianExpansion.reset_parameters">
+<span class="sig-name descname"><span class="pre">reset_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.GaussianExpansion.reset_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reinitialize model parameters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="matgl.utils.maths.GaussianExpansion.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#matgl.utils.maths.GaussianExpansion.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.maths.SphericalBesselFunction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">SphericalBesselFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.SphericalBesselFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Calculate the spherical Bessel function based on sympy + pytorch implementations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.maths.SphericalBesselFunction.rbf_j0">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rbf_j0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.SphericalBesselFunction.rbf_j0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spherical Bessel function of order 0, ensuring the function value
+vanishes at cutoff.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>r: torch.tensor pytorch tensors
+cutoff: float, the cutoff radius
+max_n: int max number of basis</p>
+</dd>
+</dl>
+<p>Returns: basis function expansion using first spherical Bessel function</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.maths.SphericalHarmonicsFunction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">SphericalHarmonicsFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.SphericalHarmonicsFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Spherical Harmonics function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.broadcast">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">broadcast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.broadcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast input tensor along a given dimension to match the shape of the target tensor.
+Modified from torch_scatter library (<a class="reference external" href="https://github.com/rusty1s/pytorch_scatter">https://github.com/rusty1s/pytorch_scatter</a>).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>input_tensor: The tensor to broadcast.
+target_tensor: The tensor whose shape to match.
+dim: The dimension along which to broadcast.</p>
+</dd>
+<dt>Returns:</dt><dd><p>resulting input tensor after broadcasting</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.broadcast_states_to_atoms">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">broadcast_states_to_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.broadcast_states_to_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast state attributes of shape [Ns, Nstate] to
+bond attributes shape [Nb, Nstate].</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>g: DGL graph
+state_feat: state_feature</p>
+</dd>
+</dl>
+<p>Returns: broadcasted state attributes</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.broadcast_states_to_bonds">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">broadcast_states_to_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_feat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.broadcast_states_to_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast state attributes of shape [Ns, Nstate] to
+bond attributes shape [Nb, Nstate].</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>g: DGL graph
+state_feat: state_feature</p>
+</dd>
+</dl>
+<p>Returns: broadcasted state attributes</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.combine_sbf_shf">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">combine_sbf_shf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sbf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_phi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.combine_sbf_shf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the spherical Bessel function and the spherical Harmonics function.</p>
+<dl class="simple">
+<dt>For the spherical Bessel function, the column is ordered by</dt><dd><p>[n=[0, …, max_n-1], n=[0, …, max_n-1], …], max_l blocks,</p>
+</dd>
+<dt>For the spherical Harmonics function, the column is ordered by</dt><dd><p>[m=[0], m=[-1, 0, 1], m=[-2, -1, 0, 1, 2], …] max_l blocks, and each
+block has 2*l + 1
+if use_phi is False, then the columns become
+[m=[0], m=[0], …] max_l columns</p>
+</dd>
+<dt>Args:</dt><dd><p>sbf: torch.tensor spherical bessel function results
+shf: torch.tensor spherical harmonics function results
+max_n: int, max number of n
+max_l: int, max number of l
+use_phi: whether to use phi</p>
+</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.get_range_indices_from_n">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">get_range_indices_from_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.get_range_indices_from_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Give ns = [2, 3], return [0, 1, 0, 1, 2].</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>ns: torch.tensor, the number of atoms/bonds array</p>
+</dd>
+</dl>
+<p>Returns: range indices</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.get_segment_indices_from_n">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">get_segment_indices_from_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.get_segment_indices_from_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get segment indices from number array. For example if
+ns = [2, 3], then the function will return [0, 0, 1, 1, 1].</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>ns: torch.tensor, the number of atoms/bonds array</p>
+</dd>
+<dt>Returns:</dt><dd><p>object:</p>
+</dd>
+</dl>
+<p>Returns: segment indices tensor</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.repeat_with_n">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">repeat_with_n</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.repeat_with_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Repeat the first dimension according to n array.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>ns (torch.tensor): tensor
+n (torch.tensor): a list of replications</p>
+</dd>
+</dl>
+<p>Returns: repeated tensor</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.scatter_sum">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">scatter_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_segments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="headerlink" href="#matgl.utils.maths.scatter_sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatter sum operation along the specified dimension. Modified from the
+torch_scatter library (<a class="reference external" href="https://github.com/rusty1s/pytorch_scatter">https://github.com/rusty1s/pytorch_scatter</a>).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>input_tensor (torch.Tensor): The input tensor to be scattered.
+segment_ids (torch.Tensor): Segment ID for each element in the input tensor.
+num_segments (int): The number of segments.
+dim (int): The dimension along which the scatter sum operation is performed (default: -1).</p>
+</dd>
+<dt>Returns:</dt><dd><p>resulting tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.spherical_bessel_roots">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">spherical_bessel_roots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.spherical_bessel_roots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the spherical Bessel roots. The n-th root of the l-th
+spherical bessel function is the <cite>[l, n]</cite> entry of the return matrix.
+The calculation is based on the fact that the n-root for l-th
+spherical Bessel function <cite>j_l</cite>, i.e., <cite>z_{j, n}</cite> is in the range
+<cite>[z_{j-1,n}, z_{j-1, n+1}]</cite>. On the other hand we know precisely the
+roots for j0, i.e., sinc(x).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>max_l: max order of spherical bessel function
+max_n: max number of roots</p>
+</dd>
+</dl>
+<p>Returns: root matrix of size [max_l, max_n]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.spherical_bessel_smooth">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">spherical_bessel_smooth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.spherical_bessel_smooth" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an orthogonal basis with first
+and second derivative at the cutoff
+equals to zero. The function was derived from the order 0 spherical Bessel
+function, and was expanded by the different zero roots.</p>
+<dl class="simple">
+<dt>Ref:</dt><dd><p><a class="reference external" href="https://arxiv.org/pdf/1907.02374.pdf">https://arxiv.org/pdf/1907.02374.pdf</a></p>
+</dd>
+<dt>Args:</dt><dd><p>r: torch.tensor distance tensor
+cutoff: float, cutoff radius
+max_n: int, max number of basis, expanded by the zero roots</p>
+</dd>
+</dl>
+<p>Returns: expanded spherical harmonics with derivatives smooth at boundary</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.maths.unsorted_segment_fraction">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.maths.</span></span><span class="sig-name descname"><span class="pre">unsorted_segment_fraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_segments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.maths.unsorted_segment_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segment fraction
+Args:</p>
+<blockquote>
+<div><p>data (torch.tensor): original data
+segment_ids (torch.tensor): segment ids
+num_segments (torch.tensor): number of segments</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>data (torch.tensor): data after fraction.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-matgl.utils.training">
+<span id="matgl-utils-training-module"></span><h2>matgl.utils.training module<a class="headerlink" href="#module-matgl.utils.training" title="Permalink to this heading">¶</a></h2>
+<p>Utils for training MatGL models.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.training.ModelTrainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.training.</span></span><span class="sig-name descname"><span class="pre">ModelTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mse_loss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optimizer</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lr_scheduler</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.ModelTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matgl.utils.training.TrainerMixin" title="matgl.utils.training.TrainerMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainerMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code></p>
+<p>Trainer for MEGNet and M3GNet models.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.ModelTrainer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.DGLGraph</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.ModelTrainer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>g: dgl Graph
+l_g: Line graph
+state_attr: State attribute.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Model prediction.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.ModelTrainer.loss_fn">
+<span class="sig-name descname"><span class="pre">loss_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.ModelTrainer.loss_fn" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>loss: Loss function.
+labels: Labels to compute the loss.
+preds: Predictions.</p>
+</dd>
+<dt>Returns:</dt><dd><p>{“Total_Loss”: total_loss, “MAE”: mae, “RMSE”: rmse}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.ModelTrainer.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.ModelTrainer.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>batch: Batch of training data.</p>
+</dd>
+<dt>Returns:</dt><dd><p>results, batch_size</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.training.PotentialTrainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.training.</span></span><span class="sig-name descname"><span class="pre">PotentialTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_refs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.darray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_stress</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mse_loss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optimizer</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">lr_scheduler</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.PotentialTrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matgl.utils.training.TrainerMixin" title="matgl.utils.training.TrainerMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrainerMixin</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code></p>
+<p>Trainer for MatGL potentials.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.PotentialTrainer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.DGLGraph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dgl.DGLGraph</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.PotentialTrainer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>g: dgl Graph
+l_g: Line graph
+state_attr: State attr.</p>
+</dd>
+<dt>Returns:</dt><dd><p>energy, force, stress, h</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.PotentialTrainer.loss_fn">
+<span class="sig-name descname"><span class="pre">loss_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">nn.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.PotentialTrainer.loss_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute losses for EFS.</p>
+<dl>
+<dt>Args:</dt><dd><p>loss: Loss function.
+labels: Labels.
+preds: Predictions
+energy_weight: Weight for energy loss.
+force_weight: Weight for force loss.
+stress_weight: Weight for stress loss.
+num_atoms: Number of atoms.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>{</dt><dd><p>“Total_Loss”: total_loss,
+“Energy_MAE”: e_mae,
+“Force_MAE”: f_mae,
+“Stress_MAE”: s_mae,
+“Energy_RMSE”: e_rmse,
+“Force_RMSE”: f_rmse,
+“Stress_RMSE”: s_rmse,</p>
+</dd>
+</dl>
+<p>}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.PotentialTrainer.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.PotentialTrainer.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>batch: Batch of training data.</p>
+</dd>
+<dt>Returns:</dt><dd><p>results, batch_size</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">matgl.utils.training.</span></span><span class="sig-name descname"><span class="pre">TrainerMixin</span></span><a class="headerlink" href="#matgl.utils.training.TrainerMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Mix-in class implementing common functions for training.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.configure_optimizers">
+<span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.configure_optimizers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure optimizers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.on_test_model_eval">
+<span class="sig-name descname"><span class="pre">on_test_model_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.on_test_model_eval" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p><a href="#id3"><span class="problematic" id="id4">*</span></a>args: Pass-through
+<a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs: Pass-through.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.on_train_epoch_end">
+<span class="sig-name descname"><span class="pre">on_train_epoch_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.on_train_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Step scheduler every epoch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.predict_step">
+<span class="sig-name descname"><span class="pre">predict_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.predict_step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>batch: Data batch.
+batch_idx: Batch index.
+dataloader_idx: Data loader index.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Prediction</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.test_step">
+<span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.test_step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>batch: Data batch.
+batch_idx: Batch index.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.training_step">
+<span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.training_step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>batch: Data batch.
+batch_idx: Batch index.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Total loss.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="matgl.utils.training.TrainerMixin.validation_step">
+<span class="sig-name descname"><span class="pre">validation_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#matgl.utils.training.TrainerMixin.validation_step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Args:</dt><dd><p>batch: Data batch.
+batch_idx: Batch index.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="matgl.utils.training.xavier_init">
+<span class="sig-prename descclassname"><span class="pre">matgl.utils.training.</span></span><span class="sig-name descname"><span class="pre">xavier_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#matgl.utils.training.xavier_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Xavier initialization scheme for the model.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>model (nn.Module): The model to be Xavier-initialized.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
