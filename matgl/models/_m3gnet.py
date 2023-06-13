@@ -24,6 +24,7 @@ from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
 )
+from matgl.graph.converters import GraphConverter
 from matgl.layers import (
     MLP,
     BondExpansion,
@@ -254,3 +255,26 @@ class M3GNet(nn.Module, IOMixIn):
             g.ndata["atomic_properties"] = self.final_layer(g)
             output = dgl.readout_nodes(g, "atomic_properties", op="sum")
         return torch.squeeze(output)
+
+    def predict_structure(
+        self, structure, state_feats: torch.tensor | None = None, graph_converter: GraphConverter | None = None
+    ):
+        """
+        Convenience method to directly predict property from structure.
+
+        Args:
+            structure: An input crystal/molecule.
+            state_feats (torch.tensor): Graph attributes
+            graph_converter: Object that implements a get_graph_from_structure.
+
+        Returns:
+            output (torch.tensor): output property
+        """
+        if graph_converter is None:
+            from matgl.ext.pymatgen import Structure2Graph
+
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+        g, stare_feats_default = graph_converter.get_graph(structure)
+        if state_feats is None:
+            state_feats = torch.tensor(stare_feats_default)
+        return self(g=g, state_attr=state_feats).detach()
