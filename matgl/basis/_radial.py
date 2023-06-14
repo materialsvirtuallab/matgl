@@ -23,8 +23,7 @@ class GaussianExpansion(nn.Module):
         num_centers: int = 20,
         width: None | float = 0.5,
     ):
-        """Parameters
-        ----------
+        """Args:
         initial : float
                 Location of initial Gaussian basis center.
         final : float
@@ -32,7 +31,7 @@ class GaussianExpansion(nn.Module):
         number : int
                 Number of Gaussian Basis functions
         width : float
-                Width of Gaussian Basis functions
+                Width of Gaussian Basis functions.
         """
         super().__init__()
         self.centers = nn.Parameter(torch.linspace(initial, final, num_centers), requires_grad=False)  # type: ignore
@@ -48,14 +47,12 @@ class GaussianExpansion(nn.Module):
     def forward(self, bond_dists):
         """Expand distances.
 
-        Parameters
-        ----------
-        bond_dists :
-            Bond (edge) distances between two atoms (nodes)
+        Args:
+            bond_dists :
+                Bond (edge) distances between two atoms (nodes)
 
         Returns:
-        -------
-        A vector of expanded distance with shape [num_centers]
+            A vector of expanded distance with shape [num_centers]
         """
         diff = bond_dists[:, None] - self.centers[None, :]
         return torch.exp(-self.width * (diff**2))
