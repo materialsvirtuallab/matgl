@@ -61,46 +61,6 @@ def _block_repeat(array, block_size, repeats):
     return torch.index_select(array, 1, indices)
 
 
-def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
-    """Combine the spherical Bessel function and the spherical Harmonics function.
-
-    For the spherical Bessel function, the column is ordered by
-        [n=[0, ..., max_n-1], n=[0, ..., max_n-1], ...], max_l blocks,
-
-    For the spherical Harmonics function, the column is ordered by
-        [m=[0], m=[-1, 0, 1], m=[-2, -1, 0, 1, 2], ...] max_l blocks, and each
-        block has 2*l + 1
-        if use_phi is False, then the columns become
-        [m=[0], m=[0], ...] max_l columns
-
-    Args:
-        sbf: torch.tensor spherical bessel function results
-        shf: torch.tensor spherical harmonics function results
-        max_n: int, max number of n
-        max_l: int, max number of l
-        use_phi: whether to use phi
-    Returns:
-    """
-    if sbf.size()[0] == 0:
-        return sbf
-
-    if not use_phi:
-        repeats_sbf = torch.tensor([1] * max_l * max_n)
-        block_size = [1] * max_l
-    else:
-        # [1, 1, 1, ..., 1, 3, 3, 3, ..., 3, ...]
-        repeats_sbf = torch.tensor(np.repeat(2 * np.arange(max_l) + 1, repeats=max_n))
-        # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
-        block_size = 2 * np.arange(max_l) + 1  # type: ignore
-        # 2 * tf.range(max_l) + 1
-    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
-    expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
-    shape = max_n * max_l
-    if use_phi:
-        shape *= max_l
-    return torch.reshape(expanded_sbf * expanded_shf, [-1, shape])
-
-
 def _sinc(x):
     return torch.sin(x) / x
 

@@ -10,7 +10,6 @@ from matgl.utils.maths import (
     SPHERICAL_BESSEL_ROOTS,
     broadcast_states_to_atoms,
     broadcast_states_to_bonds,
-    combine_sbf_shf,
     get_range_indices_from_n,
     get_segment_indices_from_n,
     repeat_with_n,
@@ -18,6 +17,7 @@ from matgl.utils.maths import (
     spherical_bessel_smooth,
     unsorted_segment_fraction,
 )
+from matgl.layers._three_body import combine_sbf_shf
 from matgl.basis._radial import GaussianExpansion, SphericalBesselFunction
 from matgl.basis._spherical import SphericalHarmonicsFunction
 
