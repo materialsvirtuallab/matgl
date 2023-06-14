@@ -19,6 +19,8 @@
 # sys.path.insert(0, os.path.dirname("../.."))
 
 # -- Project information -----------------------------------------------------
+from __future__ import annotations
+
 project = "matgl"
 copyright = "2022, Materials Virtual Lab"
 author = "Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Shyue Ping Ong"
