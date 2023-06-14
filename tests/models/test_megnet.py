@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import unittest
 
 import torch as th
 from pymatgen.core.structure import Lattice, Structure
@@ -12,7 +11,7 @@ from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 
 
-class MEGNetTest(unittest.TestCase):
+class TestMEGNetTest:
     @classmethod
     def setUpClass(cls) -> None:
         s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
@@ -65,7 +64,3 @@ class MEGNetTest(unittest.TestCase):
         os.remove("model.pt")
         os.remove("model.json")
         os.remove("state.pt")
-
-
-if __name__ == "__main__":
-    unittest.main()

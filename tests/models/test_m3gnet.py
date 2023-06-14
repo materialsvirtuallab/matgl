@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import unittest
 
 import numpy as np
 import torch
@@ -11,7 +10,7 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.models import M3GNet
 
 
-class TestM3GNet(unittest.TestCase):
+class TestM3GNet:
     element_types = None
     g1 = None
     state1 = None
@@ -57,7 +56,3 @@ class TestM3GNet(unittest.TestCase):
         )
         output = model(g=self.g1)
         assert torch.numel(output) == 1
-
-
-if __name__ == "__main__":
-    unittest.main()
