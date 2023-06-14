@@ -7,7 +7,6 @@ import sympy
 import torch
 from torch import nn
 
-from matgl.basis._spherical import _conjugate, _y00
 from matgl.utils.maths import _get_lambda_func, SPHERICAL_BESSEL_ROOTS
 
 
@@ -180,3 +179,23 @@ class SphericalHarmonicsFunction:
         return torch.stack([func(costheta, phi) for func in self.funcs], axis=1)
         # results = results.type(dtype=DataType.torch_float)
         # return results
+
+
+def _y00(theta, phi):
+    r"""Spherical Harmonics with `l=m=0`.
+
+    ..math::
+        Y_0^0 = \frac{1}{2} \sqrt{\frac{1}{\pi}}
+
+    Args:
+        theta: torch.tensor, the azimuthal angle
+        phi: torch.tensor, the polar angle
+
+    Returns: `Y_0^0` results
+
+    """
+    return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
+
+
+def _conjugate(x):
+    return torch.conj(x)
