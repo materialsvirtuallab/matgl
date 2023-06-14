@@ -19,17 +19,59 @@ Bases: `Module`, [`IOMixIn`](matgl.utils.md#matgl.utils.io.IOMixIn)
 
 A class representing an interatomic potential.
 
+Initialize Potential from a model and elemental references.
+
+
+* **Parameters**
+
+    
+    * **model** – Model for predicting energies.
+
+
+    * **data_mean** – Mean of target.
+
+
+    * **data_std** – Std dev of target.
+
+
+    * **element_refs** – Element reference values for each element.
+
+
+    * **calc_forces** – Enable force calculations.
+
+
+    * **calc_stresses** – Enable stress calculations.
+
+
+    * **calc_hessian** – Enable hessian calculations.
+
+
 
 #### forward(g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None)
-Args:
 
-    g: DGL graph
-    state_attr: State attrs
-    l_g: Line graph.
+* **Parameters**
 
-Returns:
+    
+    * **g** – DGL graph
 
-    energies, forces, stresses, hessian: torch.tensor
+
+    * **state_attr** – State attrs
+
+
+    * **l_g** – Line graph.
+
+
+
+* **Returns**
+
+    torch.tensor
+
+
+
+* **Return type**
+
+    energies, forces, stresses, hessian
+
 
 
 #### training(_: boo_ )

@@ -108,7 +108,7 @@ class Atoms2Graph(GraphConverter):
 
 
 class M3GNetCalculator(Calculator):
-    """M3GNet calculator based on ase Calculator."""
+    """M3GNet calculator for ASE."""
 
     implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian"]
 
@@ -119,12 +119,15 @@ class M3GNetCalculator(Calculator):
         stress_weight: float = 1.0,
         **kwargs,
     ):
-        r"""Args:
-        potential (Potential): m3gnet.models.Potential
-        state_attr (tensor): State attribute
-        compute_stress (bool): whether to calculate the stress
-        stress_weight (float): the stress weight.
-        **kwargs: Kwargs pass through to super().__init__().
+        """
+        Init M3GNetCalculator with a Potential.
+
+        Args:
+            potential (Potential): m3gnet.models.Potential
+            state_attr (tensor): State attribute
+            compute_stress (bool): whether to calculate the stress
+            stress_weight (float): the stress weight.
+            **kwargs: Kwargs pass through to super().__init__().    **kwargs:
         """
         super().__init__(**kwargs)
         self.potential = potential
@@ -141,12 +144,15 @@ class M3GNetCalculator(Calculator):
         properties: list | None = None,
         system_changes: list | None = None,
     ):
-        """Args:
-        atoms (ase.Atoms): ase Atoms object
-        properties (list): list of properties to calculate
-        system_changes (list): monitor which properties of atoms were
-        changed for new calculation. If not, the previous calculation
-        results will be loaded.
+        """
+        Perform calculation for an input Atoms.
+
+        Args:
+            atoms (ase.Atoms): ase Atoms object
+            properties (list): list of properties to calculate
+            system_changes (list): monitor which properties of atoms were
+                changed for new calculation. If not, the previous calculation
+                results will be loaded.
         """
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
@@ -178,14 +184,15 @@ class Relaxer:
         relax_cell: bool = True,
         stress_weight: float = 0.01,
     ):
-        """Args:
-        potential (Potential): a M3GNet potential, a str path to a saved model or a short name for saved model
-        that comes with M3GNet distribution
-        state_attr (torch.tensor): State attr.
-        optimizer (str or ase Optimizer): the optimization algorithm.
-        Defaults to "FIRE"
-        relax_cell (bool): whether to relax the lattice cell
-        stress_weight (float): the stress weight for relaxation.
+        """
+        Args:
+            potential (Potential): a M3GNet potential, a str path to a saved model or a short name for saved model
+            that comes with M3GNet distribution
+            state_attr (torch.tensor): State attr.
+            optimizer (str or ase Optimizer): the optimization algorithm.
+            Defaults to "FIRE"
+            relax_cell (bool): whether to relax the lattice cell
+            stress_weight (float): the stress weight for relaxation.
         """
         if isinstance(optimizer, str):
             optimizer_obj = OPTIMIZERS.get(optimizer, None)
@@ -212,15 +219,18 @@ class Relaxer:
         verbose=False,
         **kwargs,
     ):
-        r"""Args:
-        atoms (Atoms): the atoms for relaxation
-        fmax (float): total force tolerance for relaxation convergence.
-        Here fmax is a sum of force and stress forces
-        steps (int): max number of steps for relaxation
-        traj_file (str): the trajectory file for saving
-        interval (int): the step interval for saving the trajectories
-        verbose (bool): Whether to have verbose output.
-        **kwargs: Kwargs pass-through to optimizer.
+        """
+        Relax an input Atoms.
+
+        Args:
+            atoms (Atoms): the atoms for relaxation
+            fmax (float): total force tolerance for relaxation convergence.
+            Here fmax is a sum of force and stress forces
+            steps (int): max number of steps for relaxation
+            traj_file (str): the trajectory file for saving
+            interval (int): the step interval for saving the trajectories
+            verbose (bool): Whether to have verbose output.
+            kwargs: Kwargs pass-through to optimizer.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = self.ase_adaptor.get_atoms(atoms)
@@ -251,8 +261,11 @@ class TrajectoryObserver:
     """
 
     def __init__(self, atoms: Atoms) -> None:
-        """Args:
-        atoms (Atoms): the structure to observe.
+        """
+        Init the Trajectory Observer from a Atoms.
+
+        Args:
+            atoms (Atoms): Structure to observe.
         """
         self.atoms = atoms
         self.energies: list[float] = []
@@ -275,7 +288,8 @@ class TrajectoryObserver:
         return energy
 
     def save(self, filename: str) -> None:
-        """Save the trajectory to file
+        """Save the trajectory to file.
+
         Args:
             filename (str): filename to save the trajectory.
         """
@@ -311,23 +325,26 @@ class MolecularDynamics:
         loginterval: int = 1,
         append_trajectory: bool = False,
     ):
-        """Args:
-        atoms (Atoms): atoms to run the MD
-        potential (Potential): potential for calculating the energy, force,
-        stress of the atoms
-        state_attr (torch.tensor): State attr.
-        ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
-        use with extra caution
-        temperature (float): temperature for MD simulation, in K
-        timestep (float): time step in fs
-        pressure (float): pressure in eV/A^3
-        taut (float): time constant for Berendsen temperature coupling
-        taup (float): time constant for pressure coupling
-        compressibility_au (float): compressibility of the material in A^3/eV
-        trajectory (str or Trajectory): Attach trajectory object
-        logfile (str): open this file for recording MD outputs
-        loginterval (int): write to log file every interval steps
-        append_trajectory (bool): Whether to append to prev trajectory.
+        """
+        Init the MD simulation.
+
+        Args:
+            atoms (Atoms): atoms to run the MD
+            potential (Potential): potential for calculating the energy, force,
+            stress of the atoms
+            state_attr (torch.tensor): State attr.
+            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
+            use with extra caution
+            temperature (float): temperature for MD simulation, in K
+            timestep (float): time step in fs
+            pressure (float): pressure in eV/A^3
+            taut (float): time constant for Berendsen temperature coupling
+            taup (float): time constant for pressure coupling
+            compressibility_au (float): compressibility of the material in A^3/eV
+            trajectory (str or Trajectory): Attach trajectory object
+            logfile (str): open this file for recording MD outputs
+            loginterval (int): write to log file every interval steps
+            append_trajectory (bool): Whether to append to prev trajectory.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
@@ -414,7 +431,8 @@ class MolecularDynamics:
         self.dyn.run(steps)
 
     def set_atoms(self, atoms: Atoms):
-        """Set new atoms to run MD
+        """Set new atoms to run MD.
+
         Args:
             atoms (Atoms): new atoms for running MD.
         """
