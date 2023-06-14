@@ -127,7 +127,7 @@ class M3GNetCalculator(Calculator):
             state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
             stress_weight (float): the stress weight.
-            **kwargs: Kwargs pass through to super().__init__().    **kwargs:
+            **kwargs: Kwargs pass through to super().__init__().
         """
         super().__init__(**kwargs)
         self.potential = potential

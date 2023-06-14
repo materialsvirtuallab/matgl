@@ -78,13 +78,7 @@ Init M3GNetCalculator with a Potential.
     * **stress_weight** (*float*) – the stress weight.
 
 
-    * **\*\*kwargs** – Kwargs pass through to super().__init__().    
-
-    ```
-    **
-    ```
-
-    kwargs:
+    * **\*\*kwargs** – Kwargs pass through to super().__init__().
 
 
 

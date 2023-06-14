@@ -21,7 +21,9 @@ class TrainerMixin:
     """Mix-in class implementing common functions for training."""
 
     def training_step(self, batch: tuple, batch_idx: int):
-        """Args:
+        """Training step.
+
+        Args:
             batch: Data batch.
             batch_idx: Batch index.
 
@@ -45,9 +47,11 @@ class TrainerMixin:
         sch.step()
 
     def validation_step(self, batch: tuple, batch_idx: int):
-        """Args:
-        batch: Data batch.
-        batch_idx: Batch index.
+        """Validation step.
+
+        Args:
+            batch: Data batch.
+            batch_idx: Batch index.
         """
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
@@ -59,9 +63,11 @@ class TrainerMixin:
         )
 
     def test_step(self, batch: tuple, batch_idx: int):
-        """Args:
-        batch: Data batch.
-        batch_idx: Batch index.
+        """Test step.
+
+        Args:
+            batch: Data batch.
+            batch_idx: Batch index.
         """
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
@@ -97,15 +103,21 @@ class TrainerMixin:
         ]
 
     def on_test_model_eval(self, *args, **kwargs):
-        r"""Args:
-        *args: Pass-through
-        **kwargs: Pass-through.
+        """
+        Executed on model testing.
+
+        Args:
+            *args: Pass-through
+            **kwargs: Pass-through.
         """
         super().on_test_model_eval(*args, **kwargs)
         torch.set_grad_enabled(True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
-        """Args:
+        """
+        Prediction step.
+
+        Args:
             batch: Data batch.
             batch_idx: Batch index.
             dataloader_idx: Data loader index.
@@ -230,21 +242,24 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
     ):
-        """Args:
-        model: Which type of the model for training
-        element_refs: element offset for PES
-        energy_weight: relative importance of energy
-        force_weight: relative importance of force
-        stress_weight: relative importance of stress
-        data_mean: average of training data
-        data_std: standard deviation of training data
-        calc_stress: whether stress calculation is required
-        loss: loss function used for training
-        optimizer: optimizer for training
-        scheduler: scheduler for training
-        lr: learning rate for training
-        decay_steps: number of steps for decaying learning rate
-        decay_alpha: parameter determines the minimum learning rate.
+        """
+        Init PotentialTrainer with key parameters.
+
+        Args:
+            model: Which type of the model for training
+            element_refs: element offset for PES
+            energy_weight: relative importance of energy
+            force_weight: relative importance of force
+            stress_weight: relative importance of stress
+            data_mean: average of training data
+            data_std: standard deviation of training data
+            calc_stress: whether stress calculation is required
+            loss: loss function used for training
+            optimizer: optimizer for training
+            scheduler: scheduler for training
+            lr: learning rate for training
+            decay_steps: number of steps for decaying learning rate
+            decay_alpha: parameter determines the minimum learning rate.
         """
         super().__init__()
 
@@ -332,7 +347,8 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
             stress_weight: Weight for stress loss.
             num_atoms: Number of atoms.
 
-        Returns:
+        Returns::
+
             {
                 "Total_Loss": total_loss,
                 "Energy_MAE": e_mae,
@@ -342,6 +358,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
                 "Force_RMSE": f_rmse,
                 "Stress_RMSE": s_rmse,
             }
+
         """
         e_target, f_target, s_target = labels
         pred_e, pred_f, pred_s = preds
