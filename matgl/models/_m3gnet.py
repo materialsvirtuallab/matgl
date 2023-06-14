@@ -4,10 +4,9 @@ The main improvement over MEGNet is the addition of many-body interactios terms,
 representation of local interactions for applications such as interatomic potentials. For more details on M3GNet,
 please refer to::
 
-```
-Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
-Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
-```
+    Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
+    Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
+
 """
 from __future__ import annotations
 
@@ -77,34 +76,35 @@ class M3GNet(nn.Module, IOMixIn):
         activation_type: str = "swish",
         **kwargs,
     ):
-        r"""Args:
-        element_types (tuple): list of elements appearing in the dataset
-        dim_node_embedding (int): number of embedded atomic features
-        dim_edge_embedding (int): number of edge features
-        dim_state_embedding (int): number of hidden neurons in state embedding
-        dim_state_feats (int): number of state features after linear layer
-        dim_state_types (int): number of state labels
-        max_n (int): number of radial basis expansion
-        max_l (int): number of angular expansion
-        nblocks (int): number of convolution blocks
-        rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
-        is_intensive (bool): whether the prediction is intensive
-        readout_type (str): the readout function type. choose from `set2set`,
-        `weighted_atom` and `reduce_atom`, default to `weighted_atom`
-        task_type (str): `classification` or `regression`, default to
-        `regression`
-        cutoff (float): cutoff radius of the graph
-        threebody_cutoff (float): cutoff radius for 3 body interaction
-        units (int): number of neurons in each MLP layer
-        ntargets (int): number of target properties
-        use_smooth (bool): whether using smooth Bessel functions
-        use_phi (bool): whether using phi angle
-        field (str): using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
-        niters_set2set (int): number of set2set iterations
-        nlayers_set2set (int): number of set2set layers
-        include_state (bool): whether to include states features
-        activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
-        **kwargs: For future flexibility. Not used at the moment.
+        r"""
+        Args:
+            element_types (tuple): list of elements appearing in the dataset
+            dim_node_embedding (int): number of embedded atomic features
+            dim_edge_embedding (int): number of edge features
+            dim_state_embedding (int): number of hidden neurons in state embedding
+            dim_state_feats (int): number of state features after linear layer
+            dim_state_types (int): number of state labels
+            max_n (int): number of radial basis expansion
+            max_l (int): number of angular expansion
+            nblocks (int): number of convolution blocks
+            rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
+            is_intensive (bool): whether the prediction is intensive
+            readout_type (str): the readout function type. choose from `set2set`,
+            `weighted_atom` and `reduce_atom`, default to `weighted_atom`
+            task_type (str): `classification` or `regression`, default to
+            `regression`
+            cutoff (float): cutoff radius of the graph
+            threebody_cutoff (float): cutoff radius for 3 body interaction
+            units (int): number of neurons in each MLP layer
+            ntargets (int): number of target properties
+            use_smooth (bool): whether using smooth Bessel functions
+            use_phi (bool): whether using phi angle
+            field (str): using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
+            niters_set2set (int): number of set2set iterations
+            nlayers_set2set (int): number of set2set layers
+            include_state (bool): whether to include states features
+            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
+            **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
 

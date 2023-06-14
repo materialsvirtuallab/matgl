@@ -7,7 +7,6 @@ from __future__ import annotations
 import glob
 import json
 import os
-import re
 
 import requests
 from invoke import task
@@ -38,12 +37,11 @@ def make_doc(ctx):
     with cd("docs"):
         ctx.run("rm matgl.*.rst", warn=True)
         ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
-        ctx.run("rm matgl.*tests*.rst", warn=True)
         # ctx.run("rm matgl*.html", warn=True)
         # ctx.run("sphinx-build -b html . ../docs")  # HTML building.
         ctx.run("sphinx-build -M markdown . .")
         ctx.run("rm *.rst", warn=True)
-        ctx.run("mv markdown/matgl*.md .")
+        ctx.run("cp markdown/matgl*.md .")
         for fn in glob.glob("matgl*.md"):
             with open(fn, "rt") as f:
                 lines = f.readlines()
@@ -67,15 +65,14 @@ def make_doc(ctx):
             with open(fn, "wt") as f:
                 f.write("\n".join(preamble) + "\n" + "".join(lines))
 
-        for d in (".doctrees", "markdown"):
-            ctx.run(f"rm -r {d}", warn=True)
+        ctx.run(f"rm -r markdown", warn=True)
 
         # ctx.run("mv _static static")
         # ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
         # ctx.run("rm index.html", warn=True)
         ctx.run("cp ../*.md .")
         ctx.run(f"mv README.md index.md")
-        ctx.run("rm -rf *.orig _site doctrees", warn=True)
+        ctx.run("rm -rf *.orig doctrees", warn=True)
 
         with open("index.md", "rt") as f:
             contents = f.read()

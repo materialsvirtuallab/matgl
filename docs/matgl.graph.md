@@ -16,17 +16,27 @@ Computing various graph based operations.
 ### matgl.graph.compute.compute_3body(g: DGLGraph)
 Calculate the three body indices from pair atom indices.
 
-Args:
 
-    g: DGL graph
+* **Parameters**
 
-Returns:
+    **g** – DGL graph
 
-    l_g: DGL graph containing three body information from graph
+
+
+* **Returns**
+
+    DGL graph containing three body information from graph
     triple_bond_indices (np.ndarray): bond indices that form three-body
     n_triple_ij (np.ndarray): number of three-body angles for each bond
     n_triple_i (np.ndarray): number of three-body angles each atom
     n_triple_s (np.ndarray): number of three-body angles for each structure
+
+
+
+* **Return type**
+
+    l_g
+
 
 
 ### matgl.graph.compute.compute_pair_vector_and_distance(g: DGLGraph)
@@ -55,14 +65,27 @@ triple_bond_lengths (torch.tensor):
 ### matgl.graph.compute.create_line_graph(g_batched: DGLGraph, threebody_cutoff: float)
 Calculate the three body indices from pair atom indices.
 
-Args:
 
-    g_batched: Batched DGL graph
-    threebody_cutoff (float): cutoff for three-body interactions
+* **Parameters**
 
-Returns:
+    
+    * **g_batched** – Batched DGL graph
 
-    l_g: DGL graph containing three body information from graph
+
+    * **threebody_cutoff** (*float*) – cutoff for three-body interactions
+
+
+
+* **Returns**
+
+    DGL graph containing three body information from graph
+
+
+
+* **Return type**
+
+    l_g
+
 
 ## matgl.graph.converters module
 
@@ -76,13 +99,17 @@ Abstract base class for converters from input crystals/molecules to graphs.
 
 
 #### _abstract_ get_graph(structure)
-Args:
 
-    structure: Input crystals or molecule.
+* **Parameters**
 
-Returns:
+    **structure** – Input crystals or molecule.
+
+
+
+* **Returns**
 
     DGLGraph object, state_attr
+
 
 ## matgl.graph.data module
 
@@ -94,16 +121,20 @@ Bases: `DGLDataset`
 
 Create a dataset including dgl graphs.
 
+Args:
+structures: Pymatgen strutcure
+energies: Target energies
+forces: Target forces
+stresses: Target stresses
+converter: dgl graph converter
+threebody_cutoff: cutoff for three body
+name: name of dataset
+graph_labels: state attributes.
+
 
 #### has_cache(filename: str = 'dgl_graph.bin')
 Check if the dgl_graph.bin exists or not
-Args:
-
-> 
-> * **filename**
-
->     Name of file storing dgl graphs
-
+:param : filename: Name of file storing dgl graphs
 
 Returns: True if file exists.
 
@@ -131,16 +162,22 @@ Bases: `DGLDataset`
 
 Create a dataset including dgl graphs.
 
+Args:
+structures: Pymatgen strutcure
+labels: property values
+label_name: label name
+converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
+initial: initial distance for Gaussian expansions
+final: final distance for Gaussian expansions
+num_centers: number of Gaussian functions
+width: width of Gaussian functions
+name: Name of dataset
+graph_labels: graph attributes either integers and floating point numbers.
+
 
 #### has_cache(filename: str = 'dgl_graph.bin')
 Check if the dgl_graph.bin exists or not
-Args:
-
-> 
-> * **filename**
-
->     Name of file storing dgl graphs
-
+:param : filename: Name of file storing dgl graphs
 
 Returns: True if file exists.
 
@@ -166,23 +203,51 @@ Args:
 ### matgl.graph.data.MGLDataLoader(train_data: dgl.data.utils.Subset, val_data: dgl.data.utils.Subset, collate_fn: Callable, batch_size: int, num_workers: int, use_ddp: bool = False, pin_memory: bool = False, test_data: dgl.data.utils.Subset | None = None, generator: torch.Generator | None = None)
 Dataloader for MEGNet training.
 
-Args:
 
-    train_data (dgl.data.utils.Subset): Training dataset.
-    val_data (dgl.data.utils.Subset): Validation dataset.
-    collate_fn (Callable): Collate function.
-    batch_size (int): Batch size.
-    num_workers (int): Number of workers.
-    use_ddp (bool, optional): Whether to use DDP. Defaults to False.
-    pin_memory (bool, optional): Whether to pin memory. Defaults to False.
-    test_data (dgl.data.utils.Subset | None, optional): Test dataset. Defaults to None.
-    generator (torch.Generator | None, optional): Random number generator. Defaults to None.
+* **Parameters**
 
-Returns:
+    
+    * **train_data** (*dgl.data.utils.Subset*) – Training dataset.
 
-    tuple[GraphDataLoader, …]: Train, validation and test data loaders. Test data
+
+    * **val_data** (*dgl.data.utils.Subset*) – Validation dataset.
+
+
+    * **collate_fn** (*Callable*) – Collate function.
+
+
+    * **batch_size** (*int*) – Batch size.
+
+
+    * **num_workers** (*int*) – Number of workers.
+
+
+    * **use_ddp** (*bool**, **optional*) – Whether to use DDP. Defaults to False.
+
+
+    * **pin_memory** (*bool**, **optional*) – Whether to pin memory. Defaults to False.
+
+
+    * **test_data** (*dgl.data.utils.Subset** | **None**, **optional*) – Test dataset. Defaults to None.
+
+
+    * **generator** (*torch.Generator** | **None**, **optional*) – Random number generator. Defaults to None.
+
+
+
+* **Returns**
+
+    Train, validation and test data loaders. Test data
 
         loader is None if test_data is None.
+
+
+
+
+* **Return type**
+
+    tuple[GraphDataLoader, …]
+
 
 
 ### matgl.graph.data.collate_fn(batch)

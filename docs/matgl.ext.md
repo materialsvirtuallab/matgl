@@ -18,18 +18,41 @@ Bases: [`GraphConverter`](matgl.graph.md#matgl.graph.converters.GraphConverter)
 
 Construct a DGL graph from ASE Atoms.
 
+Init Atoms2Graph from element types and cutoff radius.
+
+
+* **Parameters**
+
+    
+    * **element_types** – List of elements present in dataset for graph conversion. This ensures all graphs are
+    constructed with the same dimensionality of features.
+
+
+    * **cutoff** – Cutoff radius for graph representation
+
+
 
 #### get_graph(atoms: Atoms)
 Get a DGL graph from an input Atoms.
 
-Args:
 
-    atoms: Atoms object.
+* **Parameters**
 
-Returns:
+    **atoms** – Atoms object.
 
-    g: DGL graph
+
+
+* **Returns**
+
+    DGL graph
     state_attr: state features
+
+
+
+* **Return type**
+
+    g
+
 
 
 ### _class_ matgl.ext.ase.M3GNetCalculator(potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: tensor | None = None, stress_weight: float = 1.0, \*\*kwargs)
@@ -38,13 +61,74 @@ Bases: `Calculator`
 M3GNet calculator based on ase Calculator.
 
 
+* **Parameters**
+
+    
+    * **potential** ([*Potential*](matgl.apps.md#matgl.apps.pes.Potential)) – m3gnet.models.Potential
+
+
+    * **state_attr** (*tensor*) – State attribute
+
+
+    * **compute_stress** (*bool*) – whether to calculate the stress
+
+
+    * **stress_weight** (*float*) – the stress weight.
+
+
+    * **\*\*kwargs** – Kwargs pass through to super().__init__().
+
+
+Basic calculator implementation.
+
+restart: str
+
+    Prefix for restart file.  May contain a directory. Default
+    is None: don’t restart.
+
+ignore_bad_restart_file: bool
+
+    Deprecated, please do not use.
+    Passing more than one positional argument to Calculator()
+    is deprecated and will stop working in the future.
+    Ignore broken or missing restart file.  By default, it is an
+    error if the restart file is missing or broken.
+
+directory: str or PurePath
+
+    Working directory in which to read and write files and
+    perform calculations.
+
+label: str
+
+    Name used for all files.  Not supported by all calculators.
+    May contain a directory, but please use the directory parameter
+    for that instead.
+
+atoms: Atoms object
+
+    Optional Atoms object to which the calculator will be
+    attached.  When restarting, atoms will get its positions and
+    unit-cell updated from file.
+
+
 #### calculate(atoms: Atoms | None = None, properties: list | None = None, system_changes: list | None = None)
-Args:
-atoms (ase.Atoms): ase Atoms object
-properties (list): list of properties to calculate
-system_changes (list): monitor which properties of atoms were
-changed for new calculation. If not, the previous calculation
-results will be loaded.
+Perform calculation for an input Atoms.
+
+
+* **Parameters**
+
+    
+    * **atoms** (*ase.Atoms*) – ase Atoms object
+
+
+    * **properties** (*list*) – list of properties to calculate
+
+
+    * **system_changes** (*list*) – monitor which properties of atoms were
+    changed for new calculation. If not, the previous calculation
+    results will be loaded.
+
 
 
 #### implemented_properties(_: List[str_ _ = ['energy', 'free_energy', 'forces', 'stress', 'hessian'_ )
@@ -57,19 +141,76 @@ Bases: `object`
 Molecular dynamics class.
 
 
+* **Parameters**
+
+    
+    * **atoms** (*stress** of **the*) – atoms to run the MD
+
+
+    * **potential** ([*Potential*](matgl.apps.md#matgl.apps.pes.Potential)) – potential for calculating the energy, force,
+
+
+    * **atoms** – 
+
+
+    * **state_attr** (*torch.tensor*) – State attr.
+
+
+    * **ensemble** (*str*) – choose from ‘nvt’ or ‘npt’. NPT is not tested,
+
+
+    * **caution** (*use with extra*) – 
+
+
+    * **temperature** (*float*) – temperature for MD simulation, in K
+
+
+    * **timestep** (*float*) – time step in fs
+
+
+    * **pressure** (*float*) – pressure in eV/A^3
+
+
+    * **taut** (*float*) – time constant for Berendsen temperature coupling
+
+
+    * **taup** (*float*) – time constant for pressure coupling
+
+
+    * **compressibility_au** (*float*) – compressibility of the material in A^3/eV
+
+
+    * **trajectory** (*str** or **Trajectory*) – Attach trajectory object
+
+
+    * **logfile** (*str*) – open this file for recording MD outputs
+
+
+    * **loginterval** (*int*) – write to log file every interval steps
+
+
+    * **append_trajectory** (*bool*) – Whether to append to prev trajectory.
+
+
+
 #### run(steps: int)
 Thin wrapper of ase MD run.
 
-Args:
 
-    steps (int): number of MD steps
+* **Parameters**
+
+    **steps** (*int*) – number of MD steps
+
 
 
 #### set_atoms(atoms: Atoms)
-Set new atoms to run MD
-Args:
+Set new atoms to run MD.
 
-> atoms (Atoms): new atoms for running MD.
+
+* **Parameters**
+
+    **atoms** (*Atoms*) – new atoms for running MD.
+
 
 
 ### _class_ matgl.ext.ase.Relaxer(potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential) = None, state_attr: torch.tensor = None, optimizer: Optimizer | str = 'FIRE', relax_cell: bool = True, stress_weight: float = 0.01)
@@ -78,22 +219,61 @@ Bases: `object`
 Relaxer is a class for structural relaxation.
 
 
+* **Parameters**
+
+    
+    * **potential** ([*Potential*](matgl.apps.md#matgl.apps.pes.Potential)) – a M3GNet potential, a str path to a saved model or a short name for saved model
+
+
+    * **distribution** (*that comes with M3GNet*) – 
+
+
+    * **state_attr** (*torch.tensor*) – State attr.
+
+
+    * **optimizer** (*str** or **ase Optimizer*) – the optimization algorithm.
+
+
+    * **"FIRE"** (*Defaults to*) – 
+
+
+    * **relax_cell** (*bool*) – whether to relax the lattice cell
+
+
+    * **stress_weight** (*float*) – the stress weight for relaxation.
+
+
+
 #### relax(atoms: Atoms, fmax: float = 0.1, steps: int = 500, traj_file: str | None = None, interval=1, verbose=False, \*\*kwargs)
-Args:
-atoms (Atoms): the atoms for relaxation
-fmax (float): total force tolerance for relaxation convergence.
-Here fmax is a sum of force and stress forces
-steps (int): max number of steps for relaxation
-traj_file (str): the trajectory file for saving
-interval (int): the step interval for saving the trajectories
-verbose (bool): Whether to have verbose output.
+Relax an input Atoms.
 
 
-```
-**
-```
+* **Parameters**
 
-kwargs: Kwargs pass-through to optimizer.
+    
+    * **atoms** (*Atoms*) – the atoms for relaxation
+
+
+    * **fmax** (*float*) – total force tolerance for relaxation convergence.
+
+
+    * **forces** (*Here fmax is a sum** of **force and stress*) – 
+
+
+    * **steps** (*int*) – max number of steps for relaxation
+
+
+    * **traj_file** (*str*) – the trajectory file for saving
+
+
+    * **interval** (*int*) – the step interval for saving the trajectories
+
+
+    * **verbose** (*bool*) – Whether to have verbose output.
+
+
+    * **kwargs** – Kwargs pass-through to optimizer.
+
 
 
 ### _class_ matgl.ext.ase.TrajectoryObserver(atoms: Atoms)
@@ -103,15 +283,24 @@ Trajectory observer is a hook in the relaxation process that saves the
 intermediate structures.
 
 
+* **Parameters**
+
+    **atoms** (*Atoms*) – the structure to observe.
+
+
+
 #### compute_energy()
 Calculate the potential energy.
 
 
 #### save(filename: str)
-Save the trajectory to file
-Args:
+Save the trajectory to file.
 
-> filename (str): filename to save the trajectory.
+
+* **Parameters**
+
+    **filename** (*str*) – filename to save the trajectory.
+
 
 ## matgl.ext.pymatgen module
 
@@ -122,6 +311,16 @@ Interface with pymatgen objects.
 Bases: [`GraphConverter`](matgl.graph.md#matgl.graph.converters.GraphConverter)
 
 Construct a DGL graph from Pymatgen Molecules.
+
+
+* **Parameters**
+
+    
+    * **element_types** (*List** of **elements present in dataset for graph conversion. This ensures all graphs are*) – constructed with the same dimensionality of features.
+
+
+    * **cutoff** (*Cutoff radius for graph representation*) – 
+
 
 
 #### get_graph(mol: Molecule)
@@ -146,6 +345,16 @@ Bases: [`GraphConverter`](matgl.graph.md#matgl.graph.converters.GraphConverter)
 Construct a DGL graph from Pymatgen Structure.
 
 
+* **Parameters**
+
+    
+    * **element_types** (*List** of **elements present in dataset for graph conversion. This ensures all graphs are*) – constructed with the same dimensionality of features.
+
+
+    * **cutoff** (*Cutoff radius for graph representation*) – 
+
+
+
 #### get_graph(structure: Structure)
 Get a DGL graph from an input Structure.
 
@@ -166,10 +375,13 @@ Get a DGL graph from an input Structure.
 ### matgl.ext.pymatgen.get_element_list(train_structures: list[Structure | Molecule])
 Get the dictionary containing elements in the training set for atomic features.
 
-Args:
 
-    train_structures: pymatgen Molecule/Structure object
+* **Parameters**
 
-Returns:
+    **train_structures** – pymatgen Molecule/Structure object
+
+
+
+* **Returns**
 
     Tuple of elements covered in training set
