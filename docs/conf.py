@@ -10,12 +10,13 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.dirname(".."))
-sys.path.insert(0, os.path.dirname("../matgl"))
-sys.path.insert(0, os.path.dirname("../.."))
+# import os
+# import sys
+#
+# sys.path.insert(0, os.path.abspath("."))
+# sys.path.insert(0, os.path.dirname(".."))
+# sys.path.insert(0, os.path.dirname("../matgl"))
+# sys.path.insert(0, os.path.dirname("../.."))
 
 # -- Project information -----------------------------------------------------
 project = "matgl"
@@ -28,7 +29,8 @@ author = "Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Shyue Ping Ong"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "myst_parser", 'sphinx_markdown_builder']
+# Napoleon is necessary to parse Google style docstrings. Markdown builder allows the generation of markdown output.
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "myst_parser", "sphinx_markdown_builder"]
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 autoclass_content = "both"
@@ -53,4 +55,4 @@ html_static_path = ["_static"]
 
 myst_heading_anchors = 3
 
-autodoc_default_options = {'private-members': False}
+autodoc_default_options = {"private-members": False}

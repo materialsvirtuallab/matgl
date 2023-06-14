@@ -201,7 +201,7 @@ number
 
 width
 
-    Width of Gaussian Basis functions
+    Width of Gaussian Basis functions.
 
 
 #### forward(bond_dists)

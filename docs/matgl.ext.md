@@ -58,7 +58,9 @@ Get a DGL graph from an input Atoms.
 ### _class_ matgl.ext.ase.M3GNetCalculator(potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: tensor | None = None, stress_weight: float = 1.0, \*\*kwargs)
 Bases: `Calculator`
 
-M3GNet calculator based on ase Calculator.
+M3GNet calculator for ASE.
+
+Init M3GNetCalculator with a Potential.
 
 
 * **Parameters**
@@ -76,40 +78,14 @@ M3GNet calculator based on ase Calculator.
     * **stress_weight** (*float*) – the stress weight.
 
 
-    * **\*\*kwargs** – Kwargs pass through to super().__init__().
+    * **\*\*kwargs** – Kwargs pass through to super().__init__().    
 
+    ```
+    **
+    ```
 
-Basic calculator implementation.
+    kwargs:
 
-restart: str
-
-    Prefix for restart file.  May contain a directory. Default
-    is None: don’t restart.
-
-ignore_bad_restart_file: bool
-
-    Deprecated, please do not use.
-    Passing more than one positional argument to Calculator()
-    is deprecated and will stop working in the future.
-    Ignore broken or missing restart file.  By default, it is an
-    error if the restart file is missing or broken.
-
-directory: str or PurePath
-
-    Working directory in which to read and write files and
-    perform calculations.
-
-label: str
-
-    Name used for all files.  Not supported by all calculators.
-    May contain a directory, but please use the directory parameter
-    for that instead.
-
-atoms: Atoms object
-
-    Optional Atoms object to which the calculator will be
-    attached.  When restarting, atoms will get its positions and
-    unit-cell updated from file.
 
 
 #### calculate(atoms: Atoms | None = None, properties: list | None = None, system_changes: list | None = None)
@@ -139,6 +115,8 @@ Properties calculator can handle (energy, forces, …)
 Bases: `object`
 
 Molecular dynamics class.
+
+Init the MD simulation.
 
 
 * **Parameters**
@@ -282,10 +260,12 @@ Bases: `object`
 Trajectory observer is a hook in the relaxation process that saves the
 intermediate structures.
 
+Init the Trajectory Observer from a Atoms.
+
 
 * **Parameters**
 
-    **atoms** (*Atoms*) – the structure to observe.
+    **atoms** (*Atoms*) – Structure to observe.
 
 
 
