@@ -11,8 +11,7 @@ from matgl.utils.maths import (
     get_segment_indices_from_n,
     scatter_sum, _block_repeat,
 )
-from matgl.basis._radial import SphericalBesselFunction
-from matgl.basis._spherical import SphericalHarmonicsFunction
+from matgl.basis import SphericalBesselFunction, SphericalHarmonicsFunction
 
 
 class SphericalBesselWithHarmonics(nn.Module):
