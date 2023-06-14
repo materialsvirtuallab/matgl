@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unittest
-
 import numpy as np
 import torch
 from pymatgen.core import Lattice, Structure
@@ -11,7 +9,7 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.models._m3gnet import M3GNet
 
 
-class TestPotential(unittest.TestCase):
+class TestPotential:
     @classmethod
     def setUpClass(cls) -> None:
         s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0025, 0.0, 0.0], [0.5, 0.5, 0.5]])
@@ -58,7 +56,3 @@ class TestPotential(unittest.TestCase):
         assert [f.size(dim=0)] == [1]
         assert [s.size(dim=0)] == [1]
         assert [h.size(dim=0)] == [1]
-
-
-if __name__ == "__main__":
-    unittest.main()
