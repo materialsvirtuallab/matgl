@@ -106,9 +106,13 @@ os.makedirs(MATGL_CACHE, exist_ok=True)
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 
-def clear_cache():
-    """Deletes all files in the matgl.cache. This is used to clean out downloaded models."""
-    answer = ""
+def clear_cache(confirm: bool = True):
+    """Deletes all files in the matgl.cache. This is used to clean out downloaded models.
+
+    Args:
+        confirm: Whether to ask for confirmation. Default is True.
+    """
+    answer = "" if confirm else "y"
     while answer not in ("y", "n"):
         answer = input(f"Do you really want to delete everything in {MATGL_CACHE} (y|n)? ").lower().strip()
     if answer == "y":
