@@ -23,15 +23,12 @@ class GaussianExpansion(nn.Module):
         num_centers: int = 20,
         width: None | float = 0.5,
     ):
-        """Args:
-        initial : float
-                Location of initial Gaussian basis center.
-        final : float
-                Location of final Gaussian basis center
-        number : int
-                Number of Gaussian Basis functions
-        width : float
-                Width of Gaussian Basis functions.
+        """
+        Args:
+            initial: Location of initial Gaussian basis center.
+            final: Location of final Gaussian basis center
+            num_centers: Number of Gaussian Basis functions
+            width: Width of Gaussian Basis functions.
         """
         super().__init__()
         self.centers = nn.Parameter(torch.linspace(initial, final, num_centers), requires_grad=False)  # type: ignore
