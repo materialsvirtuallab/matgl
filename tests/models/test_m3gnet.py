@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import unittest
 
 import numpy as np
 import torch
@@ -11,21 +10,15 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.models import M3GNet
 
 
-class TestM3GNet(unittest.TestCase):
-    element_types = None
-    g1 = None
-    state1 = None
+class TestM3GNet:
+    s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+    s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
-
-        cls.element_types = get_element_list([s])
-        p2g = Structure2Graph(element_types=cls.element_types, cutoff=5.0)
-        graph, state = p2g.get_graph(s)
-        cls.g1 = graph
-        cls.state1 = state
+    element_types = get_element_list([s])
+    p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
+    graph, state = p2g.get_graph(s)
+    g1 = graph
+    state1 = state
 
     def test_model(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
@@ -57,7 +50,3 @@ class TestM3GNet(unittest.TestCase):
         )
         output = model(g=self.g1)
         assert torch.numel(output) == 1
-
-
-if __name__ == "__main__":
-    unittest.main()

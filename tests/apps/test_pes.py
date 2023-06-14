@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unittest
-
 import numpy as np
 import torch
 from pymatgen.core import Lattice, Structure
@@ -11,17 +9,15 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.models._m3gnet import M3GNet
 
 
-class TestPotential(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0025, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
+class TestPotential:
+    s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0025, 0.0, 0.0], [0.5, 0.5, 0.5]])
+    s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
 
-        cls.element_types = get_element_list([s])
-        p2g = Structure2Graph(element_types=cls.element_types, cutoff=5.0)
-        graph, state = p2g.get_graph(s)
-        cls.g1 = graph
-        cls.state1 = state
+    element_types = get_element_list([s])
+    p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
+    graph, state = p2g.get_graph(s)
+    g1 = graph
+    state1 = state
 
     def test_potential_efsh(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
@@ -58,7 +54,3 @@ class TestPotential(unittest.TestCase):
         assert [f.size(dim=0)] == [1]
         assert [s.size(dim=0)] == [1]
         assert [h.size(dim=0)] == [1]
-
-
-if __name__ == "__main__":
-    unittest.main()

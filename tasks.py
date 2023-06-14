@@ -43,9 +43,9 @@ def make_doc(ctx):
         ctx.run("rm *.rst", warn=True)
         ctx.run("cp markdown/matgl*.md .")
         for fn in glob.glob("matgl*.md"):
-            with open(fn, "rt") as f:
+            with open(fn) as f:
                 lines = f.readlines()
-            lines = [l for l in lines if "Submodules" not in l]
+            lines = [line for line in lines if "Submodules" not in line]
             if fn == "matgl.md":
                 preamble = [
                     "---",
@@ -62,21 +62,21 @@ def make_doc(ctx):
                     "nav_exclude: true",
                     "---"
                 ]
-            with open(fn, "wt") as f:
+            with open(fn, "w") as f:
                 f.write("\n".join(preamble) + "\n" + "".join(lines))
 
-        ctx.run(f"rm -r markdown", warn=True)
+        ctx.run("rm -r markdown", warn=True)
 
         # ctx.run("mv _static static")
         # ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
         # ctx.run("rm index.html", warn=True)
         ctx.run("cp ../*.md .")
-        ctx.run(f"mv README.md index.md")
+        ctx.run("mv README.md index.md")
         ctx.run("rm -rf *.orig doctrees", warn=True)
 
-        with open("index.md", "rt") as f:
+        with open("index.md") as f:
             contents = f.read()
-        with open("index.md", "wt") as f:
+        with open("index.md", "w") as f:
             contents = contents.replace(
                 "\nOfficial Documentation: [link][doc]",
                 "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n")
@@ -121,7 +121,7 @@ def release(ctx, notest=False):
 
 @task
 def get_changelog(ctx):
-    with open("changes.md", "rt") as f:
+    with open("changes.md") as f:
         contents = f.read()
         i = contents.find(f"{NEW_VER}")
         contents = contents[i+len(NEW_VER):]

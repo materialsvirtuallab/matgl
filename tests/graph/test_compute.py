@@ -35,9 +35,8 @@ def _calculate_cos_loop(graph, threebody_cutoff=4.0):
     Calculate the cosine theta of triplets using loops
     Args:
         graph: List
-    Returns: a list of cosine theta values
+    Returns: a list of cosine theta values.
     """
-
     _, _, n_sites = torch.unique(graph.edges()[0], return_inverse=True, return_counts=True)
     start_index = 0
     cos = []
