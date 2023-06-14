@@ -1,4 +1,3 @@
 """Implementations of math basis functions."""
 
-from ._radial import GaussianExpansion, SphericalBesselFunction
-from ._spherical import SphericalHarmonicsFunction
+from ..layers._basis import GaussianExpansion, SphericalBesselFunction, SphericalHarmonicsFunction

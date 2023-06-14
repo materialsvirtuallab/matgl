@@ -18,8 +18,7 @@ from matgl.utils.maths import (
     unsorted_segment_fraction,
 )
 from matgl.layers._three_body import combine_sbf_shf
-from matgl.basis._radial import GaussianExpansion, SphericalBesselFunction
-from matgl.basis._spherical import SphericalHarmonicsFunction
+from matgl.layers._basis import GaussianExpansion, SphericalBesselFunction, SphericalHarmonicsFunction
 
 
 class TestMath(unittest.TestCase):
