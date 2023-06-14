@@ -43,7 +43,7 @@ class GaussianExpansion(nn.Module):
         number : int
                 Number of Gaussian Basis functions
         width : float
-                Width of Gaussian Basis functions
+                Width of Gaussian Basis functions.
         """
         super().__init__()
         self.centers = nn.Parameter(torch.linspace(initial, final, num_centers), requires_grad=False)  # type: ignore

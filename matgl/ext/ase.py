@@ -108,15 +108,7 @@ class Atoms2Graph(GraphConverter):
 
 
 class M3GNetCalculator(Calculator):
-    """M3GNet calculator based on ase Calculator.
-
-    Args:
-        potential (Potential): m3gnet.models.Potential
-        state_attr (tensor): State attribute
-        compute_stress (bool): whether to calculate the stress
-        stress_weight (float): the stress weight.
-        **kwargs: Kwargs pass through to super().__init__().
-    """
+    """M3GNet calculator for ASE."""
 
     implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian"]
 
@@ -127,6 +119,16 @@ class M3GNetCalculator(Calculator):
         stress_weight: float = 1.0,
         **kwargs,
     ):
+        """
+        Init M3GNetCalculator with a Potential.
+
+        Args:
+            potential (Potential): m3gnet.models.Potential
+            state_attr (tensor): State attribute
+            compute_stress (bool): whether to calculate the stress
+            stress_weight (float): the stress weight.
+            **kwargs: Kwargs pass through to super().__init__().    **kwargs:
+        """
         super().__init__(**kwargs)
         self.potential = potential
         self.compute_stress = potential.calc_stresses
@@ -172,17 +174,7 @@ class M3GNetCalculator(Calculator):
 
 
 class Relaxer:
-    """Relaxer is a class for structural relaxation.
-
-    Args:
-        potential (Potential): a M3GNet potential, a str path to a saved model or a short name for saved model
-        that comes with M3GNet distribution
-        state_attr (torch.tensor): State attr.
-        optimizer (str or ase Optimizer): the optimization algorithm.
-        Defaults to "FIRE"
-        relax_cell (bool): whether to relax the lattice cell
-        stress_weight (float): the stress weight for relaxation.
-    """
+    """Relaxer is a class for structural relaxation."""
 
     def __init__(
         self,
@@ -192,6 +184,16 @@ class Relaxer:
         relax_cell: bool = True,
         stress_weight: float = 0.01,
     ):
+        """
+        Args:
+            potential (Potential): a M3GNet potential, a str path to a saved model or a short name for saved model
+            that comes with M3GNet distribution
+            state_attr (torch.tensor): State attr.
+            optimizer (str or ase Optimizer): the optimization algorithm.
+            Defaults to "FIRE"
+            relax_cell (bool): whether to relax the lattice cell
+            stress_weight (float): the stress weight for relaxation.
+        """
         if isinstance(optimizer, str):
             optimizer_obj = OPTIMIZERS.get(optimizer, None)
         elif optimizer is None:
@@ -256,12 +258,15 @@ class Relaxer:
 class TrajectoryObserver:
     """Trajectory observer is a hook in the relaxation process that saves the
     intermediate structures.
-
-    Args:
-        atoms (Atoms): the structure to observe.
     """
 
     def __init__(self, atoms: Atoms) -> None:
+        """
+        Init the Trajectory Observer from a Atoms.
+
+        Args:
+            atoms (Atoms): Structure to observe.
+        """
         self.atoms = atoms
         self.energies: list[float] = []
         self.forces: list[np.ndarray] = []
@@ -301,26 +306,7 @@ class TrajectoryObserver:
 
 
 class MolecularDynamics:
-    """Molecular dynamics class.
-
-    Args:
-        atoms (Atoms): atoms to run the MD
-        potential (Potential): potential for calculating the energy, force,
-        stress of the atoms
-        state_attr (torch.tensor): State attr.
-        ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
-        use with extra caution
-        temperature (float): temperature for MD simulation, in K
-        timestep (float): time step in fs
-        pressure (float): pressure in eV/A^3
-        taut (float): time constant for Berendsen temperature coupling
-        taup (float): time constant for pressure coupling
-        compressibility_au (float): compressibility of the material in A^3/eV
-        trajectory (str or Trajectory): Attach trajectory object
-        logfile (str): open this file for recording MD outputs
-        loginterval (int): write to log file every interval steps
-        append_trajectory (bool): Whether to append to prev trajectory.
-    """
+    """Molecular dynamics class."""
 
     def __init__(
         self,
@@ -339,6 +325,27 @@ class MolecularDynamics:
         loginterval: int = 1,
         append_trajectory: bool = False,
     ):
+        """
+        Init the MD simulation.
+
+        Args:
+            atoms (Atoms): atoms to run the MD
+            potential (Potential): potential for calculating the energy, force,
+            stress of the atoms
+            state_attr (torch.tensor): State attr.
+            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
+            use with extra caution
+            temperature (float): temperature for MD simulation, in K
+            timestep (float): time step in fs
+            pressure (float): pressure in eV/A^3
+            taut (float): time constant for Berendsen temperature coupling
+            taup (float): time constant for pressure coupling
+            compressibility_au (float): compressibility of the material in A^3/eV
+            trajectory (str or Trajectory): Attach trajectory object
+            logfile (str): open this file for recording MD outputs
+            loginterval (int): write to log file every interval steps
+            append_trajectory (bool): Whether to append to prev trajectory.
+        """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
