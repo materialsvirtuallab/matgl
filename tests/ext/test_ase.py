@@ -11,9 +11,9 @@ from matgl.models import M3GNet
 
 class TestAseInterface:
     s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-    cls.element_types = get_element_list([s])  # type: ignore
+    element_types = get_element_list([s])  # type: ignore
     adaptor = AseAtomsAdaptor()
-    cls.s_ase = adaptor.get_atoms(s)  # type: ignore
+    s_ase = adaptor.get_atoms(s)  # type: ignore
 
     def test_M3GNetCalculator(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
