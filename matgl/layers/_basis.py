@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from math import sqrt, pi
+from math import pi, sqrt
 
 import sympy
 import torch
 from torch import nn
 
-from matgl.utils.maths import _get_lambda_func, SPHERICAL_BESSEL_ROOTS
+from matgl.utils.maths import SPHERICAL_BESSEL_ROOTS, _get_lambda_func
 
 
 class GaussianExpansion(nn.Module):
