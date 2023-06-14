@@ -10,16 +10,14 @@ from matgl.models._m3gnet import M3GNet
 
 
 class TestPotential:
-    @classmethod
-    def setUpClass(cls) -> None:
-        s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0025, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
+    s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0025, 0.0, 0.0], [0.5, 0.5, 0.5]])
+    s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
 
-        cls.element_types = get_element_list([s])
-        p2g = Structure2Graph(element_types=cls.element_types, cutoff=5.0)
-        graph, state = p2g.get_graph(s)
-        cls.g1 = graph
-        cls.state1 = state
+    element_types = get_element_list([s])
+    p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
+    graph, state = p2g.get_graph(s)
+    g1 = graph
+    state1 = state
 
     def test_potential_efsh(self):
         model = M3GNet(element_types=self.element_types, is_intensive=False)
