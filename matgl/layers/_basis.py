@@ -82,7 +82,6 @@ class SphericalBesselFunction:
         symbolic formula.
 
         Returns: list of symbolic functions
-
         """
         x = sympy.symbols("x")
         funcs = [sympy.expand_func(sympy.functions.special.bessel.jn(i, x)) for i in range(self.max_l + 1)]
@@ -96,9 +95,7 @@ class SphericalBesselFunction:
         """Args:
             r: torch.Tensor, distance tensor, 1D.
 
-
         Returns: [n, max_n * max_l] spherical Bessel function results
-
         """
         if self.smooth:
             return self._call_smooth_sbf(r)
@@ -141,15 +138,21 @@ class SphericalBesselFunction:
 class FourierExpansion(nn.Module):
     """Fourier Expansion of a (periodic) scalar feature."""
 
-    def __init__(self, order: int = 5, interval: float | None = None, scale_factor: float = 1.0, learnable: bool = False):
+    def __init__(
+            self,
+            order: int = 5,
+            interval: float | None = None,
+            scale_factor: float = 1.0,
+            learnable: bool = False
+    ):
         """Args:
-            order (int): the maximum frequency of the Fourier expansion.
-                Default = 5
-            interval (float): the interval of the Fourier expansion.
-                The lower limit is implicitly 0. Default is pi
-            scale_factor (float): pre-factor to scale all values.
-            learnable (bool): whether to set the frequencies as learnable parameters
-                Default = False
+        order (int): the maximum frequency of the Fourier expansion.
+        Default = 5
+        interval (float): the interval of the Fourier expansion.
+        The lower limit is implicitly 0. Default is pi
+        scale_factor (float): pre-factor to scale all values.
+        learnable (bool): whether to set the frequencies as learnable parameters
+        Default = False.
         """
         super().__init__()
         self.order = order
@@ -227,7 +230,6 @@ def _y00(theta, phi):
         phi: torch.Tensor, the polar angle
 
     Returns: `Y_0^0` results
-
     """
     return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
