@@ -8,8 +8,6 @@ import torch
 
 from matgl.utils.maths import (
     SPHERICAL_BESSEL_ROOTS,
-    GaussianExpansion,
-    SphericalBesselFunction,
     broadcast_states_to_atoms,
     broadcast_states_to_bonds,
     combine_sbf_shf,
@@ -20,6 +18,7 @@ from matgl.utils.maths import (
     spherical_bessel_smooth,
     unsorted_segment_fraction,
 )
+from matgl.basis._radial import GaussianExpansion, SphericalBesselFunction
 from matgl.basis._spherical import SphericalHarmonicsFunction
 
 

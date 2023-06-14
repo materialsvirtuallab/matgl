@@ -5,10 +5,7 @@ import unittest
 import numpy as np
 import torch
 
-from matgl.utils.maths import (
-    GaussianExpansion,
-    SphericalBesselFunction,
-)
+from matgl.basis._radial import GaussianExpansion, SphericalBesselFunction
 from matgl.basis._spherical import SphericalHarmonicsFunction
 
 
