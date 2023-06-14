@@ -8,11 +8,11 @@ from torch import nn
 
 from matgl.utils.maths import (
     SphericalBesselFunction,
-    SphericalHarmonicsFunction,
     combine_sbf_shf,
     get_segment_indices_from_n,
     scatter_sum,
 )
+from matgl.basis._spherical import SphericalHarmonicsFunction
 
 
 class SphericalBesselWithHarmonics(nn.Module):

@@ -8,8 +8,8 @@ import torch
 from matgl.utils.maths import (
     GaussianExpansion,
     SphericalBesselFunction,
-    SphericalHarmonicsFunction,
 )
+from matgl.basis._spherical import SphericalHarmonicsFunction
 
 
 class TestGaussianAndSphericalBesselFuction(unittest.TestCase):
