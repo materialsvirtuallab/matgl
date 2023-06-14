@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from math import pi, sqrt
+from math import pi
 
 import numpy as np
 import sympy
@@ -59,51 +59,6 @@ def _block_repeat(array, block_size, repeats):
         start += b
     indices = torch.cat(indices, axis=0)
     return torch.index_select(array, 1, indices)
-
-
-def _sinc(x):
-    return torch.sin(x) / x
-
-
-def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
-    """This is an orthogonal basis with first
-    and second derivative at the cutoff
-    equals to zero. The function was derived from the order 0 spherical Bessel
-    function, and was expanded by the different zero roots.
-
-    Ref:
-        https://arxiv.org/pdf/1907.02374.pdf
-
-    Args:
-        r: torch.tensor distance tensor
-        cutoff: float, cutoff radius
-        max_n: int, max number of basis, expanded by the zero roots
-
-    Returns: expanded spherical harmonics with derivatives smooth at boundary
-
-    """
-    n = torch.arange(max_n).type(dtype=torch.float32)[None, :]
-    r = r[:, None]
-    fnr = (
-        (-1) ** n
-        * sqrt(2.0)
-        * pi
-        / cutoff**1.5
-        * (n + 1)
-        * (n + 2)
-        / torch.sqrt(2 * n**2 + 6 * n + 5)
-        * (_sinc(r * (n + 1) * pi / cutoff) + _sinc(r * (n + 2) * pi / cutoff))
-    )
-    en = n**2 * (n + 2) ** 2 / (4 * (n + 1) ** 4 + 1)
-    dn = [torch.tensor(1.0)]
-    for i in range(1, max_n):
-        dn.append(1 - en[0, i] / dn[-1])
-    dn = torch.stack(dn)  # type: ignore
-    gn = [fnr[:, 0]]
-    for i in range(1, max_n):
-        gn.append(1 / torch.sqrt(dn[i]) * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1]))
-
-    return torch.t(torch.stack(gn))
 
 
 @lru_cache(maxsize=128)

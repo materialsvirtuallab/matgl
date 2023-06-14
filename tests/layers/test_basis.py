@@ -5,9 +5,9 @@ import unittest
 import numpy as np
 import torch
 
-from matgl.layers._basis import GaussianExpansion, SphericalBesselFunction, SphericalHarmonicsFunction
+from matgl.layers._basis import GaussianExpansion, SphericalBesselFunction, SphericalHarmonicsFunction, \
+    spherical_bessel_smooth
 from matgl.layers._three_body import combine_sbf_shf
-from matgl.utils.maths import spherical_bessel_smooth
 
 
 class TestGaussianAndSphericalBesselFuction(unittest.TestCase):
