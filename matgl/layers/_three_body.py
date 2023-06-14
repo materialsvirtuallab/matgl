@@ -77,7 +77,7 @@ class ThreeBodyInteractions(nn.Module):
         edge_feat: torch.tensor,
     ):
         """
-        Forward function for ThreeBodyInteractions
+        Forward function for ThreeBodyInteractions.
 
         Args:
             graph: dgl graph
