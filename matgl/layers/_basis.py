@@ -138,6 +138,43 @@ class SphericalBesselFunction:
         return sqrt(2.0 / cutoff) * torch.sin(n * pi / cutoff * r) / r
 
 
+class FourierExpansion(nn.Module):
+    """Fourier Expansion of a (periodic) scalar feature."""
+
+    def __init__(self, order: int = 5, interval: float | None = None, scale_factor: float = 1.0, learnable: bool = False):
+        """Args:
+            order (int): the maximum frequency of the Fourier expansion.
+                Default = 5
+            interval (float): the interval of the Fourier expansion.
+                The lower limit is implicitly 0. Default is pi
+            scale_factor (float): pre-factor to scale all values.
+            learnable (bool): whether to set the frequencies as learnable parameters
+                Default = False
+        """
+        super().__init__()
+        self.order = order
+        self.scale_factor = scale_factor
+        self.interval = interval or pi
+        # Initialize frequencies at canonical
+        if learnable:
+            self.frequencies = torch.nn.Parameter(
+                data=torch.arange(0, order + 1, dtype=torch.float32),
+                requires_grad=True,
+            )
+        else:
+            self.register_buffer(
+                "frequencies", torch.arange(0, order + 1, dtype=torch.float32)
+            )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Expand x into cos and sin functions."""
+        result = x.new_zeros(x.shape[0], 1 + 2 * self.order)
+        tmp = torch.outer(x, self.frequencies)
+        result[:, ::2] = torch.cos(tmp)
+        result[:, 1::2] = torch.sin(tmp[:, 1:])
+        return result / self.interval * self.scale_factor
+
+
 class SphericalHarmonicsFunction:
     """Spherical Harmonics function."""
 
