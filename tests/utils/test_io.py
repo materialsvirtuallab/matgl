@@ -21,10 +21,9 @@ class TestRemoteFile:
             pass
 
 
-class TestFunc:
-    def test_get_available_pretrained_models(self):
-        model_names = get_available_pretrained_models()
-        assert len(model_names) > 1
-        assert "M3GNet-MP-2021.2.8-PES" in model_names
-        model = load_model(model_names[0])
-        assert issubclass(model.__class__, torch.nn.Module)
+def test_get_available_pretrained_models_load_model():
+    model_names = get_available_pretrained_models()
+    assert len(model_names) > 1
+    assert "M3GNet-MP-2021.2.8-PES" in model_names
+    model = load_model(model_names[0])
+    assert issubclass(model.__class__, torch.nn.Module)
