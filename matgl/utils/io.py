@@ -20,12 +20,11 @@ class IOMixIn:
     """Mixin class for model saving and loading.
 
     For proper usage, models should subclass nn.Module and IOMix and the `save_args` method should be called
-    immediately after the `super().__init__()` call.
+    immediately after the `super().__init__()` call::
 
-    ```
-    super().__init__()
-    self.save_args(locals(), kwargs)
-    ```
+        super().__init__()
+        self.save_args(locals(), kwargs)
+
     """
 
     def save_args(self, locals: dict, kwargs: dict | None = None) -> None:
@@ -90,18 +89,20 @@ class IOMixIn:
 
         Args:
             path (str|path|dict): Path to saved model or name of pre-trained model. If it is a dict, it is assumed to
-                be of the form
-                {
-                    "model.pt": path to model.pt file,
-                    "state.pt": path to state file,
-                    "model.json": path to model.json file
-                }
+                be of the form::
+
+                    {
+                        "model.pt": path to model.pt file,
+                        "state.pt": path to state file,
+                        "model.json": path to model.json file
+                    }
+
                 Otherwise, the search order is path, followed by download from PRETRAINED_MODELS_BASE_URL
                 (with caching).
-            kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
+            **kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
                 want to update the model.
 
-        Returns: model_object if include_json is false. (model_object, dict) if include_json is True.
+        Returns: model_object.
         """
         fpaths = path if isinstance(path, dict) else _get_file_paths(Path(path), **kwargs)
 

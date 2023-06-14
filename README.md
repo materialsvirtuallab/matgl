@@ -43,7 +43,7 @@ Major milestones are summarized below. Please refer to [change log][changelog] f
 
 ### MEGNet
 
-The [MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
+[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
 machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
 array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
 [multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
@@ -51,15 +51,16 @@ network, whereby bonds, atoms, and global state attributes are updated using inf
 
 ### M3GNet
 
-[M3GNet][m3gnet] is a new materials graph neural network architecture that incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
+[Materials 3-body Graph Network (M3GNet)][m3gnet] is a new materials graph neural network architecture that
+incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
 the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
 stresses via auto-differentiation. As a framework, M3GNet has diverse applications, including:
 
 - **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
   machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
   flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
-  *universal IP* that can work across the entire periodic table of the elements by training on relaxations performed
-  in the [Materials Project][mp].
+  [*universal IP*][m3gnet] that can work across the entire periodic table of the elements by training on relaxations
+  performed in the [Materials Project][mp].
 - **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
   surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
   state-of-the-art ML models.

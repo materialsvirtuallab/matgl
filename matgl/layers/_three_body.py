@@ -18,11 +18,15 @@ class SphericalBesselWithHarmonics(nn.Module):
     """Expansion of basis using Spherical Bessel and Harmonics."""
 
     def __init__(self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool):
-        """:param max_n: Degree of radial basis functions
-        :param max_l: Degree of angular basis functions
-        :param cutoff: Cutoff sphere
-        :param use_smooth: Whether using smooth version of SBFs or not
-        :param use_phi: using phi as angular basis functions
+        """
+        Init SphericalBesselWithHarmonics.
+
+        Args:
+            max_n: Degree of radial basis functions.
+            max_l: Degree of angular basis functions.
+            cutoff: Cutoff sphere.
+            use_smooth: Whether using smooth version of SBFs or not.
+            use_phi: Using phi as angular basis functions.
         """
         super().__init__()
 
@@ -50,10 +54,13 @@ class ThreeBodyInteractions(nn.Module):
     """Include 3D interactions to the bond update."""
 
     def __init__(self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs):
-        r"""Args:
-        update_network_atom: MLP for node features in Eq.2
-        update_network_bond: Gated-MLP for edge features in Eq.3
-        **kwargs: Kwargs pass-through to nn.Module.__init__().
+        r"""
+        Init ThreeBodyInteractions.
+
+        Args:
+            update_network_atom: MLP for node features in Eq.2
+            update_network_bond: Gated-MLP for edge features in Eq.3
+            **kwargs: Kwargs pass-through to nn.Module.__init__().
         """
         super().__init__(**kwargs)
         self.update_network_atom = update_network_atom
@@ -68,13 +75,16 @@ class ThreeBodyInteractions(nn.Module):
         node_feat: torch.tensor,
         edge_feat: torch.tensor,
     ):
-        """Args:
-        graph: dgl graph
-        line_graph: line graph.
-        three_basis: three body basis expansion
-        three_cutoff: cutoff radius
-        node_feat: node features
-        edge_feat: edge features.
+        """
+        Forward function for ThreeBodyInteractions.
+
+        Args:
+            graph: dgl graph
+            line_graph: line graph.
+            three_basis: three body basis expansion
+            three_cutoff: cutoff radius
+            node_feat: node features
+            edge_feat: edge features.
         """
         end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1].to(torch.int64))
         atoms = self.update_network_atom(node_feat)

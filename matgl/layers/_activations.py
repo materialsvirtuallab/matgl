@@ -36,16 +36,15 @@ class SoftExponential(nn.Module):
     When x = 0, SoftExponential(x,alpha) = 0
     When x > 0, SoftExponential(x,alpha) = (exp(alpha*x)-1)/alpha + alpha.
 
-
-    References:
-        - See related paper:
-        https://arxiv.org/pdf/1602.01321.pdf
-
+    References: https://arxiv.org/pdf/1602.01321.pdf
     """
 
     def __init__(self, alpha: float = None):
-        """Args:
-        alpha (float): adjustable Torch parameter during the training.
+        """
+        Init SoftExponential with alpha value.
+
+        Args:
+            alpha (float): adjustable Torch parameter during the training.
         """
         super().__init__()
 

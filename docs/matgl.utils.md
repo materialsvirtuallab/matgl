@@ -43,12 +43,12 @@ Bases: `object`
 Mixin class for model saving and loading.
 
 For proper usage, models should subclass nn.Module and IOMix and the save_args method should be called
-immediately after the super().__init__() call.
+immediately after the super().__init__() call:
 
-`\`
+```default
 super().__init__()
 self.save_args(locals(), kwargs)
-\``
+```
 
 
 #### _classmethod_ load(path: str | Path | dict, \*\*kwargs)
@@ -59,24 +59,26 @@ Load the model weights from a directory.
 
     
     * **path** (*str**|**path**|**dict*) – Path to saved model or name of pre-trained model. If it is a dict, it is assumed to
-    be of the form
+    be of the form:
+
+    ```default
     {
-
-    > ”model.pt”: path to model.pt file,
-    > “state.pt”: path to state file,
-    > “model.json”: path to model.json file
-
+        "model.pt": path to model.pt file,
+        "state.pt": path to state file,
+        "model.json": path to model.json file
     }
+    ```
+
     Otherwise, the search order is path, followed by download from PRETRAINED_MODELS_BASE_URL
     (with caching).
 
 
 
-    * **kwargs** – Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
+    * **\*\*kwargs** – Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
     want to update the model.
 
 
-Returns: model_object if include_json is false. (model_object, dict) if include_json is True.
+Returns: model_object.
 
 
 #### save(path: str | Path = '.', metadata: dict | None = None, makedirs: bool = True)
@@ -186,22 +188,21 @@ Gaussian Radial Expansion.
 The bond distance is expanded to a vector of shape [m],
 where m is the number of Gaussian basis centers.
 
-Args:
-initial : float
 
-> Location of initial Gaussian basis center.
+* **Parameters**
 
-final
+    
+    * **initial** – Location of initial Gaussian basis center.
 
-    Location of final Gaussian basis center
 
-number
+    * **final** – Location of final Gaussian basis center
 
-    Number of Gaussian Basis functions
 
-width
+    * **num_centers** – Number of Gaussian Basis functions
 
-    Width of Gaussian Basis functions.
+
+    * **width** – Width of Gaussian Basis functions.
+
 
 
 #### forward(bond_dists)
@@ -594,21 +595,53 @@ Bases: `TrainerMixin`, `LightningModule`
 
 Trainer for MatGL potentials.
 
-Args:
-model: Which type of the model for training
-element_refs: element offset for PES
-energy_weight: relative importance of energy
-force_weight: relative importance of force
-stress_weight: relative importance of stress
-data_mean: average of training data
-data_std: standard deviation of training data
-calc_stress: whether stress calculation is required
-loss: loss function used for training
-optimizer: optimizer for training
-scheduler: scheduler for training
-lr: learning rate for training
-decay_steps: number of steps for decaying learning rate
-decay_alpha: parameter determines the minimum learning rate.
+Init PotentialTrainer with key parameters.
+
+
+* **Parameters**
+
+    
+    * **model** – Which type of the model for training
+
+
+    * **element_refs** – element offset for PES
+
+
+    * **energy_weight** – relative importance of energy
+
+
+    * **force_weight** – relative importance of force
+
+
+    * **stress_weight** – relative importance of stress
+
+
+    * **data_mean** – average of training data
+
+
+    * **data_std** – standard deviation of training data
+
+
+    * **calc_stress** – whether stress calculation is required
+
+
+    * **loss** – loss function used for training
+
+
+    * **optimizer** – optimizer for training
+
+
+    * **scheduler** – scheduler for training
+
+
+    * **lr** – learning rate for training
+
+
+    * **decay_steps** – number of steps for decaying learning rate
+
+
+    * **decay_alpha** – parameter determines the minimum learning rate.
+
 
 
 #### forward(g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None)
@@ -660,22 +693,19 @@ Compute losses for EFS.
     * **num_atoms** – Number of atoms.
 
 
+Returns:
 
-* **Returns**
-
-    {
-
-        “Total_Loss”: total_loss,
-        “Energy_MAE”: e_mae,
-        “Force_MAE”: f_mae,
-        “Stress_MAE”: s_mae,
-        “Energy_RMSE”: e_rmse,
-        “Force_RMSE”: f_rmse,
-        “Stress_RMSE”: s_rmse,
-
-    }
-
-
+```default
+{
+    "Total_Loss": total_loss,
+    "Energy_MAE": e_mae,
+    "Force_MAE": f_mae,
+    "Stress_MAE": s_mae,
+    "Energy_RMSE": e_rmse,
+    "Force_RMSE": f_rmse,
+    "Stress_RMSE": s_rmse,
+}
+```
 
 
 #### step(batch: tuple)
@@ -703,21 +733,17 @@ Configure optimizers.
 
 
 #### on_test_model_eval(\*args, \*\*kwargs)
-Args:
+Executed on model testing.
 
 
-```
-*
-```
+* **Parameters**
 
-args: Pass-through
+    
+    * **\*args** – Pass-through
 
 
-```
-**
-```
+    * **\*\*kwargs** – Pass-through.
 
-kwargs: Pass-through.
 
 
 #### on_train_epoch_end()
@@ -725,6 +751,8 @@ Step scheduler every epoch.
 
 
 #### predict_step(batch, batch_idx, dataloader_idx=0)
+Prediction step.
+
 
 * **Parameters**
 
@@ -746,12 +774,22 @@ Step scheduler every epoch.
 
 
 #### test_step(batch: tuple, batch_idx: int)
-Args:
-batch: Data batch.
-batch_idx: Batch index.
+Test step.
+
+
+* **Parameters**
+
+    
+    * **batch** – Data batch.
+
+
+    * **batch_idx** – Batch index.
+
 
 
 #### training_step(batch: tuple, batch_idx: int)
+Training step.
+
 
 * **Parameters**
 
@@ -770,9 +808,17 @@ batch_idx: Batch index.
 
 
 #### validation_step(batch: tuple, batch_idx: int)
-Args:
-batch: Data batch.
-batch_idx: Batch index.
+Validation step.
+
+
+* **Parameters**
+
+    
+    * **batch** – Data batch.
+
+
+    * **batch_idx** – Batch index.
+
 
 
 ### matgl.utils.training.xavier_init(model: Module)

@@ -21,15 +21,15 @@ When x < 0, SoftExponential(x,alpha) = -log(1-alpha(x+alpha))/alpha
 When x = 0, SoftExponential(x,alpha) = 0
 When x > 0, SoftExponential(x,alpha) = (exp(alpha\*x)-1)/alpha + alpha.
 
-### References
+References: [https://arxiv.org/pdf/1602.01321.pdf](https://arxiv.org/pdf/1602.01321.pdf)
+
+Init SoftExponential with alpha value.
 
 
-* See related paper:
+* **Parameters**
 
-[https://arxiv.org/pdf/1602.01321.pdf](https://arxiv.org/pdf/1602.01321.pdf)
+    **alpha** (*float*) – adjustable Torch parameter during the training.
 
-Args:
-alpha (float): adjustable Torch parameter during the training.
 
 
 #### forward(x: tensor)
@@ -569,18 +569,26 @@ Bases: `Module`
 
 A MEGNet block comprising a sequence of update operations.
 
-TODO: Add docs.
-:param dims: architecture of dense layers before graph convolution
-:param conv_hiddens: architecture of graph convolution
-:param act: activation type
-:param dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
-
-> to a Bernoulli distribution
+Init the MEGNet block with key parameters.
 
 
 * **Parameters**
 
-    **skip** – residual block.
+    
+    * **dims** – Dimension of dense layers before graph convolution.
+
+
+    * **conv_hiddens** – Architecture of hidden layers of graph convolution.
+
+
+    * **act** – Activation type.
+
+
+    * **dropout** – Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
+    to a Bernoulli distribution.
+
+
+    * **skip** – Residual block.
 
 
 
@@ -870,23 +878,25 @@ Bases: `Module`
 
 Expansion of basis using Spherical Bessel and Harmonics.
 
+Init SphericalBesselWithHarmonics.
+
 
 * **Parameters**
 
     
-    * **max_n** – Degree of radial basis functions
+    * **max_n** – Degree of radial basis functions.
 
 
-    * **max_l** – Degree of angular basis functions
+    * **max_l** – Degree of angular basis functions.
 
 
-    * **cutoff** – Cutoff sphere
+    * **cutoff** – Cutoff sphere.
 
 
-    * **use_smooth** – Whether using smooth version of SBFs or not
+    * **use_smooth** – Whether using smooth version of SBFs or not.
 
 
-    * **use_phi** – using phi as angular basis functions
+    * **use_phi** – Using phi as angular basis functions.
 
 
 
@@ -908,26 +918,46 @@ Bases: `Module`
 
 Include 3D interactions to the bond update.
 
-Args:
-update_network_atom: MLP for node features in Eq.2
-update_network_bond: Gated-MLP for edge features in Eq.3
+Init ThreeBodyInteractions.
 
 
-```
-**
-```
+* **Parameters**
 
-kwargs: Kwargs pass-through to nn.Module.__init__().
+    
+    * **update_network_atom** – MLP for node features in Eq.2
+
+
+    * **update_network_bond** – Gated-MLP for edge features in Eq.3
+
+
+    * **\*\*kwargs** – Kwargs pass-through to nn.Module.__init__().
+
 
 
 #### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: tensor, three_cutoff: float, node_feat: tensor, edge_feat: tensor)
-Args:
-graph: dgl graph
-line_graph: line graph.
-three_basis: three body basis expansion
-three_cutoff: cutoff radius
-node_feat: node features
-edge_feat: edge features.
+Forward function for ThreeBodyInteractions
+
+
+* **Parameters**
+
+    
+    * **graph** – dgl graph
+
+
+    * **line_graph** – line graph.
+
+
+    * **three_basis** – three body basis expansion
+
+
+    * **three_cutoff** – cutoff radius
+
+
+    * **node_feat** – node features
+
+
+    * **edge_feat** – edge features.
+
 
 
 #### training(_: boo_ )

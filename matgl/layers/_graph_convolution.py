@@ -135,13 +135,16 @@ class MEGNetBlock(Module):
     def __init__(
         self, dims: list[int], conv_hiddens: list[int], act: Module, dropout: float | None = None, skip: bool = True
     ) -> None:
-        """TODO: Add docs.
-        :param dims: architecture of dense layers before graph convolution
-        :param conv_hiddens: architecture of graph convolution
-        :param act: activation type
-        :param dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
-            to a Bernoulli distribution
-        :param skip: residual block.
+        """
+        Init the MEGNet block with key parameters.
+
+        Args:
+            dims: Dimension of dense layers before graph convolution.
+            conv_hiddens: Architecture of hidden layers of graph convolution.
+            act: Activation type.
+            dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
+                to a Bernoulli distribution.
+            skip: Residual block.
         """
         super().__init__()
         self.has_dense = len(dims) > 1
