@@ -140,39 +140,39 @@ class FourierExpansion(nn.Module):
 
     def __init__(
             self,
-            order: int = 5,
-            interval: float | None = None,
+            max_f: int = 5,
+            interval: float = pi,
             scale_factor: float = 1.0,
             learnable: bool = False
     ):
         """Args:
-        order (int): the maximum frequency of the Fourier expansion.
+        max_f (int): the maximum frequency of the Fourier expansion.
         Default = 5
-        interval (float): the interval of the Fourier expansion.
-        The lower limit is implicitly 0. Default is pi
+        interval (float): the interval of the Fourier expansion, such that functions
+        are orthonormal over [-interval, interval]. Default = pi
         scale_factor (float): pre-factor to scale all values.
         learnable (bool): whether to set the frequencies as learnable parameters
         Default = False.
         """
         super().__init__()
-        self.order = order
+        self.max_f = max_f
+        self.interval = interval
         self.scale_factor = scale_factor
-        self.interval = interval or pi
         # Initialize frequencies at canonical
         if learnable:
             self.frequencies = torch.nn.Parameter(
-                data=torch.arange(0, order + 1, dtype=torch.float32),
+                data=torch.arange(0, max_f + 1, dtype=torch.float32),
                 requires_grad=True,
             )
         else:
             self.register_buffer(
-                "frequencies", torch.arange(0, order + 1, dtype=torch.float32)
+                "frequencies", torch.arange(0, max_f + 1, dtype=torch.float32)
             )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Expand x into cos and sin functions."""
-        result = x.new_zeros(x.shape[0], 1 + 2 * self.order)
-        tmp = torch.outer(x, self.frequencies)
+        result = x.new_zeros(x.shape[0], 1 + 2 * self.max_f)
+        tmp = torch.outer(x, self.frequencies) * pi / self.interval
         result[:, ::2] = torch.cos(tmp)
         result[:, 1::2] = torch.sin(tmp[:, 1:])
         return result / self.interval * self.scale_factor

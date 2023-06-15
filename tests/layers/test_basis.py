@@ -12,6 +12,7 @@ from matgl.layers._basis import (
     SphericalBesselFunction,
     SphericalBesselWithHarmonics,
     SphericalHarmonicsFunction,
+    FourierExpansion,
     spherical_bessel_smooth,
 )
 from matgl.layers._three_body import combine_sbf_shf
@@ -121,3 +122,34 @@ def test_spherical_bessel_with_harmonics(graph_MoS):
     l_g1.apply_edges(compute_theta_and_phi)
     three_body_basis = sb_and_sh(l_g1)
     assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 27]
+
+
+def test_fourier_expansion():
+    max_f = 5
+    fe = FourierExpansion(max_f=max_f)
+    x = torch.randn(10)
+
+    res = fe(x)
+
+    assert res.shape == (x.shape[0], 1 + max_f * 2)
+    assert np.allclose(
+        res[:, ::2].numpy(),
+        np.cos(np.outer(x.numpy(), np.arange(0, max_f + 1))) / np.pi
+    )
+    assert np.allclose(
+        res[:, 1::2].numpy(),
+        np.sin(np.outer(x.numpy(), np.arange(1, max_f + 1))) / np.pi
+    )
+
+    interval = 2.0
+    fe = FourierExpansion(max_f=max_f, interval=interval)
+
+    res = fe(x)
+    assert np.allclose(
+        res[:, ::2].numpy(),
+        np.cos(np.outer(x.numpy(), np.arange(0, fe.max_f + 1)) * np.pi / interval) / interval
+    )
+    assert np.allclose(
+        res[:, 1::2].numpy(),
+        np.sin(np.pi * np.outer(x.numpy(), np.arange(1, fe.max_f + 1)) * np.pi / interval)  / interval
+    )
