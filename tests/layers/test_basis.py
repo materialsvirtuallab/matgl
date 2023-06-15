@@ -3,6 +3,8 @@ from __future__ import annotations
 import numpy as np
 import torch
 
+from pymatgen.core import Lattice, Structure
+
 from matgl.layers._basis import (
     GaussianExpansion,
     SphericalBesselFunction,
@@ -11,7 +13,9 @@ from matgl.layers._basis import (
     SphericalBesselWithHarmonics,
 )
 from matgl.layers._three_body import combine_sbf_shf
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
+    compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
 )
@@ -95,8 +99,17 @@ class TestSphericalBesselHarmonicsFunction:
         assert rdf.numpy().shape == (10, 3)
 
     def test_spherical_bessel_with_harmonics(self):
+        s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        element_types = get_element_list([s])
+        p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
+        graph, state = p2g.get_graph(s)
+        g1 = graph
+        state1 = state
+        bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
+        g1.edata["bond_dist"] = bond_dist
+        g1.edata["bond_vec"] = bond_vec
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
-        l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
+        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 9]
