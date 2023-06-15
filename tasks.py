@@ -51,7 +51,7 @@ def make_doc(ctx):
                     "---",
                     "layout: default",
                     "title: API Documentation",
-                    "nav_order: 4",
+                    "nav_order: 5",
                     "---"
                 ]
             else:
