@@ -34,6 +34,7 @@ def make_doc(ctx):
 
         sphinx-build -M markdown ./ build
     """
+    ctx.run("jupyter nbconvert examples/*.ipynb --to=markdown --output-dir=docs/tutorials")
     with cd("docs"):
         ctx.run("rm matgl.*.rst", warn=True)
         ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
