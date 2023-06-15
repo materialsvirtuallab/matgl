@@ -1,3 +1,8 @@
+---
+layout: default
+title: tutorials/Using the M3GNet Universal Potential with Property Prediction Models.md
+nav_exclude: true
+---
 # Introduction
 
 There may be instances where you do not have access to a DFT relaxed structure. For instance, you may have a generated hypothetical structure or a structure obtained from an experimental source. In this notebook, we demonstrate how you can use the M3GNet universal potential to relax a crystal prior to property predictions. 

@@ -1,3 +1,8 @@
+---
+layout: default
+title: tutorials/Errors in Cubic Crystal Lattice Parameters.md
+nav_exclude: true
+---
 # Introduction
 
 This notebook is written to demonstrate the use of M3GNet as a structure relaxer as well as to provide more comprehensive benchmarks for cubic crystals based on exp data on Wikipedia and MP DFT data. This benchmark is limited to cubic crystals for ease of comparison since there is only one lattice parameter. 

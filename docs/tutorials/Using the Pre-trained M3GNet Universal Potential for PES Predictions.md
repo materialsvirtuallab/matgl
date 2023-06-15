@@ -1,3 +1,8 @@
+---
+layout: default
+title: tutorials/Using the Pre-trained M3GNet Universal Potential for PES Predictions.md
+nav_exclude: true
+---
 # Introduction
 
 This notebook demonstrates the use of the pre-trained M3GNet model to perform structural relaxations, molecular dynamics simulations and single-point calculations.

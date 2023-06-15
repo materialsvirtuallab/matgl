@@ -1,3 +1,8 @@
+---
+layout: default
+title: tutorials/Validation of Refitted MatGL versus Original TF M3GNet.md
+nav_exclude: true
+---
 # Introduction
 
 In this notebook, we validate the refitted MatGL implementation of the M3GNet universal potential against the original TF version using cubic crystals. This is purely for convenience and demonstration purposes. The test can be carried out on any crystal. If you are running this in Google Colab, please uncomment the following lines.

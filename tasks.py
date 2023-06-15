@@ -43,7 +43,7 @@ def make_doc(ctx):
         ctx.run("sphinx-build -M markdown . .")
         ctx.run("rm *.rst", warn=True)
         ctx.run("cp markdown/matgl*.md .")
-        for fn in glob.glob("matgl*.md"):
+        for fn in list(glob.glob("matgl*.md")) + list(glob.glob("tutorials/*.md")):
             with open(fn) as f:
                 lines = f.readlines()
             lines = [line for line in lines if "Submodules" not in line]

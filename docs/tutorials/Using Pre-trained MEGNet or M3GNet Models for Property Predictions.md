@@ -1,3 +1,8 @@
+---
+layout: default
+title: tutorials/Using Pre-trained MEGNet or M3GNet Models for Property Predictions.md
+nav_exclude: true
+---
 # Introduction
 
 This notebook demonstrates the use of pre-trained MEGNet and M3GNet models to predict properties.
