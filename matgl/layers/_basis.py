@@ -172,9 +172,9 @@ class FourierExpansion(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Expand x into cos and sin functions."""
         result = x.new_zeros(x.shape[0], 1 + 2 * self.max_f)
-        tmp = torch.outer(x, self.frequencies) * pi / self.interval
-        result[:, ::2] = torch.cos(tmp)
-        result[:, 1::2] = torch.sin(tmp[:, 1:])
+        tmp = torch.outer(x, self.frequencies)
+        result[:, ::2] = torch.cos(tmp * pi / self.interval)
+        result[:, 1::2] = torch.sin(tmp[:, 1:] * pi / self.interval)
         return result / self.interval * self.scale_factor
 
 
