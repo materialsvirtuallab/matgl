@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from torch.testing import assert_close
 import torch
 
 from matgl.graph.compute import (
@@ -128,28 +129,22 @@ def test_fourier_expansion():
     max_f = 5
     fe = FourierExpansion(max_f=max_f)
     x = torch.randn(10)
-
     res = fe(x)
 
     assert res.shape == (x.shape[0], 1 + max_f * 2)
-    assert np.allclose(
-        res[:, ::2].numpy(),
-        np.cos(np.outer(x.numpy(), np.arange(0, max_f + 1))) / np.pi
-    )
-    assert np.allclose(
-        res[:, 1::2].numpy(),
-        np.sin(np.outer(x.numpy(), np.arange(1, max_f + 1))) / np.pi
-    )
+
+    cosines = torch.cos(torch.outer(x, torch.arange(0, max_f + 1))) / torch.pi
+    assert_close(res[:, ::2], cosines)
+
+    sines = torch.sin(torch.outer(x, torch.arange(1, max_f + 1))) / np.pi
+    assert_close(res[:, 1::2], sines)
 
     interval = 2.0
     fe = FourierExpansion(max_f=max_f, interval=interval)
-
     res = fe(x)
-    assert np.allclose(
-        res[:, ::2].numpy(),
-        np.cos(np.outer(x.numpy(), np.arange(0, fe.max_f + 1)) * np.pi / interval) / interval
-    )
-    assert np.allclose(
-        res[:, 1::2].numpy(),
-        np.sin(np.pi * np.outer(x.numpy(), np.arange(1, fe.max_f + 1)) * np.pi / interval)  / interval
-    )
+
+    cosines = torch.cos(torch.outer(x, torch.arange(0, max_f + 1)) * np.pi / interval) / interval
+    assert_close(res[:, ::2], cosines)
+
+    sines = torch.sin(torch.outer(x, torch.arange(1, max_f + 1)) * np.pi / interval) / interval
+    assert_close(res[:, 1::2], sines)
