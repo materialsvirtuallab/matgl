@@ -78,7 +78,7 @@ def make_doc(ctx):
             contents = f.read()
         with open("index.md", "w") as f:
             contents = contents.replace(
-                "\nOfficial Documentation: [link][doc]",
+                "\n### Official Documentation[:link:][doc]",
                 "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n")
             contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents
 

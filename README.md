@@ -8,7 +8,7 @@
 
 # Materials Graph Library
 
-Official Documentation: [link][doc]
+### Official Documentation[:link:][doc]
 
 ## Introduction
 
