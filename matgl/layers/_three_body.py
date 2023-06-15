@@ -7,48 +7,11 @@ import numpy as np
 import torch
 from torch import nn
 
-from matgl.layers._basis import SphericalBesselFunction, SphericalHarmonicsFunction
 from matgl.utils.maths import (
     _block_repeat,
     get_segment_indices_from_n,
     scatter_sum,
 )
-
-
-class SphericalBesselWithHarmonics(nn.Module):
-    """Expansion of basis using Spherical Bessel and Harmonics."""
-
-    def __init__(self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool):
-        """
-        Init SphericalBesselWithHarmonics.
-
-        Args:
-            max_n: Degree of radial basis functions.
-            max_l: Degree of angular basis functions.
-            cutoff: Cutoff sphere.
-            use_smooth: Whether using smooth version of SBFs or not.
-            use_phi: Using phi as angular basis functions.
-        """
-        super().__init__()
-
-        assert max_n <= 64
-        self.max_n = max_n
-        self.max_l = max_l
-        self.cutoff = cutoff
-        self.use_phi = use_phi
-        self.use_smooth = use_smooth
-
-        # retrieve formulas
-        self.shf = SphericalHarmonicsFunction(self.max_l, self.use_phi)
-        if self.use_smooth:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth)
-        else:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth)
-
-    def forward(self, line_graph):
-        sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
-        shf = self.shf(line_graph.edata["cos_theta"], line_graph.edata["phi"])
-        return combine_sbf_shf(sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi)
 
 
 class ThreeBodyInteractions(nn.Module):

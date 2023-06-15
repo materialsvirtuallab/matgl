@@ -15,7 +15,7 @@ from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.layers import BondExpansion, EmbeddingBlock
+from matgl.layers import BondExpansion, EmbeddingBlock, SphericalBesselWithHarmonics
 from matgl.layers._graph_convolution import (
     MLP,
     M3GNetBlock,
@@ -23,7 +23,6 @@ from matgl.layers._graph_convolution import (
     MEGNetBlock,
     MEGNetGraphConv,
 )
-from matgl.layers._three_body import SphericalBesselWithHarmonics
 from matgl.utils.cutoff import polynomial_cutoff
 
 Graph = namedtuple("Graph", "graph, state_attr")
