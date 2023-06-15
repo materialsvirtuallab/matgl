@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import unittest
 
 import numpy as np
 from dgl.data.utils import split_dataset
@@ -19,7 +18,7 @@ from matgl.graph.data import (
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class DatasetTest(PymatgenTest):
+class TestDataset(PymatgenTest):
     def test_megnet_dataset(self):
         s1 = self.get_structure("LiFePO4")
         s2 = self.get_structure("BaNiO3")
@@ -190,7 +189,3 @@ class DatasetTest(PymatgenTest):
                 os.remove(fn)
             except FileNotFoundError:
                 pass
-
-
-if __name__ == "__main__":
-    unittest.main()

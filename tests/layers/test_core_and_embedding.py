@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unittest
-
 import torch
 from pymatgen.core.structure import Lattice, Structure
 from torch import nn
@@ -12,21 +10,19 @@ from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._core import MLP, GatedMLP
 
 
-class TestCoreAndEmbedding(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.s1 = Structure(Lattice.cubic(4.0), ["Mo", "Mo"], [[0.0, 0, 0], [0.5, 0.5, 0.5]])
-        Structure(Lattice.cubic(3), ["Mo", "Fe"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-        element_types = get_element_list([cls.s1])
-        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph(cls.s1)
-        cls.g1 = graph
-        cls.state1 = state
+class TestCoreAndEmbedding:
+    s1 = Structure(Lattice.cubic(4.0), ["Mo", "Mo"], [[0.0, 0, 0], [0.5, 0.5, 0.5]])
+    Structure(Lattice.cubic(3), ["Mo", "Fe"], [[0, 0, 0], [0.5, 0.5, 0.5]])
+    element_types = get_element_list([s1])
+    p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
+    graph, state = p2g.get_graph(s1)
+    g1 = graph
+    state1 = state
 
-        bond_vec, bond_dist = compute_pair_vector_and_distance(cls.g1)
-        cls.g1.edata["bond_dist"] = bond_dist
+    bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
+    g1.edata["bond_dist"] = bond_dist
 
-        cls.x = torch.randn(4, 10, requires_grad=True)
+    x = torch.randn(4, 10, requires_grad=True)
 
     def test_mlp(self):
         layer = MLP(dims=[10, 3], activation=nn.SiLU())
@@ -89,7 +85,3 @@ class TestCoreAndEmbedding(unittest.TestCase):
             node_attr, edge_attr, torch.tensor([0.0, 0.0])
         )  # this will be default value
         assert state_feat is None
-
-
-if __name__ == "__main__":
-    unittest.main()

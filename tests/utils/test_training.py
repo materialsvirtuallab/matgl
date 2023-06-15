@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import unittest
 
 import numpy as np
 import pytorch_lightning as pl
@@ -109,7 +108,3 @@ class ModelTrainerTest(PymatgenTest):
                 pass
 
         shutil.rmtree("lightning_logs")
-
-
-if __name__ == "__main__":
-    unittest.main()

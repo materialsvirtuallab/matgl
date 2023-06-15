@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import unittest
 from collections import namedtuple
 
 import dgl
@@ -86,20 +85,18 @@ def test_megnet_block():
     return out
 
 
-class TestGraphConv(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        cls.s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
+class TestGraphConv:
+    s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+    s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
 
-        element_types = get_element_list([cls.s])
-        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph(cls.s)
-        cls.g1 = graph
-        cls.state1 = state
-        bond_vec, bond_dist = compute_pair_vector_and_distance(cls.g1)
-        cls.g1.edata["bond_dist"] = bond_dist
-        cls.g1.edata["bond_vec"] = bond_vec
+    element_types = get_element_list([s])
+    p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
+    graph, state = p2g.get_graph(s)
+    g1 = graph
+    state1 = state
+    bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
+    g1.edata["bond_dist"] = bond_dist
+    g1.edata["bond_vec"] = bond_vec
 
     def test_m3gnet_graph_conv(self):
         bond_dist = self.g1.edata["bond_dist"]
@@ -203,9 +200,3 @@ class TestGraphConv(unittest.TestCase):
         edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
-
-
-if __name__ == "__main__":
-    test_megnet_layer()
-    test_megnet_block()
-    unittest.main()

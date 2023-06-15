@@ -57,7 +57,3 @@ class TestThreeBody:
             self.g1, l_g1, three_body_basis, three_body_cutoff, node_feat, edge_feat
         )
         assert [edge_feat_updated.size(dim=0), edge_feat_updated.size(dim=1)] == [28, 16]
-
-
-if __name__ == "__main__":
-    unittest.main()

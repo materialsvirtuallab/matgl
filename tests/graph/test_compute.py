@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unittest
-
 import numpy as np
 import torch
 from pymatgen.core.structure import Lattice, Molecule, Structure
@@ -55,9 +53,9 @@ def _calculate_cos_loop(graph, threebody_cutoff=4.0):
     return cos
 
 
-class TestCompute(unittest.TestCase):
+class TestCompute:
     @classmethod
-    def setUpClass(cls) -> None:
+    def setup_class(cls):
         cls.s1 = Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
         element_types = get_element_list([cls.s1])
         p2g = Structure2Graph(element_types=element_types, cutoff=5.0)  # type: ignore
@@ -142,7 +140,3 @@ class TestCompute(unittest.TestCase):
         np.testing.assert_array_almost_equal(
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

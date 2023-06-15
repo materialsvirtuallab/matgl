@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-import unittest
-
 import numpy as np
 import torch
 
 from matgl.layers._activations import SoftExponential, SoftPlus2
 
 
-class TestActivations(unittest.TestCase):
+class TestActivations:
     @classmethod
-    def setUpClass(cls) -> None:
+    def setup_class(cls):
         cls.act1 = SoftPlus2()
         cls.act2 = SoftExponential()
         cls.act3 = SoftExponential(1.0)
@@ -26,7 +24,3 @@ class TestActivations(unittest.TestCase):
         np.testing.assert_allclose(out.numpy(), np.array([1.0, 2.0]))
         out = self.act3(self.x)
         np.testing.assert_allclose(out.detach().numpy(), np.array([2.7182817, 7.389056]))
-
-
-if __name__ == "__main__":
-    unittest.main()

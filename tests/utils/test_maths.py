@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unittest
-
 import dgl
 import numpy as np
 import torch
@@ -18,7 +16,7 @@ from matgl.utils.maths import (
 )
 
 
-class TestMath(unittest.TestCase):
+class TestMath:
     def test_spherical_bessel_roots(self):
         roots = spherical_bessel_roots(max_l=1, max_n=5)
         roots2 = SPHERICAL_BESSEL_ROOTS
@@ -55,7 +53,3 @@ class TestMath(unittest.TestCase):
         assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [3, 2]
         broadcasted_state_feat = broadcast_states_to_atoms(g, state_attr)
         assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [5, 2]
-
-
-if __name__ == "__main__":
-    unittest.main()

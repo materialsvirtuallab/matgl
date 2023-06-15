@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unittest
-
 import dgl
 import numpy as np
 import torch
@@ -11,15 +9,13 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.layers._atom_ref import AtomRef
 
 
-class TestAtomRef(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.s1 = Structure(Lattice.cubic(3.17), ["Mo", "S", "H"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75]])
-        cls.element_types = get_element_list([cls.s1])
-        p2g = Structure2Graph(element_types=cls.element_types, cutoff=4.0)
-        graph, state = p2g.get_graph(cls.s1)
-        cls.g1 = graph
-        cls.state1 = state
+class TestAtomRef:
+    s1 = Structure(Lattice.cubic(3.17), ["Mo", "S", "H"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75]])
+    element_types = get_element_list([s1])
+    p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
+    graph, state = p2g.get_graph(s1)
+    g1 = graph
+    state1 = state
 
     def test_atom_ref(self):
         element_ref = AtomRef(np.array([0.5, 1.0, 2.0]))
@@ -40,7 +36,3 @@ class TestAtomRef(unittest.TestCase):
         state_label = torch.tensor([1])
         atom_ref = element_ref(self.g1, state_label)
         assert atom_ref == 10
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -2,23 +2,22 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-
 from pymatgen.core import Lattice, Structure
 
-from matgl.layers._basis import (
-    GaussianExpansion,
-    SphericalBesselFunction,
-    SphericalHarmonicsFunction,
-    spherical_bessel_smooth,
-    SphericalBesselWithHarmonics,
-)
-from matgl.layers._three_body import combine_sbf_shf
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
 )
+from matgl.layers._basis import (
+    GaussianExpansion,
+    SphericalBesselFunction,
+    SphericalBesselWithHarmonics,
+    SphericalHarmonicsFunction,
+    spherical_bessel_smooth,
+)
+from matgl.layers._three_body import combine_sbf_shf
 
 
 class TestGaussianAndSphericalBesselFuction:
@@ -104,7 +103,6 @@ class TestSphericalBesselHarmonicsFunction:
         p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
         graph, state = p2g.get_graph(s)
         g1 = graph
-        state1 = state
         bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
         g1.edata["bond_dist"] = bond_dist
         g1.edata["bond_vec"] = bond_vec

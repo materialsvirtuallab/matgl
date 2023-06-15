@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import unittest
 
 import numpy as np
 from pymatgen.core import Lattice, Molecule, Structure
@@ -14,7 +13,7 @@ from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class Pmg2GraphTest(PymatgenTest):
+class TestPmg2Graph(PymatgenTest):
     def test_get_graph_from_molecule(self):
         coords = [
             [0.000000, 0.000000, 0.000000],
@@ -107,7 +106,3 @@ class Pmg2GraphTest(PymatgenTest):
         naf = Structure.from_spacegroup("Pm-3m", Lattice.cubic(3), ["Na", "F"], [[0, 0, 0], [0.5, 0.5, 0.5]])
         elem_list = get_element_list([cscl, naf])
         assert elem_list == ("F", "Na", "Cl", "Cs")
-
-
-if __name__ == "__main__":
-    unittest.main()
