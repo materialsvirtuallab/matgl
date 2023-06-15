@@ -6,6 +6,9 @@ nav_order: 2
 
 # Change Log
 
+## 0.5.6
+- Minor internal refactoring of basis expansions into `_basis.py`. (@lbluque)
+
 ## 0.5.5
 - Critical bug fix for code regression affecting pre-loaded models.
 
