@@ -151,7 +151,7 @@ information. If you are using any of the pretrained models, please cite the rele
 
 1. **The `M3GNet-MP-2021.2.8-PES` differs from the original tensorflow (TF) implementation!**
 
-   Answer: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
+   _Answer:_ `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
    Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
    to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
    (see [examples][jupyternb]). However, it is not expected to reproduce the TF version exactly. This refitted model
@@ -160,7 +160,7 @@ information. If you are using any of the pretrained models, please cite the rele
 
 2. **I am getting errors with `matgl.load_model()`!**
 
-   Answer: The most likely reason is that you have a cached older version of the model. We often refactor models to
+   _Answer:_ The most likely reason is that you have a cached older version of the model. We often refactor models to
    ensure the best implementation. This can usually be solved by updating your matgl to the latest version
    and clearing your cache using:
 
@@ -174,21 +174,27 @@ information. If you are using any of the pretrained models, please cite the rele
 
 3. **What pre-trained models should I be using?**
 
-   Answer: There is no one definitive answer. In general, the newer the architecture and dataset, the more likely
+   _Answer:_ There is no one definitive answer. In general, the newer the architecture and dataset, the more likely
    the model performs better. However, it should also be noted that a model operating on a more diverse dataset may
    compromise on  performance on a specific system. The best way is to look at the READMEs included with each model
    and do some tests on the systems you are interested in.
 
 4. **How do I contribute to matgl?**
 
-   Answer: For code contributions, please fork and submit pull requests. You should read the [developer guide]
-   (developer) to understand the general design guidelines.
-
-   We welcome pre-trained model contributions as well, which should also be submitted via PRs. Please follow the
-   folder structure of the pretrained models. In particular, we expect all models to come with a README and notebook
+   _Answer:_ For code contributions, please fork and submit pull requests. You should read the
+   [developer guide](developer.md) to understand the general design guidelines. We welcome pre-trained model
+   contributions as well, which should also be submitted via PRs. Please follow the folder structure of the
+   pretrained models. In particular, we expect all models to come with a README and notebook
    documenting its use and its key performance metrics. Also, we expect contributions to be on new properties
    or systems or to significantly outperform the existing models. We will develop an alternative means for model
    sharing in the future.
+
+5. **None of your models do what I need. Where can I get help?**
+
+   Answer: Please contact [Prof Ong][ongemail] with a brief description of your needs. For simple problems, we are
+   glad to advise and point you in the right direction. For more complicated problems, we are always open to
+   academic collaborations or projects. We also offer [consulting services][mqm] for companies with unique needs,
+   including but not limited to custom data generation, model development and materials design.
 
 ## Acknowledgments
 
@@ -212,3 +218,5 @@ ACI-1548562.
 [doc]: https://matgl.ai "MatGL Documentation"
 [colab]: http://colab.google.com "Google Colab"
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples
+[ongemail]: mailto:ongsp@ucsd.edu "Email"
+[mqm]: https://materialsqm.com "MaterialsQM"
