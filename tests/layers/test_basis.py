@@ -115,19 +115,19 @@ class TestSphericalBesselHarmonicsFunction:
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 9]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=2, cutoff=5.0, use_smooth=False, use_phi=True)
-        l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
+        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 12]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=True, use_phi=False)
-        l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
+        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 9]
 
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=True, use_phi=True)
-        l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
+        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         three_body_basis = sb_and_sh(l_g1)
         assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 27]
