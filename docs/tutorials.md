@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Tutorial
+title: Tutorials
 nav_order: 2
 ---
 
