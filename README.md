@@ -180,7 +180,7 @@ information. If you are using any of the pretrained models, please cite the rele
 
 5. **None of your models do what I need. Where can I get help?**
 
-   Answer: Please contact [Prof Ong][ongemail] with a brief description of your needs. For simple problems, we are
+   _Answer:_ Please contact [Prof Ong][ongemail] with a brief description of your needs. For simple problems, we are
    glad to advise and point you in the right direction. For more complicated problems, we are always open to
    academic collaborations or projects. We also offer [consulting services][mqm] for companies with unique needs,
    including but not limited to custom data generation, model development and materials design.
