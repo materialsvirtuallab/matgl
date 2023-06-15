@@ -147,12 +147,12 @@ class FourierExpansion(nn.Module):
     ):
         """Args:
         max_f (int): the maximum frequency of the Fourier expansion.
-        Default = 5
+            Default = 5
         interval (float): the interval of the Fourier expansion, such that functions
-        are orthonormal over [-interval, interval]. Default = pi
+            are orthonormal over [-interval, interval]. Default = pi
         scale_factor (float): pre-factor to scale all values.
-        learnable (bool): whether to set the frequencies as learnable parameters
-        Default = False.
+            learnable (bool): whether to set the frequencies as learnable parameters
+            Default = False.
         """
         super().__init__()
         self.max_f = max_f
