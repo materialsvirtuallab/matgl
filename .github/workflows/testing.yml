@@ -28,4 +28,6 @@ jobs:
           pip install -e .
       - name: pytest
         run: |
-          pytest tests --color=yes
+          pytest --cov=matgl tests --color=yes
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2

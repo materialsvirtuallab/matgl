@@ -7,18 +7,17 @@ import torch
 from matgl.utils.io import RemoteFile, get_available_pretrained_models, load_model
 
 
-class TestRemoteFile:
-    def test_remote(self):
-        with RemoteFile(
-            "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/MEGNet-MP-2018.6.1-Eform/model.pt",
-            cache_location=".",
-        ) as s:
-            d = torch.load(s, map_location=torch.device("cpu"))
-            assert "nblocks" in d["model"]["init_args"]
-        try:  # cleanup
-            shutil.rmtree("MEGNet-MP-2018.6.1-Eform")
-        except FileNotFoundError:
-            pass
+def test_remote_file():
+    with RemoteFile(
+        "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/MEGNet-MP-2018.6.1-Eform/model.pt",
+        cache_location=".",
+    ) as s:
+        d = torch.load(s, map_location=torch.device("cpu"))
+        assert "nblocks" in d["model"]["init_args"]
+    try:  # cleanup
+        shutil.rmtree("MEGNet-MP-2018.6.1-Eform")
+    except FileNotFoundError:
+        pass
 
 
 def test_get_available_pretrained_models_load_model():
