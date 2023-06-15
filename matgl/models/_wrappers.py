@@ -29,7 +29,7 @@ class TransformedTargetModel(nn.Module, IOMixIn):
         self.transformer = target_transformer
 
     def forward(self, *args, **kwargs):
-        r"""Args:
+        """Args:
             *args: Passthrough to parent model.forward method.
             **kwargs: Passthrough to parent model.forward method.
 

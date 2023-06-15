@@ -245,6 +245,42 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
             * [`AtomRef.training`](matgl.layers.md#matgl.layers._atom_ref.AtomRef.training)
 
 
+    * [matgl.layers._basis module](matgl.layers.md#module-matgl.layers._basis)
+
+
+        * [`GaussianExpansion`](matgl.layers.md#matgl.layers._basis.GaussianExpansion)
+
+
+            * [`GaussianExpansion.forward()`](matgl.layers.md#matgl.layers._basis.GaussianExpansion.forward)
+
+
+            * [`GaussianExpansion.reset_parameters()`](matgl.layers.md#matgl.layers._basis.GaussianExpansion.reset_parameters)
+
+
+            * [`GaussianExpansion.training`](matgl.layers.md#matgl.layers._basis.GaussianExpansion.training)
+
+
+        * [`SphericalBesselFunction`](matgl.layers.md#matgl.layers._basis.SphericalBesselFunction)
+
+
+            * [`SphericalBesselFunction.rbf_j0()`](matgl.layers.md#matgl.layers._basis.SphericalBesselFunction.rbf_j0)
+
+
+        * [`SphericalBesselWithHarmonics`](matgl.layers.md#matgl.layers._basis.SphericalBesselWithHarmonics)
+
+
+            * [`SphericalBesselWithHarmonics.forward()`](matgl.layers.md#matgl.layers._basis.SphericalBesselWithHarmonics.forward)
+
+
+            * [`SphericalBesselWithHarmonics.training`](matgl.layers.md#matgl.layers._basis.SphericalBesselWithHarmonics.training)
+
+
+        * [`SphericalHarmonicsFunction`](matgl.layers.md#matgl.layers._basis.SphericalHarmonicsFunction)
+
+
+        * [`spherical_bessel_smooth()`](matgl.layers.md#matgl.layers._basis.spherical_bessel_smooth)
+
+
     * [matgl.layers._bond module](matgl.layers.md#module-matgl.layers._bond)
 
 
@@ -419,15 +455,6 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
     * [matgl.layers._three_body module](matgl.layers.md#module-matgl.layers._three_body)
 
 
-        * [`SphericalBesselWithHarmonics`](matgl.layers.md#matgl.layers._three_body.SphericalBesselWithHarmonics)
-
-
-            * [`SphericalBesselWithHarmonics.forward()`](matgl.layers.md#matgl.layers._three_body.SphericalBesselWithHarmonics.forward)
-
-
-            * [`SphericalBesselWithHarmonics.training`](matgl.layers.md#matgl.layers._three_body.SphericalBesselWithHarmonics.training)
-
-
         * [`ThreeBodyInteractions`](matgl.layers.md#matgl.layers._three_body.ThreeBodyInteractions)
 
 
@@ -435,6 +462,9 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
             * [`ThreeBodyInteractions.training`](matgl.layers.md#matgl.layers._three_body.ThreeBodyInteractions.training)
+
+
+        * [`combine_sbf_shf()`](matgl.layers.md#matgl.layers._three_body.combine_sbf_shf)
 
 
 * [matgl.models package](matgl.models.md)
@@ -528,30 +558,6 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
     * [matgl.utils.maths module](matgl.utils.md#module-matgl.utils.maths)
 
 
-        * [`CWD`](matgl.utils.md#matgl.utils.maths.CWD)
-
-
-        * [`GaussianExpansion`](matgl.utils.md#matgl.utils.maths.GaussianExpansion)
-
-
-            * [`GaussianExpansion.forward()`](matgl.utils.md#matgl.utils.maths.GaussianExpansion.forward)
-
-
-            * [`GaussianExpansion.reset_parameters()`](matgl.utils.md#matgl.utils.maths.GaussianExpansion.reset_parameters)
-
-
-            * [`GaussianExpansion.training`](matgl.utils.md#matgl.utils.maths.GaussianExpansion.training)
-
-
-        * [`SphericalBesselFunction`](matgl.utils.md#matgl.utils.maths.SphericalBesselFunction)
-
-
-            * [`SphericalBesselFunction.rbf_j0()`](matgl.utils.md#matgl.utils.maths.SphericalBesselFunction.rbf_j0)
-
-
-        * [`SphericalHarmonicsFunction`](matgl.utils.md#matgl.utils.maths.SphericalHarmonicsFunction)
-
-
         * [`broadcast()`](matgl.utils.md#matgl.utils.maths.broadcast)
 
 
@@ -559,9 +565,6 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
         * [`broadcast_states_to_bonds()`](matgl.utils.md#matgl.utils.maths.broadcast_states_to_bonds)
-
-
-        * [`combine_sbf_shf()`](matgl.utils.md#matgl.utils.maths.combine_sbf_shf)
 
 
         * [`get_range_indices_from_n()`](matgl.utils.md#matgl.utils.maths.get_range_indices_from_n)
@@ -577,9 +580,6 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
         * [`spherical_bessel_roots()`](matgl.utils.md#matgl.utils.maths.spherical_bessel_roots)
-
-
-        * [`spherical_bessel_smooth()`](matgl.utils.md#matgl.utils.maths.spherical_bessel_smooth)
 
 
         * [`unsorted_segment_fraction()`](matgl.utils.md#matgl.utils.maths.unsorted_segment_fraction)
@@ -645,5 +645,10 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 Global configuration variables for matgl.
 
 
-### matgl.config.clear_cache()
+### matgl.config.clear_cache(confirm: bool = True)
 Deletes all files in the matgl.cache. This is used to clean out downloaded models.
+
+
+* **Parameters**
+
+    **confirm** – Whether to ask for confirmation. Default is True.

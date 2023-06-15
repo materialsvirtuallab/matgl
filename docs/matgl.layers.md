@@ -159,6 +159,163 @@ Get the number of atoms for different elements in the structure.
 
 
 #### training(_: boo_ )
+## matgl.layers._basis module
+
+
+### _class_ matgl.layers._basis.GaussianExpansion(initial: float = 0.0, final: float = 4.0, num_centers: int = 20, width: None | float = 0.5)
+Bases: `Module`
+
+Gaussian Radial Expansion.
+
+The bond distance is expanded to a vector of shape [m], where m is the number of Gaussian basis centers.
+
+
+* **Parameters**
+
+    
+    * **initial** – Location of initial Gaussian basis center.
+
+
+    * **final** – Location of final Gaussian basis center
+
+
+    * **num_centers** – Number of Gaussian Basis functions
+
+
+    * **width** – Width of Gaussian Basis functions.
+
+
+
+#### forward(bond_dists)
+Expand distances.
+
+
+* **Parameters**
+
+    **bond_dists** – Bond (edge) distances between two atoms (nodes)
+
+
+
+* **Returns**
+
+    A vector of expanded distance with shape [num_centers]
+
+
+
+#### reset_parameters()
+Reinitialize model parameters.
+
+
+#### training(_: boo_ )
+
+### _class_ matgl.layers._basis.SphericalBesselFunction(max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False)
+Bases: `object`
+
+Calculate the spherical Bessel function based on sympy + pytorch implementations.
+
+Args:
+max_l: int, max order (excluding l)
+max_n: int, max number of roots used in each l
+cutoff: float, cutoff radius
+smooth: Whether to smooth the function.
+
+
+#### _static_ rbf_j0(r, cutoff: float = 5.0, max_n: int = 3)
+Spherical Bessel function of order 0, ensuring the function value
+vanishes at cutoff.
+
+
+* **Parameters**
+
+    
+    * **r** – torch.tensor pytorch tensors
+
+
+    * **cutoff** – float, the cutoff radius
+
+
+    * **max_n** – int max number of basis
+
+
+Returns: basis function expansion using first spherical Bessel function
+
+
+### _class_ matgl.layers._basis.SphericalBesselWithHarmonics(max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool)
+Bases: `Module`
+
+Expansion of basis using Spherical Bessel and Harmonics.
+
+Init SphericalBesselWithHarmonics.
+
+
+* **Parameters**
+
+    
+    * **max_n** – Degree of radial basis functions.
+
+
+    * **max_l** – Degree of angular basis functions.
+
+
+    * **cutoff** – Cutoff sphere.
+
+
+    * **use_smooth** – Whether using smooth version of SBFs or not.
+
+
+    * **use_phi** – Using phi as angular basis functions.
+
+
+
+#### forward(line_graph)
+Defines the computation performed at every call.
+
+Should be overridden by all subclasses.
+
+**NOTE**: Although the recipe for forward pass needs to be defined within
+this function, one should call the `Module` instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.
+
+
+#### training(_: boo_ )
+
+### _class_ matgl.layers._basis.SphericalHarmonicsFunction(max_l: int, use_phi: bool = True)
+Bases: `object`
+
+Spherical Harmonics function.
+
+Args:
+max_l: int, max l (excluding l)
+use_phi: bool, whether to use the polar angle. If not,
+the function will compute Y_l^0.
+
+
+### matgl.layers._basis.spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10)
+This is an orthogonal basis with first
+and second derivative at the cutoff
+equals to zero. The function was derived from the order 0 spherical Bessel
+function, and was expanded by the different zero roots.
+
+Ref:
+
+    [https://arxiv.org/pdf/1907.02374.pdf](https://arxiv.org/pdf/1907.02374.pdf)
+
+
+* **Parameters**
+
+    
+    * **r** – torch.tensor distance tensor
+
+
+    * **cutoff** – float, cutoff radius
+
+
+    * **max_n** – int, max number of basis, expanded by the zero roots
+
+
+Returns: expanded spherical harmonics with derivatives smooth at boundary
+
 ## matgl.layers._bond module
 
 Generate bond features based on spherical bessel functions or gaussian expansion.
@@ -873,46 +1030,6 @@ registered hooks while the latter silently ignores them.
 Three-Body interaction implementations.
 
 
-### _class_ matgl.layers._three_body.SphericalBesselWithHarmonics(max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool)
-Bases: `Module`
-
-Expansion of basis using Spherical Bessel and Harmonics.
-
-Init SphericalBesselWithHarmonics.
-
-
-* **Parameters**
-
-    
-    * **max_n** – Degree of radial basis functions.
-
-
-    * **max_l** – Degree of angular basis functions.
-
-
-    * **cutoff** – Cutoff sphere.
-
-
-    * **use_smooth** – Whether using smooth version of SBFs or not.
-
-
-    * **use_phi** – Using phi as angular basis functions.
-
-
-
-#### forward(line_graph)
-Defines the computation performed at every call.
-
-Should be overridden by all subclasses.
-
-**NOTE**: Although the recipe for forward pass needs to be defined within
-this function, one should call the `Module` instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.
-
-
-#### training(_: boo_ )
-
 ### _class_ matgl.layers._three_body.ThreeBodyInteractions(update_network_atom: Module, update_network_bond: Module, \*\*kwargs)
 Bases: `Module`
 
@@ -935,7 +1052,7 @@ Init ThreeBodyInteractions.
 
 
 #### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: tensor, three_cutoff: float, node_feat: tensor, edge_feat: tensor)
-Forward function for ThreeBodyInteractions
+Forward function for ThreeBodyInteractions.
 
 
 * **Parameters**
@@ -961,3 +1078,38 @@ Forward function for ThreeBodyInteractions
 
 
 #### training(_: boo_ )
+
+### matgl.layers._three_body.combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool)
+Combine the spherical Bessel function and the spherical Harmonics function.
+
+For the spherical Bessel function, the column is ordered by
+
+    [n=[0, …, max_n-1], n=[0, …, max_n-1], …], max_l blocks,
+
+For the spherical Harmonics function, the column is ordered by
+
+    [m=[0], m=[-1, 0, 1], m=[-2, -1, 0, 1, 2], …] max_l blocks, and each
+    block has 2\*l + 1
+    if use_phi is False, then the columns become
+    [m=[0], m=[0], …] max_l columns
+
+
+* **Parameters**
+
+    
+    * **sbf** – torch.tensor spherical bessel function results
+
+
+    * **shf** – torch.tensor spherical harmonics function results
+
+
+    * **max_n** – int, max number of n
+
+
+    * **max_l** – int, max number of l
+
+
+    * **use_phi** – whether to use phi
+
+
+Returns:

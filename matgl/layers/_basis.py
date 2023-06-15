@@ -12,9 +12,9 @@ from matgl.utils.maths import SPHERICAL_BESSEL_ROOTS, _get_lambda_func
 
 
 class GaussianExpansion(nn.Module):
-    r"""Gaussian Radial Expansion.
-    The bond distance is expanded to a vector of shape [m],
-    where m is the number of Gaussian basis centers.
+    """Gaussian Radial Expansion.
+
+    The bond distance is expanded to a vector of shape [m], where m is the number of Gaussian basis centers.
     """
 
     def __init__(

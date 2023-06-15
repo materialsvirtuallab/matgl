@@ -8,6 +8,7 @@ nav_order: 1
 [![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
 [![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
+[![Coverage Status](https://coveralls.io/repos/github/materialsvirtuallab/matgl/badge.svg?branch=main)](https://coveralls.io/github/materialsvirtuallab/matgl?branch=main)
 
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 
@@ -62,7 +63,7 @@ network, whereby bonds, atoms, and global state attributes are updated using inf
 
 ### M3GNet
 
-[Materials 3-body Graph Network (M3GNet)][m3gnet] is a new materials graph neural network architecture that 
+[Materials 3-body Graph Network (M3GNet)][m3gnet] is a new materials graph neural network architecture that
 incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
 the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
 stresses via auto-differentiation. As a framework, M3GNet has diverse applications, including:
@@ -70,7 +71,7 @@ stresses via auto-differentiation. As a framework, M3GNet has diverse applicatio
 - **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
   machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
   flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
-  [*universal IP*][m3gnet] that can work across the entire periodic table of the elements by training on relaxations 
+  [*universal IP*][m3gnet] that can work across the entire periodic table of the elements by training on relaxations
   performed in the [Materials Project][mp].
 - **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
   surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other

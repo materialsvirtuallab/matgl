@@ -18,8 +18,7 @@ class ThreeBodyInteractions(nn.Module):
     """Include 3D interactions to the bond update."""
 
     def __init__(self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs):
-        r"""
-        Init ThreeBodyInteractions.
+        """Init ThreeBodyInteractions.
 
         Args:
             update_network_atom: MLP for node features in Eq.2
