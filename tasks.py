@@ -115,7 +115,7 @@ def release_github(ctx):
 def release(ctx, notest=False):
     ctx.run("rm -r dist build matgl.egg-info", warn=True)
     if not notest:
-        ctx.run("pytest matgl")
+        ctx.run("pytest tests")
     publish(ctx)
     release_github(ctx)
 
