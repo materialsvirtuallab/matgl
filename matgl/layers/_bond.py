@@ -4,7 +4,7 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-from matgl.utils.maths import GaussianExpansion, SphericalBesselFunction
+from matgl.layers._basis import GaussianExpansion, SphericalBesselFunction
 
 
 class BondExpansion(nn.Module):
