@@ -227,10 +227,10 @@ class SmoothPolynomialEnvelope(torch.nn.Module):
     """
     def __init__(self, cutoff: float = 5, exponent: float = 5):
         """Args:
-            cutoff (float): cutoff radius (A) in atom graph construction
-                Default = 5
-            exponent (float): minimum exponent of the polynomial function
-                Default = 5.
+        cutoff (float): cutoff radius (A) in atom graph construction
+        Default = 5
+        exponent (float): minimum exponent of the polynomial function
+        Default = 5.
         """
         super().__init__()
         self.cutoff = cutoff
