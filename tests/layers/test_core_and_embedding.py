@@ -9,35 +9,30 @@ from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._core import MLP, GatedMLP
 
+import pytest
+
+
+@pytest.fixture
+def x():
+    return torch.randn(4, 10, requires_grad=True)
+
 
 class TestCoreAndEmbedding:
-    s1 = Structure(Lattice.cubic(4.0), ["Mo", "Mo"], [[0.0, 0, 0], [0.5, 0.5, 0.5]])
-    Structure(Lattice.cubic(3), ["Mo", "Fe"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-    element_types = get_element_list([s1])
-    p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
-    graph, state = p2g.get_graph(s1)
-    g1 = graph
-    state1 = state
-
-    bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
-    g1.edata["bond_dist"] = bond_dist
-
-    x = torch.randn(4, 10, requires_grad=True)
-
-    def test_mlp(self):
+    def test_mlp(self, x):
         layer = MLP(dims=[10, 3], activation=nn.SiLU())
-        out = layer(self.x).double()
+        out = layer(x).double()
         assert [out.size()[0], out.size()[1]] == [4, 3]
 
-    def test_gated_mlp(self):
+    def test_gated_mlp(self, x):
         torch.manual_seed(42)
         layer = GatedMLP(in_feats=10, dims=[10, 1], activate_last=False)
-        out = layer(self.x)
+        out = layer(x)
         assert [out.size()[0], out.size()[1]] == [4, 1]
 
-    def test_embedding(self):
+    def test_embedding(self, graph_Mo):
+        s1, g1, state1 = graph_Mo
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
-        bond_dist = self.g1.edata["bond_dist"]
+        bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
         bond_basis = bond_expansion(bond_dist)
         # include state features
         embed = EmbeddingBlock(
@@ -49,12 +44,12 @@ class TestCoreAndEmbedding:
             activation=nn.SiLU(),
         )
         state_attr = torch.tensor([1.0, 2.0])
-        node_attr = self.g1.ndata["attr"]
+        node_attr = g1.ndata["attr"]
         edge_attr = bond_basis
         node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, state_attr)
 
         assert [node_feat.size(dim=0), node_feat.size(dim=1)] == [2, 16]
-        assert [edge_feat.size(dim=0), edge_feat.size(dim=1)] == [28, 16]
+        assert [edge_feat.size(dim=0), edge_feat.size(dim=1)] == [52, 16]
         assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 16]
         # include state embedding
         embed2 = EmbeddingBlock(
