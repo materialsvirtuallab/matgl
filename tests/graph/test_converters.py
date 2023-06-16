@@ -13,27 +13,17 @@ from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class TestPmg2Graph(PymatgenTest):
-    def test_get_graph_from_molecule(self):
-        coords = [
-            [0.000000, 0.000000, 0.000000],
-            [0.000000, 0.000000, 1.089000],
-            [1.026719, 0.000000, -0.363000],
-            [-0.513360, -0.889165, -0.363000],
-            [-0.513360, 0.889165, -0.363000],
-        ]
-        methane = Molecule(["C", "H", "H", "H", "H"], coords)
-        element_types = get_element_list([methane])
-        p2g = Molecule2Graph(element_types=element_types, cutoff=1.5)
-        graph, state = p2g.get_graph(methane)
+class TestPmg2Graph:
+    def test_get_graph_from_molecule(self, graph_CH4):
+        mol, graph, state = graph_CH4
         # check the number of nodes
         assert np.allclose(graph.num_nodes(), 5)
         # check the number of edges
-        assert np.allclose(graph.num_edges(), 8)
+        assert np.allclose(graph.num_edges(), 20)
         # check the src_ids
-        assert np.allclose(graph.edges()[0].numpy(), [0, 0, 0, 0, 1, 2, 3, 4])
+        assert np.allclose(graph.edges()[0].numpy(), [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4])
         # check the dst_ids
-        assert np.allclose(graph.edges()[1].numpy(), [1, 2, 3, 4, 0, 0, 0, 0])
+        assert np.allclose(graph.edges()[1].numpy(), [1, 2, 3, 4, 0, 2, 3, 4, 0, 1, 3, 4, 0, 1, 2, 4, 0, 1, 2, 3])
         # check the atomic features of atom C
         assert np.allclose(graph.ndata["attr"][0], [0, 1])
         # check the atomic features of atom H
@@ -41,17 +31,14 @@ class TestPmg2Graph(PymatgenTest):
         # check the shape of state features
         assert np.allclose(len(state), 2)
         # check the value of state features
-        assert np.allclose(state, [3.208492, 0.8])
+        assert np.allclose(state, [3.208492, 2])
         # check the position of atom 0
         assert np.allclose(graph.ndata["pos"][0], [0.0, 0.0, 0.0])
 
-    def test_get_graph_from_structure(self):
-        structure_LiFePO4 = self.get_structure("LiFePO4")
-        element_types = get_element_list([structure_LiFePO4])
-        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph(structure_LiFePO4)
+    def test_get_graph_from_structure(self, graph_LiFePO4):
+        lfp, graph, state = graph_LiFePO4
         # check the number of nodes
-        assert np.allclose(graph.num_nodes(), structure_LiFePO4.num_sites)
+        assert np.allclose(graph.num_nodes(), lfp.num_sites)
         # check the atomic feature of atom 0
         assert np.allclose(graph.ndata["attr"][0].numpy(), [1, 0, 0, 0])
         # check the atomic feature of atom 4
@@ -83,8 +70,8 @@ class TestPmg2Graph(PymatgenTest):
         # check the volume
         assert np.allclose(graph.ndata["volume"][0], [65.939264])
 
-    def test_get_graph_from_atoms(self):
-        structure_LiFePO4 = self.get_structure("LiFePO4")
+    def test_get_graph_from_atoms(self, graph_LiFePO4):
+        structure_LiFePO4, _, _ = graph_LiFePO4
         element_types = get_element_list([structure_LiFePO4])
         adaptor = AseAtomsAdaptor()
         structure_ase = adaptor.get_atoms(structure_LiFePO4)
