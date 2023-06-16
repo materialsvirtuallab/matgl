@@ -1,6 +1,6 @@
 ---
 layout: default
-title: tutorials/Using the Pre-trained M3GNet Universal Potential for PES Predictions.md
+title: tutorials/Relaxations and Simulations using the M3GNet Universal Potential.md
 nav_exclude: true
 ---
 # Introduction

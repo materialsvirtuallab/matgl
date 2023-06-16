@@ -1,6 +1,6 @@
 ---
 layout: default
-title: tutorials/Using Pre-trained MEGNet or M3GNet Models for Property Predictions.md
+title: tutorials/Property Predictions using MEGNet or M3GNet Models.md
 nav_exclude: true
 ---
 # Introduction

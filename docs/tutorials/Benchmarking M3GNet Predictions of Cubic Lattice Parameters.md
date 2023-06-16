@@ -1,6 +1,6 @@
 ---
 layout: default
-title: tutorials/Errors in Cubic Crystal Lattice Parameters.md
+title: tutorials/Benchmarking M3GNet Predictions of Cubic Lattice Parameters.md
 nav_exclude: true
 ---
 # Introduction
@@ -1704,7 +1704,7 @@ data["% error vs MP"].replace([np.inf, -np.inf], np.nan).dropna().hist(bins=20)
 
 
     
-![png](Errors%20in%20Cubic%20Crystal%20Lattice%20Parameters_files/Errors%20in%20Cubic%20Crystal%20Lattice%20Parameters_9_1.png)
+![png](Benchmarking%20M3GNet%20Predictions%20of%20Cubic%20Lattice%20Parameters_files/Benchmarking%20M3GNet%20Predictions%20of%20Cubic%20Lattice%20Parameters_9_1.png)
     
 
 

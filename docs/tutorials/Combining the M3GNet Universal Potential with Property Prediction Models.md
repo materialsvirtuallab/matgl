@@ -1,6 +1,6 @@
 ---
 layout: default
-title: tutorials/Using the M3GNet Universal Potential with Property Prediction Models.md
+title: tutorials/Combining the M3GNet Universal Potential with Property Prediction Models.md
 nav_exclude: true
 ---
 # Introduction
