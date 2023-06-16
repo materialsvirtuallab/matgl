@@ -14,6 +14,7 @@ from matgl.layers._basis import (
     SphericalBesselWithHarmonics,
     SphericalHarmonicsFunction,
     FourierExpansion,
+    SmoothPolynomialEnvelope,
     spherical_bessel_smooth,
 )
 from matgl.layers._three_body import combine_sbf_shf
@@ -148,3 +149,24 @@ def test_fourier_expansion():
 
     sines = torch.sin(torch.outer(x, torch.arange(1, max_f + 1)) * np.pi / interval) / interval
     assert_close(res[:, 1::2], sines)
+
+
+def test_smooth_polymonial_envelope():
+    sbf = SphericalBesselFunction(max_l=1, max_n=5, cutoff=5)
+    envelope = SmoothPolynomialEnvelope(cutoff=5, exponent=4)
+
+    r = torch.linspace(1, 5, 10, requires_grad=True)
+
+    sbf_res = sbf(r)
+
+    envelope_res = envelope(r)[:, None] * sbf_res
+
+    # assert that it is zero at the cutoff
+    assert_close(sbf_res[-1, :], torch.zeros_like(sbf_res[-1, :]))
+    assert_close(envelope_res[-1, :], torch.zeros_like(envelope_res[-1, :]))
+
+    # assert derivatives vanish smoothly at the cutoff
+    envelope_res.backward(torch.ones_like(envelope_res), retain_graph=True)
+    assert r.grad[-1] == 0.0
+    envelope_res.backward(torch.ones_like(envelope_res))
+    assert r.grad[-1] == 0.0
