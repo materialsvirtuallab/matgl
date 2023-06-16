@@ -16,40 +16,39 @@ from matgl.utils.maths import (
 )
 
 
-class TestMath:
-    def test_spherical_bessel_roots(self):
-        roots = spherical_bessel_roots(max_l=1, max_n=5)
-        roots2 = SPHERICAL_BESSEL_ROOTS
-        assert np.allclose(roots2[0, :5], roots.ravel())
+def test_spherical_bessel_roots():
+    roots = spherical_bessel_roots(max_l=1, max_n=5)
+    roots2 = SPHERICAL_BESSEL_ROOTS
+    assert np.allclose(roots2[0, :5], roots.ravel())
 
-    def test_torch_operations(self):
-        ns = torch.tensor([2, 3])
-        assert [0, 0, 1, 1, 1] == get_segment_indices_from_n(ns).tolist()
-        ns = torch.tensor([2, 3])
-        assert [0, 1, 0, 1, 2] == get_range_indices_from_n(ns).tolist()
-        assert repeat_with_n(torch.tensor([[0, 0], [1, 1], [2, 2]]), torch.tensor([1, 2, 3])).tolist() == [
-            [0, 0],
-            [1, 1],
-            [1, 1],
-            [2, 2],
-            [2, 2],
-            [2, 2],
-        ]
 
-    def test_segments(self):
-        x = torch.tensor([1.0, 1.0, 2.0, 3.0])
-        res = unsorted_segment_fraction(x, torch.tensor([0, 0, 1, 1]), 2)
-        assert np.allclose(res.tolist(), [0.5, 0.5, 0.4, 0.6])
+def test_torch_operations():
+    ns = torch.tensor([2, 3])
+    assert [0, 0, 1, 1, 1] == get_segment_indices_from_n(ns).tolist()
+    ns = torch.tensor([2, 3])
+    assert [0, 1, 0, 1, 2] == get_range_indices_from_n(ns).tolist()
+    assert repeat_with_n(torch.tensor([[0, 0], [1, 1], [2, 2]]), torch.tensor([1, 2, 3])).tolist() == [
+        [0, 0],
+        [1, 1],
+        [1, 1],
+        [2, 2],
+        [2, 2],
+        [2, 2],
+    ]
 
-    #        res = unsorted_segment_softmax(x, torch.tensor([0, 0, 1, 1]), 2)
-    #        np.testing.assert_array_almost_equal(res, [0.5, 0.5, 0.26894143, 0.7310586])
 
-    def test_broadcast(self):
-        src_ids = torch.tensor([2, 3, 4])
-        dst_ids = torch.tensor([1, 2, 3])
-        g = dgl.graph((src_ids, dst_ids))
-        state_attr = torch.tensor([0.0, 0.0])
-        broadcasted_state_feat = broadcast_states_to_bonds(g, state_attr)
-        assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [3, 2]
-        broadcasted_state_feat = broadcast_states_to_atoms(g, state_attr)
-        assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [5, 2]
+def test_segments():
+    x = torch.tensor([1.0, 1.0, 2.0, 3.0])
+    res = unsorted_segment_fraction(x, torch.tensor([0, 0, 1, 1]), 2)
+    assert np.allclose(res.tolist(), [0.5, 0.5, 0.4, 0.6])
+
+
+def test_broadcast():
+    src_ids = torch.tensor([2, 3, 4])
+    dst_ids = torch.tensor([1, 2, 3])
+    g = dgl.graph((src_ids, dst_ids))
+    state_attr = torch.tensor([0.0, 0.0])
+    broadcasted_state_feat = broadcast_states_to_bonds(g, state_attr)
+    assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [3, 2]
+    broadcasted_state_feat = broadcast_states_to_atoms(g, state_attr)
+    assert [broadcasted_state_feat.size(dim=0), broadcasted_state_feat.size(dim=1)] == [5, 2]
