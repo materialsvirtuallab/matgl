@@ -5,10 +5,9 @@ import os
 import numpy as np
 from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.util.testing import PymatgenTest
 
 from matgl.ext.ase import Atoms2Graph
-from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
