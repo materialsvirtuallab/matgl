@@ -219,6 +219,45 @@ class SphericalHarmonicsFunction:
         # return results
 
 
+class SmoothPolynomialEnvelope(torch.nn.Module):
+    """Envelope polynomial function that ensures a smooth cutoff.
+
+    Ensures first and second derivative vanish at cuttoff. As described in:
+        https://arxiv.org/abs/2003.03123
+    """
+    def __init__(self, cutoff: float = 5, exponent: float = 5):
+        """Args:
+            cutoff (float): cutoff radius (A) in atom graph construction
+                Default = 5
+            exponent (float): minimum exponent of the polynomial function
+                Default = 5.
+        """
+        super().__init__()
+        self.cutoff = cutoff
+        self.p = exponent
+        self.a = -(self.p + 1) * (self.p + 2) / 2
+        self.b = self.p * (self.p + 2)
+        self.c = -self.p * (self.p + 1) / 2
+
+    def forward(self, r: torch.Tensor) -> torch.Tensor:
+        """Polynomial cutoff function.
+
+        Args:
+            r (Tensor): radius distance tensor
+
+        Returns:
+            polynomial cutoff functions: decaying from 1 at r=0 to 0 at r=cutoff
+        """
+        r_scaled = r / self.cutoff
+        env_val = (
+                1
+                + self.a * r_scaled ** self.p
+                + self.b * r_scaled ** (self.p + 1)
+                + self.c * r_scaled ** (self.p + 2)
+        )
+        return torch.where(r_scaled < 1, env_val, torch.zeros_like(r_scaled))
+
+
 def _y00(theta, phi):
     r"""Spherical Harmonics with `l=m=0`.
 
