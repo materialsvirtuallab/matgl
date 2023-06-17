@@ -68,6 +68,5 @@ def test_load_model():
     assert issubclass(model.__class__, torch.nn.Module)
 
     # Load model from a full path.
-
     model = load_model(this_dir / ".." / ".." / "pretrained_models" / "MEGNet-MP-2018.6.1-Eform")
     assert issubclass(model.__class__, torch.nn.Module)
