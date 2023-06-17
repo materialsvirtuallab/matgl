@@ -4,9 +4,6 @@ import os
 
 import numpy as np
 from pymatgen.core import Lattice, Molecule, Structure
-from pymatgen.io.ase import AseAtomsAdaptor
-
-from matgl.ext.ase import Atoms2Graph
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -68,24 +65,6 @@ class TestPmg2Graph:
         assert np.allclose(graph.edata["lattice"][0], [[4.04, 0.0, 0.0], [0.0, 4.04, 0.0], [0.0, 0.0, 4.04]])
         # check the volume
         assert np.allclose(graph.ndata["volume"][0], [65.939264])
-
-    def test_get_graph_from_atoms(self, graph_LiFePO4):
-        structure_LiFePO4, _, _ = graph_LiFePO4
-        element_types = get_element_list([structure_LiFePO4])
-        adaptor = AseAtomsAdaptor()
-        structure_ase = adaptor.get_atoms(structure_LiFePO4)
-        p2g = Atoms2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph(structure_ase)
-        # check the number of nodes
-        assert np.allclose(graph.num_nodes(), len(structure_ase.get_atomic_numbers()))
-        # check the atomic feature of atom 0
-        assert np.allclose(graph.ndata["attr"][0].numpy(), [1, 0, 0, 0])
-        # check the atomic feature of atom 4
-        assert np.allclose(graph.ndata["attr"][4].numpy(), [0, 0, 0, 1])
-        # check the number of bonds
-        assert np.allclose(graph.num_edges(), 704)
-        # check the state features
-        assert np.allclose(state, [0.0, 0.0])
 
     def test_get_element_list(self):
         cscl = Structure.from_spacegroup("Pm-3m", Lattice.cubic(3), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
