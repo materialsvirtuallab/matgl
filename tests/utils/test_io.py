@@ -3,9 +3,44 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-import torch
 
-from matgl.utils.io import RemoteFile, get_available_pretrained_models, load_model
+import pytest
+import torch
+import pytest
+
+from matgl.utils.io import RemoteFile, get_available_pretrained_models, load_model, IOMixIn
+
+this_dir = Path(os.path.abspath(os.path.dirname(__file__)))
+
+
+class OldModel(torch.nn.Module, IOMixIn):
+    __version__ = 1
+
+    def __init__(self, n, **kwargs):
+        super().__init__()
+        self.save_args(locals(), kwargs)
+        self.n = n
+
+
+class NewModel(torch.nn.Module, IOMixIn):
+    __version__ = 100000
+
+    def __init__(self, n, **kwargs):
+        super().__init__()
+        self.save_args(locals(), kwargs)
+        self.n = n
+
+
+def test_model_versioning():
+    model = OldModel(1, k=2)
+    model.save("OldModel")
+    with pytest.warns(UserWarning, match="Incompatible model version detected!"):
+        model2 = NewModel.load("OldModel")
+    # Model will still load since there are no incompatibilities. Check the properties are reloaded.
+    assert isinstance(model2, NewModel)
+    assert model2.n == 1
+    assert model2._init_args["k"] == 2
+    shutil.rmtree("OldModel")
 
 
 def test_remote_file():
@@ -33,6 +68,6 @@ def test_load_model():
     assert issubclass(model.__class__, torch.nn.Module)
 
     # Load model from a full path.
-    this_dir = Path(os.path.abspath(os.path.dirname(__file__)))
+
     model = load_model(this_dir / ".." / ".." / "pretrained_models" / "MEGNet-MP-2018.6.1-Eform")
     assert issubclass(model.__class__, torch.nn.Module)

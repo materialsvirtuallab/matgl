@@ -260,7 +260,7 @@ def _check_ver(cls_, d: dict):
             "recommended that you provide a path to an updated model, increment your @model_version in model.json "
             "if you are confident that the changes are not problematic, or clear your ~/.matgl cache using "
             '`python -c "import matgl; matgl.clear_cache()"`',
-            DeprecationWarning,
+            UserWarning,
             stacklevel=2,
         )
 
