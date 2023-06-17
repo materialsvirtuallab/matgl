@@ -3,14 +3,10 @@ from __future__ import annotations
 from collections import namedtuple
 
 import dgl
-import numpy as np
 import torch
-from pymatgen.core.structure import Lattice, Structure
 from torch import nn
 
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
-    compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
 )

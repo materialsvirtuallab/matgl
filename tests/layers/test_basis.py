@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 import torch
 from matgl.graph.compute import (
-    compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
 )
@@ -98,9 +97,6 @@ def test_spherical_bessel_harmonics_function():
 
 def test_spherical_bessel_with_harmonics(graph_MoS):
     s, g1, state = graph_MoS
-    bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
-    g1.edata["bond_dist"] = bond_dist
-    g1.edata["bond_vec"] = bond_vec
     sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
     l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
     l_g1.apply_edges(compute_theta_and_phi)

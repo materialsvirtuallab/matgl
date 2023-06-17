@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import torch
-from pymatgen.core.structure import Lattice, Structure
 from torch import nn
 
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._core import MLP, GatedMLP
 
@@ -32,8 +29,7 @@ class TestCoreAndEmbedding:
     def test_embedding(self, graph_Mo):
         s1, g1, state1 = graph_Mo
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
-        bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
-        bond_basis = bond_expansion(bond_dist)
+        bond_basis = bond_expansion(g1.edata["bond_dist"])
         # include state features
         embed = EmbeddingBlock(
             degree_rbf=9,

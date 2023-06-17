@@ -4,7 +4,6 @@ import os
 
 import torch as th
 
-from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 
@@ -27,8 +26,7 @@ class TestMEGNetTest:
             is_classification=True,
         )
         bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_centers=100, width=0.5)
-        bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-        graph.edata["edge_attr"] = bond_expansion(bond_dist)
+        graph.edata["edge_attr"] = bond_expansion(graph.edata["bond_dist"])
         state = th.tensor(state)
         output = model(graph, graph.edata["edge_attr"], graph.ndata["node_type"], state)
         assert [th.numel(output)] == [1]

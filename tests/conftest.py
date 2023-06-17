@@ -12,14 +12,17 @@ from matgl.graph.compute import (
 )
 
 
-def get_graph(s, cutoff):
-    element_types = get_element_list([s])
-    if isinstance(s, Structure):
-        p2g = Structure2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
-        return [s] + list(p2g.get_graph(s))
+def get_graph(structure, cutoff):
+    element_types = get_element_list([structure])
+    if isinstance(structure, Structure):
+        converter = Structure2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
     else:
-        m2g = Molecule2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
-        return [s] + list(m2g.get_graph(s))
+        converter = Molecule2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
+    graph, state = converter.get_graph(structure)
+    bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
+    graph.edata["bond_dist"] = bond_dist
+    graph.edata["bond_vec"] = bond_vec
+    return structure, graph, state
 
 
 @pytest.fixture
@@ -85,17 +88,15 @@ def graph_LiFePO4(LiFePO4):
 
 @pytest.fixture
 def graph_MoS(MoS):
-    element_types = get_element_list([MoS])
-    p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
-    graph, state = p2g.get_graph(MoS)
-    g1 = graph
-    state1 = state
-    bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
-    g1.edata["bond_dist"] = bond_dist
-    g1.edata["bond_vec"] = bond_vec
-    return MoS, g1, state1
+    return get_graph(MoS, 5.0)
 
 
 @pytest.fixture
 def graph_CO(CO):
     return get_graph(CO, 5.0)
+
+
+@pytest.fixture
+def graph_MoSH():
+    s = Structure(Lattice.cubic(3.17), ["Mo", "S", "H"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75]])
+    return get_graph(s, 4.0)

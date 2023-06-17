@@ -2,21 +2,8 @@ from __future__ import annotations
 
 import dgl
 import numpy as np
-import pytest
 import torch
-from pymatgen.core.structure import Lattice, Structure
-
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.layers._atom_ref import AtomRef
-
-
-@pytest.fixture
-def graph_MoSH():
-    s1 = Structure(Lattice.cubic(3.17), ["Mo", "S", "H"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75]])
-    element_types = get_element_list([s1])
-    p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
-    graph, state = p2g.get_graph(s1)
-    return s1, graph, state
 
 
 class TestAtomRef:
