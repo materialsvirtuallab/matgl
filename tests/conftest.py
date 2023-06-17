@@ -25,12 +25,12 @@ def get_graph(structure, cutoff):
     return structure, graph, state
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def LiFePO4():
     return PymatgenTest.get_structure("LiFePO4")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def CH4():
     coords = [
         [0.000000, 0.000000, 0.000000],
@@ -42,22 +42,22 @@ def CH4():
     return Molecule(["C", "H", "H", "H", "H"], coords)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def CO():
     return Molecule(["C", "O"], [[0, 0, 0], [1.1, 0, 0]])
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def BaNiO3():
     return PymatgenTest.get_structure("BaNiO3")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def MoS():
     return Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def graph_Mo():
     """
     Returns:
@@ -67,7 +67,7 @@ def graph_Mo():
     return get_graph(s, 5.0)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def graph_CH4(CH4):
     """
     Returns:
@@ -77,7 +77,7 @@ def graph_CH4(CH4):
     return get_graph(CH4, 2.0)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def graph_LiFePO4(LiFePO4):
     """
     Returns:
@@ -86,17 +86,17 @@ def graph_LiFePO4(LiFePO4):
     return get_graph(LiFePO4, 4.0)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def graph_MoS(MoS):
     return get_graph(MoS, 5.0)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def graph_CO(CO):
     return get_graph(CO, 5.0)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def graph_MoSH():
     s = Structure(Lattice.cubic(3.17), ["Mo", "S", "H"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75]])
     return get_graph(s, 4.0)
