@@ -1,6 +1,12 @@
 """
 Define commonly used text fixtures.
+- Fixtures that are formulae (e.g., LiFePO4) essentially returns the appropriate pymatgen Structure or Molecule based
+  on the most common known structure.
+- Fixtures that are prefixed with a graph returns a (structure, graph, state) tuple.
 
+Given that the fixtures are unlikely to be modified by the underlying code, the fixtures are set with a scope of
+"session". In the event that future tests are written that modifies the fixtures, these can be set to the default scope
+of "function".
 """
 import pytest
 
@@ -13,6 +19,10 @@ from matgl.graph.compute import (
 
 
 def get_graph(structure, cutoff):
+    """
+    Returns:
+        Structure, Graph, State
+    """
     element_types = get_element_list([structure])
     if isinstance(structure, Structure):
         converter = Structure2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
@@ -59,10 +69,6 @@ def MoS():
 
 @pytest.fixture(scope="session")
 def graph_Mo():
-    """
-    Returns:
-        Structure, Graph, State
-    """
     s = Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
     return get_graph(s, 5.0)
 
