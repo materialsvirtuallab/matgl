@@ -79,7 +79,7 @@ pip install matgl
 For the latest dev version, please clone this repo and install using:
 
 ```bash
-python setup.py -e .
+pip install -e .
 ```
 
 ## Usage
