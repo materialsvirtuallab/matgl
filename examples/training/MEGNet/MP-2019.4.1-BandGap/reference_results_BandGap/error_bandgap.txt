@@ -1,5 +1,0 @@
-Multi-fidelity MEGNet BandGap model (mean absolute error)
----------------------------------------------------------
-Train: 0.11 eV
-Validation: 0.34 eV
-Test: 0.33 eV
