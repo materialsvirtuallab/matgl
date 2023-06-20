@@ -143,19 +143,24 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        **kwargs,
     ):
-        """Args:
-        model: Which type of the model for training
-        data_mean: average of training data
-        data_std: standard deviation of training data
-        loss: loss function used for training
-        optimizer: optimizer for training
-        scheduler: scheduler for training
-        lr: learning rate for training
-        decay_steps: number of steps for decaying learning rate
-        decay_alpha: parameter determines the minimum learning rate.
         """
-        super().__init__()
+        Init Modelrainer with key parameters.
+
+        Args:
+            model: Which type of the model for training
+            data_mean: average of training data
+            data_std: standard deviation of training data
+            loss: loss function used for training
+            optimizer: optimizer for training
+            scheduler: scheduler for training
+            lr: learning rate for training
+            decay_steps: number of steps for decaying learning rate
+            decay_alpha: parameter determines the minimum learning rate.
+            **kwargs: Passthrough to parent init.
+        """
+        super().__init__(**kwargs)
 
         self.model = model
 
@@ -241,6 +246,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        **kwargs,
     ):
         """
         Init PotentialTrainer with key parameters.
@@ -260,8 +266,9 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
+            **kwargs: Passthrough to parent init.
         """
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.model = Potential(model=model, element_refs=element_refs, calc_stresses=calc_stress)
 
