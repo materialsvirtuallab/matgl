@@ -15,7 +15,6 @@ class AtomRef(nn.Module):
         property_offset: np.array,  # type: ignore
     ) -> None:
         """Args:
-        -----------
         property_offset (np.array): a array of elemental property offset.
         """
         super().__init__()
@@ -26,8 +25,7 @@ class AtomRef(nn.Module):
         """Get the number of atoms for different elements in the structure.
 
         Args:
-            structs_or_graphs (list): a list of dgl graph
-            element_list: a dictionary containing element types in the training set
+            graphs (list): a list of dgl graph
 
         Returns:
             features (np.array): a matrix (num_structures, num_elements)
@@ -45,7 +43,6 @@ class AtomRef(nn.Module):
 
         Args:
             graphs: dgl graphs
-            element_list (tuple): a list of element types
             properties (np.ndarray): array of extensive properties
         """
         features = self.get_feature_matrix(graphs)
@@ -56,11 +53,11 @@ class AtomRef(nn.Module):
         """Get the total property offset for a system.
 
         Args:
-        g: a batch of dgl graphs
-        state_attr: state attributes
+            g: a batch of dgl graphs
+            state_attr: state attributes
 
         Returns:
-        offset_per_graph:
+            offset_per_graph
         """
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []
