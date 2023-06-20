@@ -18,7 +18,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 class TestModelTrainer:
     def test_megnet_training(self, LiFePO4, BaNiO3):
         structures = [LiFePO4] * 10 + [BaNiO3] * 10
-        label = np.zeros(20)
+        label = np.zeros(len(structures))
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels=label, label_name="label")
@@ -56,18 +56,15 @@ class TestModelTrainer:
 
     def test_m3gnet_training(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
-        energies = np.zeros(20)
-        f1 = np.zeros((28, 3)).tolist()
-        f2 = np.zeros((10, 3)).tolist()
-        s = np.zeros((3, 3)).tolist()
-        forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
-        stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
+        energies = np.zeros(len(structures))
+        forces = [np.zeros((len(s), 3)).tolist() for s in structures]
+        stresses = [np.zeros((3, 3)).tolist()] * len(structures)
         element_types = get_element_list([LiFePO4, BaNiO3])
-        cry_graph = Structure2Graph(element_types=element_types, cutoff=5.0)
+        converter = Structure2Graph(element_types=element_types, cutoff=5.0)
         dataset = M3GNetDataset(
             threebody_cutoff=4.0,
             structures=structures,
-            converter=cry_graph,
+            converter=converter,
             energies=energies,
             forces=forces,
             stresses=stresses,
