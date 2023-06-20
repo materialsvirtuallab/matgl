@@ -116,7 +116,7 @@ The main M3GNet model.
 
 
 
-#### forward(g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None)
+#### forward(g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None)
 Performs message passing and updates node representations.
 
 
@@ -145,7 +145,7 @@ Performs message passing and updates node representations.
 
 
 
-#### predict_structure(structure, state_feats: torch.tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
+#### predict_structure(structure, state_feats: torch.Tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
 Convenience method to directly predict property from structure.
 
 
@@ -297,7 +297,7 @@ Forward pass of MEGnet. Executes all blocks.
 
 
 
-#### predict_structure(structure, state_feats: torch.tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
+#### predict_structure(structure, state_feats: torch.Tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
 Convenience method to directly predict property from structure.
 
 

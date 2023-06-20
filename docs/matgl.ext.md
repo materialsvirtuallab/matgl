@@ -55,7 +55,7 @@ Get a DGL graph from an input Atoms.
 
 
 
-### _class_ matgl.ext.ase.M3GNetCalculator(potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: tensor | None = None, stress_weight: float = 1.0, \*\*kwargs)
+### _class_ matgl.ext.ase.M3GNetCalculator(potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: Tensor | None = None, stress_weight: float = 1.0, \*\*kwargs)
 Bases: `Calculator`
 
 M3GNet calculator for ASE.
@@ -105,7 +105,7 @@ Perform calculation for an input Atoms.
 Properties calculator can handle (energy, forces, …)
 
 
-### _class_ matgl.ext.ase.MolecularDynamics(atoms: Atoms, potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: torch.tensor = None, ensemble: str = 'nvt', temperature: int = 300, timestep: float = 1.0, pressure: float = 6.324209121801212e-07, taut: float | None = None, taup: float | None = None, compressibility_au: float | None = None, trajectory: str | Trajectory | None = None, logfile: str | None = None, loginterval: int = 1, append_trajectory: bool = False)
+### _class_ matgl.ext.ase.MolecularDynamics(atoms: Atoms, potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: torch.Tensor = None, ensemble: str = 'nvt', temperature: int = 300, timestep: float = 1.0, pressure: float = 6.324209121801212e-07, taut: float | None = None, taup: float | None = None, compressibility_au: float | None = None, trajectory: str | Trajectory | None = None, logfile: str | None = None, loginterval: int = 1, append_trajectory: bool = False)
 Bases: `object`
 
 Molecular dynamics class.
@@ -125,7 +125,7 @@ Init the MD simulation.
     * **atoms** – 
 
 
-    * **state_attr** (*torch.tensor*) – State attr.
+    * **state_attr** (*torch.Tensor*) – State attr.
 
 
     * **ensemble** (*str*) – choose from ‘nvt’ or ‘npt’. NPT is not tested,
@@ -185,7 +185,7 @@ Set new atoms to run MD.
 
 
 
-### _class_ matgl.ext.ase.Relaxer(potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential) = None, state_attr: torch.tensor = None, optimizer: Optimizer | str = 'FIRE', relax_cell: bool = True, stress_weight: float = 0.01)
+### _class_ matgl.ext.ase.Relaxer(potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential) = None, state_attr: torch.Tensor = None, optimizer: Optimizer | str = 'FIRE', relax_cell: bool = True, stress_weight: float = 0.01)
 Bases: `object`
 
 Relaxer is a class for structural relaxation.
@@ -200,7 +200,7 @@ Relaxer is a class for structural relaxation.
     * **distribution** (*that comes with M3GNet*) – 
 
 
-    * **state_attr** (*torch.tensor*) – State attr.
+    * **state_attr** (*torch.Tensor*) – State attr.
 
 
     * **optimizer** (*str** or **ase Optimizer*) – the optimization algorithm.

@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 0.6.0
+- Refactoring of training utilities. Added example for training an M3GNet potential.
+
 ## 0.5.6
 - Minor internal refactoring of basis expansions into `_basis.py`. (@lbluque)
 

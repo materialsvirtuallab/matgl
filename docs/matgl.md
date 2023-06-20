@@ -588,52 +588,52 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
     * [matgl.utils.training module](matgl.utils.md#module-matgl.utils.training)
 
 
-        * [`ModelTrainer`](matgl.utils.md#matgl.utils.training.ModelTrainer)
+        * [`MatglLightningModuleMixin`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin)
 
 
-            * [`ModelTrainer.forward()`](matgl.utils.md#matgl.utils.training.ModelTrainer.forward)
+            * [`MatglLightningModuleMixin.configure_optimizers()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.configure_optimizers)
 
 
-            * [`ModelTrainer.loss_fn()`](matgl.utils.md#matgl.utils.training.ModelTrainer.loss_fn)
+            * [`MatglLightningModuleMixin.on_test_model_eval()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.on_test_model_eval)
 
 
-            * [`ModelTrainer.step()`](matgl.utils.md#matgl.utils.training.ModelTrainer.step)
+            * [`MatglLightningModuleMixin.on_train_epoch_end()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.on_train_epoch_end)
 
 
-        * [`PotentialTrainer`](matgl.utils.md#matgl.utils.training.PotentialTrainer)
+            * [`MatglLightningModuleMixin.predict_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.predict_step)
 
 
-            * [`PotentialTrainer.forward()`](matgl.utils.md#matgl.utils.training.PotentialTrainer.forward)
+            * [`MatglLightningModuleMixin.test_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.test_step)
 
 
-            * [`PotentialTrainer.loss_fn()`](matgl.utils.md#matgl.utils.training.PotentialTrainer.loss_fn)
+            * [`MatglLightningModuleMixin.training_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.training_step)
 
 
-            * [`PotentialTrainer.step()`](matgl.utils.md#matgl.utils.training.PotentialTrainer.step)
+            * [`MatglLightningModuleMixin.validation_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.validation_step)
 
 
-        * [`TrainerMixin`](matgl.utils.md#matgl.utils.training.TrainerMixin)
+        * [`ModelLightningModule`](matgl.utils.md#matgl.utils.training.ModelLightningModule)
 
 
-            * [`TrainerMixin.configure_optimizers()`](matgl.utils.md#matgl.utils.training.TrainerMixin.configure_optimizers)
+            * [`ModelLightningModule.forward()`](matgl.utils.md#matgl.utils.training.ModelLightningModule.forward)
 
 
-            * [`TrainerMixin.on_test_model_eval()`](matgl.utils.md#matgl.utils.training.TrainerMixin.on_test_model_eval)
+            * [`ModelLightningModule.loss_fn()`](matgl.utils.md#matgl.utils.training.ModelLightningModule.loss_fn)
 
 
-            * [`TrainerMixin.on_train_epoch_end()`](matgl.utils.md#matgl.utils.training.TrainerMixin.on_train_epoch_end)
+            * [`ModelLightningModule.step()`](matgl.utils.md#matgl.utils.training.ModelLightningModule.step)
 
 
-            * [`TrainerMixin.predict_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.predict_step)
+        * [`PotentialLightningModule`](matgl.utils.md#matgl.utils.training.PotentialLightningModule)
 
 
-            * [`TrainerMixin.test_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.test_step)
+            * [`PotentialLightningModule.forward()`](matgl.utils.md#matgl.utils.training.PotentialLightningModule.forward)
 
 
-            * [`TrainerMixin.training_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.training_step)
+            * [`PotentialLightningModule.loss_fn()`](matgl.utils.md#matgl.utils.training.PotentialLightningModule.loss_fn)
 
 
-            * [`TrainerMixin.validation_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.validation_step)
+            * [`PotentialLightningModule.step()`](matgl.utils.md#matgl.utils.training.PotentialLightningModule.step)
 
 
         * [`xavier_init()`](matgl.utils.md#matgl.utils.training.xavier_init)

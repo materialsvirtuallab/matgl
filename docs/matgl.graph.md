@@ -57,8 +57,8 @@ Args:
 edges: DGL graph edges
 
 Returns:
-cos_theta: torch.tensor
-phi: torch.tensor
+cos_theta: torch.Tensor
+phi: torch.Tensor
 triple_bond_lengths (torch.tensor):
 
 
@@ -140,10 +140,20 @@ Returns: True if file exists.
 
 
 #### load(filename: str = 'dgl_graph.bin', filename_line_graph: str = 'dgl_line_graph.bin', filename_state_attr: str = 'state_attr.pt')
-Load dgl graphs
-Args:
-:filename: Name of file storing dgl graphs
-:filename: Name of file storing state attrs.
+Load dgl graphs from files.
+
+
+* **Parameters**
+
+    
+    * **filename** – Name of file storing dgl graphs
+
+
+    * **filename_line_graph** – Name of file storing dgl line graphs
+
+
+    * **filename_state_attr** – Name of file storing state attrs.
+
 
 
 #### process()

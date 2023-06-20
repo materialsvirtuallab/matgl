@@ -14,7 +14,7 @@ potentials parameterizing the potential energy surface (PES).
 Implementation of Interatomic Potentials.
 
 
-### _class_ matgl.apps.pes.Potential(model: nn.Module, data_mean: torch.tensor | None = None, data_std: torch.tensor | None = None, element_refs: np.ndarray | None = None, calc_forces: bool = True, calc_stresses: bool = True, calc_hessian: bool = False)
+### _class_ matgl.apps.pes.Potential(model: nn.Module, data_mean: torch.Tensor | None = None, data_std: torch.Tensor | None = None, element_refs: np.ndarray | None = None, calc_forces: bool = True, calc_stresses: bool = True, calc_hessian: bool = False)
 Bases: `Module`, [`IOMixIn`](matgl.utils.md#matgl.utils.io.IOMixIn)
 
 A class representing an interatomic potential.
@@ -47,7 +47,7 @@ Initialize Potential from a model and elemental references.
 
 
 
-#### forward(g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None)
+#### forward(g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None)
 
 * **Parameters**
 
@@ -64,7 +64,7 @@ Initialize Potential from a model and elemental references.
 
 * **Returns**
 
-    torch.tensor
+    torch.Tensor
 
 
 

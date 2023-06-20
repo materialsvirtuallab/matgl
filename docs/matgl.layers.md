@@ -32,7 +32,7 @@ Init SoftExponential with alpha value.
 
 
 
-#### forward(x: tensor)
+#### forward(x: Tensor)
 Evaluate activation function given the input tensor x.
 
 
@@ -66,7 +66,7 @@ softplus function that is 0 at x=0, the implementation aims at avoiding overflow
 Initializes the SoftPlus2 class.
 
 
-#### forward(x: tensor)
+#### forward(x: Tensor)
 Evaluate activation function given the input tensor x.
 
 
@@ -99,50 +99,51 @@ Bases: `Module`
 
 Get total property offset for a system.
 
-### Args:
-
+Args:
 property_offset (np.array): a array of elemental property offset.
 
 
-#### fit(structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray)
+#### fit(graphs: list, properties: np.typing.NDArray)
 Fit the elemental reference values for the properties.
 
 
 * **Parameters**
 
     
-    * **structs_or_graphs** – pymatgen Structures or dgl graphs
-
-
-    * **element_list** (*tuple*) – a list of element types
+    * **graphs** – dgl graphs
 
 
     * **properties** (*np.ndarray*) – array of extensive properties
 
 
 
-#### forward(g: dgl.DGLGraph, state_attr: torch.tensor | None = None)
+#### forward(g: dgl.DGLGraph, state_attr: torch.Tensor | None = None)
 Get the total property offset for a system.
-
-Args:
-g: a batch of dgl graphs
-state_attr: state attributes
-
-Returns:
-offset_per_graph:
-
-
-#### get_feature_matrix(structs_or_graphs: list, element_list: tuple[str])
-Get the number of atoms for different elements in the structure.
 
 
 * **Parameters**
 
     
-    * **structs_or_graphs** (*list*) – a list of pymatgen Structure or dgl graph
+    * **g** – a batch of dgl graphs
 
 
-    * **element_list** – a dictionary containing element types in the training set
+    * **state_attr** – state attributes
+
+
+
+* **Returns**
+
+    offset_per_graph
+
+
+
+#### get_feature_matrix(graphs: list)
+Get the number of atoms for different elements in the structure.
+
+
+* **Parameters**
+
+    **graphs** (*list*) – a list of dgl graph
 
 
 
@@ -228,7 +229,7 @@ vanishes at cutoff.
 * **Parameters**
 
     
-    * **r** – torch.tensor pytorch tensors
+    * **r** – torch.Tensor pytorch tensors
 
 
     * **cutoff** – float, the cutoff radius
@@ -305,7 +306,7 @@ Ref:
 * **Parameters**
 
     
-    * **r** – torch.tensor distance tensor
+    * **r** – torch.Tensor distance tensor
 
 
     * **cutoff** – float, cutoff radius
@@ -338,7 +339,7 @@ num_centers (int): Number of centers for gaussian expansion.
 width (float): width of gaussian function.
 
 
-#### forward(bond_dist: tensor)
+#### forward(bond_dist: Tensor)
 Forward.
 
 Args:
@@ -373,7 +374,7 @@ Implementation of Set2Set.
 
 
 
-#### forward(g: DGLGraph, feat: tensor)
+#### forward(g: DGLGraph, feat: Tensor)
 Defines the computation performed at every call.
 
 
@@ -421,7 +422,7 @@ An implementation of a Gated multi-layer perceptron.
 
 
 
-#### forward(inputs: tensor)
+#### forward(inputs: Tensor)
 Defines the computation performed at every call.
 
 Should be overridden by all subclasses.
@@ -993,7 +994,7 @@ num_targets: number of target properties.
 
 * **Returns**
 
-    torch.tensor.
+    torch.Tensor.
 
 
 
@@ -1051,7 +1052,7 @@ Init ThreeBodyInteractions.
 
 
 
-#### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: tensor, three_cutoff: float, node_feat: tensor, edge_feat: tensor)
+#### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: Tensor, three_cutoff: float, node_feat: Tensor, edge_feat: Tensor)
 Forward function for ThreeBodyInteractions.
 
 
@@ -1097,10 +1098,10 @@ For the spherical Harmonics function, the column is ordered by
 * **Parameters**
 
     
-    * **sbf** – torch.tensor spherical bessel function results
+    * **sbf** – torch.Tensor spherical bessel function results
 
 
-    * **shf** – torch.tensor spherical harmonics function results
+    * **shf** – torch.Tensor spherical harmonics function results
 
 
     * **max_n** – int, max number of n
