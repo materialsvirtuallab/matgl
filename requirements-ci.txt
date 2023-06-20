@@ -7,3 +7,5 @@ types-tabulate
 pre-commit
 ruff
 black
+pymatgen==2023.5.31
+ase==3.22.1

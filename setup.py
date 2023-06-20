@@ -43,6 +43,10 @@ setup(
         "pytorch_lightning",
         "torch",
     ),
+    extra_requires={
+        "ase": ["ase>=3.22.1"],
+        "pymatgen": ["pymatgen>=2023.5.31"],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
