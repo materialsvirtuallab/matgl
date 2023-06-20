@@ -4,7 +4,6 @@ from __future__ import annotations
 import dgl
 import numpy as np
 import torch
-from pymatgen.core import Molecule, Structure
 from torch import nn
 
 
@@ -23,36 +22,33 @@ class AtomRef(nn.Module):
         self.property_offset = torch.tensor(property_offset)
         self.max_z = self.property_offset.size(dim=0)
 
-    def get_feature_matrix(self, structs_or_graphs: list, element_list: tuple[str]) -> np.typing.NDArray:
+    def get_feature_matrix(self, graphs: list) -> np.typing.NDArray:
         """Get the number of atoms for different elements in the structure.
 
         Args:
-            structs_or_graphs (list): a list of pymatgen Structure or dgl graph
+            structs_or_graphs (list): a list of dgl graph
             element_list: a dictionary containing element types in the training set
 
         Returns:
             features (np.array): a matrix (num_structures, num_elements)
         """
-        n = len(structs_or_graphs)
+        n = len(graphs)
         features = np.zeros(shape=(n, self.max_z))
-        for i, s in enumerate(structs_or_graphs):
-            if isinstance(s, (Structure, Molecule)):
-                atomic_numbers = [element_list.index(site.specie.symbol) for site in s.sites]
-            else:
-                one_hot_vecs = s.ndata["attr"]
-                atomic_numbers = ((one_hot_vecs == 1).nonzero(as_tuple=True)[0]).tolist()
+        for i, s in enumerate(graphs):
+            one_hot_vecs = s.ndata["attr"]
+            atomic_numbers = ((one_hot_vecs == 1).nonzero(as_tuple=True)[0]).tolist()
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> None:
+    def fit(self, graphs: list, properties: np.typing.NDArray) -> None:
         """Fit the elemental reference values for the properties.
 
         Args:
-            structs_or_graphs: pymatgen Structures or dgl graphs
+            graphs: dgl graphs
             element_list (tuple): a list of element types
             properties (np.ndarray): array of extensive properties
         """
-        features = self.get_feature_matrix(structs_or_graphs, element_list)
+        features = self.get_feature_matrix(graphs)
         self.property_offset = np.linalg.pinv(features.T.dot(features)).dot(features.T.dot(properties))
         self.property_offset = torch.tensor(self.property_offset)
 
