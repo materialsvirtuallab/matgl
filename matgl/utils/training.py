@@ -17,7 +17,7 @@ from matgl.apps.pes import Potential
 from matgl.models import M3GNet
 
 
-class TrainerMixin:
+class MatglLightningModuleMixin:
     """Mix-in class implementing common functions for training."""
 
     def training_step(self, batch: tuple, batch_idx: int):
@@ -129,8 +129,8 @@ class TrainerMixin:
         return self(batch)
 
 
-class ModelTrainer(TrainerMixin, pl.LightningModule):
-    """Trainer for MEGNet and M3GNet models."""
+class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
+    """A PyTorch.LightningModule for training MEGNet and M3GNet models."""
 
     def __init__(
         self,
@@ -146,7 +146,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         **kwargs,
     ):
         """
-        Init Modelrainer with key parameters.
+        Init ModelLightningModule with key parameters.
 
         Args:
             model: Which type of the model for training
@@ -227,8 +227,12 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         return {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
 
 
-class PotentialTrainer(TrainerMixin, pl.LightningModule):
-    """Trainer for MatGL potentials."""
+class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
+    """A PyTorch.LightningModule for training MatGL potentials.
+
+    This is slightly different from the ModelLightningModel due to the need to account for energy, forces and stress
+    losses.
+    """
 
     def __init__(
         self,
@@ -249,7 +253,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         **kwargs,
     ):
         """
-        Init PotentialTrainer with key parameters.
+        Init PotentialLightningModule with key parameters.
 
         Args:
             model: Which type of the model for training

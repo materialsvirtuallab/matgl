@@ -10,7 +10,7 @@ from dgl.data.utils import split_dataset
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
-from matgl.utils.training import ModelTrainer, PotentialTrainer
+from matgl.utils.training import ModelLightningModule, PotentialLightningModule
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -50,7 +50,7 @@ class TestModelTrainer:
             is_classification=False,
         )
 
-        lit_model = ModelTrainer(model=model)
+        lit_model = ModelLightningModule(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
@@ -90,7 +90,7 @@ class TestModelTrainer:
             element_types=element_types,
             is_intensive=False,
         )
-        lit_model = PotentialTrainer(model=model)
+        lit_model = PotentialLightningModule(model=model)
         trainer = pl.Trainer(max_epochs=2)
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 

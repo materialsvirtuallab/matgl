@@ -23,7 +23,7 @@ from matgl.graph.data import MEGNetDataset, MGLDataLoader, collate_fn
 from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
 from matgl.utils.io import RemoteFile
-from matgl.utils.training import ModelTrainer, xavier_init
+from matgl.utils.training import ModelLightningModule, xavier_init
 
 SEED = 42
 EPOCHS = 2000
@@ -125,7 +125,7 @@ train_loader, val_loader, test_loader = MGLDataLoader(
 print(model)
 
 # setup the MEGNetTrainer
-trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
+trainer = ModelLightningModule(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
     n_epochs=EPOCHS,

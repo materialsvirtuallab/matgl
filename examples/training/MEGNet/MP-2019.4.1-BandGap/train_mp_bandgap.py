@@ -21,7 +21,7 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import MEGNetDataset, MGLDataLoader, collate_fn
 from matgl.layers._bond import BondExpansion
 from matgl.models import MEGNet
-from matgl.utils.training import ModelTrainer, xavier_init
+from matgl.utils.training import ModelLightningModule, xavier_init
 
 ALL_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
 TRAIN_FIDELITIES = ["pbe", "gllb-sc", "hse", "scan"]
@@ -192,7 +192,7 @@ train_loader, val_loader = MGLDataLoader(
 print(model)
 
 # setup the MEGNetTrainer
-trainer = ModelTrainer(model=model, optimizer=optimizer, scheduler=scheduler)
+trainer = ModelLightningModule(model=model, optimizer=optimizer, scheduler=scheduler)
 # Train !
 trainer.train(
     n_epochs=EPOCHS,
