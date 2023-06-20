@@ -15,7 +15,7 @@ from matgl.utils.training import ModelTrainer, PotentialTrainer
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class ModelTrainerTest:
+class TestModelTrainer:
     def test_megnet_training(self, LiFePO4, BaNiO3):
         structures = [LiFePO4] * 10 + [BaNiO3] * 10
         label = np.zeros(20)
@@ -95,7 +95,7 @@ class ModelTrainerTest:
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_class(cls):
         for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
             try:
                 os.remove(fn)
