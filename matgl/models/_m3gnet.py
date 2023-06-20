@@ -271,10 +271,16 @@ class M3GNet(nn.Module, IOMixIn):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
+            from matgl.ext.pymatgen_latest import Structure2Graph, get_one_graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
         g, stare_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(stare_feats_default)
-        return self(g=g, state_attr=state_feats).detach()
+        if (g.in_degrees().cpu().numpy() < 2).all():
+            g2 = get_one_graph(g)
+            g = dgl.batch([g, g2])
+            state_feats = torch.vstack([state_feats, state_feats])
+            return self(g=g, state_attr=state_feats).detach()[:-1]
+        else:
+            return self(g=g, state_attr=state_feats).detach()

@@ -7,6 +7,8 @@ import dgl
 import numpy as np
 import torch
 
+from matgl.ext.pymatgen_latest import get_empty_graph
+
 
 def compute_3body(g: dgl.DGLGraph):
     """
@@ -116,30 +118,28 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     }
 
 
-def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
+def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     """
     Calculate the three body indices from pair atom indices.
 
     Args:
-        g_batched: Batched DGL graph
+        g: DGL graph
         threebody_cutoff (float): cutoff for three-body interactions
 
     Returns:
         l_g: DGL graph containing three body information from graph
     """
-    g_unbatched = dgl.unbatch(g_batched)
-    l_g_unbatched = []
-    for g in g_unbatched:
-        if g.edges()[0].size(dim=0) > 0:
-            valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
-            src_id_with_three_body = g.edges()[0][valid_three_body]
-            dst_id_with_three_body = g.edges()[1][valid_three_body]
-            graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
-            graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-            graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-            graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+    if g.edges()[0].size(dim=0) > 0:
+        valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
+        src_id_with_three_body = g.edges()[0][valid_three_body]
+        dst_id_with_three_body = g.edges()[1][valid_three_body]
+        graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
+        graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
+        graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
+        graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
         if graph_with_three_body.edata["bond_dist"].size(dim=0) > 0:
             l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
-            l_g_unbatched.append(l_g)
-    l_g_batched = dgl.batch(l_g_unbatched)
-    return l_g_batched
+    else:
+        l_g = get_empty_graph(g.num_nodes())
+
+    return l_g

@@ -9,6 +9,7 @@ import torch
 from torch import nn
 from torch.autograd import grad
 
+from matgl.ext.pymatgen_latest import get_one_graph
 from matgl.layers import AtomRef
 from matgl.utils.io import IOMixIn
 
@@ -65,6 +66,14 @@ class Potential(nn.Module, IOMixIn):
         Returns:
             energies, forces, stresses, hessian: torch.tensor
         """
+        if (g.in_degrees().cpu().numpy() < 2).all():
+            g2 = get_one_graph(g)
+            g = dgl.batch([g, g2])
+            state_attr = (
+                torch.vstack([state_attr, state_attr])
+                if state_attr.dim() < 2
+                else torch.vstack([state_attr, state_attr[0]])
+            )
         forces = torch.zeros(1)
         stresses = torch.zeros(1)
         hessian = torch.zeros(1)
@@ -116,5 +125,7 @@ class Potential(nn.Module, IOMixIn):
                 num_nodes = g.batch_num_nodes()[graph_id]
                 count_node = count_node + num_nodes
             stresses = torch.cat(stresses)
-
-        return total_energies, forces, stresses, hessian
+        if (g.in_degrees().cpu().numpy() <= 2).all():
+            return total_energies[:-1], forces[:-1], stresses[:-1], hessian[:-1]
+        else:
+            return total_energies, forces, stresses, hessian
