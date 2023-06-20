@@ -87,7 +87,7 @@ class WeightedReadOut(nn.Module):
         """Args:
             g: DGL graph
         Returns:
-            atomic_properties: torch.tensor.
+            atomic_properties: torch.Tensor.
         """
         atomic_properties = self.gated(g.ndata["node_feat"])
         return atomic_properties

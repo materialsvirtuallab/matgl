@@ -11,7 +11,7 @@ import torch
 import torch.nn.functional as F
 import torchmetrics
 from torch import nn
-from torch.optim import Optimizer, lr_scheduler
+from torch.optim import Optimizer
 
 from matgl.apps.pes import Potential
 from matgl.models import M3GNet
@@ -139,7 +139,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         data_std=None,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
-        scheduler: lr_scheduler | None = None,
+        scheduler=None,
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
@@ -183,7 +183,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         self.scheduler = scheduler
         self.save_hyperparameters()
 
-    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
             g: dgl Graph
             l_g: Line graph
@@ -208,7 +208,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         """
         g, labels, state_attr = batch
         preds = self(g=g, state_attr=state_attr)
-        results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)
+        results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size
 
@@ -233,7 +233,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
     def __init__(
         self,
         model,
-        element_refs: np.darray | None = None,
+        element_refs: np.ndarray | None = None,
         energy_weight: float = 1.0,
         force_weight: float = 1.0,
         stress_weight: float | None = None,
@@ -242,7 +242,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         calc_stress: bool = False,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
-        scheduler: lr_scheduler | None = None,
+        scheduler=None,
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
@@ -294,7 +294,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         self.scheduler = scheduler
         self.save_hyperparameters()
 
-    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
             g: dgl Graph
             l_g: Line graph
@@ -321,7 +321,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         labels: tuple = (energies, forces, stresses)
         num_atoms = g.batch_num_nodes()
         results = self.loss_fn(
-            loss=self.loss,
+            loss=self.loss,  # type: ignore
             preds=preds,
             labels=labels,
             energy_weight=self.energy_weight,

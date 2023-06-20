@@ -33,10 +33,10 @@ class ThreeBodyInteractions(nn.Module):
         self,
         graph: dgl.DGLGraph,
         line_graph: dgl.DGLGraph,
-        three_basis: torch.tensor,
+        three_basis: torch.Tensor,
         three_cutoff: float,
-        node_feat: torch.tensor,
-        edge_feat: torch.tensor,
+        node_feat: torch.Tensor,
+        edge_feat: torch.Tensor,
     ):
         """
         Forward function for ThreeBodyInteractions.
@@ -54,11 +54,11 @@ class ThreeBodyInteractions(nn.Module):
         end_atom_index = torch.unsqueeze(end_atom_index, 1)
         atoms = torch.squeeze(atoms[end_atom_index])
         basis = three_basis * atoms
-        three_cutoff = torch.unsqueeze(three_cutoff, dim=1)
+        three_cutoff = torch.unsqueeze(three_cutoff, dim=1)  # type: ignore
         weights = torch.reshape(
             three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2)  # type: ignore
         )
-        weights = torch.prod(weights, axis=-1)
+        weights = torch.prod(weights, axis=-1)  # type: ignore
         basis = basis * weights[:, None]
         new_bonds = scatter_sum(
             basis.to(torch.float32),
@@ -83,8 +83,8 @@ def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
         [m=[0], m=[0], ...] max_l columns
 
     Args:
-        sbf: torch.tensor spherical bessel function results
-        shf: torch.tensor spherical harmonics function results
+        sbf: torch.Tensor spherical bessel function results
+        shf: torch.Tensor spherical harmonics function results
         max_n: int, max number of n
         max_l: int, max number of l
         use_phi: whether to use phi

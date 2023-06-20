@@ -98,7 +98,7 @@ def get_segment_indices_from_n(ns):
     ns = [2, 3], then the function will return [0, 0, 1, 1, 1].
 
     Args:
-        ns: torch.tensor, the number of atoms/bonds array
+        ns: torch.Tensor, the number of atoms/bonds array
 
     Returns:
         object:
@@ -113,7 +113,7 @@ def get_range_indices_from_n(ns):
     """Give ns = [2, 3], return [0, 1, 0, 1, 2].
 
     Args:
-        ns: torch.tensor, the number of atoms/bonds array
+        ns: torch.Tensor, the number of atoms/bonds array
 
     Returns: range indices
     """
@@ -169,7 +169,7 @@ def broadcast_states_to_atoms(g, state_feat):
     return state_feat.repeat((g.num_nodes(), 1))
 
 
-def scatter_sum(input_tensor: torch.tensor, segment_ids: torch.tensor, num_segments: int, dim: int) -> torch.tensor:
+def scatter_sum(input_tensor: torch.Tensor, segment_ids: torch.Tensor, num_segments: int, dim: int) -> torch.Tensor:
     """Scatter sum operation along the specified dimension. Modified from the
     torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
 
@@ -192,12 +192,12 @@ def scatter_sum(input_tensor: torch.tensor, segment_ids: torch.tensor, num_segme
     return output.scatter_add_(dim, segment_ids, input_tensor)
 
 
-def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num_segments: torch.tensor):
+def unsorted_segment_fraction(data: torch.Tensor, segment_ids: torch.Tensor, num_segments: int):
     """Segment fraction
     Args:
         data (torch.tensor): original data
         segment_ids (torch.tensor): segment ids
-        num_segments (torch.tensor): number of segments
+        num_segments (int): number of segments
     Returns:
         data (torch.tensor): data after fraction.
     """
@@ -206,7 +206,7 @@ def unsorted_segment_fraction(data: torch.tensor, segment_ids: torch.tensor, num
     return torch.div(data, sums)
 
 
-def broadcast(input_tensor: torch.tensor, target_tensor: torch.tensor, dim: int):
+def broadcast(input_tensor: torch.Tensor, target_tensor: torch.Tensor, dim: int):
     """Broadcast input tensor along a given dimension to match the shape of the target tensor.
     Modified from torch_scatter library (https://github.com/rusty1s/pytorch_scatter).
 

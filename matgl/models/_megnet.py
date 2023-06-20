@@ -203,7 +203,7 @@ class MEGNet(nn.Module, IOMixIn):
     def predict_structure(
         self,
         structure,
-        state_feats: torch.tensor | None = None,
+        state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
     ):
         """Convenience method to directly predict property from structure.

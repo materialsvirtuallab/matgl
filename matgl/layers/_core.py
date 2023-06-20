@@ -120,7 +120,7 @@ class GatedMLP(nn.Module):
                 self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Sigmoid())
 
-    def forward(self, inputs: torch.tensor):
+    def forward(self, inputs: torch.Tensor):
         return self.layers(inputs) * self.gates(inputs)
 
 
@@ -144,7 +144,7 @@ class EdgeSet2Set(Module):
         """Reinitialize learnable parameters."""
         self.lstm.reset_parameters()
 
-    def forward(self, g: DGLGraph, feat: torch.tensor):
+    def forward(self, g: DGLGraph, feat: torch.Tensor):
         """Defines the computation performed at every call.
 
         :param g: Input graph

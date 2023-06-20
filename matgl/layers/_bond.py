@@ -52,7 +52,7 @@ class BondExpansion(nn.Module):
         else:
             raise Exception("undefined rbf_type, please use SphericalBessel or Gaussian instead.")
 
-    def forward(self, bond_dist: torch.tensor):
+    def forward(self, bond_dist: torch.Tensor):
         """Forward.
 
         Args:

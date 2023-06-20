@@ -49,7 +49,7 @@ class AtomRef(nn.Module):
         self.property_offset = np.linalg.pinv(features.T.dot(features)).dot(features.T.dot(properties))
         self.property_offset = torch.tensor(self.property_offset)
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None):
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None):
         """Get the total property offset for a system.
 
         Args:
