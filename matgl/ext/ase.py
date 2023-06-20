@@ -74,7 +74,9 @@ class Atoms2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(i.symbol)] for i in atoms])
+        Z = np.array(
+            [np.eye(len(element_types))[element_types.index(i.symbol)] for i in atoms]
+        )
         atomic_number = np.array(atoms.get_atomic_numbers())
         lattice_matrix = np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float)
         volume = atoms.get_volume()
@@ -94,14 +96,29 @@ class Atoms2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        u, v = tensor(src_id), tensor(dst_id)
+
+        isolated_atoms = list(set(range(len(atoms))).difference(src_id))
+        if not isolated_atoms:
+            u, v = tensor(src_id), tensor(dst_id)
+        else:
+            u, v = tensor(np.concatenate([src_id, isolated_atoms])), tensor(
+                np.concatenate([dst_id, isolated_atoms])
+            )
+            images = np.concatenate(
+                [images, np.repeat([[1.0, 0.0, 0.0]], len(isolated_atoms), axis=0)]
+            )
+
         g = dgl.graph((u, v))
         g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor(np.stack([lattice_matrix for _ in range(g.num_edges())]))
+        g.edata["lattice"] = tensor(
+            np.stack([lattice_matrix for _ in range(g.num_edges())])
+        )
         g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(i.symbol)] for i in atoms]))
+        g.ndata["node_type"] = tensor(
+            np.hstack([[element_types.index(i.symbol)] for i in atoms])
+        )
         g.ndata["pos"] = tensor(cart_coords)
-        g.ndata["volume"] = tensor([volume for i in range(atomic_number.shape[0])])
+        g.ndata["volume"] = tensor([volume for _ in range(atomic_number.shape[0])])
         state_attr = [0.0, 0.0]
         g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix))
         return g, state_attr
@@ -156,19 +173,27 @@ class M3GNetCalculator(Calculator):
         """
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
-        super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
+        super().calculate(
+            atoms=atoms, properties=properties, system_changes=system_changes
+        )
         graph, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)  # type: ignore
         if self.state_attr is not None:
-            energies, forces, stresses, hessians = self.potential(graph, self.state_attr)
+            energies, forces, stresses, hessians = self.potential(
+                graph, self.state_attr
+            )
         else:
-            energies, forces, stresses, hessians = self.potential(graph, state_attr_default)
+            energies, forces, stresses, hessians = self.potential(
+                graph, state_attr_default
+            )
         self.results.update(
             energy=energies.detach().cpu().numpy(),
             free_energy=energies.detach().cpu().numpy(),
             forces=forces.detach().cpu().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=stresses.detach().cpu().numpy() * self.stress_weight)
+            self.results.update(
+                stress=stresses.detach().cpu().numpy() * self.stress_weight
+            )
         if self.compute_hessian:
             self.results.update(hessian=hessians.detach().cpu().numpy())
 
@@ -349,7 +374,9 @@ class MolecularDynamics:
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
-        self.atoms.set_calculator(M3GNetCalculator(potential=potential, state_attr=state_attr))
+        self.atoms.set_calculator(
+            M3GNetCalculator(potential=potential, state_attr=state_attr)
+        )
 
         if taut is None:
             taut = 100 * timestep * units.fs

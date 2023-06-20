@@ -59,7 +59,9 @@ class GaussianExpansion(nn.Module):
 class SphericalBesselFunction:
     """Calculate the spherical Bessel function based on sympy + pytorch implementations."""
 
-    def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
+    def __init__(
+        self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False
+    ):
         """Args:
         max_l: int, max order (excluding l)
         max_n: int, max number of roots used in each l
@@ -85,7 +87,10 @@ class SphericalBesselFunction:
 
         """
         x = sympy.symbols("x")
-        funcs = [sympy.expand_func(sympy.functions.special.bessel.jn(i, x)) for i in range(self.max_l + 1)]
+        funcs = [
+            sympy.expand_func(sympy.functions.special.bessel.jn(i, x))
+            for i in range(self.max_l + 1)
+        ]
         return [sympy.lambdify(x, func, torch) for func in funcs]
 
     @lru_cache(maxsize=128)
@@ -109,6 +114,8 @@ class SphericalBesselFunction:
         return torch.t(torch.stack(results))
 
     def _call_sbf(self, r):
+        r_c = r.clone()
+        r_c[r_c > self.cutoff] = self.cutoff
         roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n]
 
         results = []
@@ -118,7 +125,9 @@ class SphericalBesselFunction:
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
-                func(r[:, None] * root[None, :] / self.cutoff) * factor / torch.abs(func_add1(root[None, :]))
+                func(r_c[:, None] * root[None, :] / self.cutoff)
+                * factor
+                / torch.abs(func_add1(root[None, :]))
             )
         return torch.cat(results, axis=1)
 
@@ -154,13 +163,18 @@ class SphericalHarmonicsFunction:
         for lval in range(self.max_l):
             m_list = range(-lval, lval + 1) if self.use_phi else [0]  # type: ignore
             for m in m_list:
-                func = sympy.functions.special.spherical_harmonics.Znm(lval, m, theta, phi).expand(func=True)
+                func = sympy.functions.special.spherical_harmonics.Znm(
+                    lval, m, theta, phi
+                ).expand(func=True)
                 funcs.append(func)
         # replace all theta with cos(theta)
         costheta = sympy.symbols("costheta")
         funcs = [i.subs({theta: sympy.acos(costheta)}) for i in funcs]
         self.orig_funcs = [sympy.simplify(i).evalf() for i in funcs]
-        self.funcs = [sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch]) for i in self.orig_funcs]
+        self.funcs = [
+            sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch])
+            for i in self.orig_funcs
+        ]
         self.funcs[0] = _y00
 
     def __call__(self, costheta, phi=None):
@@ -235,7 +249,11 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
     dn = torch.stack(dn)  # type: ignore
     gn = [fnr[:, 0]]
     for i in range(1, max_n):
-        gn.append(1 / torch.sqrt(dn[i]) * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1]))
+        gn.append(
+            1
+            / torch.sqrt(dn[i])
+            * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1])
+        )
 
     return torch.t(torch.stack(gn))
 
@@ -247,7 +265,9 @@ def _sinc(x):
 class SphericalBesselWithHarmonics(nn.Module):
     """Expansion of basis using Spherical Bessel and Harmonics."""
 
-    def __init__(self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool):
+    def __init__(
+        self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool
+    ):
         """
         Init SphericalBesselWithHarmonics.
 
@@ -270,11 +290,17 @@ class SphericalBesselWithHarmonics(nn.Module):
         # retrieve formulas
         self.shf = SphericalHarmonicsFunction(self.max_l, self.use_phi)
         if self.use_smooth:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth)
+            self.sbf = SphericalBesselFunction(
+                self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth
+            )
         else:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth)
+            self.sbf = SphericalBesselFunction(
+                self.max_l, self.max_n, self.cutoff, self.use_smooth
+            )
 
     def forward(self, line_graph):
         sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
         shf = self.shf(line_graph.edata["cos_theta"], line_graph.edata["phi"])
-        return combine_sbf_shf(sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi)
+        return combine_sbf_shf(
+            sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi
+        )

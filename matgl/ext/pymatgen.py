@@ -53,7 +53,12 @@ class Molecule2Graph(GraphConverter):
         natoms = len(mol)
         R = mol.cart_coords
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in mol])
+        Z = np.array(
+            [
+                np.eye(len(element_types))[element_types.index(site.specie.symbol)]
+                for site in mol
+            ]
+        )
         np.array([site.specie.Z for site in mol])
         weight = mol.composition.weight / len(mol)
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
@@ -67,7 +72,9 @@ class Molecule2Graph(GraphConverter):
         g = dgl.to_bidirected(g)
         g.ndata["pos"] = tensor(R)
         g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in mol]))
+        g.ndata["node_type"] = tensor(
+            np.hstack([[element_types.index(site.specie.symbol)] for site in mol])
+        )
         g.edata["pbc_offset"] = torch.zeros(g.num_edges(), 3)
         g.edata["lattice"] = torch.zeros(g.num_edges(), 3, 3)
         state_attr = [weight, nbonds]
@@ -104,9 +111,16 @@ class Structure2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
+        Z = np.array(
+            [
+                np.eye(len(element_types))[element_types.index(site.specie.symbol)]
+                for site in structure
+            ]
+        )
         atomic_number = np.array([site.specie.Z for site in structure])
-        lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
+        lattice_matrix = np.ascontiguousarray(
+            np.array(structure.lattice.matrix), dtype=float
+        )
         volume = structure.volume
         cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
         src_id, dst_id, images, bond_dist = find_points_in_spheres(
@@ -124,13 +138,27 @@ class Structure2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        u, v = tensor(src_id), tensor(dst_id)
+        isolated_atoms = list(set(range(len(structure))).difference(src_id))
+        if not isolated_atoms:
+            u, v = tensor(src_id), tensor(dst_id)
+        else:
+            u, v = tensor(np.concatenate([src_id, isolated_atoms])), tensor(
+                np.concatenate([dst_id, isolated_atoms])
+            )
+            images = np.concatenate(
+                [images, np.repeat([[1.0, 0.0, 0.0]], len(isolated_atoms), axis=0)]
+            )
         g = dgl.graph((u, v))
         g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor(np.stack([lattice_matrix for _ in range(g.num_edges())]))
+        g.edata["lattice"] = tensor(
+            np.stack([lattice_matrix for _ in range(g.num_edges())])
+        )
         g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
+        g.ndata["node_type"] = tensor(
+            np.hstack([[element_types.index(site.specie.symbol)] for site in structure])
+        )
         g.ndata["pos"] = tensor(cart_coords)
         g.ndata["volume"] = tensor([volume for _ in range(atomic_number.shape[0])])
         state_attr = [0.0, 0.0]
+
         return g, state_attr
