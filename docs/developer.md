@@ -72,6 +72,14 @@ The IOMixIn supports optional model versioning. To enable this, the model class 
 class variable. The goal is to increment this variable when architectural changes occur and saved pre-trained models
 need to be invalidated. If not specified, the model is not versioned at all.
 
+## Testing
+
+All code contributions must be accompanied by comprehensive unittests. These tests should be added to the
+appropriate mirror directory in the `tests` folder.
+
+We use pytest. Useful fixtures have been written in the `conftest.py` file in the `tests` directory, which provides
+crystals, molecules, and pre-generated graphs for reuse in tests.
+
 ## Documentation
 
 We use Google doc style.
