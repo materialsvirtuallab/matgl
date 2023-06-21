@@ -7,6 +7,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import shutil
 
 import requests
 from invoke import task
@@ -15,6 +16,38 @@ from monty.os import cd
 import matgl
 
 NEW_VER = matgl.__version__
+
+@task
+def make_tutorials(ctx):
+    ctx.run("rm -rf docs/tutorials")
+    ctx.run("jupyter nbconvert examples/*.ipynb --to=markdown --output-dir=docs/tutorials")
+    for fn in glob.glob("docs/tutorials/*/*.png"):
+        ctx.run(f'mv "{fn}" docs/assets')
+
+    for fn in os.listdir("docs/tutorials"):
+        lines = [
+            "---",
+            "layout: default",
+            "title: " + fn,
+            "nav_exclude: true",
+            "---",
+            ""
+        ]
+        path = f"docs/tutorials/{fn}"
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        elif fn.endswith(".md"):
+            with open(path, "rt") as f:
+                for l in f:
+                    l = l.rstrip()
+                    if l.startswith("![png]"):
+                        t1, t2 = l.split("(")
+                        t2, t3 = t2.split("/")
+                        lines.append(t1 + "(assets/" + t3)
+                    else:
+                        lines.append(l)
+            with open(path, "wt") as f:
+                f.write("\n".join(lines))
 
 
 @task
@@ -34,8 +67,8 @@ def make_doc(ctx):
 
         sphinx-build -M markdown ./ build
     """
-    ctx.run("rm -rf docs/tutorials")
-    ctx.run("jupyter nbconvert examples/*.ipynb --to=markdown --output-dir=docs/tutorials")
+    make_tutorials(ctx)
+
     with cd("docs"):
         ctx.run("rm matgl.*.rst", warn=True)
         ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
@@ -44,17 +77,17 @@ def make_doc(ctx):
         ctx.run("sphinx-build -M markdown . .")
         ctx.run("rm *.rst", warn=True)
         ctx.run("cp markdown/matgl*.md .")
-        for fn in list(glob.glob("matgl*.md")) + list(glob.glob("tutorials/*.md")):
+        for fn in glob.glob("matgl*.md"):
             with open(fn) as f:
-                lines = f.readlines()
-            lines = [line for line in lines if "Submodules" not in line]
+                lines = [line.rstrip() for line in f if "Submodules" not in line]
             if fn == "matgl.md":
                 preamble = [
                     "---",
                     "layout: default",
                     "title: API Documentation",
                     "nav_order: 5",
-                    "---"
+                    "---",
+                    ""
                 ]
             else:
                 preamble = [
@@ -62,10 +95,11 @@ def make_doc(ctx):
                     "layout: default",
                     "title: " + fn,
                     "nav_exclude: true",
-                    "---"
+                    "---",
+                    ""
                 ]
             with open(fn, "w") as f:
-                f.write("\n".join(preamble) + "\n" + "".join(lines))
+                f.write("\n".join(preamble + lines))
 
         ctx.run("rm -r markdown", warn=True)
 

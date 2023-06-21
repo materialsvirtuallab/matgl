@@ -3,6 +3,7 @@ layout: default
 title: API Documentation
 nav_order: 5
 ---
+
 # matgl package
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials science.

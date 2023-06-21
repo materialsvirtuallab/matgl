@@ -212,7 +212,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         batch_size = preds.numel()
         return results, batch_size
 
-    def loss_fn(self, loss: nn.Module, labels: tuple, preds: tuple):
+    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor):
         """Args:
             loss: Loss function.
             labels: Labels to compute the loss.
@@ -221,9 +221,10 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
         """
-        total_loss = loss(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        mae = self.mae(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        rmse = self.rmse(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        scaled_pred = torch.reshape(preds * self.data_std + self.data_mean, labels.size())
+        total_loss = loss(labels, scaled_pred)
+        mae = self.mae(labels, scaled_pred)
+        rmse = self.rmse(labels, scaled_pred)
         return {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
 
 

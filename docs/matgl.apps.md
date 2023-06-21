@@ -3,6 +3,7 @@ layout: default
 title: matgl.apps.md
 nav_exclude: true
 ---
+
 # matgl.apps package
 
 This package implements specific applications of matgl models. An example is their use for fitting interatomic
@@ -24,7 +25,7 @@ Initialize Potential from a model and elemental references.
 
 * **Parameters**
 
-    
+
     * **model** – Model for predicting energies.
 
 
@@ -51,7 +52,7 @@ Initialize Potential from a model and elemental references.
 
 * **Parameters**
 
-    
+
     * **g** – DGL graph
 
 

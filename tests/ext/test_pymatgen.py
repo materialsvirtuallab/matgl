@@ -3,7 +3,8 @@ from __future__ import annotations
 import os
 
 import numpy as np
-from pymatgen.core import Lattice, Molecule, Structure
+from pymatgen.core import Lattice, Structure
+
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))

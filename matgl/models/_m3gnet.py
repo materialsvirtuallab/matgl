@@ -76,7 +76,7 @@ class M3GNet(nn.Module, IOMixIn):
         activation_type: str = "swish",
         **kwargs,
     ):
-        r"""
+        """
         Args:
             element_types (tuple): list of elements appearing in the dataset
             dim_node_embedding (int): number of embedded atomic features

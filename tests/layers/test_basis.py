@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import torch
+
 from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,

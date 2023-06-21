@@ -1,8 +1,9 @@
 ---
 layout: default
-title: tutorials/Training a M3GNet Potential with PyTorch Lightning.md
+title: Training a M3GNet Potential with PyTorch Lightning.md
 nav_exclude: true
 ---
+
 # Introduction
 
 This notebook demonstrates how to fit a M3GNet potential using PyTorch Lightning with MatGL.
@@ -19,6 +20,7 @@ import numpy as np
 import pytorch_lightning as pl
 from dgl.data.utils import split_dataset
 from pymatgen.ext.matproj import MPRester
+from pytorch_lightning.loggers import CSVLogger
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MGLDataLoader, collate_fn_efs
@@ -89,13 +91,13 @@ lit_module = PotentialLightningModule(model=model)
     100%|███████████████████████████████████████████████████████████████████████████████████████| 407/407 [00:02<00:00, 202.56it/s]
 
 
-Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator` 
+Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training.
 
 
 ```python
 # If you wish to disable GPU or MPS (M1 mac) training, use the accelerator="cpu" kwarg.
-
-trainer = pl.Trainer(max_epochs=2, accelerator="cpu")
+logger = CSVLogger("logs", name="M3GNet_training")
+trainer = pl.Trainer(max_epochs=2, accelerator="cpu", logger=logger)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
@@ -103,12 +105,12 @@ trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=va
     TPU available: False, using: 0 TPU cores
     IPU available: False, using: 0 IPUs
     HPU available: False, using: 0 HPUs
-    
+
       | Name  | Type              | Params
     --------------------------------------------
-    0 | model | Potential         | 282 K 
-    1 | mae   | MeanAbsoluteError | 0     
-    2 | rmse  | MeanSquaredError  | 0     
+    0 | model | Potential         | 282 K
+    1 | mae   | MeanAbsoluteError | 0
+    2 | rmse  | MeanSquaredError  | 0
     --------------------------------------------
     282 K     Trainable params
     0         Non-trainable params
