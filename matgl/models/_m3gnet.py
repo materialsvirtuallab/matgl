@@ -11,6 +11,7 @@ please refer to::
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import dgl
 import torch
@@ -22,7 +23,6 @@ from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.graph.converters import GraphConverter
 from matgl.layers import (
     MLP,
     BondExpansion,
@@ -39,6 +39,9 @@ from matgl.layers import (
 )
 from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
+
+if TYPE_CHECKING:
+    from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__file__)
 

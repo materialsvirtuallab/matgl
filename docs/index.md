@@ -96,9 +96,37 @@ pip install -e .
 ## Usage
 
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
-multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
-implemented `matgl.load_model` convenience method. The following is an example of a prediction of the formation
-energy for CsCl.
+multi-fidelity band gap are now available.
+
+### From the command line (from v0.6.2)
+
+A CLI tool now provides the capability to perform quick relaxations or predictions using pre-trained models, as well
+as other simple administrative tasks (e.g., clearing the cache). Some simple examples:
+
+1. To perform a relaxation,
+
+    ```bash
+    mgl relax -i Li2O.cif -o Li2O_relax.cif
+    ```
+
+2. To use one of the pre-trained property models,
+
+    ```bash
+    mgl predict -m M3GNet-MP-2018.6.1-Eform -i Li2O.cif
+    ```
+
+3. To clear the cache,
+
+    ```bash
+    mgl clear
+    ```
+
+For a full range of options, use `mgl -h`.
+
+### In code
+
+Users who just want to use the models out of the box should use the newly implemented `matgl.load_model` convenience
+method. The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
 from pymatgen.core import Lattice, Structure
@@ -119,10 +147,13 @@ import matgl
 print(matgl.get_available_pretrained_models())
 ```
 
+## Tutorials
+
+A set of [tutorials][tutorials] have been written on the use of MatGL. These were generated from [Jupyter notebooks]
+[jupyternb], which can be directly run on [Google Colab][colab].
+
 ## Resources
 
-- [Jupyter notebooks][jupyternb] on the use of MatGL. These notebooks can be run on [Google Colab][colab]. This will
-  be the primary form of tutorials for now.
 - [API documentation][apidocs] for all classes and methods.
 - [Developer Guide](developer.md) outlines the key design elements of matgl, especially for developers wishing to
   train and contribute matgl models.
@@ -162,15 +193,9 @@ information. If you are using any of the pretrained models, please cite the rele
 
    _Answer:_ The most likely reason is that you have a cached older version of the model. We often refactor models to
    ensure the best implementation. This can usually be solved by updating your matgl to the latest version
-   and clearing your cache using:
-
-   ```bash
-   pip install matgl --upgrade
-   python -c "import matgl; matgl.clear_cache()"
-   ```
-
-   On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
-   versioning scheme that will detect code vs model version conflicts and alert the user of such problems.
+   and clearing your cache using the following command `mgl clear`. On the next run, the latest model will be
+   downloaded. With effect from v0.5.2, we have implemented a model versioning scheme that will detect code vs model
+   version conflicts and alert the user of such problems.
 
 3. **What pre-trained models should I be using?**
 
@@ -184,7 +209,7 @@ information. If you are using any of the pretrained models, please cite the rele
    _Answer:_ For code contributions, please fork and submit pull requests. You should read the
    [developer guide](developer.md) to understand the general design guidelines. We welcome pre-trained model
    contributions as well, which should also be submitted via PRs. Please follow the folder structure of the
-   pretrained models. In particular, we expect all models to come with a README and notebook
+   pretrained models. In particular, we expect all models to come with a `README.md` and notebook
    documenting its use and its key performance metrics. Also, we expect contributions to be on new properties
    or systems or to significantly outperform the existing models. We will develop an alternative means for model
    sharing in the future.
@@ -216,7 +241,8 @@ ACI-1548562.
 [mp]: http://materialsproject.org "Materials Project"
 [apidocs]: https://matgl.ai/matgl.html "MatGL API docs"
 [doc]: https://matgl.ai "MatGL Documentation"
-[colab]: http://colab.google.com "Google Colab"
+[colab]: https://colab.research.google.com/ "Google Colab"
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples
 [ongemail]: mailto:ongsp@ucsd.edu "Email"
 [mqm]: https://materialsqm.com "MaterialsQM"
+[tutorials]: https://matgl.ai/tutorials "Tutorials"
