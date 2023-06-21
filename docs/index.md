@@ -119,10 +119,13 @@ import matgl
 print(matgl.get_available_pretrained_models())
 ```
 
+## Tutorials
+
+A set of [tutorials][tutorials] have been written on the use of MatGL. These were generated from [Jupyter notebooks]
+[jupyternb], which can be directly run on [Google Colab][colab].
+
 ## Resources
 
-- [Jupyter notebooks][jupyternb] on the use of MatGL. These notebooks can be run on [Google Colab][colab]. This will
-  be the primary form of tutorials for now.
 - [API documentation][apidocs] for all classes and methods.
 - [Developer Guide](developer.md) outlines the key design elements of matgl, especially for developers wishing to
   train and contribute matgl models.
@@ -220,3 +223,4 @@ ACI-1548562.
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples
 [ongemail]: mailto:ongsp@ucsd.edu "Email"
 [mqm]: https://materialsqm.com "MaterialsQM"
+[tutorials]: https://matgl.ai/tutorials "Tutorials"
