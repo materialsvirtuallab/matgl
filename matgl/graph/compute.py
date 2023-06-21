@@ -1,6 +1,4 @@
-"""
-Computing various graph based operations.
-"""
+"""Computing various graph based operations."""
 from __future__ import annotations
 
 import dgl
@@ -11,8 +9,7 @@ from matgl.ext.pymatgen_latest import get_empty_graph
 
 
 def compute_3body(g: dgl.DGLGraph):
-    """
-    Calculate the three body indices from pair atom indices.
+    """Calculate the three body indices from pair atom indices.
 
     Args:
         g: DGL graph
@@ -32,7 +29,7 @@ def compute_3body(g: dgl.DGLGraph):
     n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
     n_triple = torch.sum(n_triple_i)
     n_triple_ij = (n_bond_per_atom - 1).repeat_interleave(n_bond_per_atom)
-    triple_bond_indices = torch.empty((n_triple, 2), dtype=torch.int64)
+    triple_bond_indices = torch.empty((n_triple, 2), dtype=torch.int64)  # type: ignore
 
     start = 0
     cs = 0
@@ -69,13 +66,12 @@ def compute_3body(g: dgl.DGLGraph):
     l_g.ndata["bond_vec"] = g.edata["bond_vec"]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"]
     l_g.ndata["n_triple_ij"] = n_triple_ij
-    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64)
+    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64)  # type: ignore
     return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
 
 
 def compute_pair_vector_and_distance(g: dgl.DGLGraph):
-    """
-    Calculate bond vectors and distances using dgl graphs.
+    """Calculate bond vectors and distances using dgl graphs.
 
     Args:
     g: DGL graph
@@ -97,15 +93,14 @@ def compute_pair_vector_and_distance(g: dgl.DGLGraph):
 
 
 def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
-    """
-    Calculate bond angle Theta and Phi using dgl graphs.
+    """Calculate bond angle Theta and Phi using dgl graphs.
 
     Args:
     edges: DGL graph edges
 
     Returns:
-    cos_theta: torch.tensor
-    phi: torch.tensor
+    cos_theta: torch.Tensor
+    phi: torch.Tensor
     triple_bond_lengths (torch.tensor):
     """
     vec1 = edges.src["bond_vec"]

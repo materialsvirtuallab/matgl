@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import unittest
-
 import pytest
 import torch.nn
 
@@ -17,11 +15,7 @@ class DummyModel(torch.nn.Module):
         return torch.ones(1)
 
 
-class TransformedTargetModelTest(unittest.TestCase):
+class TestTransformedTargetModel:
     def test_forward(self):
         model = TransformedTargetModel(DummyModel(), Normalizer(1, 2))
         assert float(model.forward()), pytest.approx(3)
-
-
-if __name__ == "__main__":
-    unittest.main()

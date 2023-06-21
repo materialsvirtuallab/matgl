@@ -1,18 +1,14 @@
-"""
-Generate bond features based on spherical bessel functions or gaussian expansion.
-"""
+"""Generate bond features based on spherical bessel functions or gaussian expansion."""
 from __future__ import annotations
 
 import torch
 from torch import nn
 
-from matgl.utils.maths import GaussianExpansion, SphericalBesselFunction
+from matgl.layers._basis import GaussianExpansion, SphericalBesselFunction
 
 
 class BondExpansion(nn.Module):
-    """
-    Expand pair distances into a set of spherical bessel or gaussian functions.
-    """
+    """Expand pair distances into a set of spherical bessel or gaussian functions."""
 
     def __init__(
         self,
@@ -26,17 +22,16 @@ class BondExpansion(nn.Module):
         num_centers: int = 100,
         width: float = 0.5,
     ) -> None:
-        """
-        Args:
-            max_l (int): order of angular part
-            max_n (int): order of radial part
-            cutoff (float): cutoff radius
-            rbf_type (str): type of radial basis function .i.e. either "SphericalBessel" or 'Gaussian'
-            smooth (bool): whether apply the smooth version of spherical bessel functions or not
-            initial (float): initial point for gaussian expansion
-            final (float): final point for gaussian expansion
-            num_centers (int): Number of centers for gaussian expansion.
-            width (float): width of gaussian function.
+        """Args:
+        max_l (int): order of angular part
+        max_n (int): order of radial part
+        cutoff (float): cutoff radius
+        rbf_type (str): type of radial basis function .i.e. either "SphericalBessel" or 'Gaussian'
+        smooth (bool): whether apply the smooth version of spherical bessel functions or not
+        initial (float): initial point for gaussian expansion
+        final (float): final point for gaussian expansion
+        num_centers (int): Number of centers for gaussian expansion.
+        width (float): width of gaussian function.
         """
         super().__init__()
 
@@ -57,9 +52,8 @@ class BondExpansion(nn.Module):
         else:
             raise Exception("undefined rbf_type, please use SphericalBessel or Gaussian instead.")
 
-    def forward(self, bond_dist: torch.tensor):
-        """
-        Forward.
+    def forward(self, bond_dist: torch.Tensor):
+        """Forward.
 
         Args:
         bond_dist: Bond distance

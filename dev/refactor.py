@@ -1,6 +1,4 @@
-"""
-Refactoring script to convert saved models to new names.
-"""
+"""Refactoring script to convert saved models to new names."""
 from __future__ import annotations
 
 import torch

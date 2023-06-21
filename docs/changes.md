@@ -1,13 +1,27 @@
 ---
 layout: page
 title: Change Log
-nav_order: 2
+nav_order: 3
 ---
 
 # Change Log
 
+## 0.6.0
+- Refactoring of training utilities. Added example for training an M3GNet potential.
+
+## 0.5.6
+- Minor internal refactoring of basis expansions into `_basis.py`. (@lbluque)
+
+## 0.5.5
+- Critical bug fix for code regression affecting pre-loaded models.
+
+## 0.5.4
+- M3GNet Formation energy model added, with example notebook.
+- M3GNet.predict_structure method added.
+- Massively improved documentation at http://matgl.ai.
+
 ## 0.5.3
-- Minor doc and code usability improvvements.
+- Minor doc and code usability improvements.
 
 ## 0.5.2
 - Minor improvements to model versioning scheme.

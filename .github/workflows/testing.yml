@@ -1,4 +1,4 @@
-name: Testing - main
+name: Testing
 
 on: [push, pull_request]
 
@@ -20,12 +20,14 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: '**/requirements.txt'
       - name: Install dependencies
         run: |
-          pip install torch --upgrade
-          pip install torch-scatter --upgrade
           pip install --quiet -r requirements.txt -r requirements-ci.txt
           pip install -e .
       - name: pytest
         run: |
-          pytest tests --color=yes
+          pytest --cov=matgl tests --color=yes
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2

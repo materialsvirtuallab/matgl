@@ -12,7 +12,7 @@ with open(os.path.join(this_dir, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="matgl",
-    version="0.5.3",
+    version="0.6.0",
     author="Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Eliott Liu, Shyue Ping Ong",
     author_email="t1ko@ucsd.edu, ongsp@ucsd.edu",
     maintainer="Shyue Ping Ong",
@@ -43,6 +43,10 @@ setup(
         "pytorch_lightning",
         "torch",
     ),
+    extra_requires={
+        "ase": ["ase>=3.22.1"],
+        "pymatgen": ["pymatgen>=2023.5.31"],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",

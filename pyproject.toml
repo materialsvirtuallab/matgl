@@ -60,11 +60,7 @@ select = [
 ]
 ignore = [
   "B019",    # functools.lru_cache on methods can lead to memory leaks
-  "D100",    # Missing docstring in public module
-  "D104",    # Missing docstring in public package
   "D105",    # Missing docstring in magic method
-  "D107",    # Missing docstring in __init__
-  "D200",    # One-line docstring should fit on one line with quotes
   "D205",    # 1 blank line required between summary line and description
   "D212",    # Multi-line docstring summary should start at the first line
   "PLR",     # pylint refactor
@@ -79,7 +75,11 @@ extend-exclude = ["tests"]
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
+"setup.py" = ["D"]
 "tasks.py" = ["D"]
+"tests/**/*" = ["D"]
+"docs/**/*" = ["D"]
+"examples/**/*" = ["D"]
 
 [tool.pytest.ini_options]
 addopts = "--durations=30 --quiet -rXs --color=yes -p no:warnings"

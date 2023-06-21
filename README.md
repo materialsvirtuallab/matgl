@@ -1,13 +1,14 @@
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE)
 [![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
-[![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing%20-%20main/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
+[![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
+[![Coverage Status](https://coveralls.io/repos/github/materialsvirtuallab/matgl/badge.svg?branch=main)](https://coveralls.io/github/materialsvirtuallab/matgl?branch=main)
 
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 
 # Materials Graph Library
 
-Official Documentation: [link][doc]
+### Official Documentation: [:books:][doc]
 
 ## Introduction
 
@@ -41,25 +42,26 @@ Major milestones are summarized below. Please refer to [change log][changelog] f
 
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic" width="50%">
 
-## MEGNet
+### MEGNet
 
-The [MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
+[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
 machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
 array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
 [multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
 network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an output graph.
 
-## M3GNet
+### M3GNet
 
-[M3GNet][m3gnet] is a new materials graph neural network architecture that incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
+[Materials 3-body Graph Network (M3GNet)][m3gnet] is a new materials graph neural network architecture that
+incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
 the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
 stresses via auto-differentiation. As a framework, M3GNet has diverse applications, including:
 
 - **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
   machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
   flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
-  *universal IP* that can work across the entire periodic table of the elements by training on relaxations performed
-  in the [Materials Project][mp].
+  [*universal IP*][m3gnet] that can work across the entire periodic table of the elements by training on relaxations
+  performed in the [Materials Project][mp].
 - **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
   surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
   state-of-the-art ML models.
@@ -77,7 +79,7 @@ pip install matgl
 For the latest dev version, please clone this repo and install using:
 
 ```bash
-python setup.py -e .
+pip install -e .
 ```
 
 ## Usage
@@ -111,8 +113,8 @@ print(matgl.get_available_pretrained_models())
 - [Jupyter notebooks][jupyternb] on the use of MatGL. These notebooks can be run on [Google Colab][colab]. This will
   be the primary form of tutorials for now.
 - [API documentation][apidocs] for all classes and methods.
-- [Developer's Guide](developer.md) has been written to outline the key design elements of matgl. This serves
-as a guiding documentation for developers wishing to train and contribute matgl models.
+- [Developer Guide](developer.md) outlines the key design elements of matgl, especially for developers wishing to
+  train and contribute matgl models.
 
 ## References
 
@@ -136,18 +138,18 @@ information. If you are using any of the pretrained models, please cite the rele
 
 ## FAQs
 
-1. The `M3GNet-MP-2021.2.8-PES` differs from the original tensorflow (TF) implementation!
+1. **The `M3GNet-MP-2021.2.8-PES` differs from the original tensorflow (TF) implementation!**
 
-   Answer: `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
+   _Answer:_ `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
    Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
    to ensure that the new implementation reproduces the broad error characteristics of the original TF implementation
    (see [examples][jupyternb]). However, it is not expected to reproduce the TF version exactly. This refitted model
    serves as a baseline for future model improvements. We do not believe there is value in expending the resources
    to reproduce the TF version exactly.
 
-2. I am getting errors with `matgl.load_model()`!
+2. **I am getting errors with `matgl.load_model()`!**
 
-   Answer: The most likely reason is that you have a cached older version of the model. We often refactor models to
+   _Answer:_ The most likely reason is that you have a cached older version of the model. We often refactor models to
    ensure the best implementation. This can usually be solved by updating your matgl to the latest version
    and clearing your cache using:
 
@@ -158,6 +160,30 @@ information. If you are using any of the pretrained models, please cite the rele
 
    On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
    versioning scheme that will detect code vs model version conflicts and alert the user of such problems.
+
+3. **What pre-trained models should I be using?**
+
+   _Answer:_ There is no one definitive answer. In general, the newer the architecture and dataset, the more likely
+   the model performs better. However, it should also be noted that a model operating on a more diverse dataset may
+   compromise on  performance on a specific system. The best way is to look at the READMEs included with each model
+   and do some tests on the systems you are interested in.
+
+4. **How do I contribute to matgl?**
+
+   _Answer:_ For code contributions, please fork and submit pull requests. You should read the
+   [developer guide](developer.md) to understand the general design guidelines. We welcome pre-trained model
+   contributions as well, which should also be submitted via PRs. Please follow the folder structure of the
+   pretrained models. In particular, we expect all models to come with a README and notebook
+   documenting its use and its key performance metrics. Also, we expect contributions to be on new properties
+   or systems or to significantly outperform the existing models. We will develop an alternative means for model
+   sharing in the future.
+
+5. **None of your models do what I need. Where can I get help?**
+
+   _Answer:_ Please contact [Prof Ong][ongemail] with a brief description of your needs. For simple problems, we are
+   glad to advise and point you in the right direction. For more complicated problems, we are always open to
+   academic collaborations or projects. We also offer [consulting services][mqm] for companies with unique needs,
+   including but not limited to custom data generation, model development and materials design.
 
 ## Acknowledgments
 
@@ -181,3 +207,5 @@ ACI-1548562.
 [doc]: https://matgl.ai "MatGL Documentation"
 [colab]: http://colab.google.com "Google Colab"
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples
+[ongemail]: mailto:ongsp@ucsd.edu "Email"
+[mqm]: https://materialsqm.com "MaterialsQM"

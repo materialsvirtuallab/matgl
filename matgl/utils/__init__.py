@@ -1,3 +1,1 @@
-"""
-Implementation of various utility methods and classes.
-"""
+"""Implementation of various utility methods and classes."""

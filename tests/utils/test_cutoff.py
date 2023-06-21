@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import unittest
-
 import numpy as np
 import torch
 
 from matgl.utils.cutoff import cosine_cutoff, polynomial_cutoff
 
 
-class TestCutoff(unittest.TestCase):
+class TestCutoff:
     def test_polynomial(self):
         r = torch.linspace(1.0, 5.0, 11)
         three_body_cutoff = 4.0
@@ -30,7 +28,3 @@ class TestCutoff(unittest.TestCase):
             torch.tensor([0.8536, 0.7270, 0.5782, 0.4218, 0.2730, 0.1464, 0.0545, 0.0062, 0.0000, 0.0000, 0.0000]),
             decimal=4,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

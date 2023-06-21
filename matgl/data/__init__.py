@@ -1,3 +1,1 @@
-"""
-This package implements data manipulation tools.
-"""
+"""This package implements data manipulation tools."""

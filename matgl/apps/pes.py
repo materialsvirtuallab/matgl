@@ -1,6 +1,4 @@
-"""
-Implementation of Interatomic Potentials.
-"""
+"""Implementation of Interatomic Potentials."""
 from __future__ import annotations
 
 import dgl
@@ -9,35 +7,37 @@ import torch
 from torch import nn
 from torch.autograd import grad
 
-from matgl.ext.pymatgen_latest import get_one_graph
+from matgl.ext.pymatgen import get_one_graph
+from matgl.graph.compute import create_line_graph
 from matgl.layers import AtomRef
 from matgl.utils.io import IOMixIn
 
 
 class Potential(nn.Module, IOMixIn):
-    """
-    A class representing an interatomic potential.
-    """
+    """A class representing an interatomic potential."""
 
-    # Model version number.
     __version__ = 1
 
     def __init__(
         self,
         model: nn.Module,
-        data_mean: torch.tensor | None = None,
-        data_std: torch.tensor | None = None,
+        data_mean: torch.Tensor | None = None,
+        data_std: torch.Tensor | None = None,
         element_refs: np.ndarray | None = None,
         calc_forces: bool = True,
         calc_stresses: bool = True,
         calc_hessian: bool = False,
     ):
-        """
-        :param model: M3GNet model
-        :param element_refs: Element reference values for each element
-        :param calc_forces: Enable force calculations
-        :param calc_stresses: Enable stress calculations
-        :param calc_hessian: Enable hessian calculations
+        """Initialize Potential from a model and elemental references.
+
+        Args:
+            model: Model for predicting energies.
+            data_mean: Mean of target.
+            data_std: Std dev of target.
+            element_refs: Element reference values for each element.
+            calc_forces: Enable force calculations.
+            calc_stresses: Enable stress calculations.
+            calc_hessian: Enable hessian calculations.
         """
         super().__init__()
         self.save_args(locals())
@@ -55,17 +55,17 @@ class Potential(nn.Module, IOMixIn):
         self.data_std = data_std if data_std is not None else torch.ones(1)
 
     def forward(
-        self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None
+        self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None
     ) -> tuple:
-        """
-        Args:
+        """Args:
             g: DGL graph
             state_attr: State attrs
             l_g: Line graph.
 
         Returns:
-            energies, forces, stresses, hessian: torch.tensor
+            energies, forces, stresses, hessian: torch.Tensor
         """
+        is_special_g = False
         if (g.in_degrees().cpu().numpy() < 2).all():
             g2 = get_one_graph(g)
             g = dgl.batch([g, g2])
@@ -74,6 +74,10 @@ class Potential(nn.Module, IOMixIn):
                 if state_attr.dim() < 2
                 else torch.vstack([state_attr, state_attr[0]])
             )
+            if l_g is not None:
+                l_g2 = create_line_graph(g2, self.model.threebody_cutoff)
+                l_g = dgl.batch([l_g, l_g2])
+            is_special_g = True
         forces = torch.zeros(1)
         stresses = torch.zeros(1)
         hessian = torch.zeros(1)
@@ -104,13 +108,13 @@ class Potential(nn.Module, IOMixIn):
                         hessian[iatom] = tmp.view(-1)
         if self.calc_stresses:
             f_ij = -grads[1]
-            stresses = []
+            sts: list = []
             count_edge = 0
             count_node = 0
             for graph_id in range(g.batch_size):
                 num_edges = g.batch_num_edges()[graph_id]
                 num_nodes = 0
-                stresses.append(
+                sts.append(
                     -1
                     * (
                         160.21766208
@@ -124,8 +128,7 @@ class Potential(nn.Module, IOMixIn):
                 count_edge = count_edge + num_edges
                 num_nodes = g.batch_num_nodes()[graph_id]
                 count_node = count_node + num_nodes
-            stresses = torch.cat(stresses)
-        if (g.in_degrees().cpu().numpy() <= 2).all():
+            stresses = torch.cat(sts)
+        if is_special_g:
             return total_energies[:-1], forces[:-1], stresses[:-1], hessian[:-1]
-        else:
-            return total_energies, forces, stresses, hessian
+        return total_energies, forces, stresses, hessian

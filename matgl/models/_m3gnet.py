@@ -1,14 +1,12 @@
-"""
-Implementation of Materials 3-body Graph Network (M3GNet) model.
+"""Implementation of Materials 3-body Graph Network (M3GNet) model.
 
 The main improvement over MEGNet is the addition of many-body interactios terms, which improves efficiency of
 representation of local interactions for applications such as interatomic potentials. For more details on M3GNet,
 please refer to::
 
-```
-Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
-Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
-```
+    Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
+    Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
+
 """
 from __future__ import annotations
 
@@ -46,9 +44,7 @@ logger = logging.getLogger(__file__)
 
 
 class M3GNet(nn.Module, IOMixIn):
-    """
-    The main M3GNet model.
-    """
+    """The main M3GNet model."""
 
     __version__ = 1
 
@@ -94,9 +90,9 @@ class M3GNet(nn.Module, IOMixIn):
             rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
             is_intensive (bool): whether the prediction is intensive
             readout_type (str): the readout function type. choose from `set2set`,
-                `weighted_atom` and `reduce_atom`, default to `weighted_atom`
+            `weighted_atom` and `reduce_atom`, default to `weighted_atom`
             task_type (str): `classification` or `regression`, default to
-                `regression`
+            `regression`
             cutoff (float): cutoff radius of the graph
             threebody_cutoff (float): cutoff radius for 3 body interaction
             units (int): number of neurons in each MLP layer
@@ -184,7 +180,7 @@ class M3GNet(nn.Module, IOMixIn):
                 self.readout = Set2SetReadOut(num_steps=niters_set2set, num_layers=nlayers_set2set, field=field)
                 readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
             else:
-                self.readout = ReduceReadOut("mean", field=field)
+                self.readout = ReduceReadOut("mean", field=field)  # type: ignore
                 readout_feats = input_feats + dim_state_feats if include_state else input_feats  # type: ignore
 
             dims_final_layer = [readout_feats, units, units, ntargets]
@@ -195,7 +191,9 @@ class M3GNet(nn.Module, IOMixIn):
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
-            self.final_layer = WeightedReadOut(in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets)
+            self.final_layer = WeightedReadOut(
+                in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets  # type: ignore
+            )
 
         self.max_n = max_n
         self.max_l = max_l
@@ -207,7 +205,7 @@ class M3GNet(nn.Module, IOMixIn):
         self.task_type = task_type
         self.is_intensive = is_intensive
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.
 
         Args:
@@ -247,7 +245,7 @@ class M3GNet(nn.Module, IOMixIn):
         g.edata["edge_feat"] = num_edge_feats
         if self.is_intensive:
             node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, state_attr]) if self.include_states else node_vec
+            vec = torch.hstack([node_vec, state_attr]) if self.include_states else node_vec  # type: ignore
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
@@ -257,10 +255,9 @@ class M3GNet(nn.Module, IOMixIn):
         return torch.squeeze(output)
 
     def predict_structure(
-        self, structure, state_feats: torch.tensor | None = None, graph_converter: GraphConverter | None = None
+        self, structure, state_feats: torch.Tensor | None = None, graph_converter: GraphConverter | None = None
     ):
-        """
-        Convenience method to directly predict property from structure.
+        """Convenience method to directly predict property from structure.
 
         Args:
             structure: An input crystal/molecule.
@@ -271,16 +268,15 @@ class M3GNet(nn.Module, IOMixIn):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext.pymatgen_latest import Structure2Graph, get_one_graph
+            from matgl.ext.pymatgen import Structure2Graph, get_one_graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
-        g, stare_feats_default = graph_converter.get_graph(structure)
+        g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
-            state_feats = torch.tensor(stare_feats_default)
+            state_feats = torch.tensor(state_feats_default)
         if (g.in_degrees().cpu().numpy() < 2).all():
             g2 = get_one_graph(g)
             g = dgl.batch([g, g2])
             state_feats = torch.vstack([state_feats, state_feats])
             return self(g=g, state_attr=state_feats).detach()[:-1]
-        else:
-            return self(g=g, state_attr=state_feats).detach()
+        return self(g=g, state_attr=state_feats).detach()

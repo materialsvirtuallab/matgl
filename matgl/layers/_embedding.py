@@ -1,6 +1,4 @@
-"""
-Embedding node, edge and optional state attributes.
-"""
+"""Embedding node, edge and optional state attributes."""
 from __future__ import annotations
 
 import torch
@@ -10,9 +8,7 @@ from matgl.layers._core import MLP
 
 
 class EmbeddingBlock(nn.Module):
-    """
-    Embedding block for generating node, bond and state features.
-    """
+    """Embedding block for generating node, bond and state features."""
 
     def __init__(
         self,
@@ -26,18 +22,16 @@ class EmbeddingBlock(nn.Module):
         ntypes_state: int | None = None,
         dim_state_embedding: int | None = None,
     ):
-        """
-
-        Args:
-            degree_rbf (int): number of rbf
-            activation (nn.Module): activation type
-            dim_node_embedding (int): dimensionality of node features
-            dim_edge_embedding (int): dimensionality of edge features
-            dim_state_feats: dimensionality of state features
-            ntypes_node: number of node labels
-            include_state: Whether to include state embedding
-            ntypes_state: number of state labels
-            dim_state_embedding: dimensionality of state embedding.
+        """Args:
+        degree_rbf (int): number of rbf
+        activation (nn.Module): activation type
+        dim_node_embedding (int): dimensionality of node features
+        dim_edge_embedding (int): dimensionality of edge features
+        dim_state_feats: dimensionality of state features
+        ntypes_node: number of node labels
+        include_state: Whether to include state embedding
+        ntypes_state: number of state labels
+        dim_state_embedding: dimensionality of state embedding.
         """
         super().__init__()
         self.include_state = include_state
@@ -57,8 +51,7 @@ class EmbeddingBlock(nn.Module):
             self.layer_edge_embedding = MLP(dim_edges, activation=activation, activate_last=True)
 
     def forward(self, node_attr, edge_attr, state_attr):
-        """
-        Output embedded features.
+        """Output embedded features.
 
         Args:
         node_attr: node attribute

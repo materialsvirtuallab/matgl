@@ -7,7 +7,6 @@ from __future__ import annotations
 import glob
 import json
 import os
-import re
 
 import requests
 from invoke import task
@@ -35,25 +34,26 @@ def make_doc(ctx):
 
         sphinx-build -M markdown ./ build
     """
+    ctx.run("rm -rf docs/tutorials")
+    ctx.run("jupyter nbconvert examples/*.ipynb --to=markdown --output-dir=docs/tutorials")
     with cd("docs"):
         ctx.run("rm matgl.*.rst", warn=True)
         ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
-        ctx.run("rm matgl.*tests*.rst", warn=True)
         # ctx.run("rm matgl*.html", warn=True)
         # ctx.run("sphinx-build -b html . ../docs")  # HTML building.
         ctx.run("sphinx-build -M markdown . .")
         ctx.run("rm *.rst", warn=True)
-        ctx.run("mv markdown/matgl*.md .")
-        for fn in glob.glob("matgl*.md"):
-            with open(fn, "rt") as f:
+        ctx.run("cp markdown/matgl*.md .")
+        for fn in list(glob.glob("matgl*.md")) + list(glob.glob("tutorials/*.md")):
+            with open(fn) as f:
                 lines = f.readlines()
-            lines = [l for l in lines if "Submodules" not in l]
+            lines = [line for line in lines if "Submodules" not in line]
             if fn == "matgl.md":
                 preamble = [
                     "---",
                     "layout: default",
                     "title: API Documentation",
-                    "nav_order: 4",
+                    "nav_order: 5",
                     "---"
                 ]
             else:
@@ -64,24 +64,23 @@ def make_doc(ctx):
                     "nav_exclude: true",
                     "---"
                 ]
-            with open(fn, "wt") as f:
+            with open(fn, "w") as f:
                 f.write("\n".join(preamble) + "\n" + "".join(lines))
 
-        for d in (".doctrees", "markdown"):
-            ctx.run(f"rm -r {d}", warn=True)
+        ctx.run("rm -r markdown", warn=True)
 
         # ctx.run("mv _static static")
         # ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
         # ctx.run("rm index.html", warn=True)
         ctx.run("cp ../*.md .")
-        ctx.run(f"mv README.md index.md")
-        ctx.run("rm -rf *.orig _site doctrees", warn=True)
+        ctx.run("mv README.md index.md")
+        ctx.run("rm -rf *.orig doctrees", warn=True)
 
-        with open("index.md", "rt") as f:
+        with open("index.md") as f:
             contents = f.read()
-        with open("index.md", "wt") as f:
+        with open("index.md", "w") as f:
             contents = contents.replace(
-                "\nOfficial Documentation: [link][doc]",
+                "\n### Official Documentation: [:books:][doc]",
                 "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n")
             contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents
 
@@ -97,10 +96,7 @@ def publish(ctx):
 
 @task
 def release_github(ctx):
-    with open("changes.md") as f:
-        contents = f.read()
-    toks = re.split(r"\#+", contents)
-    desc = toks[1].strip()
+    desc = get_changelog(ctx)
     payload = {
         "tag_name": "v" + NEW_VER,
         "target_commitish": "main",
@@ -121,6 +117,15 @@ def release_github(ctx):
 def release(ctx, notest=False):
     ctx.run("rm -r dist build matgl.egg-info", warn=True)
     if not notest:
-        ctx.run("pytest matgl")
+        ctx.run("pytest tests")
     publish(ctx)
     release_github(ctx)
+
+@task
+def get_changelog(ctx):
+    with open("changes.md") as f:
+        contents = f.read()
+        i = contents.find(f"{NEW_VER}")
+        contents = contents[i+len(NEW_VER):]
+        i = contents.find("#")
+        return contents[:i].strip()

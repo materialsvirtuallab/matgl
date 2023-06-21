@@ -1,13 +1,10 @@
-"""
-Implementation of MatErials Graph Network (MEGNet) model.
+"""Implementation of MatErials Graph Network (MEGNet) model.
 
 Graph networks are a new machine learning (ML) paradigm that supports both relational reasoning and combinatorial
 generalization. For more details on MEGNet, please refer to::
 
-```
-Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
-Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564-3572. DOI: 10.1021/acs.chemmater.9b01294.
-```
+    Chen, C.; Ye, W.; Zuo, Y.; Zheng, C.; Ong, S. P. _Graph Networks as a Universal Machine Learning Framework for
+    Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564-3572. DOI: 10.1021/acs.chemmater.9b01294.
 """
 from __future__ import annotations
 
@@ -28,9 +25,7 @@ logger = logging.getLogger(__file__)
 
 
 class MEGNet(nn.Module, IOMixIn):
-    """
-    DGL implementation of MEGNet.
-    """
+    """DGL implementation of MEGNet."""
 
     __version__ = 1
 
@@ -57,8 +52,7 @@ class MEGNet(nn.Module, IOMixIn):
         gauss_width: float = 0.5,
         **kwargs,
     ):
-        """
-        Useful defaults for all arguments have been specified based on MEGNet formation energy model.
+        """Useful defaults for all arguments have been specified based on MEGNet formation energy model.
 
         Args:
             dim_node_embedding: Dimension of node embedding.
@@ -91,7 +85,7 @@ class MEGNet(nn.Module, IOMixIn):
 
         self.save_args(locals(), kwargs)
 
-        self.element_types = element_types
+        self.element_types = element_types or DEFAULT_ELEMENT_TYPES
         self.cutoff = cutoff
         self.bond_expansion = bond_expansion or BondExpansion(
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
@@ -167,8 +161,7 @@ class MEGNet(nn.Module, IOMixIn):
         node_feat: torch.Tensor,
         state_feat: torch.Tensor,
     ):
-        """
-        Forward pass of MEGnet. Executes all blocks.
+        """Forward pass of MEGnet. Executes all blocks.
 
         Args:
             graph: Input graph
@@ -210,11 +203,10 @@ class MEGNet(nn.Module, IOMixIn):
     def predict_structure(
         self,
         structure,
-        state_feats: torch.tensor | None = None,
+        state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
     ):
-        """
-        Convenience method to directly predict property from structure.
+        """Convenience method to directly predict property from structure.
 
         Args:
             structure: An input crystal/molecule.
@@ -225,12 +217,19 @@ class MEGNet(nn.Module, IOMixIn):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
+            from matgl.ext.pymatgen import Structure2Graph, get_one_graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
+        if (g.in_degrees().cpu().numpy() < 2).all():
+            g2 = get_one_graph(g)
+            g = dgl.batch([g, g2])
+            state_feats = torch.vstack([state_feats, state_feats])
+            bond_vec, bond_dist = compute_pair_vector_and_distance(g)
+            g.edata["edge_attr"] = self.bond_expansion(bond_dist)
+            return self(g, g.edara["edge_attr"], g.ndata["node_type"], state_feats).detach()
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
         return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()

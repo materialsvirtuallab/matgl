@@ -1,7 +1,7 @@
 ---
 layout: default
 title: API Documentation
-nav_order: 4
+nav_order: 5
 ---
 # matgl package
 
@@ -245,6 +245,42 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
             * [`AtomRef.training`](matgl.layers.md#matgl.layers._atom_ref.AtomRef.training)
 
 
+    * [matgl.layers._basis module](matgl.layers.md#module-matgl.layers._basis)
+
+
+        * [`GaussianExpansion`](matgl.layers.md#matgl.layers._basis.GaussianExpansion)
+
+
+            * [`GaussianExpansion.forward()`](matgl.layers.md#matgl.layers._basis.GaussianExpansion.forward)
+
+
+            * [`GaussianExpansion.reset_parameters()`](matgl.layers.md#matgl.layers._basis.GaussianExpansion.reset_parameters)
+
+
+            * [`GaussianExpansion.training`](matgl.layers.md#matgl.layers._basis.GaussianExpansion.training)
+
+
+        * [`SphericalBesselFunction`](matgl.layers.md#matgl.layers._basis.SphericalBesselFunction)
+
+
+            * [`SphericalBesselFunction.rbf_j0()`](matgl.layers.md#matgl.layers._basis.SphericalBesselFunction.rbf_j0)
+
+
+        * [`SphericalBesselWithHarmonics`](matgl.layers.md#matgl.layers._basis.SphericalBesselWithHarmonics)
+
+
+            * [`SphericalBesselWithHarmonics.forward()`](matgl.layers.md#matgl.layers._basis.SphericalBesselWithHarmonics.forward)
+
+
+            * [`SphericalBesselWithHarmonics.training`](matgl.layers.md#matgl.layers._basis.SphericalBesselWithHarmonics.training)
+
+
+        * [`SphericalHarmonicsFunction`](matgl.layers.md#matgl.layers._basis.SphericalHarmonicsFunction)
+
+
+        * [`spherical_bessel_smooth()`](matgl.layers.md#matgl.layers._basis.spherical_bessel_smooth)
+
+
     * [matgl.layers._bond module](matgl.layers.md#module-matgl.layers._bond)
 
 
@@ -419,15 +455,6 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
     * [matgl.layers._three_body module](matgl.layers.md#module-matgl.layers._three_body)
 
 
-        * [`SphericalBesselWithHarmonics`](matgl.layers.md#matgl.layers._three_body.SphericalBesselWithHarmonics)
-
-
-            * [`SphericalBesselWithHarmonics.forward()`](matgl.layers.md#matgl.layers._three_body.SphericalBesselWithHarmonics.forward)
-
-
-            * [`SphericalBesselWithHarmonics.training`](matgl.layers.md#matgl.layers._three_body.SphericalBesselWithHarmonics.training)
-
-
         * [`ThreeBodyInteractions`](matgl.layers.md#matgl.layers._three_body.ThreeBodyInteractions)
 
 
@@ -435,6 +462,9 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
             * [`ThreeBodyInteractions.training`](matgl.layers.md#matgl.layers._three_body.ThreeBodyInteractions.training)
+
+
+        * [`combine_sbf_shf()`](matgl.layers.md#matgl.layers._three_body.combine_sbf_shf)
 
 
 * [matgl.models package](matgl.models.md)
@@ -449,6 +479,9 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
             * [`M3GNet.forward()`](matgl.models.md#matgl.models._m3gnet.M3GNet.forward)
+
+
+            * [`M3GNet.predict_structure()`](matgl.models.md#matgl.models._m3gnet.M3GNet.predict_structure)
 
 
             * [`M3GNet.training`](matgl.models.md#matgl.models._m3gnet.M3GNet.training)
@@ -525,30 +558,6 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
     * [matgl.utils.maths module](matgl.utils.md#module-matgl.utils.maths)
 
 
-        * [`CWD`](matgl.utils.md#matgl.utils.maths.CWD)
-
-
-        * [`GaussianExpansion`](matgl.utils.md#matgl.utils.maths.GaussianExpansion)
-
-
-            * [`GaussianExpansion.forward()`](matgl.utils.md#matgl.utils.maths.GaussianExpansion.forward)
-
-
-            * [`GaussianExpansion.reset_parameters()`](matgl.utils.md#matgl.utils.maths.GaussianExpansion.reset_parameters)
-
-
-            * [`GaussianExpansion.training`](matgl.utils.md#matgl.utils.maths.GaussianExpansion.training)
-
-
-        * [`SphericalBesselFunction`](matgl.utils.md#matgl.utils.maths.SphericalBesselFunction)
-
-
-            * [`SphericalBesselFunction.rbf_j0()`](matgl.utils.md#matgl.utils.maths.SphericalBesselFunction.rbf_j0)
-
-
-        * [`SphericalHarmonicsFunction`](matgl.utils.md#matgl.utils.maths.SphericalHarmonicsFunction)
-
-
         * [`broadcast()`](matgl.utils.md#matgl.utils.maths.broadcast)
 
 
@@ -556,9 +565,6 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
         * [`broadcast_states_to_bonds()`](matgl.utils.md#matgl.utils.maths.broadcast_states_to_bonds)
-
-
-        * [`combine_sbf_shf()`](matgl.utils.md#matgl.utils.maths.combine_sbf_shf)
 
 
         * [`get_range_indices_from_n()`](matgl.utils.md#matgl.utils.maths.get_range_indices_from_n)
@@ -576,61 +582,58 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
         * [`spherical_bessel_roots()`](matgl.utils.md#matgl.utils.maths.spherical_bessel_roots)
 
 
-        * [`spherical_bessel_smooth()`](matgl.utils.md#matgl.utils.maths.spherical_bessel_smooth)
-
-
         * [`unsorted_segment_fraction()`](matgl.utils.md#matgl.utils.maths.unsorted_segment_fraction)
 
 
     * [matgl.utils.training module](matgl.utils.md#module-matgl.utils.training)
 
 
-        * [`ModelTrainer`](matgl.utils.md#matgl.utils.training.ModelTrainer)
+        * [`MatglLightningModuleMixin`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin)
 
 
-            * [`ModelTrainer.forward()`](matgl.utils.md#matgl.utils.training.ModelTrainer.forward)
+            * [`MatglLightningModuleMixin.configure_optimizers()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.configure_optimizers)
 
 
-            * [`ModelTrainer.loss_fn()`](matgl.utils.md#matgl.utils.training.ModelTrainer.loss_fn)
+            * [`MatglLightningModuleMixin.on_test_model_eval()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.on_test_model_eval)
 
 
-            * [`ModelTrainer.step()`](matgl.utils.md#matgl.utils.training.ModelTrainer.step)
+            * [`MatglLightningModuleMixin.on_train_epoch_end()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.on_train_epoch_end)
 
 
-        * [`PotentialTrainer`](matgl.utils.md#matgl.utils.training.PotentialTrainer)
+            * [`MatglLightningModuleMixin.predict_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.predict_step)
 
 
-            * [`PotentialTrainer.forward()`](matgl.utils.md#matgl.utils.training.PotentialTrainer.forward)
+            * [`MatglLightningModuleMixin.test_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.test_step)
 
 
-            * [`PotentialTrainer.loss_fn()`](matgl.utils.md#matgl.utils.training.PotentialTrainer.loss_fn)
+            * [`MatglLightningModuleMixin.training_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.training_step)
 
 
-            * [`PotentialTrainer.step()`](matgl.utils.md#matgl.utils.training.PotentialTrainer.step)
+            * [`MatglLightningModuleMixin.validation_step()`](matgl.utils.md#matgl.utils.training.MatglLightningModuleMixin.validation_step)
 
 
-        * [`TrainerMixin`](matgl.utils.md#matgl.utils.training.TrainerMixin)
+        * [`ModelLightningModule`](matgl.utils.md#matgl.utils.training.ModelLightningModule)
 
 
-            * [`TrainerMixin.configure_optimizers()`](matgl.utils.md#matgl.utils.training.TrainerMixin.configure_optimizers)
+            * [`ModelLightningModule.forward()`](matgl.utils.md#matgl.utils.training.ModelLightningModule.forward)
 
 
-            * [`TrainerMixin.on_test_model_eval()`](matgl.utils.md#matgl.utils.training.TrainerMixin.on_test_model_eval)
+            * [`ModelLightningModule.loss_fn()`](matgl.utils.md#matgl.utils.training.ModelLightningModule.loss_fn)
 
 
-            * [`TrainerMixin.on_train_epoch_end()`](matgl.utils.md#matgl.utils.training.TrainerMixin.on_train_epoch_end)
+            * [`ModelLightningModule.step()`](matgl.utils.md#matgl.utils.training.ModelLightningModule.step)
 
 
-            * [`TrainerMixin.predict_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.predict_step)
+        * [`PotentialLightningModule`](matgl.utils.md#matgl.utils.training.PotentialLightningModule)
 
 
-            * [`TrainerMixin.test_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.test_step)
+            * [`PotentialLightningModule.forward()`](matgl.utils.md#matgl.utils.training.PotentialLightningModule.forward)
 
 
-            * [`TrainerMixin.training_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.training_step)
+            * [`PotentialLightningModule.loss_fn()`](matgl.utils.md#matgl.utils.training.PotentialLightningModule.loss_fn)
 
 
-            * [`TrainerMixin.validation_step()`](matgl.utils.md#matgl.utils.training.TrainerMixin.validation_step)
+            * [`PotentialLightningModule.step()`](matgl.utils.md#matgl.utils.training.PotentialLightningModule.step)
 
 
         * [`xavier_init()`](matgl.utils.md#matgl.utils.training.xavier_init)
@@ -642,5 +645,10 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 Global configuration variables for matgl.
 
 
-### matgl.config.clear_cache()
+### matgl.config.clear_cache(confirm: bool = True)
 Deletes all files in the matgl.cache. This is used to clean out downloaded models.
+
+
+* **Parameters**
+
+    **confirm** – Whether to ask for confirmation. Default is True.

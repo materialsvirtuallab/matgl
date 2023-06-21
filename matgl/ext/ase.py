@@ -1,6 +1,4 @@
-"""
-Interfaces to the Atomic Simulation Environment package for dynamic simulations.
-"""
+"""Interfaces to the Atomic Simulation Environment package for dynamic simulations."""
 
 from __future__ import annotations
 
@@ -31,6 +29,7 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 from matgl.apps.pes import Potential
+from matgl.ext.pymatgen import get_empty_graph
 from matgl.graph.converters import GraphConverter
 
 OPTIMIZERS = {
@@ -46,17 +45,14 @@ OPTIMIZERS = {
 
 
 class Atoms2Graph(GraphConverter):
-    """
-    Construct a DGL graph from ASE Atoms.
-    """
+    """Construct a DGL graph from ASE Atoms."""
 
     def __init__(
         self,
         element_types: tuple[str, ...],
         cutoff: float = 5.0,
     ):
-        """
-        Init Atoms2Graph from element types and cutoff radius.
+        """Init Atoms2Graph from element types and cutoff radius.
 
         Args:
             element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
@@ -67,8 +63,7 @@ class Atoms2Graph(GraphConverter):
         self.cutoff = cutoff
 
     def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, list]:
-        """
-        Get a DGL graph from an input Atoms.
+        """Get a DGL graph from an input Atoms.
 
         Args:
             atoms: Atoms object.
@@ -100,34 +95,37 @@ class Atoms2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        u, v = tensor(src_id), tensor(dst_id)
-        g = dgl.graph((u, v))
-        g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor(np.stack([lattice_matrix for _ in range(g.num_edges())]))
+        # No neighbor
+        if len(src_id) == 0:
+            g = get_empty_graph(len(atoms))
+        else:
+            u, v = tensor(src_id), tensor(dst_id)
+            g = dgl.graph((u, v))
+            g.edata["pbc_offset"] = torch.tensor(images)
+            g.edata["lattice"] = tensor([[lattice_matrix] for i in range(g.num_edges())])
         g.ndata["attr"] = tensor(Z)
         g.ndata["node_type"] = tensor(np.hstack([[element_types.index(i.symbol)] for i in atoms]))
         g.ndata["pos"] = tensor(cart_coords)
         g.ndata["volume"] = tensor([volume for i in range(atomic_number.shape[0])])
         state_attr = [0.0, 0.0]
-        g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix))
         return g, state_attr
 
 
 class M3GNetCalculator(Calculator):
-    """
-    M3GNet calculator based on ase Calculator.
-    """
+    """M3GNet calculator for ASE."""
 
     implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian"]
 
     def __init__(
         self,
         potential: Potential,
-        state_attr: torch.tensor = None,
+        state_attr: torch.Tensor = None,
         stress_weight: float = 1.0,
         **kwargs,
     ):
-        r"""
+        """
+        Init M3GNetCalculator with a Potential.
+
         Args:
             potential (Potential): m3gnet.models.Potential
             state_attr (tensor): State attribute
@@ -151,6 +149,8 @@ class M3GNetCalculator(Calculator):
         system_changes: list | None = None,
     ):
         """
+        Perform calculation for an input Atoms.
+
         Args:
             atoms (ase.Atoms): ase Atoms object
             properties (list): list of properties to calculate
@@ -178,14 +178,12 @@ class M3GNetCalculator(Calculator):
 
 
 class Relaxer:
-    """
-    Relaxer is a class for structural relaxation.
-    """
+    """Relaxer is a class for structural relaxation."""
 
     def __init__(
         self,
         potential: Potential = None,
-        state_attr: torch.tensor = None,
+        state_attr: torch.Tensor = None,
         optimizer: Optimizer | str = "FIRE",
         relax_cell: bool = True,
         stress_weight: float = 0.01,
@@ -193,10 +191,10 @@ class Relaxer:
         """
         Args:
             potential (Potential): a M3GNet potential, a str path to a saved model or a short name for saved model
-                that comes with M3GNet distribution
-            state_attr (torch.tensor): State attr.
+            that comes with M3GNet distribution
+            state_attr (torch.Tensor): State attr.
             optimizer (str or ase Optimizer): the optimization algorithm.
-                Defaults to "FIRE"
+            Defaults to "FIRE"
             relax_cell (bool): whether to relax the lattice cell
             stress_weight (float): the stress weight for relaxation.
         """
@@ -225,16 +223,18 @@ class Relaxer:
         verbose=False,
         **kwargs,
     ):
-        r"""
+        """
+        Relax an input Atoms.
+
         Args:
             atoms (Atoms): the atoms for relaxation
             fmax (float): total force tolerance for relaxation convergence.
-                Here fmax is a sum of force and stress forces
+            Here fmax is a sum of force and stress forces
             steps (int): max number of steps for relaxation
             traj_file (str): the trajectory file for saving
             interval (int): the step interval for saving the trajectories
             verbose (bool): Whether to have verbose output.
-            **kwargs: Kwargs pass-through to optimizer.
+            kwargs: Kwargs pass-through to optimizer.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = self.ase_adaptor.get_atoms(atoms)
@@ -260,15 +260,16 @@ class Relaxer:
 
 
 class TrajectoryObserver:
-    """
-    Trajectory observer is a hook in the relaxation process that saves the
+    """Trajectory observer is a hook in the relaxation process that saves the
     intermediate structures.
     """
 
     def __init__(self, atoms: Atoms) -> None:
         """
+        Init the Trajectory Observer from a Atoms.
+
         Args:
-            atoms (Atoms): the structure to observe.
+            atoms (Atoms): Structure to observe.
         """
         self.atoms = atoms
         self.energies: list[float] = []
@@ -278,9 +279,7 @@ class TrajectoryObserver:
         self.cells: list[np.ndarray] = []
 
     def __call__(self) -> None:
-        """
-        The logic for saving the properties of an Atoms during the relaxation.
-        """
+        """The logic for saving the properties of an Atoms during the relaxation."""
         self.energies.append(self.compute_energy())
         self.forces.append(self.atoms.get_forces())
         self.stresses.append(self.atoms.get_stress())
@@ -293,8 +292,8 @@ class TrajectoryObserver:
         return energy
 
     def save(self, filename: str) -> None:
-        """
-        Save the trajectory to file
+        """Save the trajectory to file.
+
         Args:
             filename (str): filename to save the trajectory.
         """
@@ -311,15 +310,13 @@ class TrajectoryObserver:
 
 
 class MolecularDynamics:
-    """
-    Molecular dynamics class.
-    """
+    """Molecular dynamics class."""
 
     def __init__(
         self,
         atoms: Atoms,
         potential: Potential,
-        state_attr: torch.tensor = None,
+        state_attr: torch.Tensor = None,
         ensemble: str = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
@@ -333,13 +330,15 @@ class MolecularDynamics:
         append_trajectory: bool = False,
     ):
         """
+        Init the MD simulation.
+
         Args:
             atoms (Atoms): atoms to run the MD
             potential (Potential): potential for calculating the energy, force,
-                stress of the atoms
-            state_attr (torch.tensor): State attr.
+            stress of the atoms
+            state_attr (torch.Tensor): State attr.
             ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
-                use with extra caution
+            use with extra caution
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
@@ -428,8 +427,7 @@ class MolecularDynamics:
         self.timestep = timestep
 
     def run(self, steps: int):
-        """
-        Thin wrapper of ase MD run.
+        """Thin wrapper of ase MD run.
 
         Args:
             steps (int): number of MD steps
@@ -437,8 +435,8 @@ class MolecularDynamics:
         self.dyn.run(steps)
 
     def set_atoms(self, atoms: Atoms):
-        """
-        Set new atoms to run MD
+        """Set new atoms to run MD.
+
         Args:
             atoms (Atoms): new atoms for running MD.
         """

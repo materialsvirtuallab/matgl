@@ -1,6 +1,4 @@
-"""
-Custom activation functions.
-"""
+"""Custom activation functions."""
 from __future__ import annotations
 
 import math
@@ -10,8 +8,7 @@ from torch import nn
 
 
 class SoftPlus2(nn.Module):
-    """
-    SoftPlus2 activation function:
+    """SoftPlus2 activation function:
     out = log(exp(x)+1) - log(2)
     softplus function that is 0 at x=0, the implementation aims at avoiding overflow.
     """
@@ -21,9 +18,8 @@ class SoftPlus2(nn.Module):
         super().__init__()
         self.ssp = nn.Softplus()
 
-    def forward(self, x: torch.tensor) -> torch.tensor:
-        """
-        Evaluate activation function given the input tensor x.
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Evaluate activation function given the input tensor x.
 
         Args:
             x (torch.tensor): Input tensor
@@ -35,21 +31,18 @@ class SoftPlus2(nn.Module):
 
 
 class SoftExponential(nn.Module):
-    """
-    Soft exponential activation.
+    """Soft exponential activation.
     When x < 0, SoftExponential(x,alpha) = -log(1-alpha(x+alpha))/alpha
     When x = 0, SoftExponential(x,alpha) = 0
     When x > 0, SoftExponential(x,alpha) = (exp(alpha*x)-1)/alpha + alpha.
 
-
-    References:
-        - See related paper:
-        https://arxiv.org/pdf/1602.01321.pdf
-
+    References: https://arxiv.org/pdf/1602.01321.pdf
     """
 
     def __init__(self, alpha: float = None):
         """
+        Init SoftExponential with alpha value.
+
         Args:
             alpha (float): adjustable Torch parameter during the training.
         """
@@ -63,9 +56,8 @@ class SoftExponential(nn.Module):
 
         self.alpha.requires_grad_(True)
 
-    def forward(self, x: torch.tensor) -> torch.tensor:
-        """
-        Evaluate activation function given the input tensor x.
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Evaluate activation function given the input tensor x.
 
         Args:
             x (torch.tensor): Input tensor

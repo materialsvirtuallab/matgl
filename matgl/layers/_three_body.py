@@ -1,64 +1,25 @@
-"""
-Three-Body interaction implementations.
-"""
+"""Three-Body interaction implementations."""
 
 from __future__ import annotations
 
 import dgl
+import numpy as np
 import torch
 from torch import nn
 
 from matgl.utils.maths import (
-    SphericalBesselFunction,
-    SphericalHarmonicsFunction,
-    combine_sbf_shf,
+    _block_repeat,
     get_segment_indices_from_n,
     scatter_sum,
 )
 
 
-class SphericalBesselWithHarmonics(nn.Module):
-    """
-    Expansion of basis using Spherical Bessel and Harmonics.
-    """
-
-    def __init__(self, max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool):
-        """
-        :param max_n: Degree of radial basis functions
-        :param max_l: Degree of angular basis functions
-        :param cutoff: Cutoff sphere
-        :param use_smooth: Whether using smooth version of SBFs or not
-        :param use_phi: using phi as angular basis functions
-        """
-        super().__init__()
-
-        assert max_n <= 64
-        self.max_n = max_n
-        self.max_l = max_l
-        self.cutoff = cutoff
-        self.use_phi = use_phi
-        self.use_smooth = use_smooth
-
-        # retrieve formulas
-        self.shf = SphericalHarmonicsFunction(self.max_l, self.use_phi)
-        if self.use_smooth:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n * self.max_l, self.cutoff, self.use_smooth)
-        else:
-            self.sbf = SphericalBesselFunction(self.max_l, self.max_n, self.cutoff, self.use_smooth)
-
-    def forward(self, line_graph):
-        sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
-        shf = self.shf(line_graph.edata["cos_theta"], line_graph.edata["phi"])
-        return combine_sbf_shf(sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi)
-
-
 class ThreeBodyInteractions(nn.Module):
-    """
-    Include 3D interactions to the bond update.
-    """
+    """Include 3D interactions to the bond update."""
 
     def __init__(self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs):
-        r"""
+        """Init ThreeBodyInteractions.
+
         Args:
             update_network_atom: MLP for node features in Eq.2
             update_network_bond: Gated-MLP for edge features in Eq.3
@@ -72,12 +33,14 @@ class ThreeBodyInteractions(nn.Module):
         self,
         graph: dgl.DGLGraph,
         line_graph: dgl.DGLGraph,
-        three_basis: torch.tensor,
+        three_basis: torch.Tensor,
         three_cutoff: float,
-        node_feat: torch.tensor,
-        edge_feat: torch.tensor,
+        node_feat: torch.Tensor,
+        edge_feat: torch.Tensor,
     ):
         """
+        Forward function for ThreeBodyInteractions.
+
         Args:
             graph: dgl graph
             line_graph: line graph.
@@ -91,11 +54,11 @@ class ThreeBodyInteractions(nn.Module):
         end_atom_index = torch.unsqueeze(end_atom_index, 1)
         atoms = torch.squeeze(atoms[end_atom_index])
         basis = three_basis * atoms
-        three_cutoff = torch.unsqueeze(three_cutoff, dim=1)
+        three_cutoff = torch.unsqueeze(three_cutoff, dim=1)  # type: ignore
         weights = torch.reshape(
             three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2)  # type: ignore
         )
-        weights = torch.prod(weights, axis=-1)
+        weights = torch.prod(weights, axis=-1)  # type: ignore
         basis = basis * weights[:, None]
         new_bonds = scatter_sum(
             basis.to(torch.float32),
@@ -105,3 +68,43 @@ class ThreeBodyInteractions(nn.Module):
         )
         edge_feat_updated = edge_feat + self.update_network_bond(new_bonds)
         return edge_feat_updated
+
+
+def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
+    """Combine the spherical Bessel function and the spherical Harmonics function.
+
+    For the spherical Bessel function, the column is ordered by
+        [n=[0, ..., max_n-1], n=[0, ..., max_n-1], ...], max_l blocks,
+
+    For the spherical Harmonics function, the column is ordered by
+        [m=[0], m=[-1, 0, 1], m=[-2, -1, 0, 1, 2], ...] max_l blocks, and each
+        block has 2*l + 1
+        if use_phi is False, then the columns become
+        [m=[0], m=[0], ...] max_l columns
+
+    Args:
+        sbf: torch.Tensor spherical bessel function results
+        shf: torch.Tensor spherical harmonics function results
+        max_n: int, max number of n
+        max_l: int, max number of l
+        use_phi: whether to use phi
+    Returns:
+    """
+    if sbf.size()[0] == 0:
+        return sbf
+
+    if not use_phi:
+        repeats_sbf = torch.tensor([1] * max_l * max_n)
+        block_size = [1] * max_l
+    else:
+        # [1, 1, 1, ..., 1, 3, 3, 3, ..., 3, ...]
+        repeats_sbf = torch.tensor(np.repeat(2 * np.arange(max_l) + 1, repeats=max_n))
+        # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
+        block_size = 2 * np.arange(max_l) + 1  # type: ignore
+        # 2 * tf.range(max_l) + 1
+    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
+    expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
+    shape = max_n * max_l
+    if use_phi:
+        shape *= max_l
+    return torch.reshape(expanded_sbf * expanded_shf, [-1, shape])

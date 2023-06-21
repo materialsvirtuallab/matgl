@@ -1,6 +1,4 @@
-"""
-Graph convolution layer (GCL) implementations.
-"""
+"""Graph convolution layer (GCL) implementations."""
 
 from __future__ import annotations
 
@@ -14,9 +12,7 @@ from matgl.layers._core import MLP, GatedMLP
 
 
 class MEGNetGraphConv(Module):
-    """
-    A MEGNet graph convolution layer in DGL.
-    """
+    """A MEGNet graph convolution layer in DGL."""
 
     def __init__(
         self,
@@ -24,8 +20,7 @@ class MEGNetGraphConv(Module):
         node_func: Module,
         state_func: Module,
     ) -> None:
-        """
-        :param edge_func: Edge update function.
+        """:param edge_func: Edge update function.
         :param node_func: Node update function.
         :param state_func: Global state update function.
         """
@@ -69,8 +64,7 @@ class MEGNetGraphConv(Module):
         return mij
 
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
-        """
-        Perform edge update.
+        """Perform edge update.
 
         :param graph: Input graph
         :return: Output tensor for edges.
@@ -80,8 +74,7 @@ class MEGNetGraphConv(Module):
         return graph.edata["e"]
 
     def node_update_(self, graph: dgl.DGLGraph) -> Tensor:
-        """
-        Perform node update.
+        """Perform node update.
 
         :param graph: Input graph
         :return: Output tensor for nodes.
@@ -95,8 +88,7 @@ class MEGNetGraphConv(Module):
         return graph.ndata["v"]
 
     def state_update_(self, graph: dgl.DGLGraph, state_attrs: Tensor) -> Tensor:
-        """
-        Perform attribute (global state) update.
+        """Perform attribute (global state) update.
 
         :param graph: Input graph
         :param state_attrs: Input attributes
@@ -117,8 +109,7 @@ class MEGNetGraphConv(Module):
         node_feat: Tensor,
         state_attr: Tensor,
     ) -> tuple[Tensor, Tensor, Tensor]:
-        """
-        Perform sequence of edge->node->attribute updates.
+        """Perform sequence of edge->node->attribute updates.
 
         :param graph: Input graph
         :param edge_feat: Edge features
@@ -139,21 +130,21 @@ class MEGNetGraphConv(Module):
 
 
 class MEGNetBlock(Module):
-    """
-    A MEGNet block comprising a sequence of update operations.
-    """
+    """A MEGNet block comprising a sequence of update operations."""
 
     def __init__(
         self, dims: list[int], conv_hiddens: list[int], act: Module, dropout: float | None = None, skip: bool = True
     ) -> None:
         """
-        TODO: Add docs.
-        :param dims: architecture of dense layers before graph convolution
-        :param conv_hiddens: architecture of graph convolution
-        :param act: activation type
-        :param dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
-            to a Bernoulli distribution
-        :param skip: residual block.
+        Init the MEGNet block with key parameters.
+
+        Args:
+            dims: Dimension of dense layers before graph convolution.
+            conv_hiddens: Architecture of hidden layers of graph convolution.
+            act: Activation type.
+            dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
+                to a Bernoulli distribution.
+            skip: Residual block.
         """
         super().__init__()
         self.has_dense = len(dims) > 1
@@ -167,9 +158,9 @@ class MEGNetBlock(Module):
             "activate_last": True,
             "bias_last": True,
         }
-        self.edge_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
-        self.node_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
-        self.state_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
+        self.edge_func = MLP(**mlp_kwargs) if self.has_dense else Identity()  # type: ignore
+        self.node_func = MLP(**mlp_kwargs) if self.has_dense else Identity()  # type: ignore
+        self.state_func = MLP(**mlp_kwargs) if self.has_dense else Identity()  # type: ignore
 
         # compute input sizes
         edge_in = 2 * conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM
@@ -226,9 +217,7 @@ class MEGNetBlock(Module):
 
 
 class M3GNetGraphConv(Module):
-    """
-    A M3GNet graph convolution layer in DGL.
-    """
+    """A M3GNet graph convolution layer in DGL."""
 
     def __init__(
         self,
@@ -239,8 +228,7 @@ class M3GNetGraphConv(Module):
         node_weight_func: Module,
         state_update_func: Module | None,
     ):
-        """
-        Parameters:
+        """Parameters:
         include_state (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
@@ -265,8 +253,7 @@ class M3GNetGraphConv(Module):
         state_dims: list[int] | None,
         activation: Module,
     ) -> M3GNetGraphConv:
-        """
-        M3GNetGraphConv initialization.
+        """M3GNetGraphConv initialization.
 
         Args:
             degree (int): max_n*max_l
@@ -290,8 +277,7 @@ class M3GNetGraphConv(Module):
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
-        """
-        Edge update functions.
+        """Edge update functions.
 
         Args:
         edges (DGL graph): edges in dgl graph
@@ -311,8 +297,7 @@ class M3GNetGraphConv(Module):
         return mij
 
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
-        """
-        Perform edge update.
+        """Perform edge update.
 
         Args:
         graph: DGL graph
@@ -325,8 +310,7 @@ class M3GNetGraphConv(Module):
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, state_attr: Tensor) -> Tensor:
-        """
-        Perform node update.
+        """Perform node update.
 
         Args:
             graph: DGL graph
@@ -353,8 +337,7 @@ class M3GNetGraphConv(Module):
         return node_update
 
     def state_update_(self, graph: dgl.DGLGraph, state_attrs: Tensor) -> Tensor:
-        """
-        Perform attribute (global state) update.
+        """Perform attribute (global state) update.
 
         Args:
             graph: DGL graph
@@ -376,8 +359,7 @@ class M3GNetGraphConv(Module):
         node_feat: Tensor,
         state_attr: Tensor,
     ) -> tuple[Tensor, Tensor, Tensor]:
-        """
-        Perform sequence of edge->node->states updates.
+        """Perform sequence of edge->node->states updates.
 
         :param graph: Input graph
         :param edge_feat: Edge features
@@ -402,9 +384,7 @@ class M3GNetGraphConv(Module):
 
 
 class M3GNetBlock(Module):
-    """
-    A M3GNet block comprising a sequence of update operations.
-    """
+    """A M3GNet block comprising a sequence of update operations."""
 
     def __init__(
         self,
@@ -417,8 +397,7 @@ class M3GNetBlock(Module):
         include_state: bool = False,
         dropout: float | None = None,
     ) -> None:
-        """
-        :param degree: Dimension of radial basis functions
+        """:param degree: Dimension of radial basis functions
         :param num_node_feats: Number of node features
         :param num_edge_feats: Number of edge features
         :param num_state_feats: Number of state features
@@ -465,8 +444,7 @@ class M3GNetBlock(Module):
         node_feat: Tensor,
         state_feat: Tensor,
     ) -> tuple:
-        """
-        :param graph: DGL graph
+        """:param graph: DGL graph
         :param edge_feat: Edge features
         :param node_feat: Node features
         :param state_attr: State features

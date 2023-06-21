@@ -1,7 +1,11 @@
 # Aim
 
 This model is a M3GNet formation energy model for 89 elements of the periodic table. It contains the formation
+<<<<<<< HEAD
 energy for most of materials. This is essentially a retrained version of the MEGNet formation energy model
+=======
+energy for most materials. This is essentially a retrained version of the M3GNet formation energy model
+>>>>>>> f92699c7eacec60bfec25149cca96ffe21838b5a
 originally implemented in tensorflow.
 
 # Training dataset

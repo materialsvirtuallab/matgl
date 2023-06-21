@@ -1,12 +1,9 @@
-"""
-Atomic energy offset. Used for predicting extensive properties.
-"""
+"""Atomic energy offset. Used for predicting extensive properties."""
 from __future__ import annotations
 
 import dgl
 import numpy as np
 import torch
-from pymatgen.core import Molecule, Structure
 from torch import nn
 
 
@@ -17,60 +14,50 @@ class AtomRef(nn.Module):
         self,
         property_offset: np.array,  # type: ignore
     ) -> None:
-        """
-        Args:
-        -----------
+        """Args:
         property_offset (np.array): a array of elemental property offset.
         """
         super().__init__()
         self.property_offset = torch.tensor(property_offset)
         self.max_z = self.property_offset.size(dim=0)
 
-    def get_feature_matrix(self, structs_or_graphs: list, element_list: tuple[str]) -> np.typing.NDArray:
-        """
-        Get the number of atoms for different elements in the structure.
+    def get_feature_matrix(self, graphs: list) -> np.typing.NDArray:
+        """Get the number of atoms for different elements in the structure.
 
         Args:
-            structs_or_graphs (list): a list of pymatgen Structure or dgl graph
-            element_list: a dictionary containing element types in the training set
+            graphs (list): a list of dgl graph
 
         Returns:
             features (np.array): a matrix (num_structures, num_elements)
         """
-        n = len(structs_or_graphs)
+        n = len(graphs)
         features = np.zeros(shape=(n, self.max_z))
-        for i, s in enumerate(structs_or_graphs):
-            if isinstance(s, (Structure, Molecule)):
-                atomic_numbers = [element_list.index(site.specie.symbol) for site in s.sites]
-            else:
-                one_hot_vecs = s.ndata["attr"]
-                atomic_numbers = ((one_hot_vecs == 1).nonzero(as_tuple=True)[0]).tolist()
+        for i, s in enumerate(graphs):
+            one_hot_vecs = s.ndata["attr"]
+            atomic_numbers = ((one_hot_vecs == 1).nonzero(as_tuple=True)[0]).tolist()
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray) -> None:
-        """
-        Fit the elemental reference values for the properties.
+    def fit(self, graphs: list, properties: np.typing.NDArray) -> None:
+        """Fit the elemental reference values for the properties.
 
         Args:
-            structs_or_graphs: pymatgen Structures or dgl graphs
-            element_list (tuple): a list of element types
+            graphs: dgl graphs
             properties (np.ndarray): array of extensive properties
         """
-        features = self.get_feature_matrix(structs_or_graphs, element_list)
+        features = self.get_feature_matrix(graphs)
         self.property_offset = np.linalg.pinv(features.T.dot(features)).dot(features.T.dot(properties))
         self.property_offset = torch.tensor(self.property_offset)
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None):
-        """
-        Get the total property offset for a system.
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None):
+        """Get the total property offset for a system.
 
         Args:
-        g: a batch of dgl graphs
-        state_attr: state attributes
+            g: a batch of dgl graphs
+            state_attr: state attributes
 
         Returns:
-        offset_per_graph:
+            offset_per_graph
         """
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []

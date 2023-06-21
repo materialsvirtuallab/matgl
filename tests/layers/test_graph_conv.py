@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-import unittest
 from collections import namedtuple
 
 import dgl
-import numpy as np
 import torch
-from pymatgen.core.structure import Lattice, Structure
 from torch import nn
 
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
-    compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
 )
-from matgl.layers import BondExpansion, EmbeddingBlock
+from matgl.layers import BondExpansion, EmbeddingBlock, SphericalBesselWithHarmonics
 from matgl.layers._graph_convolution import (
     MLP,
     M3GNetBlock,
@@ -23,7 +18,6 @@ from matgl.layers._graph_convolution import (
     MEGNetBlock,
     MEGNetGraphConv,
 )
-from matgl.layers._three_body import SphericalBesselWithHarmonics
 from matgl.utils.cutoff import polynomial_cutoff
 
 Graph = namedtuple("Graph", "graph, state_attr")
@@ -87,29 +81,16 @@ def test_megnet_block():
     return out
 
 
-class TestGraphConv(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.s = Structure(Lattice.cubic(4.0), ["Mo", "S"], [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        cls.s.states = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]])
-
-        element_types = get_element_list([cls.s])
-        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph(cls.s)
-        cls.g1 = graph
-        cls.state1 = state
-        bond_vec, bond_dist = compute_pair_vector_and_distance(cls.g1)
-        cls.g1.edata["bond_dist"] = bond_dist
-        cls.g1.edata["bond_vec"] = bond_vec
-
-    def test_m3gnet_graph_conv(self):
-        bond_dist = self.g1.edata["bond_dist"]
+class TestGraphConv:
+    def test_m3gnet_graph_conv(self, graph_MoS):
+        s, g1, state = graph_MoS
+        bond_dist = g1.edata["bond_dist"]
         polynomial_cutoff(bond_dist, 4.0)
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
         bond_basis = bond_expansion(bond_dist)
-        self.g1.edata["rbf"] = bond_basis
+        g1.edata["rbf"] = bond_basis
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
-        l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
+        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         sb_and_sh(l_g1)
         max_n = 3
@@ -117,7 +98,7 @@ class TestGraphConv(unittest.TestCase):
         num_node_feats = 16
         num_edge_feats = 24
         num_state_feats = 32
-        node_attr = self.g1.ndata["attr"]
+        node_attr = g1.ndata["attr"]
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
             degree_rbf=9,
@@ -145,18 +126,19 @@ class TestGraphConv(unittest.TestCase):
             state_dims=[state_in, *conv_hiddens, num_state_feats],
             activation=nn.SiLU(),
         )
-        edge_feat_new, node_feat_new, state_feat_new = conv(self.g1, edge_feat, node_feat, state_feat)
+        edge_feat_new, node_feat_new, state_feat_new = conv(g1, edge_feat, node_feat, state_feat)
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 24]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
         assert [state_feat_new.size(dim=0), state_feat_new.size(dim=1)] == [1, 32]
 
-    def test_m3gnet_block(self):
-        polynomial_cutoff(self.g1.edata["bond_dist"], 4.0)
+    def test_m3gnet_block(self, graph_MoS):
+        s, g1, state = graph_MoS
+        polynomial_cutoff(g1.edata["bond_dist"], 4.0)
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
-        bond_basis = bond_expansion(self.g1.edata["bond_dist"])
-        self.g1.edata["rbf"] = bond_basis
+        bond_basis = bond_expansion(g1.edata["bond_dist"])
+        g1.edata["rbf"] = bond_basis
         sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
-        l_g1 = create_line_graph(self.g1, threebody_cutoff=4.0)
+        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
         l_g1.apply_edges(compute_theta_and_phi)
         sb_and_sh(l_g1)
         num_node_feats = 16
@@ -171,11 +153,11 @@ class TestGraphConv(unittest.TestCase):
             include_state=True,
             activation=nn.SiLU(),
         )
-        node_attr = self.g1.ndata["attr"]
+        node_attr = g1.ndata["attr"]
         edge_attr = bond_basis
         node_feat, edge_feat, state_feat = embedding(node_attr, edge_attr, state_attr)
-        self.g1.ndata["node_feat"] = node_feat
-        self.g1.edata["edge_feat"] = edge_feat
+        g1.ndata["node_feat"] = node_feat
+        g1.edata["edge_feat"] = edge_feat
         graph_conv = M3GNetBlock(
             degree=3 * 3,
             activation=nn.SiLU(),
@@ -185,7 +167,7 @@ class TestGraphConv(unittest.TestCase):
             num_state_feats=num_state_feats,
             include_state=True,
         )
-        edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
+        edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
         assert [state_feat_new.size(dim=0), state_feat_new.size(dim=1)] == [1, 64]
@@ -201,12 +183,6 @@ class TestGraphConv(unittest.TestCase):
             activation=nn.SiLU(),
             include_state=False,
         )
-        edge_feat_new, node_feat_new, state_feat_new = graph_conv(self.g1, edge_feat, node_feat, state_feat)
+        edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
-
-
-if __name__ == "__main__":
-    test_megnet_layer()
-    test_megnet_block()
-    unittest.main()

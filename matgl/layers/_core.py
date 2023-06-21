@@ -1,6 +1,4 @@
-"""
-Implementations of multi-layer perceptron (MLP) and other helper classes.
-"""
+"""Implementations of multi-layer perceptron (MLP) and other helper classes."""
 from __future__ import annotations
 
 from typing import Callable
@@ -12,9 +10,7 @@ from torch.nn import LSTM, Linear, Module, ModuleList
 
 
 class MLP(nn.Module):
-    """
-    An implementation of a multi-layer perceptron.
-    """
+    """An implementation of a multi-layer perceptron."""
 
     def __init__(
         self,
@@ -23,8 +19,7 @@ class MLP(nn.Module):
         activate_last: bool = False,
         bias_last: bool = True,
     ) -> None:
-        """
-        :param dims: Dimensions of each layer of MLP.
+        """:param dims: Dimensions of each layer of MLP.
         :param activation: Activation function.
         :param activate_last: Whether to apply activation to last layer.
         :param bias_last: Whether to apply bias to last layer.
@@ -58,9 +53,7 @@ class MLP(nn.Module):
 
     @property
     def last_linear(self) -> Linear | None:
-        """
-        :return: The last linear layer.
-        """
+        """:return: The last linear layer."""
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
                 return layer
@@ -85,8 +78,7 @@ class MLP(nn.Module):
         raise RuntimeError
 
     def forward(self, inputs):
-        """
-        Applies all layers in turn.
+        """Applies all layers in turn.
 
         :param inputs: Input tensor
         :return: Output tensor
@@ -99,13 +91,10 @@ class MLP(nn.Module):
 
 
 class GatedMLP(nn.Module):
-    """
-    An implementation of a Gated multi-layer perceptron.
-    """
+    """An implementation of a Gated multi-layer perceptron."""
 
     def __init__(self, in_feats: int, dims: list[int], activate_last: bool = True, use_bias: bool = True):
-        """
-        :param in_feats: Dimension of input features.
+        """:param in_feats: Dimension of input features.
         :param dims: Architecture of neural networks.
         :param activate_last: Whether applying activation to last layer or not.
         :param bias_last: Whether applying bias to last layer or not.
@@ -131,18 +120,15 @@ class GatedMLP(nn.Module):
                 self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Sigmoid())
 
-    def forward(self, inputs: torch.tensor):
+    def forward(self, inputs: torch.Tensor):
         return self.layers(inputs) * self.gates(inputs)
 
 
 class EdgeSet2Set(Module):
-    """
-    Implementation of Set2Set.
-    """
+    """Implementation of Set2Set."""
 
     def __init__(self, input_dim: int, n_iters: int, n_layers: int) -> None:
-        """
-        :param input_dim: The size of each input sample.
+        """:param input_dim: The size of each input sample.
         :param n_iters: The number of iterations.
         :param n_layers: The number of recurrent layers.
         """
@@ -158,9 +144,8 @@ class EdgeSet2Set(Module):
         """Reinitialize learnable parameters."""
         self.lstm.reset_parameters()
 
-    def forward(self, g: DGLGraph, feat: torch.tensor):
-        """
-        Defines the computation performed at every call.
+    def forward(self, g: DGLGraph, feat: torch.Tensor):
+        """Defines the computation performed at every call.
 
         :param g: Input graph
         :param feat: Input features.
