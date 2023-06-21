@@ -44,24 +44,24 @@ We will download the original dataset used in the training of the MEGNet formati
 
 ```python
 def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
-"""Raw data loading function.
+    """Raw data loading function.
 
-Returns:
-tuple[list[Structure], list[str], list[float]]: structures, mp_id, Eform_per_atom
-"""
-if not os.path.exists("mp.2018.6.1.json"):
-f = RemoteFile("https://figshare.com/ndownloader/files/15087992")
-with zipfile.ZipFile(f.local_path) as zf:
-zf.extractall(".")
-data = pd.read_json("mp.2018.6.1.json")
-structures = []
-mp_ids = []
-for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
-struct = Structure.from_str(structure_str, fmt="cif")
-structures.append(struct)
-mp_ids.append(mid)
+    Returns:
+        tuple[list[Structure], list[str], list[float]]: structures, mp_id, Eform_per_atom
+    """
+    if not os.path.exists("mp.2018.6.1.json"):
+        f = RemoteFile("https://figshare.com/ndownloader/files/15087992")
+        with zipfile.ZipFile(f.local_path) as zf:
+            zf.extractall(".")
+    data = pd.read_json("mp.2018.6.1.json")
+    structures = []
+    mp_ids = []
+    for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
+        struct = Structure.from_str(structure_str, fmt="cif")
+        structures.append(struct)
+        mp_ids.append(mid)
 
-return structures, mp_ids, data["formation_energy_per_atom"].tolist()
+    return structures, mp_ids, data["formation_energy_per_atom"].tolist()
 
 
 structures, mp_ids, eform_per_atom = load_dataset()
@@ -75,7 +75,7 @@ structures = structures[:100]
 eform_per_atom = eform_per_atom[:100]
 ```
 
-69239it [02:56, 392.16it/s]
+    69239it [02:56, 392.16it/s]
 
 
 Here, we set up the dataset.
@@ -88,7 +88,7 @@ elem_list = get_element_list(structures)
 converter = Structure2Graph(element_types=elem_list, cutoff=4.0)
 # convert the raw dataset into MEGNetDataset
 mp_dataset = MEGNetDataset(
-structures, eform_per_atom, "Eform", converter=converter, initial=0.0, final=5.0, num_centers=100, width=0.5
+    structures, eform_per_atom, "Eform", converter=converter, initial=0.0, final=5.0, num_centers=100, width=0.5
 )
 ```
 
@@ -97,22 +97,22 @@ We will then split the dataset into training, validation and test data.
 
 ```python
 train_data, val_data, test_data = split_dataset(
-mp_dataset,
-frac_list=[0.8, 0.1, 0.1],
-shuffle=True,
-random_state=42,
+    mp_dataset,
+    frac_list=[0.8, 0.1, 0.1],
+    shuffle=True,
+    random_state=42,
 )
 train_loader, val_loader, test_loader = MGLDataLoader(
-train_data=train_data,
-val_data=val_data,
-test_data=test_data,
-collate_fn=collate_fn,
-batch_size=2,
-num_workers=1,
+    train_data=train_data,
+    val_data=val_data,
+    test_data=test_data,
+    collate_fn=collate_fn,
+    batch_size=2,
+    num_workers=1,
 )
 ```
 
-100%|███████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 680.77it/s]
+    100%|███████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 680.77it/s]
 
 
 # Model setup
@@ -128,20 +128,20 @@ bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=5.0, num_
 
 # setup the architecture of MEGNet model
 model = MEGNet(
-dim_node_embedding=16,
-dim_edge_embedding=100,
-dim_state_embedding=2,
-nblocks=3,
-hidden_layer_sizes_input=(64, 32),
-hidden_layer_sizes_conv=(64, 64, 32),
-nlayers_set2set=1,
-niters_set2set=2,
-hidden_layer_sizes_output=(32, 16),
-is_classification=False,
-activation_type="softplus2",
-bond_expansion=bond_expansion,
-cutoff=4.0,
-gauss_width=0.5,
+    dim_node_embedding=16,
+    dim_edge_embedding=100,
+    dim_state_embedding=2,
+    nblocks=3,
+    hidden_layer_sizes_input=(64, 32),
+    hidden_layer_sizes_conv=(64, 64, 32),
+    nlayers_set2set=1,
+    niters_set2set=2,
+    hidden_layer_sizes_output=(32, 16),
+    is_classification=False,
+    activation_type="softplus2",
+    bond_expansion=bond_expansion,
+    cutoff=4.0,
+    gauss_width=0.5,
 )
 
 # setup the MEGNetTrainer
@@ -161,113 +161,113 @@ trainer = pl.Trainer(max_epochs=20, accelerator="cpu", logger=logger)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
-GPU available: True (mps), used: False
-TPU available: False, using: 0 TPU cores
-IPU available: False, using: 0 IPUs
-HPU available: False, using: 0 HPUs
-Missing logger folder: logs/MEGNet_training
+    GPU available: True (mps), used: False
+    TPU available: False, using: 0 TPU cores
+    IPU available: False, using: 0 IPUs
+    HPU available: False, using: 0 HPUs
+    Missing logger folder: logs/MEGNet_training
 
-| Name  | Type              | Params
---------------------------------------------
-0 | model | MEGNet            | 189 K
-1 | mae   | MeanAbsoluteError | 0
-2 | rmse  | MeanSquaredError  | 0
---------------------------------------------
-189 K     Trainable params
-100       Non-trainable params
-189 K     Total params
-0.758     Total estimated model params size (MB)
+      | Name  | Type              | Params
+    --------------------------------------------
+    0 | model | MEGNet            | 189 K
+    1 | mae   | MeanAbsoluteError | 0
+    2 | rmse  | MeanSquaredError  | 0
+    --------------------------------------------
+    189 K     Trainable params
+    100       Non-trainable params
+    189 K     Total params
+    0.758     Total estimated model params size (MB)
 
 
 
-Sanity Checking: 0it [00:00, ?it/s]
+    Sanity Checking: 0it [00:00, ?it/s]
 
 
 
-Training: 0it [00:00, ?it/s]
+    Training: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
 
-Validation: 0it [00:00, ?it/s]
+    Validation: 0it [00:00, ?it/s]
 
 
-`Trainer.fit` stopped: `max_epochs=20` reached.
+    `Trainer.fit` stopped: `max_epochs=20` reached.
 
 
 # Visualizing the convergence
@@ -294,10 +294,10 @@ _ = plt.legend()
 # This code just performs cleanup for this notebook.
 
 for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
-try:
-os.remove(fn)
-except FileNotFoundError:
-pass
+    try:
+        os.remove(fn)
+    except FileNotFoundError:
+        pass
 
 shutil.rmtree("logs")
 ```

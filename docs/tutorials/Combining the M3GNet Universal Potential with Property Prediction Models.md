@@ -32,26 +32,26 @@ For the purposes of demonstration, we will use the perovskite SrTiO3 (STO). We w
 
 ```python
 sto = Structure.from_spacegroup(
-"Pm-3m",
-Lattice.cubic(4.5),
-["Sr", "Ti", "O"],
-[[0, 0, 0], [0.5, 0.5, 0.5], [0.5, 0.5, 0]])
+    "Pm-3m",
+    Lattice.cubic(4.5),
+    ["Sr", "Ti", "O"],
+    [[0, 0, 0], [0.5, 0.5, 0.5], [0.5, 0.5, 0]])
 print(sto)
 ```
 
-Full Formula (Sr1 Ti1 O3)
-Reduced Formula: SrTiO3
-abc   :   4.500000   4.500000   4.500000
-angles:  90.000000  90.000000  90.000000
-pbc   :       True       True       True
-Sites (5)
-#  SP      a    b    c
----  ----  ---  ---  ---
-0  Sr    0    0    0
-1  Ti    0.5  0.5  0.5
-2  O     0.5  0    0.5
-3  O     0    0.5  0.5
-4  O     0.5  0.5  0
+    Full Formula (Sr1 Ti1 O3)
+    Reduced Formula: SrTiO3
+    abc   :   4.500000   4.500000   4.500000
+    angles:  90.000000  90.000000  90.000000
+    pbc   :       True       True       True
+    Sites (5)
+      #  SP      a    b    c
+    ---  ----  ---  ---  ---
+      0  Sr    0    0    0
+      1  Ti    0.5  0.5  0.5
+      2  O     0.5  0    0.5
+      3  O     0    0.5  0.5
+      4  O     0.5  0.5  0
 
 
 As a ground truth reference, we will also obtain the Materials Project DFT calculated SrTiO3 structure (mpid: mp-???) using pymatgen's interface to the Materials API.
@@ -66,7 +66,7 @@ sto_dft_forme = doc.formation_energy_per_atom
 ```
 
 
-Retrieving SummaryDoc documents:   0%|          | 0/1 [00:00<?, ?it/s]
+    Retrieving SummaryDoc documents:   0%|          | 0/1 [00:00<?, ?it/s]
 
 
 # Relaxing the crystal
@@ -84,19 +84,19 @@ relaxed_sto = relax_results["final_structure"]
 print(relaxed_sto)
 ```
 
-Full Formula (Sr1 Ti1 O3)
-Reduced Formula: SrTiO3
-abc   :   3.944760   3.944760   3.944760
-angles:  89.999998  90.000000  90.000000
-pbc   :       True       True       True
-Sites (5)
-#  SP       a     b     c
----  ----  ----  ----  ----
-0  Sr     0     0     0
-1  Ti     0.5   0.5   0.5
-2  O      0.5  -0     0.5
-3  O     -0     0.5   0.5
-4  O      0.5   0.5  -0
+    Full Formula (Sr1 Ti1 O3)
+    Reduced Formula: SrTiO3
+    abc   :   3.944760   3.944760   3.944760
+    angles:  89.999998  90.000000  90.000000
+    pbc   :       True       True       True
+    Sites (5)
+      #  SP       a     b     c
+    ---  ----  ----  ----  ----
+      0  Sr     0     0     0
+      1  Ti     0.5   0.5   0.5
+      2  O      0.5  -0     0.5
+      3  O     -0     0.5   0.5
+      4  O      0.5   0.5  -0
 
 
 You can compare the lattice parameter with the DFT one from MP. Quite clearly, the M3GNet universal potential does a reasonably good job on relaxing STO.
@@ -106,19 +106,19 @@ You can compare the lattice parameter with the DFT one from MP. Quite clearly, t
 print(sto_dft)
 ```
 
-Full Formula (Sr1 Ti1 O3)
-Reduced Formula: SrTiO3
-abc   :   3.912701   3.912701   3.912701
-angles:  90.000000  90.000000  90.000000
-pbc   :       True       True       True
-Sites (5)
-#  SP       a     b     c    magmom
----  ----  ----  ----  ----  --------
-0  Sr    -0    -0    -0          -0
-1  Ti     0.5   0.5   0.5        -0
-2  O      0.5  -0     0.5         0
-3  O      0.5   0.5  -0           0
-4  O     -0     0.5   0.5         0
+    Full Formula (Sr1 Ti1 O3)
+    Reduced Formula: SrTiO3
+    abc   :   3.912701   3.912701   3.912701
+    angles:  90.000000  90.000000  90.000000
+    pbc   :       True       True       True
+    Sites (5)
+      #  SP       a     b     c    magmom
+    ---  ----  ----  ----  ----  --------
+      0  Sr    -0    -0    -0          -0
+      1  Ti     0.5   0.5   0.5        -0
+      2  O      0.5  -0     0.5         0
+      3  O      0.5   0.5  -0           0
+      4  O     -0     0.5   0.5         0
 
 
 # Formation energy prediction
@@ -137,9 +137,9 @@ print(f"The predicted formation energy for the relaxed SrTiO3 is {float(eform_re
 print(f"The Materials Project formation energy for DFT-relaxed SrTiO3 is {sto_dft_forme:.3f} eV/atom.")
 ```
 
-The predicted formation energy for the unrelaxed SrTiO3 is -2.103 eV/atom.
-The predicted formation energy for the relaxed SrTiO3 is -3.571 eV/atom.
-The Materials Project formation energy for DFT-relaxed SrTiO3 is -3.552 eV/atom.
+    The predicted formation energy for the unrelaxed SrTiO3 is -2.103 eV/atom.
+    The predicted formation energy for the relaxed SrTiO3 is -3.571 eV/atom.
+    The Materials Project formation energy for DFT-relaxed SrTiO3 is -3.552 eV/atom.
 
 
 The predicted formation energy from the M3GNet relaxed STO is in fairly good agreement with the DFT value.
@@ -155,33 +155,33 @@ model = matgl.load_model("MEGNet-MP-2019.4.1-BandGap-mfi")
 # For multi-fidelity models, we need to define graph label ("0": PBE, "1": GLLB-SC, "2": HSE, "3": SCAN)
 for i, method in ((0, "PBE"), (1, "GLLB-SC"), (2, "HSE"), (3, "SCAN")):
 
-graph_attrs = torch.tensor([i])
-bandgap_sto = model.predict_structure(
-structure=sto, state_feats=graph_attrs
-)
-bandgap_relaxed_sto = model.predict_structure(
-structure=relaxed_sto, state_feats=graph_attrs
-)
+    graph_attrs = torch.tensor([i])
+    bandgap_sto = model.predict_structure(
+        structure=sto, state_feats=graph_attrs
+    )
+    bandgap_relaxed_sto = model.predict_structure(
+        structure=relaxed_sto, state_feats=graph_attrs
+    )
 
-print(f"{method} band gap")
-print(f"\tUnrelaxed STO = {float(bandgap_sto):.2f} eV.")
-print(f"\tRelaxed STO = {float(bandgap_relaxed_sto):.2f} eV.")
+    print(f"{method} band gap")
+    print(f"\tUnrelaxed STO = {float(bandgap_sto):.2f} eV.")
+    print(f"\tRelaxed STO = {float(bandgap_relaxed_sto):.2f} eV.")
 print(f"The PBE band gap for STO from Materials Project is {sto_dft_bandgap:.2f} eV.")
 ```
 
-PBE band gap
-Unrelaxed STO = 0.16 eV.
-Relaxed STO = 1.67 eV.
-GLLB-SC band gap
-Unrelaxed STO = 2.36 eV.
-Relaxed STO = 3.13 eV.
-HSE band gap
-Unrelaxed STO = 0.53 eV.
-Relaxed STO = 2.88 eV.
-SCAN band gap
-Unrelaxed STO = 0.72 eV.
-Relaxed STO = 2.17 eV.
-The PBE band gap for STO from Materials Project is 1.77 eV.
+    PBE band gap
+    	Unrelaxed STO = 0.16 eV.
+    	Relaxed STO = 1.67 eV.
+    GLLB-SC band gap
+    	Unrelaxed STO = 2.36 eV.
+    	Relaxed STO = 3.13 eV.
+    HSE band gap
+    	Unrelaxed STO = 0.53 eV.
+    	Relaxed STO = 2.88 eV.
+    SCAN band gap
+    	Unrelaxed STO = 0.72 eV.
+    	Relaxed STO = 2.17 eV.
+    The PBE band gap for STO from Materials Project is 1.77 eV.
 
 
 Again, you can see that using the unrelaxed SrTiO3 leads to large errors, predicting SrTiO3 to have very small band agps. Using the relaxed STO leads to predictions that are much closer to expectations. In particular, the predicted PBE band gap is quite close to the Materials Project PBE value. The experimental band gap is around 3.2 eV, which is reproduced very well by the GLLB-SC prediction!

@@ -39,7 +39,7 @@ def make_tutorials(ctx):
         elif fn.endswith(".md"):
             with open(path, "rt") as f:
                 for l in f:
-                    l = l.strip()
+                    l = l.rstrip()
                     if l.startswith("![png]"):
                         t1, t2 = l.split("(")
                         t2, t3 = t2.split("/")

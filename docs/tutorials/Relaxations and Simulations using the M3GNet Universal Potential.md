@@ -55,17 +55,17 @@ print(final_structure)
 print(f"The final energy is {float(final_energy):.3f} eV.")
 ```
 
-Full Formula (Cs1 Cl1)
-Reduced Formula: CsCl
-abc   :   4.211410   4.211410   4.211410
-angles:  90.000000  90.000000  90.000000
-pbc   :       True       True       True
-Sites (2)
-#  SP      a     b     c
----  ----  ---  ----  ----
-0  Cs    0    -0    -0
-1  Cl    0.5   0.5   0.5
-The final energy is -6.543 eV.
+    Full Formula (Cs1 Cl1)
+    Reduced Formula: CsCl
+    abc   :   4.211410   4.211410   4.211410
+    angles:  90.000000  90.000000  90.000000
+    pbc   :       True       True       True
+    Sites (2)
+      #  SP      a     b     c
+    ---  ----  ---  ----  ----
+      0  Cs    0    -0    -0
+      1  Cl    0.5   0.5   0.5
+    The final energy is -6.543 eV.
 
 
 # Molecular Dynamics
@@ -86,7 +86,7 @@ driver.run(100)
 print(f"The potential energy of CsCl at 300 K after 100 steps is {float(atoms.get_potential_energy()):.3f} eV.")
 ```
 
-The potential energy of CsCl at 300 K after 100 steps is -6.430 eV.
+    The potential energy of CsCl at 300 K after 100 steps is -6.430 eV.
 
 
 # Single point energy calculation
@@ -102,4 +102,4 @@ atoms.set_calculator(calc)
 print(f"The calculated potential energy is {float(atoms.get_potential_energy()):.3f} eV.")
 ```
 
-The calculated potential energy is -6.430 eV.
+    The calculated potential energy is -6.430 eV.
