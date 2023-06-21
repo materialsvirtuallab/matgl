@@ -14,7 +14,6 @@ from matgl.layers._basis import (
     SphericalBesselWithHarmonics,
     SphericalHarmonicsFunction,
     FourierExpansion,
-    SmoothPolynomialEnvelope,
     spherical_bessel_smooth,
 )
 from matgl.layers._three_body import combine_sbf_shf
