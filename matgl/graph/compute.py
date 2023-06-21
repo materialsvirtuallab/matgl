@@ -60,7 +60,7 @@ def compute_3body(g: dgl.DGLGraph):
 
     src_id, dst_id = (triple_bond_indices[:, 0], triple_bond_indices[:, 1])
     l_g = dgl.graph((src_id, dst_id))
-    max_three_body_id = max(np.concatenate([src_id, [0]]))
+    max_three_body_id = max(np.concatenate([src_id, [-1]]))
     l_g.ndata["bond_dist"] = g.edata["bond_dist"][: max_three_body_id + 1]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"][: max_three_body_id + 1]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][: max_three_body_id + 1]
