@@ -39,7 +39,7 @@ class SoftExponential(nn.Module):
     References: https://arxiv.org/pdf/1602.01321.pdf
     """
 
-    def __init__(self, alpha: float = None):
+    def __init__(self, alpha: float | None = None):
         """
         Init SoftExponential with alpha value.
 
