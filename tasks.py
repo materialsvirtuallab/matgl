@@ -17,6 +17,7 @@ import matgl
 
 NEW_VER = matgl.__version__
 
+
 @task
 def make_tutorials(ctx):
     ctx.run("rm -rf docs/tutorials")
@@ -25,29 +26,22 @@ def make_tutorials(ctx):
         ctx.run(f'mv "{fn}" docs/assets')
 
     for fn in os.listdir("docs/tutorials"):
-        lines = [
-            "---",
-            "layout: default",
-            "title: " + fn,
-            "nav_exclude: true",
-            "---",
-            ""
-        ]
+        lines = ["---", "layout: default", "title: " + fn, "nav_exclude: true", "---", ""]
         path = f"docs/tutorials/{fn}"
         if os.path.isdir(path):
             shutil.rmtree(path)
         elif fn.endswith(".md"):
-            with open(path, "rt") as f:
-                for l in f:
-                    l = l.rstrip()
-                    if l.startswith("![png]"):
-                        t1, t2 = l.split("(")
+            with open(path) as file:
+                for line in file:
+                    line = line.rstrip()
+                    if line.startswith("![png]"):
+                        t1, t2 = line.split("(")
                         t2, t3 = t2.split("/")
                         lines.append(t1 + "(assets/" + t3)
                     else:
-                        lines.append(l)
-            with open(path, "wt") as f:
-                f.write("\n".join(lines))
+                        lines.append(line)
+            with open(path, "w") as file:
+                file.write("\n".join(lines))
 
 
 @task
@@ -81,23 +75,9 @@ def make_doc(ctx):
             with open(fn) as f:
                 lines = [line.rstrip() for line in f if "Submodules" not in line]
             if fn == "matgl.md":
-                preamble = [
-                    "---",
-                    "layout: default",
-                    "title: API Documentation",
-                    "nav_order: 5",
-                    "---",
-                    ""
-                ]
+                preamble = ["---", "layout: default", "title: API Documentation", "nav_order: 5", "---", ""]
             else:
-                preamble = [
-                    "---",
-                    "layout: default",
-                    "title: " + fn,
-                    "nav_exclude: true",
-                    "---",
-                    ""
-                ]
+                preamble = ["---", "layout: default", "title: " + fn, "nav_exclude: true", "---", ""]
             with open(fn, "w") as f:
                 f.write("\n".join(preamble + lines))
 
@@ -115,7 +95,8 @@ def make_doc(ctx):
         with open("index.md", "w") as f:
             contents = contents.replace(
                 "\n### Official Documentation: [:books:][doc]",
-                "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n")
+                "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n",
+            )
             contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents
 
             f.write(contents)
@@ -155,11 +136,12 @@ def release(ctx, notest=False):
     publish(ctx)
     release_github(ctx)
 
+
 @task
 def get_changelog(ctx):
     with open("changes.md") as f:
         contents = f.read()
         i = contents.find(f"{NEW_VER}")
-        contents = contents[i+len(NEW_VER):]
+        contents = contents[i + len(NEW_VER) :]
         i = contents.find("#")
         return contents[:i].strip()
