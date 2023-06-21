@@ -56,7 +56,7 @@ class CHGNet(nn.Module, IOMixIn):
         dim_state_feats: int | None = None,
         cutoff: float = 5.0,
         threebody_cutoff: float = 3.0,
-        cutoff_smoothing_exponent: float = 5.0,
+        cutoff_exponent: float = 5.0,
         max_n: int = 9,  # number of l = 0 bessel function frequencies
         max_f: int = 4,  # number of Fourier frequencies -> 4 * 2 + 1 = 9 of original CHGNet
         learn_basis_freq: bool = True,
@@ -73,46 +73,77 @@ class CHGNet(nn.Module, IOMixIn):
         # mlp_hidden_dims: Sequence[int] | int = (64, 64),
         # mlp_dropout: float = 0,
         # mlp_first: bool = True,
-        # is_intensive: bool = True,
+
 
         # additional args from m3gnet mgl
         # units: int = 64,
         # ntargets: int = 1,
         # field: str = "node_feat",
-        # include_state: bool = False,
-        # activation_type: str = "swish",
-        # is_intensive: bool = True,
+        include_state: bool = False,
+        activation_type: str = "swish",
+        is_intensive: bool = True,
         # readout_type: str = "average",  # or attention
         # task_type: str = "regression",
         **kwargs
     ):
-        """
-        Args:
-            element_types (tuple): list of elements appearing in the dataset
-            dim_node_embedding (int): number of embedded atomic features
-            dim_edge_embedding (int): number of edge features
-            dim_state_embedding (int): number of hidden neurons in state embedding
-            dim_state_feats (int): number of state features after linear layer
-            dim_state_types (int): number of state labels
-            max_n (int): number of radial basis expansion
-            max_l (int): number of angular expansion
-            nblocks (int): number of convolution blocks
-            rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
-            is_intensive (bool): whether the prediction is intensive
-            readout_type (str): the readout function type. choose from `set2set`,
-            `weighted_atom` and `reduce_atom`, default to `weighted_atom`
-            task_type (str): `classification` or `regression`, default to
-            `regression`
-            cutoff (float): cutoff radius of the graph
-            threebody_cutoff (float): cutoff radius for 3 body interaction
-            units (int): number of neurons in each MLP layer
-            ntargets (int): number of target properties
-            use_smooth (bool): whether using smooth Bessel functions
-            use_phi (bool): whether using phi angle
-            field (str): using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
-            niters_set2set (int): number of set2set iterations
-            nlayers_set2set (int): number of set2set layers
-            include_state (bool): whether to include states features
-            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
-            **kwargs: For future flexibility. Not used at the moment.
-        """
+        """"""
+        super().__init__()
+
+        self.save_args(locals(), kwargs)
+
+        # TODO implement a "get_activation" function with available activations to avoid
+        #  this if/else block
+        if activation_type == "swish":
+            activation = nn.SiLU()  # type: ignore
+        elif activation_type == "tanh":
+            activation = nn.Tanh()  # type: ignore
+        elif activation_type == "sigmoid":
+            activation = nn.Sigmoid()  # type: ignore
+        elif activation_type == "softplus2":
+            activation = SoftPlus2()  # type: ignore
+        elif activation_type == "softexp":
+            activation = SoftExponential()  # type: ignore
+        else:
+            raise Exception(
+                "Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp"
+            )
+
+        if element_types is None:
+            self.element_types = DEFAULT_ELEMENT_TYPES
+        else:
+            self.element_types = element_types
+
+        self.bond_expansion = BondExpansion(max_l=1, max_n=max_n, rbf_type="SphericalBessel", cutoff=cutoff)
+        self.angle_expansion = None  # implement this
+
+        self.embedding = None # need to add an angle embedding to included Embedding block
+
+        # operations involving the line graph (i.e. bond graph) to update bond and angle features
+        self.three_body_interactions = nn.ModuleList(
+            {
+                None  # implement the BondConvolution and AngleUpdate
+                for _ in range(nblocks - 1)
+            }
+        )
+
+        # operations involving the graph (i.e. atom graph) to update atom and bond features
+        self.graph_layers = nn.ModuleList(
+            {
+                None  # implement the AtomConvolution and BondUpdate
+                for _ in range(nblocks)
+            }
+        )
+
+        self.magmom_readout = nn.Linear(dim_node_embedding, 1)
+
+        # TODO implement the readout layer attrs
+        self.final_layer = None  # MLP or GatedMLP with Linear readout
+
+        self.max_n = max_n
+        self.max_f = max_f
+        self.n_blocks = nblocks
+        self.cutoff = cutoff
+        self.cutoff_exponent = cutoff_exponent
+        self.three_body_cutoff = threebody_cutoff
+        self.include_states = include_state
+        self.is_intensive = is_intensive
