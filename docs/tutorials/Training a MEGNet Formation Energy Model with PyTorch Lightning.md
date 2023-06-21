@@ -21,6 +21,7 @@ import pytorch_lightning as pl
 import torch
 from dgl.data.utils import split_dataset
 from pymatgen.core import Structure
+from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
@@ -61,7 +62,7 @@ def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
 
 
 ```python
-# load the MP raw dataset
+# Load the MP raw dataset
 structures, mp_ids, eform_per_atom = load_dataset()
 
 # For demo purposes, we are only going to select 100 structures from the entire set of structures.
@@ -69,7 +70,7 @@ structures = structures[:100]
 eform_per_atom = eform_per_atom[:100]
 ```
 
-    69239it [02:55, 395.06it/s] 
+    69239it [02:56, 392.16it/s] 
 
 
 Here, we set up the dataset.
@@ -93,7 +94,7 @@ train_data, val_data, test_data = split_dataset(
 )
 ```
 
-    100%|███████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 765.89it/s]
+    100%|███████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 680.77it/s]
 
 
 
@@ -140,11 +141,12 @@ model = MEGNet(
 lit_module = ModelLightningModule(model=model)
 ```
 
-Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Note that the max_epochs is set at 2 to demonstrate the fitting on a laptop. A real fitting should use max_epochs > 100 and be run in parallel on GPU resources. For the formation energy, it should be around 2000. The `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training. 
+Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Note that the max_epochs is set at 20 to demonstrate the fitting on a laptop. A real fitting should use max_epochs > 100 and be run in parallel on GPU resources. For the formation energy, it should be around 2000. The `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training. 
 
 
 ```python
-trainer = pl.Trainer(max_epochs=100, accelerator="cpu")
+logger = CSVLogger("logs", name="MEGNet_training")
+trainer = pl.Trainer(max_epochs=20, accelerator="cpu", logger=logger)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
@@ -152,7 +154,7 @@ trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=va
     TPU available: False, using: 0 TPU cores
     IPU available: False, using: 0 IPUs
     HPU available: False, using: 0 HPUs
-    Missing logger folder: /Users/shyue/repos/matgl/examples/lightning_logs
+    Missing logger folder: logs/MEGNet_training
     
       | Name  | Type              | Params
     --------------------------------------------
@@ -254,327 +256,23 @@ trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=va
     Validation: 0it [00:00, ?it/s]
 
 
+    `Trainer.fit` stopped: `max_epochs=20` reached.
 
-    Validation: 0it [00:00, ?it/s]
 
 
+```python
+metrics = pd.read_csv("logs/MEGNet_training/version_0/metrics.csv")
+metrics["train_MAE"].dropna().plot()
+metrics["val_MAE"].dropna().plot()
+import matplotlib.pyplot as plt
 
-    Validation: 0it [00:00, ?it/s]
+_ = plt.legend()
+```
 
 
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-    `Trainer.fit` stopped: `max_epochs=100` reached.
+    
+![png](Training%20a%20MEGNet%20Formation%20Energy%20Model%20with%20PyTorch%20Lightning_files/Training%20a%20MEGNet%20Formation%20Energy%20Model%20with%20PyTorch%20Lightning_12_0.png)
+    
 
 
 
@@ -587,5 +285,5 @@ for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"
     except FileNotFoundError:
         pass
 
-shutil.rmtree("lightning_logs")
+shutil.rmtree("logs")
 ```
