@@ -96,32 +96,17 @@ class Atoms2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-
-        isolated_atoms = list(set(range(len(atoms))).difference(src_id))
-        if not isolated_atoms:
-            u, v = tensor(src_id), tensor(dst_id)
-        else:
-            u, v = tensor(np.concatenate([src_id, isolated_atoms])), tensor(
-                np.concatenate([dst_id, isolated_atoms])
-            )
-            images = np.concatenate(
-                [images, np.repeat([[1.0, 0.0, 0.0]], len(isolated_atoms), axis=0)]
-            )
-
-        g = dgl.graph((u, v))
-        g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor(
-            np.stack([lattice_matrix for _ in range(g.num_edges())])
+        return super().get_graph(
+            AseAtomsAdaptor().get_structure(atoms),
+            src_id,
+            dst_id,
+            images,
+            [lattice_matrix],
+            Z,
+            element_types,
+            cart_coords,
+            volume,
         )
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(
-            np.hstack([[element_types.index(i.symbol)] for i in atoms])
-        )
-        g.ndata["pos"] = tensor(cart_coords)
-        g.ndata["volume"] = tensor([volume for _ in range(atomic_number.shape[0])])
-        state_attr = [0.0, 0.0]
-        g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix))
-        return g, state_attr
 
 
 class M3GNetCalculator(Calculator):

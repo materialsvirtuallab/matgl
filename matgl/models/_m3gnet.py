@@ -269,7 +269,7 @@ class M3GNet(nn.Module, IOMixIn):
             from matgl.ext.pymatgen import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
-        g, stare_feats_default = graph_converter.get_graph(structure)
+        g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
-            state_feats = torch.tensor(stare_feats_default)
+            state_feats = torch.tensor(state_feats_default)
         return self(g=g, state_attr=state_feats).detach()

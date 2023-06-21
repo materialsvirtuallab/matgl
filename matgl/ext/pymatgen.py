@@ -67,19 +67,18 @@ class Molecule2Graph(GraphConverter):
         nbonds /= natoms
         adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
         adj = adj.tocoo()
-        u, v = tensor(adj.row), tensor(adj.col)
-        g = dgl.graph((u, v))
-        g = dgl.to_bidirected(g)
-        g.ndata["pos"] = tensor(R)
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(
-            np.hstack([[element_types.index(site.specie.symbol)] for site in mol])
+        g, _ = super().get_graph(
+            structure=mol,
+            src_id=adj.row,
+            dst_id=adj.col,
+            images=torch.zeros(len(adj.row), 3),
+            lattice_matrix=torch.zeros(1, 3, 3),
+            Z=Z,
+            element_types=element_types,
+            cart_coords=R,
+            volume=None
         )
-        g.edata["pbc_offset"] = torch.zeros(g.num_edges(), 3)
-        g.edata["lattice"] = torch.zeros(g.num_edges(), 3, 3)
         state_attr = [weight, nbonds]
-        g.edata["pbc_offshift"] = torch.zeros(g.num_edges(), 3)
-
         return g, state_attr
 
 
@@ -117,7 +116,6 @@ class Structure2Graph(GraphConverter):
                 for site in structure
             ]
         )
-        atomic_number = np.array([site.specie.Z for site in structure])
         lattice_matrix = np.ascontiguousarray(
             np.array(structure.lattice.matrix), dtype=float
         )
@@ -138,27 +136,14 @@ class Structure2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        isolated_atoms = list(set(range(len(structure))).difference(src_id))
-        if not isolated_atoms:
-            u, v = tensor(src_id), tensor(dst_id)
-        else:
-            u, v = tensor(np.concatenate([src_id, isolated_atoms])), tensor(
-                np.concatenate([dst_id, isolated_atoms])
-            )
-            images = np.concatenate(
-                [images, np.repeat([[1.0, 0.0, 0.0]], len(isolated_atoms), axis=0)]
-            )
-        g = dgl.graph((u, v))
-        g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor(
-            np.stack([lattice_matrix for _ in range(g.num_edges())])
+        return super().get_graph(
+            structure,
+            src_id,
+            dst_id,
+            images,
+            [lattice_matrix],
+            Z,
+            element_types,
+            cart_coords,
+            volume,
         )
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(
-            np.hstack([[element_types.index(site.specie.symbol)] for site in structure])
-        )
-        g.ndata["pos"] = tensor(cart_coords)
-        g.ndata["volume"] = tensor([volume for _ in range(atomic_number.shape[0])])
-        state_attr = [0.0, 0.0]
-
-        return g, state_attr
