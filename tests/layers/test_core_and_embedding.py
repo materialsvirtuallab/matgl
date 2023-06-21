@@ -1,15 +1,14 @@
 from __future__ import annotations
 
+import pytest
 import torch
 from torch import nn
 
 from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._core import MLP, GatedMLP
 
-import pytest
 
-
-@pytest.fixture
+@pytest.fixture()
 def x():
     return torch.randn(4, 10, requires_grad=True)
 

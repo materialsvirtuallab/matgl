@@ -3,6 +3,7 @@ layout: default
 title: matgl.models.md
 nav_exclude: true
 ---
+
 # matgl.models package
 
 Package containing model implementations.
@@ -30,7 +31,7 @@ The main M3GNet model.
 
 * **Parameters**
 
-    
+
     * **element_types** (*tuple*) – list of elements appearing in the dataset
 
 
@@ -67,16 +68,16 @@ The main M3GNet model.
     * **readout_type** (*str*) – the readout function type. choose from set2set,
 
 
-    * **reduce_atom** (*weighted_atom and*) – 
+    * **reduce_atom** (*weighted_atom and*) –
 
 
-    * **weighted_atom** (*default to*) – 
+    * **weighted_atom** (*default to*) –
 
 
     * **task_type** (*str*) – classification or regression, default to
 
 
-    * **regression** – 
+    * **regression** –
 
 
     * **cutoff** (*float*) – cutoff radius of the graph
@@ -116,13 +117,13 @@ The main M3GNet model.
 
 
 
-#### forward(g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None)
+#### forward(g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None)
 Performs message passing and updates node representations.
 
 
 * **Parameters**
 
-    
+
     * **g** – DGLGraph for a batch of graphs.
 
 
@@ -145,13 +146,13 @@ Performs message passing and updates node representations.
 
 
 
-#### predict_structure(structure, state_feats: torch.tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
+#### predict_structure(structure, state_feats: torch.Tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
 Convenience method to directly predict property from structure.
 
 
 * **Parameters**
 
-    
+
     * **structure** – An input crystal/molecule.
 
 
@@ -188,7 +189,7 @@ Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564-3572. DOI: 10.1021/acs.
 ```
 
 
-### _class_ matgl.models._megnet.MEGNet(dim_node_embedding: int = 16, dim_edge_embedding: int = 100, dim_state_embedding: int = 2, ntypes_state: int | None = None, nblocks: int = 3, hidden_layer_sizes_input: tuple[int, ...] = (64, 32), hidden_layer_sizes_conv: tuple[int, ...] = (64, 64, 32), hidden_layer_sizes_output: tuple[int, ...] = (32, 16), nlayers_set2set: int = 1, niters_set2set: int = 2, activation_type: str = 'softplus2', is_classification: bool = False, include_state: bool = True, dropout: float | None = None, graph_transformations: list | None = None, element_types: tuple[str, ...] = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu'), bond_expansion: [BondExpansion](matgl.layers.md#matgl.layers._bond.BondExpansion) | None = None, cutoff: float = 4.0, gauss_width: float = 0.5, \*\*kwargs)
+### _class_ matgl.models._megnet.MEGNet(dim_node_embedding: int = 16, dim_edge_embedding: int = 100, dim_state_embedding: int = 2, ntypes_state: int | None = None, nblocks: int = 3, hidden_layer_sizes_input: tuple[int, ...] = (64, 32), hidden_layer_sizes_conv: tuple[int, ...] = (64, 64, 32), hidden_layer_sizes_output: tuple[int, ...] = (32, 16), nlayers_set2set: int = 1, niters_set2set: int = 2, activation_type: str = 'softplus2', is_classification: bool = False, include_state: bool = True, dropout: float | None = None, element_types: tuple[str, ...] = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu'), bond_expansion: [BondExpansion](matgl.layers.md#matgl.layers._bond.BondExpansion) | None = None, cutoff: float = 4.0, gauss_width: float = 0.5, \*\*kwargs)
 Bases: `Module`, [`IOMixIn`](matgl.utils.md#matgl.utils.io.IOMixIn)
 
 DGL implementation of MEGNet.
@@ -198,7 +199,7 @@ Useful defaults for all arguments have been specified based on MEGNet formation 
 
 * **Parameters**
 
-    
+
     * **dim_node_embedding** – Dimension of node embedding.
 
 
@@ -251,10 +252,6 @@ Useful defaults for all arguments have been specified based on MEGNet formation 
     a Bernoulli distribution
 
 
-    * **graph_transformations** – Perform a graph transformation, e.g., incorporate three-body interactions, prior to
-    performing the GCL updates.
-
-
     * **element_types** – Elements included in the training set
 
 
@@ -277,7 +274,7 @@ Forward pass of MEGnet. Executes all blocks.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -297,13 +294,13 @@ Forward pass of MEGnet. Executes all blocks.
 
 
 
-#### predict_structure(structure, state_feats: torch.tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
+#### predict_structure(structure, state_feats: torch.Tensor | None = None, graph_converter: [GraphConverter](matgl.graph.md#matgl.graph.converters.GraphConverter) | None = None)
 Convenience method to directly predict property from structure.
 
 
 * **Parameters**
 
-    
+
     * **structure** – An input crystal/molecule.
 
 
@@ -350,7 +347,7 @@ target_transformer: Transformer for target.
 
 * **Parameters**
 
-    
+
     * **\*args** – Passthrough to parent model.forward method.
 
 
@@ -370,7 +367,7 @@ Pass through to parent model.predict_structure with inverse transform.
 
 * **Parameters**
 
-    
+
     * **\*args** – Pass-through to self.model.predict_structure.
 
 

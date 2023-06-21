@@ -4,7 +4,7 @@ import numpy as np
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from matgl.apps.pes import Potential
-from matgl.ext.ase import M3GNetCalculator, Atoms2Graph
+from matgl.ext.ase import Atoms2Graph, M3GNetCalculator
 from matgl.models import M3GNet
 
 

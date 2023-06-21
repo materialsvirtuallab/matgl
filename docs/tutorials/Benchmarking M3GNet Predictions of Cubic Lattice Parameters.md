@@ -1,11 +1,12 @@
 ---
 layout: default
-title: tutorials/Benchmarking M3GNet Predictions of Cubic Lattice Parameters.md
+title: Benchmarking M3GNet Predictions of Cubic Lattice Parameters.md
 nav_exclude: true
 ---
+
 # Introduction
 
-This notebook is written to demonstrate the use of M3GNet as a structure relaxer as well as to provide more comprehensive benchmarks for cubic crystals based on exp data on Wikipedia and MP DFT data. This benchmark is limited to cubic crystals for ease of comparison since there is only one lattice parameter. 
+This notebook is written to demonstrate the use of M3GNet as a structure relaxer as well as to provide more comprehensive benchmarks for cubic crystals based on exp data on Wikipedia and MP DFT data. This benchmark is limited to cubic crystals for ease of comparison since there is only one lattice parameter.
 
 If you are running this notebook from Google Colab, uncomment the next code box to install matgl first.
 
@@ -33,7 +34,7 @@ from matgl.ext.ase import Relaxer
 warnings.filterwarnings("ignore")
 ```
 
-The next cell just compiles data from Wikipedia. 
+The next cell just compiles data from Wikipedia.
 
 
 ```python
@@ -91,7 +92,7 @@ print(data)
 ```
 
                  Crystal structure     a (Å)
-    Material                                
+    Material
     C (diamond)      Diamond (FCC)  3.567000
     Si               Diamond (FCC)  5.431021
     Ge               Diamond (FCC)  5.658000
@@ -103,7 +104,7 @@ print(data)
     Ba                         BCC  5.020000
     Eu                         BCC  4.610000
     Cr                         BCC  2.880000
-    
+
     [89 rows x 2 columns]
 
 
@@ -1703,9 +1704,9 @@ data["% error vs MP"].replace([np.inf, -np.inf], np.nan).dropna().hist(bins=20)
 
 
 
-    
-![png](Benchmarking%20M3GNet%20Predictions%20of%20Cubic%20Lattice%20Parameters_files/Benchmarking%20M3GNet%20Predictions%20of%20Cubic%20Lattice%20Parameters_9_1.png)
-    
+
+![png](assets/Benchmarking%20M3GNet%20Predictions%20of%20Cubic%20Lattice%20Parameters_9_1.png)
+
 
 
 

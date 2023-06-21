@@ -21,4 +21,9 @@ This series of notebooks demonstrate how to load and use the pretrained models f
 
 1. [Benchmarking M3GNet Predictions of Cubic Lattice Parameters](tutorials%2FBenchmarking%20M3GNet%20Predictions%20of%20Cubic%20Lattice%20Parameters.html)
 
+## Training MatGL models
+
+1. [Training a MEGNet Formation Energy Model](tutorials%2FTraining%20a%20MEGNet%20Formation%20Energy%20Model%20with%20PyTorch%20Lightning.html)
+2. [Training a M3GNet Potential](tutorials%2FTraining%20a%20M3GNet%20Potential%20with%20PyTorch%20Lightning.html)
+
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples "Jupyter notebooks"

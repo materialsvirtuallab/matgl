@@ -1,8 +1,9 @@
 ---
 layout: default
-title: tutorials/Relaxations and Simulations using the M3GNet Universal Potential.md
+title: Relaxations and Simulations using the M3GNet Universal Potential.md
 nav_exclude: true
 ---
+
 # Introduction
 
 This notebook demonstrates the use of the pre-trained M3GNet model to perform structural relaxations, molecular dynamics simulations and single-point calculations.
@@ -102,4 +103,3 @@ print(f"The calculated potential energy is {float(atoms.get_potential_energy()):
 ```
 
     The calculated potential energy is -6.430 eV.
-

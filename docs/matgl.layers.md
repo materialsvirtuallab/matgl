@@ -3,6 +3,7 @@ layout: default
 title: matgl.layers.md
 nav_exclude: true
 ---
+
 # matgl.layers package
 
 This package implements the layers for M\*GNet.
@@ -32,7 +33,7 @@ Init SoftExponential with alpha value.
 
 
 
-#### forward(x: tensor)
+#### forward(x: Tensor)
 Evaluate activation function given the input tensor x.
 
 
@@ -66,7 +67,7 @@ softplus function that is 0 at x=0, the implementation aims at avoiding overflow
 Initializes the SoftPlus2 class.
 
 
-#### forward(x: tensor)
+#### forward(x: Tensor)
 Evaluate activation function given the input tensor x.
 
 
@@ -99,50 +100,51 @@ Bases: `Module`
 
 Get total property offset for a system.
 
-### Args:
-
+Args:
 property_offset (np.array): a array of elemental property offset.
 
 
-#### fit(structs_or_graphs: list, element_list: tuple[str], properties: np.typing.NDArray)
+#### fit(graphs: list, properties: np.typing.NDArray)
 Fit the elemental reference values for the properties.
 
 
 * **Parameters**
 
-    
-    * **structs_or_graphs** – pymatgen Structures or dgl graphs
 
-
-    * **element_list** (*tuple*) – a list of element types
+    * **graphs** – dgl graphs
 
 
     * **properties** (*np.ndarray*) – array of extensive properties
 
 
 
-#### forward(g: dgl.DGLGraph, state_attr: torch.tensor | None = None)
+#### forward(g: dgl.DGLGraph, state_attr: torch.Tensor | None = None)
 Get the total property offset for a system.
 
-Args:
-g: a batch of dgl graphs
-state_attr: state attributes
 
-Returns:
-offset_per_graph:
+* **Parameters**
 
 
-#### get_feature_matrix(structs_or_graphs: list, element_list: tuple[str])
+    * **g** – a batch of dgl graphs
+
+
+    * **state_attr** – state attributes
+
+
+
+* **Returns**
+
+    offset_per_graph
+
+
+
+#### get_feature_matrix(graphs: list)
 Get the number of atoms for different elements in the structure.
 
 
 * **Parameters**
 
-    
-    * **structs_or_graphs** (*list*) – a list of pymatgen Structure or dgl graph
-
-
-    * **element_list** – a dictionary containing element types in the training set
+    **graphs** (*list*) – a list of dgl graph
 
 
 
@@ -172,7 +174,7 @@ The bond distance is expanded to a vector of shape [m], where m is the number of
 
 * **Parameters**
 
-    
+
     * **initial** – Location of initial Gaussian basis center.
 
 
@@ -227,8 +229,8 @@ vanishes at cutoff.
 
 * **Parameters**
 
-    
-    * **r** – torch.tensor pytorch tensors
+
+    * **r** – torch.Tensor pytorch tensors
 
 
     * **cutoff** – float, the cutoff radius
@@ -250,7 +252,7 @@ Init SphericalBesselWithHarmonics.
 
 * **Parameters**
 
-    
+
     * **max_n** – Degree of radial basis functions.
 
 
@@ -304,8 +306,8 @@ Ref:
 
 * **Parameters**
 
-    
-    * **r** – torch.tensor distance tensor
+
+    * **r** – torch.Tensor distance tensor
 
 
     * **cutoff** – float, cutoff radius
@@ -338,7 +340,7 @@ num_centers (int): Number of centers for gaussian expansion.
 width (float): width of gaussian function.
 
 
-#### forward(bond_dist: tensor)
+#### forward(bond_dist: Tensor)
 Forward.
 
 Args:
@@ -362,7 +364,7 @@ Implementation of Set2Set.
 
 * **Parameters**
 
-    
+
     * **input_dim** – The size of each input sample.
 
 
@@ -373,13 +375,13 @@ Implementation of Set2Set.
 
 
 
-#### forward(g: DGLGraph, feat: tensor)
+#### forward(g: DGLGraph, feat: Tensor)
 Defines the computation performed at every call.
 
 
 * **Parameters**
 
-    
+
     * **g** – Input graph
 
 
@@ -407,7 +409,7 @@ An implementation of a Gated multi-layer perceptron.
 
 * **Parameters**
 
-    
+
     * **in_feats** – Dimension of input features.
 
 
@@ -421,7 +423,7 @@ An implementation of a Gated multi-layer perceptron.
 
 
 
-#### forward(inputs: tensor)
+#### forward(inputs: Tensor)
 Defines the computation performed at every call.
 
 Should be overridden by all subclasses.
@@ -442,7 +444,7 @@ An implementation of a multi-layer perceptron.
 
 * **Parameters**
 
-    
+
     * **dims** – Dimensions of each layer of MLP.
 
 
@@ -545,7 +547,7 @@ A M3GNet block comprising a sequence of update operations.
 
 * **Parameters**
 
-    
+
     * **degree** – Dimension of radial basis functions
 
 
@@ -575,7 +577,7 @@ A M3GNet block comprising a sequence of update operations.
 
 * **Parameters**
 
-    
+
     * **graph** – DGL graph
 
 
@@ -627,7 +629,7 @@ Perform sequence of edge->node->states updates.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -653,7 +655,7 @@ M3GNetGraphConv initialization.
 
 * **Parameters**
 
-    
+
     * **degree** (*int*) – max_n\*max_l
 
 
@@ -682,7 +684,7 @@ Perform node update.
 
 * **Parameters**
 
-    
+
     * **graph** – DGL graph
 
 
@@ -708,7 +710,7 @@ Perform attribute (global state) update.
 
 * **Parameters**
 
-    
+
     * **graph** – DGL graph
 
 
@@ -731,7 +733,7 @@ Init the MEGNet block with key parameters.
 
 * **Parameters**
 
-    
+
     * **dims** – Dimension of dense layers before graph convolution.
 
 
@@ -755,7 +757,7 @@ MEGNetBlock forward pass.
 
 * **Parameters**
 
-    
+
     * **graph** (*dgl.DGLGraph*) – A DGLGraph.
 
 
@@ -794,7 +796,7 @@ A MEGNet graph convolution layer in DGL.
 
 * **Parameters**
 
-    
+
     * **edge_func** – Edge update function.
 
 
@@ -827,7 +829,7 @@ Perform sequence of edge->node->attribute updates.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -853,7 +855,7 @@ Create a MEGNet graph convolution layer from dimensions.
 
 * **Parameters**
 
-    
+
     * **edge_dims** (*list**[**int**]*) – Edge dimensions.
 
 
@@ -901,7 +903,7 @@ Perform attribute (global state) update.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -993,7 +995,7 @@ num_targets: number of target properties.
 
 * **Returns**
 
-    torch.tensor.
+    torch.Tensor.
 
 
 
@@ -1040,7 +1042,7 @@ Init ThreeBodyInteractions.
 
 * **Parameters**
 
-    
+
     * **update_network_atom** – MLP for node features in Eq.2
 
 
@@ -1051,13 +1053,13 @@ Init ThreeBodyInteractions.
 
 
 
-#### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: tensor, three_cutoff: float, node_feat: tensor, edge_feat: tensor)
+#### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: Tensor, three_cutoff: float, node_feat: Tensor, edge_feat: Tensor)
 Forward function for ThreeBodyInteractions.
 
 
 * **Parameters**
 
-    
+
     * **graph** – dgl graph
 
 
@@ -1096,11 +1098,11 @@ For the spherical Harmonics function, the column is ordered by
 
 * **Parameters**
 
-    
-    * **sbf** – torch.tensor spherical bessel function results
+
+    * **sbf** – torch.Tensor spherical bessel function results
 
 
-    * **shf** – torch.tensor spherical harmonics function results
+    * **shf** – torch.Tensor spherical harmonics function results
 
 
     * **max_n** – int, max number of n

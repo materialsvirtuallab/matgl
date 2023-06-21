@@ -1,8 +1,9 @@
 ---
 layout: default
-title: tutorials/Property Predictions using MEGNet or M3GNet Models.md
+title: Property Predictions using MEGNet or M3GNet Models.md
 nav_exclude: true
 ---
+
 # Introduction
 
 This notebook demonstrates the use of pre-trained MEGNet and M3GNet models to predict properties.
@@ -87,4 +88,3 @@ for i, method in ((0, "PBE"), (1, "GLLB-SC"), (2, "HSE"), (3, "SCAN")):
     The predicted GLLB-SC band gap for CsCl is 8.323 eV.
     The predicted HSE band gap for CsCl is 6.317 eV.
     The predicted SCAN band gap for CsCl is 5.965 eV.
-

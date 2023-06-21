@@ -11,13 +11,13 @@ import torch
 import torch.nn.functional as F
 import torchmetrics
 from torch import nn
-from torch.optim import Optimizer, lr_scheduler
+from torch.optim import Optimizer
 
 from matgl.apps.pes import Potential
 from matgl.models import M3GNet
 
 
-class TrainerMixin:
+class MatglLightningModuleMixin:
     """Mix-in class implementing common functions for training."""
 
     def training_step(self, batch: tuple, batch_idx: int):
@@ -129,8 +129,8 @@ class TrainerMixin:
         return self(batch)
 
 
-class ModelTrainer(TrainerMixin, pl.LightningModule):
-    """Trainer for MEGNet and M3GNet models."""
+class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
+    """A PyTorch.LightningModule for training MEGNet and M3GNet models."""
 
     def __init__(
         self,
@@ -139,23 +139,28 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         data_std=None,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
-        scheduler: lr_scheduler | None = None,
+        scheduler=None,
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        **kwargs,
     ):
-        """Args:
-        model: Which type of the model for training
-        data_mean: average of training data
-        data_std: standard deviation of training data
-        loss: loss function used for training
-        optimizer: optimizer for training
-        scheduler: scheduler for training
-        lr: learning rate for training
-        decay_steps: number of steps for decaying learning rate
-        decay_alpha: parameter determines the minimum learning rate.
         """
-        super().__init__()
+        Init ModelLightningModule with key parameters.
+
+        Args:
+            model: Which type of the model for training
+            data_mean: average of training data
+            data_std: standard deviation of training data
+            loss: loss function used for training
+            optimizer: optimizer for training
+            scheduler: scheduler for training
+            lr: learning rate for training
+            decay_steps: number of steps for decaying learning rate
+            decay_alpha: parameter determines the minimum learning rate.
+            **kwargs: Passthrough to parent init.
+        """
+        super().__init__(**kwargs)
 
         self.model = model
 
@@ -178,7 +183,7 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         self.scheduler = scheduler
         self.save_hyperparameters()
 
-    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
             g: dgl Graph
             l_g: Line graph
@@ -203,11 +208,11 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         """
         g, labels, state_attr = batch
         preds = self(g=g, state_attr=state_attr)
-        results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)
+        results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size
 
-    def loss_fn(self, loss: nn.Module, labels: tuple, preds: tuple):
+    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor):
         """Args:
             loss: Loss function.
             labels: Labels to compute the loss.
@@ -216,19 +221,24 @@ class ModelTrainer(TrainerMixin, pl.LightningModule):
         Returns:
             {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
         """
-        total_loss = loss(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        mae = self.mae(labels, torch.squeeze(preds * self.data_std + self.data_mean))
-        rmse = self.rmse(labels, torch.squeeze(preds * self.data_std + self.data_mean))
+        scaled_pred = torch.reshape(preds * self.data_std + self.data_mean, labels.size())
+        total_loss = loss(labels, scaled_pred)
+        mae = self.mae(labels, scaled_pred)
+        rmse = self.rmse(labels, scaled_pred)
         return {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
 
 
-class PotentialTrainer(TrainerMixin, pl.LightningModule):
-    """Trainer for MatGL potentials."""
+class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
+    """A PyTorch.LightningModule for training MatGL potentials.
+
+    This is slightly different from the ModelLightningModel due to the need to account for energy, forces and stress
+    losses.
+    """
 
     def __init__(
         self,
         model,
-        element_refs: np.darray | None = None,
+        element_refs: np.ndarray | None = None,
         energy_weight: float = 1.0,
         force_weight: float = 1.0,
         stress_weight: float | None = None,
@@ -237,13 +247,14 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         calc_stress: bool = False,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
-        scheduler: lr_scheduler | None = None,
+        scheduler=None,
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        **kwargs,
     ):
         """
-        Init PotentialTrainer with key parameters.
+        Init PotentialLightningModule with key parameters.
 
         Args:
             model: Which type of the model for training
@@ -260,8 +271,9 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
+            **kwargs: Passthrough to parent init.
         """
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.model = Potential(model=model, element_refs=element_refs, calc_stresses=calc_stress)
 
@@ -287,7 +299,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         self.scheduler = scheduler
         self.save_hyperparameters()
 
-    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None):
+    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
             g: dgl Graph
             l_g: Line graph
@@ -314,7 +326,7 @@ class PotentialTrainer(TrainerMixin, pl.LightningModule):
         labels: tuple = (energies, forces, stresses)
         num_atoms = g.batch_num_nodes()
         results = self.loss_fn(
-            loss=self.loss,
+            loss=self.loss,  # type: ignore
             preds=preds,
             labels=labels,
             energy_weight=self.energy_weight,
