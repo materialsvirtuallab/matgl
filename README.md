@@ -208,7 +208,7 @@ ACI-1548562.
 [mp]: http://materialsproject.org "Materials Project"
 [apidocs]: https://matgl.ai/matgl.html "MatGL API docs"
 [doc]: https://matgl.ai "MatGL Documentation"
-[colab]: http://colab.google.com "Google Colab"
+[colab]: https://colab.research.google.com/ "Google Colab"
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples
 [ongemail]: mailto:ongsp@ucsd.edu "Email"
 [mqm]: https://materialsqm.com "MaterialsQM"
