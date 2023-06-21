@@ -138,13 +138,7 @@ class SphericalBesselFunction:
 class FourierExpansion(nn.Module):
     """Fourier Expansion of a (periodic) scalar feature."""
 
-    def __init__(
-            self,
-            max_f: int = 5,
-            interval: float = pi,
-            scale_factor: float = 1.0,
-            learnable: bool = False
-    ):
+    def __init__(self, max_f: int = 5, interval: float = pi, scale_factor: float = 1.0, learnable: bool = False):
         """Args:
         max_f (int): the maximum frequency of the Fourier expansion.
             Default = 5
@@ -165,9 +159,7 @@ class FourierExpansion(nn.Module):
                 requires_grad=True,
             )
         else:
-            self.register_buffer(
-                "frequencies", torch.arange(0, max_f + 1, dtype=torch.float32)
-            )
+            self.register_buffer("frequencies", torch.arange(0, max_f + 1, dtype=torch.float32))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Expand x into cos and sin functions."""

@@ -25,7 +25,7 @@ def polynomial_cutoff(r: torch.tensor, cutoff: float, exponent: int = 3) -> torc
     b = exponent * (exponent + 2)
     c = -exponent * (exponent + 1) / 2
     ratio = r / cutoff
-    poly_envelope = 1 + a * ratio**exponent + b * ratio**(exponent + 1) + c * ratio**(exponent + 2)
+    poly_envelope = 1 + a * ratio**exponent + b * ratio ** (exponent + 1) + c * ratio ** (exponent + 2)
 
     return torch.where(r <= cutoff, poly_envelope, 0.0)
 
