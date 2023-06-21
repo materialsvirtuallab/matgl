@@ -3,6 +3,7 @@ layout: default
 title: matgl.models.md
 nav_exclude: true
 ---
+
 # matgl.models package
 
 Package containing model implementations.
@@ -30,7 +31,7 @@ The main M3GNet model.
 
 * **Parameters**
 
-    
+
     * **element_types** (*tuple*) – list of elements appearing in the dataset
 
 
@@ -67,16 +68,16 @@ The main M3GNet model.
     * **readout_type** (*str*) – the readout function type. choose from set2set,
 
 
-    * **reduce_atom** (*weighted_atom and*) – 
+    * **reduce_atom** (*weighted_atom and*) –
 
 
-    * **weighted_atom** (*default to*) – 
+    * **weighted_atom** (*default to*) –
 
 
     * **task_type** (*str*) – classification or regression, default to
 
 
-    * **regression** – 
+    * **regression** –
 
 
     * **cutoff** (*float*) – cutoff radius of the graph
@@ -122,7 +123,7 @@ Performs message passing and updates node representations.
 
 * **Parameters**
 
-    
+
     * **g** – DGLGraph for a batch of graphs.
 
 
@@ -151,7 +152,7 @@ Convenience method to directly predict property from structure.
 
 * **Parameters**
 
-    
+
     * **structure** – An input crystal/molecule.
 
 
@@ -198,7 +199,7 @@ Useful defaults for all arguments have been specified based on MEGNet formation 
 
 * **Parameters**
 
-    
+
     * **dim_node_embedding** – Dimension of node embedding.
 
 
@@ -273,7 +274,7 @@ Forward pass of MEGnet. Executes all blocks.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -299,7 +300,7 @@ Convenience method to directly predict property from structure.
 
 * **Parameters**
 
-    
+
     * **structure** – An input crystal/molecule.
 
 
@@ -346,7 +347,7 @@ target_transformer: Transformer for target.
 
 * **Parameters**
 
-    
+
     * **\*args** – Passthrough to parent model.forward method.
 
 
@@ -366,7 +367,7 @@ Pass through to parent model.predict_structure with inverse transform.
 
 * **Parameters**
 
-    
+
     * **\*args** – Pass-through to self.model.predict_structure.
 
 

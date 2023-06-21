@@ -3,6 +3,7 @@ layout: default
 title: matgl.utils.md
 nav_exclude: true
 ---
+
 # matgl.utils package
 
 Implementation of various utility methods and classes.
@@ -57,7 +58,7 @@ Load the model weights from a directory.
 
 * **Parameters**
 
-    
+
     * **path** (*str**|**path**|**dict*) – Path to saved model or name of pre-trained model. If it is a dict, it is assumed to
     be of the form:
 
@@ -92,7 +93,7 @@ Three files will be saved.
 
 * **Parameters**
 
-    
+
     * **path** – String or Path object to directory for model saving. Defaults to current working directory (“.”).
 
 
@@ -113,7 +114,7 @@ This should be called after super in the __init__ method, e.g., self.save_args(l
 
 * **Parameters**
 
-    
+
     * **locals** – The result of locals().
 
 
@@ -150,7 +151,7 @@ Convenience method to load a model from a directory or name.
 
 * **Parameters**
 
-    
+
     * **path** (*str**|**path*) – Path to saved model or name of pre-trained model. The search order is path, followed by
     download from PRETRAINED_MODELS_BASE_URL (with caching).
 
@@ -183,7 +184,7 @@ Modified from torch_scatter library ([https://github.com/rusty1s/pytorch_scatter
 
 * **Parameters**
 
-    
+
     * **input_tensor** – The tensor to broadcast.
 
 
@@ -207,7 +208,7 @@ bond attributes shape [Nb, Nstate].
 
 * **Parameters**
 
-    
+
     * **g** – DGL graph
 
 
@@ -224,7 +225,7 @@ bond attributes shape [Nb, Nstate].
 
 * **Parameters**
 
-    
+
     * **g** – DGL graph
 
 
@@ -271,7 +272,7 @@ Repeat the first dimension according to n array.
 
 * **Parameters**
 
-    
+
     * **ns** (*torch.tensor*) – tensor
 
 
@@ -288,7 +289,7 @@ torch_scatter library ([https://github.com/rusty1s/pytorch_scatter](https://gith
 
 * **Parameters**
 
-    
+
     * **input_tensor** (*torch.Tensor*) – The input tensor to be scattered.
 
 
@@ -319,7 +320,7 @@ roots for j0, i.e., sinc(x).
 
 * **Parameters**
 
-    
+
     * **max_l** – max order of spherical bessel function
 
 
@@ -371,7 +372,7 @@ Executed on model testing.
 
 * **Parameters**
 
-    
+
     * **\*args** – Pass-through
 
 
@@ -389,7 +390,7 @@ Prediction step.
 
 * **Parameters**
 
-    
+
     * **batch** – Data batch.
 
 
@@ -412,7 +413,7 @@ Test step.
 
 * **Parameters**
 
-    
+
     * **batch** – Data batch.
 
 
@@ -426,7 +427,7 @@ Training step.
 
 * **Parameters**
 
-    
+
     * **batch** – Data batch.
 
 
@@ -446,7 +447,7 @@ Validation step.
 
 * **Parameters**
 
-    
+
     * **batch** – Data batch.
 
 
@@ -464,7 +465,7 @@ Init ModelLightningModule with key parameters.
 
 * **Parameters**
 
-    
+
     * **model** – Which type of the model for training
 
 
@@ -500,7 +501,7 @@ Init ModelLightningModule with key parameters.
 
 * **Parameters**
 
-    
+
     * **g** – dgl Graph
 
 
@@ -521,7 +522,7 @@ Init ModelLightningModule with key parameters.
 
 * **Parameters**
 
-    
+
     * **loss** – Loss function.
 
 
@@ -571,7 +572,7 @@ Init PotentialLightningModule with key parameters.
 
 * **Parameters**
 
-    
+
     * **model** – Which type of the model for training
 
 
@@ -622,7 +623,7 @@ Init PotentialLightningModule with key parameters.
 
 * **Parameters**
 
-    
+
     * **g** – dgl Graph
 
 
@@ -645,7 +646,7 @@ Compute losses for EFS.
 
 * **Parameters**
 
-    
+
     * **loss** – Loss function.
 
 

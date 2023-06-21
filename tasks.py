@@ -79,15 +79,15 @@ def make_doc(ctx):
         ctx.run("cp markdown/matgl*.md .")
         for fn in glob.glob("matgl*.md"):
             with open(fn) as f:
-                lines = f.readlines()
-            lines = [line for line in lines if "Submodules" not in line]
+                lines = [line.rstrip() for line in f if "Submodules" not in line]
             if fn == "matgl.md":
                 preamble = [
                     "---",
                     "layout: default",
                     "title: API Documentation",
                     "nav_order: 5",
-                    "---"
+                    "---",
+                    ""
                 ]
             else:
                 preamble = [
@@ -95,10 +95,11 @@ def make_doc(ctx):
                     "layout: default",
                     "title: " + fn,
                     "nav_exclude: true",
-                    "---"
+                    "---",
+                    ""
                 ]
             with open(fn, "w") as f:
-                f.write("\n".join(preamble) + "\n" + "".join(lines))
+                f.write("\n".join(preamble + lines))
 
         ctx.run("rm -r markdown", warn=True)
 

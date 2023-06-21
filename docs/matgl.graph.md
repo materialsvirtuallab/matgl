@@ -3,6 +3,7 @@ layout: default
 title: matgl.graph.md
 nav_exclude: true
 ---
+
 # matgl.graph package
 
 Package for creating and manipulating graphs.
@@ -68,7 +69,7 @@ Calculate the three body indices from pair atom indices.
 
 * **Parameters**
 
-    
+
     * **g_batched** – Batched DGL graph
 
 
@@ -145,7 +146,7 @@ Load dgl graphs from files.
 
 * **Parameters**
 
-    
+
     * **filename** – Name of file storing dgl graphs
 
 
@@ -216,7 +217,7 @@ Dataloader for MEGNet training.
 
 * **Parameters**
 
-    
+
     * **train_data** (*dgl.data.utils.Subset*) – Training dataset.
 
 

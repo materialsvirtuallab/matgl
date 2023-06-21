@@ -3,6 +3,7 @@ layout: default
 title: matgl.layers.md
 nav_exclude: true
 ---
+
 # matgl.layers package
 
 This package implements the layers for M\*GNet.
@@ -109,7 +110,7 @@ Fit the elemental reference values for the properties.
 
 * **Parameters**
 
-    
+
     * **graphs** – dgl graphs
 
 
@@ -123,7 +124,7 @@ Get the total property offset for a system.
 
 * **Parameters**
 
-    
+
     * **g** – a batch of dgl graphs
 
 
@@ -173,7 +174,7 @@ The bond distance is expanded to a vector of shape [m], where m is the number of
 
 * **Parameters**
 
-    
+
     * **initial** – Location of initial Gaussian basis center.
 
 
@@ -228,7 +229,7 @@ vanishes at cutoff.
 
 * **Parameters**
 
-    
+
     * **r** – torch.Tensor pytorch tensors
 
 
@@ -251,7 +252,7 @@ Init SphericalBesselWithHarmonics.
 
 * **Parameters**
 
-    
+
     * **max_n** – Degree of radial basis functions.
 
 
@@ -305,7 +306,7 @@ Ref:
 
 * **Parameters**
 
-    
+
     * **r** – torch.Tensor distance tensor
 
 
@@ -363,7 +364,7 @@ Implementation of Set2Set.
 
 * **Parameters**
 
-    
+
     * **input_dim** – The size of each input sample.
 
 
@@ -380,7 +381,7 @@ Defines the computation performed at every call.
 
 * **Parameters**
 
-    
+
     * **g** – Input graph
 
 
@@ -408,7 +409,7 @@ An implementation of a Gated multi-layer perceptron.
 
 * **Parameters**
 
-    
+
     * **in_feats** – Dimension of input features.
 
 
@@ -443,7 +444,7 @@ An implementation of a multi-layer perceptron.
 
 * **Parameters**
 
-    
+
     * **dims** – Dimensions of each layer of MLP.
 
 
@@ -546,7 +547,7 @@ A M3GNet block comprising a sequence of update operations.
 
 * **Parameters**
 
-    
+
     * **degree** – Dimension of radial basis functions
 
 
@@ -576,7 +577,7 @@ A M3GNet block comprising a sequence of update operations.
 
 * **Parameters**
 
-    
+
     * **graph** – DGL graph
 
 
@@ -628,7 +629,7 @@ Perform sequence of edge->node->states updates.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -654,7 +655,7 @@ M3GNetGraphConv initialization.
 
 * **Parameters**
 
-    
+
     * **degree** (*int*) – max_n\*max_l
 
 
@@ -683,7 +684,7 @@ Perform node update.
 
 * **Parameters**
 
-    
+
     * **graph** – DGL graph
 
 
@@ -709,7 +710,7 @@ Perform attribute (global state) update.
 
 * **Parameters**
 
-    
+
     * **graph** – DGL graph
 
 
@@ -732,7 +733,7 @@ Init the MEGNet block with key parameters.
 
 * **Parameters**
 
-    
+
     * **dims** – Dimension of dense layers before graph convolution.
 
 
@@ -756,7 +757,7 @@ MEGNetBlock forward pass.
 
 * **Parameters**
 
-    
+
     * **graph** (*dgl.DGLGraph*) – A DGLGraph.
 
 
@@ -795,7 +796,7 @@ A MEGNet graph convolution layer in DGL.
 
 * **Parameters**
 
-    
+
     * **edge_func** – Edge update function.
 
 
@@ -828,7 +829,7 @@ Perform sequence of edge->node->attribute updates.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -854,7 +855,7 @@ Create a MEGNet graph convolution layer from dimensions.
 
 * **Parameters**
 
-    
+
     * **edge_dims** (*list**[**int**]*) – Edge dimensions.
 
 
@@ -902,7 +903,7 @@ Perform attribute (global state) update.
 
 * **Parameters**
 
-    
+
     * **graph** – Input graph
 
 
@@ -1041,7 +1042,7 @@ Init ThreeBodyInteractions.
 
 * **Parameters**
 
-    
+
     * **update_network_atom** – MLP for node features in Eq.2
 
 
@@ -1058,7 +1059,7 @@ Forward function for ThreeBodyInteractions.
 
 * **Parameters**
 
-    
+
     * **graph** – dgl graph
 
 
@@ -1097,7 +1098,7 @@ For the spherical Harmonics function, the column is ordered by
 
 * **Parameters**
 
-    
+
     * **sbf** – torch.Tensor spherical bessel function results
 
 

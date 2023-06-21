@@ -3,6 +3,7 @@ layout: default
 title: matgl.ext.md
 nav_exclude: true
 ---
+
 # matgl.ext package
 
 This package implements interfaces to external packages such as Pymatgen and the Atomic Simulation Environment.
@@ -23,7 +24,7 @@ Init Atoms2Graph from element types and cutoff radius.
 
 * **Parameters**
 
-    
+
     * **element_types** – List of elements present in dataset for graph conversion. This ensures all graphs are
     constructed with the same dimensionality of features.
 
@@ -65,7 +66,7 @@ Init M3GNetCalculator with a Potential.
 
 * **Parameters**
 
-    
+
     * **potential** ([*Potential*](matgl.apps.md#matgl.apps.pes.Potential)) – m3gnet.models.Potential
 
 
@@ -88,7 +89,7 @@ Perform calculation for an input Atoms.
 
 * **Parameters**
 
-    
+
     * **atoms** (*ase.Atoms*) – ase Atoms object
 
 
@@ -115,14 +116,14 @@ Init the MD simulation.
 
 * **Parameters**
 
-    
+
     * **atoms** (*stress** of **the*) – atoms to run the MD
 
 
     * **potential** ([*Potential*](matgl.apps.md#matgl.apps.pes.Potential)) – potential for calculating the energy, force,
 
 
-    * **atoms** – 
+    * **atoms** –
 
 
     * **state_attr** (*torch.Tensor*) – State attr.
@@ -131,7 +132,7 @@ Init the MD simulation.
     * **ensemble** (*str*) – choose from ‘nvt’ or ‘npt’. NPT is not tested,
 
 
-    * **caution** (*use with extra*) – 
+    * **caution** (*use with extra*) –
 
 
     * **temperature** (*float*) – temperature for MD simulation, in K
@@ -193,11 +194,11 @@ Relaxer is a class for structural relaxation.
 
 * **Parameters**
 
-    
+
     * **potential** ([*Potential*](matgl.apps.md#matgl.apps.pes.Potential)) – a M3GNet potential, a str path to a saved model or a short name for saved model
 
 
-    * **distribution** (*that comes with M3GNet*) – 
+    * **distribution** (*that comes with M3GNet*) –
 
 
     * **state_attr** (*torch.Tensor*) – State attr.
@@ -206,7 +207,7 @@ Relaxer is a class for structural relaxation.
     * **optimizer** (*str** or **ase Optimizer*) – the optimization algorithm.
 
 
-    * **"FIRE"** (*Defaults to*) – 
+    * **"FIRE"** (*Defaults to*) –
 
 
     * **relax_cell** (*bool*) – whether to relax the lattice cell
@@ -222,14 +223,14 @@ Relax an input Atoms.
 
 * **Parameters**
 
-    
+
     * **atoms** (*Atoms*) – the atoms for relaxation
 
 
     * **fmax** (*float*) – total force tolerance for relaxation convergence.
 
 
-    * **forces** (*Here fmax is a sum** of **force and stress*) – 
+    * **forces** (*Here fmax is a sum** of **force and stress*) –
 
 
     * **steps** (*int*) – max number of steps for relaxation
@@ -289,11 +290,11 @@ Construct a DGL graph from Pymatgen Molecules.
 
 * **Parameters**
 
-    
+
     * **element_types** (*List** of **elements present in dataset for graph conversion. This ensures all graphs are*) – constructed with the same dimensionality of features.
 
 
-    * **cutoff** (*Cutoff radius for graph representation*) – 
+    * **cutoff** (*Cutoff radius for graph representation*) –
 
 
 
@@ -321,11 +322,11 @@ Construct a DGL graph from Pymatgen Structure.
 
 * **Parameters**
 
-    
+
     * **element_types** (*List** of **elements present in dataset for graph conversion. This ensures all graphs are*) – constructed with the same dimensionality of features.
 
 
-    * **cutoff** (*Cutoff radius for graph representation*) – 
+    * **cutoff** (*Cutoff radius for graph representation*) –
 
 
 
