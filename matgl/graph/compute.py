@@ -124,7 +124,17 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     Returns:
         l_g: DGL graph containing three body information from graph
     """
-    if g.edges()[0].size(dim=0) > 0:
+    # isolated atoms
+    if (g.in_degrees().cpu().numpy() < 1).all():
+        l_g = get_empty_graph(0)
+    # only one edge within cutoff
+    elif (g.in_degrees().cpu().numpy() < 2).all():
+        l_g = get_empty_graph(g.num_edges())
+        l_g.ndata["bond_dist"] = g.edata["bond_dist"]
+        l_g.ndata["bond_vec"] = g.edata["bond_vec"]
+        l_g.ndata["pbc_offset"] = g.edata["pbc_offset"]
+        l_g.ndata["n_triple_ij"] = torch.zeros(g.num_edges(), dtype=torch.int64)
+    else:
         valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
         src_id_with_three_body = g.edges()[0][valid_three_body]
         dst_id_with_three_body = g.edges()[1][valid_three_body]
@@ -132,9 +142,14 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
         graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
         graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
         graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
-        if graph_with_three_body.edata["bond_dist"].size(dim=0) > 0:
+        # only one edge within threebody cutoff
+        if (graph_with_three_body.in_degrees().cpu().numpy() < 2).all():
+            l_g = get_empty_graph(graph_with_three_body.num_edges())
+            l_g.ndata["bond_dist"] = g.edata["bond_dist"]
+            l_g.ndata["bond_vec"] = g.edata["bond_vec"]
+            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"]
+            l_g.ndata["n_triple_ij"] = torch.zeros(g.num_edges(), dtype=torch.int64)
+        else:
             l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
-    else:
-        l_g = get_empty_graph(g.num_nodes())
 
     return l_g
