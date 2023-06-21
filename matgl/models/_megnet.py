@@ -96,16 +96,17 @@ class MEGNet(nn.Module, IOMixIn):
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_input]
         state_dims = [dim_state_embedding, *hidden_layer_sizes_input]
 
+        activation: nn.Module
         if activation_type == "swish":
-            activation = nn.SiLU()  # type: ignore
+            activation = nn.SiLU()
         elif activation_type == "sigmoid":
-            activation = nn.Sigmoid()  # type: ignore
+            activation = nn.Sigmoid()
         elif activation_type == "tanh":
-            activation = nn.Tanh()  # type: ignore
+            activation = nn.Tanh()
         elif activation_type == "softplus2":
-            activation = SoftPlus2()  # type: ignore
+            activation = SoftPlus2()
         elif activation_type == "softexp":
-            activation = SoftExponential()  # type: ignore
+            activation = SoftExponential()
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
