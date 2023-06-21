@@ -1,4 +1,4 @@
-"""Implementations of pseudomodels that wraps other models."""
+"""Implementations of pseudo-models that wrap other models."""
 from __future__ import annotations
 
 from torch import nn
@@ -19,9 +19,10 @@ class TransformedTargetModel(nn.Module, IOMixIn):
     __version__ = 1
 
     def __init__(self, model: nn.Module, target_transformer: Transformer):
-        """Args:
-        model: Input model
-        target_transformer: Transformer for target.
+        """
+        Args:
+            model (nn.Module): Model to wrap.
+            target_transformer (Transformer): Transformer to use for target transformation.
         """
         super().__init__()
         self.save_args(locals())
@@ -40,7 +41,7 @@ class TransformedTargetModel(nn.Module, IOMixIn):
         return self.transformer.inverse_transform(output)
 
     def __repr__(self):
-        return f"TransformedTargetModel:\n\tModel: {self.model.__repr()}\n\tTransformer: {self.transformer.__repr__()}"
+        return f"{type(self).__name__}:\n\tModel: {self.model!r}\n\tTransformer: {self.transformer!r}"
 
     def predict_structure(self, *args, **kwargs):
         """Pass through to parent model.predict_structure with inverse transform.
