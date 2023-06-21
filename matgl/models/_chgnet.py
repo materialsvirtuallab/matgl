@@ -109,14 +109,19 @@ class CHGNet(nn.Module, IOMixIn):
             )
 
         if element_types is None:
-            self.element_types = DEFAULT_ELEMENT_TYPES
+            self.element_types = DEFAULT_ELEMENT_TYPES  # make sure these match CHGNet
         else:
             self.element_types = element_types
 
         self.bond_expansion = BondExpansion(max_l=1, max_n=max_n, rbf_type="SphericalBessel", cutoff=cutoff)
         self.angle_expansion = None  # implement this
 
-        self.embedding = None # need to add an angle embedding to included Embedding block
+        # feature embeddings
+        self.atom_embedding = nn.Embedding(len(element_types), dim_node_embedding)
+        # TODO add option for activation
+        self.bond_embedding = MLP([max_n, dim_edge_embedding], activation=activation, activate_last=False)
+        self.angle_embedding = MLP([max_f, dim_angle_embedding], activation=activation, activate_last=False)
+        self.state_embedding = nn.Embedding(dim_state_types, dim_state_feats) if include_state else None
 
         # operations involving the line graph (i.e. bond graph) to update bond and angle features
         self.three_body_interactions = nn.ModuleList(
