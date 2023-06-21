@@ -8,10 +8,12 @@ Given that the fixtures are unlikely to be modified by the underlying code, the 
 "session". In the event that future tests are written that modifies the fixtures, these can be set to the default scope
 of "function".
 """
-import pytest
+from __future__ import annotations
 
+import pytest
+from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
-from pymatgen.core import Structure, Lattice, Molecule
+
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,

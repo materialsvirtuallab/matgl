@@ -4,7 +4,6 @@ import os
 import shutil
 
 import numpy as np
-import pytest
 import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
