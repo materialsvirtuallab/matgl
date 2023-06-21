@@ -3,6 +3,7 @@ from __future__ import annotations
 import dgl
 import numpy as np
 import torch
+
 from matgl.layers._atom_ref import AtomRef
 
 
@@ -19,7 +20,7 @@ class TestAtomRef:
         element_ref = AtomRef(np.array([0.5, 1.0, 2.0]))
         properties = torch.tensor([2.0, 2.0])
         bg = dgl.batch([g1, g1])
-        element_ref.fit([g1, g1], ["Mo", "S", "H"], properties)
+        element_ref.fit([g1, g1], properties)
         atom_ref = element_ref(bg)
         assert list(np.round(atom_ref.numpy())) == [2.0, 2.0]
 

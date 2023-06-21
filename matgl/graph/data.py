@@ -294,15 +294,18 @@ class M3GNetDataset(DGLDataset):
         filename_line_graph: str = "dgl_line_graph.bin",
         filename_state_attr: str = "state_attr.pt",
     ):
-        """Load dgl graphs
+        """
+        Load dgl graphs from files.
+
         Args:
-        :filename: Name of file storing dgl graphs
-        :filename: Name of file storing state attrs.
+            filename: Name of file storing dgl graphs
+            filename_line_graph: Name of file storing dgl line graphs
+            filename_state_attr: Name of file storing state attrs.
         """
         self.graphs = load_graphs(filename)
         self.line_graphs = load_graphs(filename_line_graph)
         with open("labels.json") as file:
-            labels = json.load(file)
+            labels: dict = json.load(file)
         self.energies = labels["energies"]
         self.forces = labels["forces"]
         self.stresses = labels["stresses"]
@@ -316,7 +319,7 @@ class M3GNetDataset(DGLDataset):
             self.state_attr[idx],
             self.energies[idx],
             torch.tensor(self.forces[idx]),
-            torch.tensor(self.stresses[idx]),
+            torch.tensor(self.stresses[idx]),  # type: ignore
         )
 
     def __len__(self):

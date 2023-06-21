@@ -76,7 +76,7 @@ class M3GNet(nn.Module, IOMixIn):
         activation_type: str = "swish",
         **kwargs,
     ):
-        r"""
+        """
         Args:
             element_types (tuple): list of elements appearing in the dataset
             dim_node_embedding (int): number of embedded atomic features
@@ -180,7 +180,7 @@ class M3GNet(nn.Module, IOMixIn):
                 self.readout = Set2SetReadOut(num_steps=niters_set2set, num_layers=nlayers_set2set, field=field)
                 readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
             else:
-                self.readout = ReduceReadOut("mean", field=field)
+                self.readout = ReduceReadOut("mean", field=field)  # type: ignore
                 readout_feats = input_feats + dim_state_feats if include_state else input_feats  # type: ignore
 
             dims_final_layer = [readout_feats, units, units, ntargets]
@@ -191,7 +191,9 @@ class M3GNet(nn.Module, IOMixIn):
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive")
-            self.final_layer = WeightedReadOut(in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets)
+            self.final_layer = WeightedReadOut(
+                in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets  # type: ignore
+            )
 
         self.max_n = max_n
         self.max_l = max_l
@@ -203,7 +205,7 @@ class M3GNet(nn.Module, IOMixIn):
         self.task_type = task_type
         self.is_intensive = is_intensive
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.tensor | None = None, l_g: dgl.DGLGraph | None = None):
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None):
         """Performs message passing and updates node representations.
 
         Args:
@@ -243,7 +245,7 @@ class M3GNet(nn.Module, IOMixIn):
         g.edata["edge_feat"] = num_edge_feats
         if self.is_intensive:
             node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, state_attr]) if self.include_states else node_vec
+            vec = torch.hstack([node_vec, state_attr]) if self.include_states else node_vec  # type: ignore
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
@@ -253,7 +255,7 @@ class M3GNet(nn.Module, IOMixIn):
         return torch.squeeze(output)
 
     def predict_structure(
-        self, structure, state_feats: torch.tensor | None = None, graph_converter: GraphConverter | None = None
+        self, structure, state_feats: torch.Tensor | None = None, graph_converter: GraphConverter | None = None
     ):
         """Convenience method to directly predict property from structure.
 

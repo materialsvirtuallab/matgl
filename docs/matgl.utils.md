@@ -3,6 +3,7 @@ layout: default
 title: matgl.utils.md
 nav_exclude: true
 ---
+
 # matgl.utils package
 
 Implementation of various utility methods and classes.
@@ -57,7 +58,7 @@ Load the model weights from a directory.
 
 * **Parameters**
 
-    
+
     * **path** (*str**|**path**|**dict*) – Path to saved model or name of pre-trained model. If it is a dict, it is assumed to
     be of the form:
 
@@ -92,7 +93,7 @@ Three files will be saved.
 
 * **Parameters**
 
-    
+
     * **path** – String or Path object to directory for model saving. Defaults to current working directory (“.”).
 
 
@@ -113,7 +114,7 @@ This should be called after super in the __init__ method, e.g., self.save_args(l
 
 * **Parameters**
 
-    
+
     * **locals** – The result of locals().
 
 
@@ -150,7 +151,7 @@ Convenience method to load a model from a directory or name.
 
 * **Parameters**
 
-    
+
     * **path** (*str**|**path*) – Path to saved model or name of pre-trained model. The search order is path, followed by
     download from PRETRAINED_MODELS_BASE_URL (with caching).
 
@@ -176,14 +177,14 @@ Convenience method to load a model from a directory or name.
 Implementations of math functions.
 
 
-### matgl.utils.maths.broadcast(input_tensor: tensor, target_tensor: tensor, dim: int)
+### matgl.utils.maths.broadcast(input_tensor: Tensor, target_tensor: Tensor, dim: int)
 Broadcast input tensor along a given dimension to match the shape of the target tensor.
 Modified from torch_scatter library ([https://github.com/rusty1s/pytorch_scatter](https://github.com/rusty1s/pytorch_scatter)).
 
 
 * **Parameters**
 
-    
+
     * **input_tensor** – The tensor to broadcast.
 
 
@@ -207,7 +208,7 @@ bond attributes shape [Nb, Nstate].
 
 * **Parameters**
 
-    
+
     * **g** – DGL graph
 
 
@@ -224,7 +225,7 @@ bond attributes shape [Nb, Nstate].
 
 * **Parameters**
 
-    
+
     * **g** – DGL graph
 
 
@@ -240,7 +241,7 @@ Give ns = [2, 3], return [0, 1, 0, 1, 2].
 
 * **Parameters**
 
-    **ns** – torch.tensor, the number of atoms/bonds array
+    **ns** – torch.Tensor, the number of atoms/bonds array
 
 
 Returns: range indices
@@ -253,7 +254,7 @@ ns = [2, 3], then the function will return [0, 0, 1, 1, 1].
 
 * **Parameters**
 
-    **ns** – torch.tensor, the number of atoms/bonds array
+    **ns** – torch.Tensor, the number of atoms/bonds array
 
 
 
@@ -271,7 +272,7 @@ Repeat the first dimension according to n array.
 
 * **Parameters**
 
-    
+
     * **ns** (*torch.tensor*) – tensor
 
 
@@ -281,14 +282,14 @@ Repeat the first dimension according to n array.
 Returns: repeated tensor
 
 
-### matgl.utils.maths.scatter_sum(input_tensor: tensor, segment_ids: tensor, num_segments: int, dim: int)
+### matgl.utils.maths.scatter_sum(input_tensor: Tensor, segment_ids: Tensor, num_segments: int, dim: int)
 Scatter sum operation along the specified dimension. Modified from the
 torch_scatter library ([https://github.com/rusty1s/pytorch_scatter](https://github.com/rusty1s/pytorch_scatter)).
 
 
 * **Parameters**
 
-    
+
     * **input_tensor** (*torch.Tensor*) – The input tensor to be scattered.
 
 
@@ -319,7 +320,7 @@ roots for j0, i.e., sinc(x).
 
 * **Parameters**
 
-    
+
     * **max_l** – max order of spherical bessel function
 
 
@@ -329,14 +330,14 @@ roots for j0, i.e., sinc(x).
 Returns: root matrix of size [max_l, max_n]
 
 
-### matgl.utils.maths.unsorted_segment_fraction(data: tensor, segment_ids: tensor, num_segments: tensor)
+### matgl.utils.maths.unsorted_segment_fraction(data: Tensor, segment_ids: Tensor, num_segments: int)
 Segment fraction
 :param data: original data
 :type data: torch.tensor
 :param segment_ids: segment ids
 :type segment_ids: torch.tensor
 :param num_segments: number of segments
-:type num_segments: torch.tensor
+:type num_segments: int
 
 
 * **Returns**
@@ -355,28 +356,152 @@ Segment fraction
 Utils for training MatGL models.
 
 
-### _class_ matgl.utils.training.ModelTrainer(model, data_mean=None, data_std=None, loss: str = 'mse_loss', optimizer: Optimizer | None = None, scheduler: lr_scheduler | None = None, lr: float = 0.001, decay_steps: int = 1000, decay_alpha: float = 0.01)
-Bases: `TrainerMixin`, `LightningModule`
+### _class_ matgl.utils.training.MatglLightningModuleMixin()
+Bases: `object`
 
-Trainer for MEGNet and M3GNet models.
-
-Args:
-model: Which type of the model for training
-data_mean: average of training data
-data_std: standard deviation of training data
-loss: loss function used for training
-optimizer: optimizer for training
-scheduler: scheduler for training
-lr: learning rate for training
-decay_steps: number of steps for decaying learning rate
-decay_alpha: parameter determines the minimum learning rate.
+Mix-in class implementing common functions for training.
 
 
-#### forward(g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None)
+#### configure_optimizers()
+Configure optimizers.
+
+
+#### on_test_model_eval(\*args, \*\*kwargs)
+Executed on model testing.
+
 
 * **Parameters**
 
-    
+
+    * **\*args** – Pass-through
+
+
+    * **\*\*kwargs** – Pass-through.
+
+
+
+#### on_train_epoch_end()
+Step scheduler every epoch.
+
+
+#### predict_step(batch, batch_idx, dataloader_idx=0)
+Prediction step.
+
+
+* **Parameters**
+
+
+    * **batch** – Data batch.
+
+
+    * **batch_idx** – Batch index.
+
+
+    * **dataloader_idx** – Data loader index.
+
+
+
+* **Returns**
+
+    Prediction
+
+
+
+#### test_step(batch: tuple, batch_idx: int)
+Test step.
+
+
+* **Parameters**
+
+
+    * **batch** – Data batch.
+
+
+    * **batch_idx** – Batch index.
+
+
+
+#### training_step(batch: tuple, batch_idx: int)
+Training step.
+
+
+* **Parameters**
+
+
+    * **batch** – Data batch.
+
+
+    * **batch_idx** – Batch index.
+
+
+
+* **Returns**
+
+    Total loss.
+
+
+
+#### validation_step(batch: tuple, batch_idx: int)
+Validation step.
+
+
+* **Parameters**
+
+
+    * **batch** – Data batch.
+
+
+    * **batch_idx** – Batch index.
+
+
+
+### _class_ matgl.utils.training.ModelLightningModule(model, data_mean=None, data_std=None, loss: str = 'mse_loss', optimizer: Optimizer | None = None, scheduler=None, lr: float = 0.001, decay_steps: int = 1000, decay_alpha: float = 0.01, \*\*kwargs)
+Bases: `MatglLightningModuleMixin`, `LightningModule`
+
+A PyTorch.LightningModule for training MEGNet and M3GNet models.
+
+Init ModelLightningModule with key parameters.
+
+
+* **Parameters**
+
+
+    * **model** – Which type of the model for training
+
+
+    * **data_mean** – average of training data
+
+
+    * **data_std** – standard deviation of training data
+
+
+    * **loss** – loss function used for training
+
+
+    * **optimizer** – optimizer for training
+
+
+    * **scheduler** – scheduler for training
+
+
+    * **lr** – learning rate for training
+
+
+    * **decay_steps** – number of steps for decaying learning rate
+
+
+    * **decay_alpha** – parameter determines the minimum learning rate.
+
+
+    * **\*\*kwargs** – Passthrough to parent init.
+
+
+
+#### forward(g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None)
+
+* **Parameters**
+
+
     * **g** – dgl Graph
 
 
@@ -393,11 +518,11 @@ decay_alpha: parameter determines the minimum learning rate.
 
 
 
-#### loss_fn(loss: Module, labels: tuple, preds: tuple)
+#### loss_fn(loss: Module, labels: Tensor, preds: Tensor)
 
 * **Parameters**
 
-    
+
     * **loss** – Loss function.
 
 
@@ -434,17 +559,20 @@ decay_alpha: parameter determines the minimum learning rate.
 
 
 
-### _class_ matgl.utils.training.PotentialTrainer(model, element_refs: np.darray | None = None, energy_weight: float = 1.0, force_weight: float = 1.0, stress_weight: float | None = None, data_mean=None, data_std=None, calc_stress: bool = False, loss: str = 'mse_loss', optimizer: Optimizer | None = None, scheduler: lr_scheduler | None = None, lr: float = 0.001, decay_steps: int = 1000, decay_alpha: float = 0.01)
-Bases: `TrainerMixin`, `LightningModule`
+### _class_ matgl.utils.training.PotentialLightningModule(model, element_refs: np.ndarray | None = None, energy_weight: float = 1.0, force_weight: float = 1.0, stress_weight: float | None = None, data_mean=None, data_std=None, calc_stress: bool = False, loss: str = 'mse_loss', optimizer: Optimizer | None = None, scheduler=None, lr: float = 0.001, decay_steps: int = 1000, decay_alpha: float = 0.01, \*\*kwargs)
+Bases: `MatglLightningModuleMixin`, `LightningModule`
 
-Trainer for MatGL potentials.
+A PyTorch.LightningModule for training MatGL potentials.
 
-Init PotentialTrainer with key parameters.
+This is slightly different from the ModelLightningModel due to the need to account for energy, forces and stress
+losses.
+
+Init PotentialLightningModule with key parameters.
 
 
 * **Parameters**
 
-    
+
     * **model** – Which type of the model for training
 
 
@@ -487,12 +615,15 @@ Init PotentialTrainer with key parameters.
     * **decay_alpha** – parameter determines the minimum learning rate.
 
 
+    * **\*\*kwargs** – Passthrough to parent init.
 
-#### forward(g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.tensor | None = None)
+
+
+#### forward(g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None)
 
 * **Parameters**
 
-    
+
     * **g** – dgl Graph
 
 
@@ -515,7 +646,7 @@ Compute losses for EFS.
 
 * **Parameters**
 
-    
+
     * **loss** – Loss function.
 
 
@@ -563,105 +694,6 @@ Returns:
 * **Returns**
 
     results, batch_size
-
-
-
-### _class_ matgl.utils.training.TrainerMixin()
-Bases: `object`
-
-Mix-in class implementing common functions for training.
-
-
-#### configure_optimizers()
-Configure optimizers.
-
-
-#### on_test_model_eval(\*args, \*\*kwargs)
-Executed on model testing.
-
-
-* **Parameters**
-
-    
-    * **\*args** – Pass-through
-
-
-    * **\*\*kwargs** – Pass-through.
-
-
-
-#### on_train_epoch_end()
-Step scheduler every epoch.
-
-
-#### predict_step(batch, batch_idx, dataloader_idx=0)
-Prediction step.
-
-
-* **Parameters**
-
-    
-    * **batch** – Data batch.
-
-
-    * **batch_idx** – Batch index.
-
-
-    * **dataloader_idx** – Data loader index.
-
-
-
-* **Returns**
-
-    Prediction
-
-
-
-#### test_step(batch: tuple, batch_idx: int)
-Test step.
-
-
-* **Parameters**
-
-    
-    * **batch** – Data batch.
-
-
-    * **batch_idx** – Batch index.
-
-
-
-#### training_step(batch: tuple, batch_idx: int)
-Training step.
-
-
-* **Parameters**
-
-    
-    * **batch** – Data batch.
-
-
-    * **batch_idx** – Batch index.
-
-
-
-* **Returns**
-
-    Total loss.
-
-
-
-#### validation_step(batch: tuple, batch_idx: int)
-Validation step.
-
-
-* **Parameters**
-
-    
-    * **batch** – Data batch.
-
-
-    * **batch_idx** – Batch index.
 
 
 

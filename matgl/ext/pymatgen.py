@@ -21,7 +21,7 @@ def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]
     Returns:
         Tuple of elements covered in training set
     """
-    elements = set()
+    elements: set[str] = set()
     for s in train_structures:
         elements.update(s.composition.get_el_amt_dict().keys())
     return tuple(sorted(elements, key=lambda el: Element(el).Z))  # type: ignore

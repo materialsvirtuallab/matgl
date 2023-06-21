@@ -8,7 +8,7 @@ from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 
 
-class TestMEGNetTest:
+class TestMEGNet:
     def test_megnet(self, graph_MoS):
         structure, graph, state = graph_MoS
         model = MEGNet(

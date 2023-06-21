@@ -112,12 +112,12 @@ class Atoms2Graph(GraphConverter):
 class M3GNetCalculator(Calculator):
     """M3GNet calculator for ASE."""
 
-    implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian"]
+    implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian")
 
     def __init__(
         self,
         potential: Potential,
-        state_attr: torch.tensor = None,
+        state_attr: torch.Tensor | None = None,
         stress_weight: float = 1.0,
         **kwargs,
     ):
@@ -188,8 +188,8 @@ class Relaxer:
 
     def __init__(
         self,
-        potential: Potential = None,
-        state_attr: torch.tensor = None,
+        potential: Potential | None = None,
+        state_attr: torch.Tensor | None = None,
         optimizer: Optimizer | str = "FIRE",
         relax_cell: bool = True,
         stress_weight: float = 0.01,
@@ -198,7 +198,7 @@ class Relaxer:
         Args:
             potential (Potential): a M3GNet potential, a str path to a saved model or a short name for saved model
             that comes with M3GNet distribution
-            state_attr (torch.tensor): State attr.
+            state_attr (torch.Tensor): State attr.
             optimizer (str or ase Optimizer): the optimization algorithm.
             Defaults to "FIRE"
             relax_cell (bool): whether to relax the lattice cell
@@ -224,7 +224,7 @@ class Relaxer:
         atoms: Atoms,
         fmax: float = 0.1,
         steps: int = 500,
-        traj_file: str = None,
+        traj_file: str | None = None,
         interval=1,
         verbose=False,
         **kwargs,
@@ -322,7 +322,7 @@ class MolecularDynamics:
         self,
         atoms: Atoms,
         potential: Potential,
-        state_attr: torch.tensor = None,
+        state_attr: torch.Tensor | None = None,
         ensemble: str = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
@@ -342,7 +342,7 @@ class MolecularDynamics:
             atoms (Atoms): atoms to run the MD
             potential (Potential): potential for calculating the energy, force,
             stress of the atoms
-            state_attr (torch.tensor): State attr.
+            state_attr (torch.Tensor): State attr.
             ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
             use with extra caution
             temperature (float): temperature for MD simulation, in K

@@ -1,8 +1,9 @@
 ---
 layout: default
-title: tutorials/Validation of Refitted MatGL versus Original TF M3GNet.md
+title: Validation of Refitted MatGL versus Original TF M3GNet.md
 nav_exclude: true
 ---
+
 # Introduction
 
 In this notebook, we validate the refitted MatGL implementation of the M3GNet universal potential against the original TF version using cubic crystals. This is purely for convenience and demonstration purposes. The test can be carried out on any crystal. If you are running this in Google Colab, please uncomment the following lines.
@@ -93,7 +94,7 @@ print(data)
 ```
 
                  Crystal structure     a (Å)
-    Material                                
+    Material
     C (diamond)      Diamond (FCC)  3.567000
     Si               Diamond (FCC)  5.431021
     Ge               Diamond (FCC)  5.658000
@@ -105,7 +106,7 @@ print(data)
     Ba                         BCC  5.020000
     Eu                         BCC  4.610000
     Cr                         BCC  2.880000
-    
+
     [89 rows x 2 columns]
 
 
@@ -1332,9 +1333,9 @@ _ = df.plot(x="MatGL Energy per Atom", y="TF Energy per Atom", kind="scatter")
 ```
 
 
-    
-![png](Validation%20of%20Refitted%20MatGL%20versus%20Original%20TF%20M3GNet_files/Validation%20of%20Refitted%20MatGL%20versus%20Original%20TF%20M3GNet_8_0.png)
-    
+
+![png](assets/Validation%20of%20Refitted%20MatGL%20versus%20Original%20TF%20M3GNet_8_0.png)
+
 
 
 
@@ -1344,4 +1345,3 @@ print(f"The mean absolute difference between the MatGL and TF energy per atom is
 ```
 
     The mean absolute difference between the MatGL and TF energy per atom is 0.02466 eV/atom.
-

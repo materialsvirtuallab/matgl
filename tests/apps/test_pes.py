@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import pytest
 import torch
+
 from matgl.apps.pes import Potential
 from matgl.models._m3gnet import M3GNet
 
 
-@pytest.fixture
+@pytest.fixture()
 def model():
     return M3GNet(element_types=["Mo", "S"], is_intensive=False)
 
