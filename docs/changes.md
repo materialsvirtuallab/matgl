@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 0.6.1
+- Bug fix for training loss_fn.
+
 ## 0.6.0
 - Refactoring of training utilities. Added example for training an M3GNet potential.
 

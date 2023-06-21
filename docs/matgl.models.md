@@ -188,7 +188,7 @@ Molecules and Crystals._ Chem. Mater. 2019, 31 (9), 3564-3572. DOI: 10.1021/acs.
 ```
 
 
-### _class_ matgl.models._megnet.MEGNet(dim_node_embedding: int = 16, dim_edge_embedding: int = 100, dim_state_embedding: int = 2, ntypes_state: int | None = None, nblocks: int = 3, hidden_layer_sizes_input: tuple[int, ...] = (64, 32), hidden_layer_sizes_conv: tuple[int, ...] = (64, 64, 32), hidden_layer_sizes_output: tuple[int, ...] = (32, 16), nlayers_set2set: int = 1, niters_set2set: int = 2, activation_type: str = 'softplus2', is_classification: bool = False, include_state: bool = True, dropout: float | None = None, graph_transformations: list | None = None, element_types: tuple[str, ...] = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu'), bond_expansion: [BondExpansion](matgl.layers.md#matgl.layers._bond.BondExpansion) | None = None, cutoff: float = 4.0, gauss_width: float = 0.5, \*\*kwargs)
+### _class_ matgl.models._megnet.MEGNet(dim_node_embedding: int = 16, dim_edge_embedding: int = 100, dim_state_embedding: int = 2, ntypes_state: int | None = None, nblocks: int = 3, hidden_layer_sizes_input: tuple[int, ...] = (64, 32), hidden_layer_sizes_conv: tuple[int, ...] = (64, 64, 32), hidden_layer_sizes_output: tuple[int, ...] = (32, 16), nlayers_set2set: int = 1, niters_set2set: int = 2, activation_type: str = 'softplus2', is_classification: bool = False, include_state: bool = True, dropout: float | None = None, element_types: tuple[str, ...] = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu'), bond_expansion: [BondExpansion](matgl.layers.md#matgl.layers._bond.BondExpansion) | None = None, cutoff: float = 4.0, gauss_width: float = 0.5, \*\*kwargs)
 Bases: `Module`, [`IOMixIn`](matgl.utils.md#matgl.utils.io.IOMixIn)
 
 DGL implementation of MEGNet.
@@ -249,10 +249,6 @@ Useful defaults for all arguments have been specified based on MEGNet formation 
 
     * **dropout** – Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
     a Bernoulli distribution
-
-
-    * **graph_transformations** – Perform a graph transformation, e.g., incorporate three-body interactions, prior to
-    performing the GCL updates.
 
 
     * **element_types** – Elements included in the training set

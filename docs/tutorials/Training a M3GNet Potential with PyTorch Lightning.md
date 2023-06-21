@@ -89,7 +89,7 @@ lit_module = PotentialLightningModule(model=model)
     100%|███████████████████████████████████████████████████████████████████████████████████████| 407/407 [00:02<00:00, 202.56it/s]
 
 
-Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator` 
+Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training. 
 
 
 ```python

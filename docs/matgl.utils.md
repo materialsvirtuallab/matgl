@@ -517,7 +517,7 @@ Init ModelLightningModule with key parameters.
 
 
 
-#### loss_fn(loss: Module, labels: tuple, preds: tuple)
+#### loss_fn(loss: Module, labels: Tensor, preds: Tensor)
 
 * **Parameters**
 
