@@ -158,9 +158,9 @@ class MEGNetBlock(Module):
             "activate_last": True,
             "bias_last": True,
         }
-        self.edge_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
-        self.node_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
-        self.state_func = MLP(**mlp_kwargs) if self.has_dense else Identity()
+        self.edge_func = MLP(**mlp_kwargs) if self.has_dense else Identity()  # type: ignore
+        self.node_func = MLP(**mlp_kwargs) if self.has_dense else Identity()  # type: ignore
+        self.state_func = MLP(**mlp_kwargs) if self.has_dense else Identity()  # type: ignore
 
         # compute input sizes
         edge_in = 2 * conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM

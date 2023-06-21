@@ -1,11 +1,12 @@
 ---
 layout: default
-title: tutorials/Combining the M3GNet Universal Potential with Property Prediction Models.md
+title: Combining the M3GNet Universal Potential with Property Prediction Models.md
 nav_exclude: true
 ---
+
 # Introduction
 
-There may be instances where you do not have access to a DFT relaxed structure. For instance, you may have a generated hypothetical structure or a structure obtained from an experimental source. In this notebook, we demonstrate how you can use the M3GNet universal potential to relax a crystal prior to property predictions. 
+There may be instances where you do not have access to a DFT relaxed structure. For instance, you may have a generated hypothetical structure or a structure obtained from an experimental source. In this notebook, we demonstrate how you can use the M3GNet universal potential to relax a crystal prior to property predictions.
 
 This provides a pathway to "DFT-free" property predictions using ML models. It should be cautioned that this is not a substitute for DFT and errors can be expected. But it is sufficiently useful in some cases as a pre-screening tool for massive scale exploration of materials.
 
@@ -26,7 +27,7 @@ from matgl.ext.ase import Relaxer
 warnings.simplefilter("ignore")
 ```
 
-For the purposes of demonstration, we will use the perovskite SrTiO3 (STO). We will create a STO with an arbitrary lattice parameter of 4.5 A. 
+For the purposes of demonstration, we will use the perovskite SrTiO3 (STO). We will create a STO with an arbitrary lattice parameter of 4.5 A.
 
 
 ```python

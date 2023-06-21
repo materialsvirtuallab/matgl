@@ -99,7 +99,7 @@ class SphericalBesselFunction:
 
     def __call__(self, r):
         """Args:
-            r: torch.tensor, distance tensor, 1D.
+            r: torch.Tensor, distance tensor, 1D.
 
 
         Returns: [n, max_n * max_l] spherical Bessel function results
@@ -137,7 +137,7 @@ class SphericalBesselFunction:
         vanishes at cutoff.
 
         Args:
-            r: torch.tensor pytorch tensors
+            r: torch.Tensor pytorch tensors
             cutoff: float, the cutoff radius
             max_n: int max number of basis
         Returns: basis function expansion using first spherical Bessel function
@@ -180,7 +180,7 @@ class SphericalHarmonicsFunction:
     def __call__(self, costheta, phi=None):
         """Args:
             costheta: Cosine of the azimuthal angle
-            phi: torch.tensor, the polar angle.
+            phi: torch.Tensor, the polar angle.
 
         Returns: [n, m] spherical harmonic results, where n is the number
             of angles. The column is arranged following
@@ -200,8 +200,8 @@ def _y00(theta, phi):
         Y_0^0 = \frac{1}{2} \sqrt{\frac{1}{\pi}}
 
     Args:
-        theta: torch.tensor, the azimuthal angle
-        phi: torch.tensor, the polar angle
+        theta: torch.Tensor, the azimuthal angle
+        phi: torch.Tensor, the polar angle
 
     Returns: `Y_0^0` results
 
@@ -223,7 +223,7 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
         https://arxiv.org/pdf/1907.02374.pdf
 
     Args:
-        r: torch.tensor distance tensor
+        r: torch.Tensor distance tensor
         cutoff: float, cutoff radius
         max_n: int, max number of basis, expanded by the zero roots
 

@@ -1,5 +1,0 @@
-MEGNet Formation energy model (mean absolute error)
----------------------------------------------------
-Train: 0.14 eV/atom
-Validation: 0.044 eV/atom
-Test: 0.043 eV/atom

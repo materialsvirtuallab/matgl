@@ -18,7 +18,7 @@ class SoftPlus2(nn.Module):
         super().__init__()
         self.ssp = nn.Softplus()
 
-    def forward(self, x: torch.tensor) -> torch.tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Evaluate activation function given the input tensor x.
 
         Args:
@@ -39,7 +39,7 @@ class SoftExponential(nn.Module):
     References: https://arxiv.org/pdf/1602.01321.pdf
     """
 
-    def __init__(self, alpha: float = None):
+    def __init__(self, alpha: float | None = None):
         """
         Init SoftExponential with alpha value.
 
@@ -56,7 +56,7 @@ class SoftExponential(nn.Module):
 
         self.alpha.requires_grad_(True)
 
-    def forward(self, x: torch.tensor) -> torch.tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Evaluate activation function given the input tensor x.
 
         Args:

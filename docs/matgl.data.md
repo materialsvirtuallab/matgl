@@ -3,6 +3,7 @@ layout: default
 title: matgl.data.md
 nav_exclude: true
 ---
+
 # matgl.data package
 
 This package implements data manipulation tools.
