@@ -1,10 +1,14 @@
 """Implementations of pseudo-models that wrap other models."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from torch import nn
 
-from matgl.data.transformer import Transformer
 from matgl.utils.io import IOMixIn
+
+if TYPE_CHECKING:
+    from matgl.data.transformer import Transformer
 
 
 class TransformedTargetModel(nn.Module, IOMixIn):

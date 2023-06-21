@@ -9,17 +9,21 @@ generalization. For more details on MEGNet, please refer to::
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
-import dgl
 import torch
 from dgl.nn import Set2Set
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.graph.converters import GraphConverter
 from matgl.layers import MLP, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock, SoftExponential, SoftPlus2
 from matgl.utils.io import IOMixIn
+
+if TYPE_CHECKING:
+    import dgl
+
+    from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__file__)
 

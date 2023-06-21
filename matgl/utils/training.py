@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
-import dgl
-import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 import torchmetrics
 from torch import nn
-from torch.optim import Optimizer
 
 from matgl.apps.pes import Potential
 from matgl.models import M3GNet
+
+if TYPE_CHECKING:
+    import dgl
+    import numpy as np
+    from torch.optim import Optimizer
 
 
 class MatglLightningModuleMixin:
