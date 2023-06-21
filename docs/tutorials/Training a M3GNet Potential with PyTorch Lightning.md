@@ -1,8 +1,9 @@
 ---
 layout: default
-title: tutorials/Training a M3GNet Potential with PyTorch Lightning.md
+title: Training a M3GNet Potential with PyTorch Lightning.md
 nav_exclude: true
 ---
+
 # Introduction
 
 This notebook demonstrates how to fit a M3GNet potential using PyTorch Lightning with MatGL.
@@ -46,10 +47,10 @@ print(f"{len(structures)} downloaded from MP.")
 ```
 
 
-    Retrieving ThermoDoc documents:   0%|          | 0/407 [00:00<?, ?it/s]
+Retrieving ThermoDoc documents:   0%|          | 0/407 [00:00<?, ?it/s]
 
 
-    407 downloaded from MP.
+407 downloaded from MP.
 
 
 We will first setup the M3GNet model and the LightningModule.
@@ -59,38 +60,38 @@ We will first setup the M3GNet model and the LightningModule.
 element_types = get_element_list(structures)
 converter = Structure2Graph(element_types=element_types, cutoff=5.0)
 dataset = M3GNetDataset(
-    threebody_cutoff=4.0,
-    structures=structures,
-    converter=converter,
-    energies=energies,
-    forces=forces,
-    stresses=stresses,
+threebody_cutoff=4.0,
+structures=structures,
+converter=converter,
+energies=energies,
+forces=forces,
+stresses=stresses,
 )
 train_data, val_data, test_data = split_dataset(
-    dataset,
-    frac_list=[0.8, 0.1, 0.1],
-    shuffle=True,
-    random_state=42,
+dataset,
+frac_list=[0.8, 0.1, 0.1],
+shuffle=True,
+random_state=42,
 )
 train_loader, val_loader, test_loader = MGLDataLoader(
-    train_data=train_data,
-    val_data=val_data,
-    test_data=test_data,
-    collate_fn=collate_fn_efs,
-    batch_size=2,
-    num_workers=1,
+train_data=train_data,
+val_data=val_data,
+test_data=test_data,
+collate_fn=collate_fn_efs,
+batch_size=2,
+num_workers=1,
 )
 model = M3GNet(
-    element_types=element_types,
-    is_intensive=False,
+element_types=element_types,
+is_intensive=False,
 )
 lit_module = PotentialLightningModule(model=model)
 ```
 
-    100%|███████████████████████████████████████████████████████████████████████████████████████| 407/407 [00:02<00:00, 202.56it/s]
+100%|███████████████████████████████████████████████████████████████████████████████████████| 407/407 [00:02<00:00, 202.56it/s]
 
 
-Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training. 
+Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training.
 
 
 ```python
@@ -100,40 +101,40 @@ trainer = pl.Trainer(max_epochs=2, accelerator="cpu", logger=logger)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
-    GPU available: True (mps), used: False
-    TPU available: False, using: 0 TPU cores
-    IPU available: False, using: 0 IPUs
-    HPU available: False, using: 0 HPUs
-    
-      | Name  | Type              | Params
-    --------------------------------------------
-    0 | model | Potential         | 282 K 
-    1 | mae   | MeanAbsoluteError | 0     
-    2 | rmse  | MeanSquaredError  | 0     
-    --------------------------------------------
-    282 K     Trainable params
-    0         Non-trainable params
-    282 K     Total params
-    1.130     Total estimated model params size (MB)
+GPU available: True (mps), used: False
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+
+| Name  | Type              | Params
+--------------------------------------------
+0 | model | Potential         | 282 K
+1 | mae   | MeanAbsoluteError | 0
+2 | rmse  | MeanSquaredError  | 0
+--------------------------------------------
+282 K     Trainable params
+0         Non-trainable params
+282 K     Total params
+1.130     Total estimated model params size (MB)
 
 
 
-    Sanity Checking: 0it [00:00, ?it/s]
+Sanity Checking: 0it [00:00, ?it/s]
 
 
 
-    Training: 0it [00:00, ?it/s]
+Training: 0it [00:00, ?it/s]
 
 
 
-    Validation: 0it [00:00, ?it/s]
+Validation: 0it [00:00, ?it/s]
 
 
 
-    Validation: 0it [00:00, ?it/s]
+Validation: 0it [00:00, ?it/s]
 
 
-    `Trainer.fit` stopped: `max_epochs=2` reached.
+`Trainer.fit` stopped: `max_epochs=2` reached.
 
 
 
@@ -141,10 +142,10 @@ trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=va
 # This code just performs cleanup for this notebook.
 
 for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
-    try:
-        os.remove(fn)
-    except FileNotFoundError:
-        pass
+try:
+os.remove(fn)
+except FileNotFoundError:
+pass
 
 shutil.rmtree("lightning_logs")
 ```
