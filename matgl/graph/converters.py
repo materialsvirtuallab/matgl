@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import abc
+from typing import TYPE_CHECKING
 
-import dgl
 import numpy as np
 import torch
 from dgl.backend import tensor
 from pymatgen.core import Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
+if TYPE_CHECKING:
+    import dgl
 
 
 class GraphConverter(metaclass=abc.ABCMeta):

@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 0.6.2
+- Simple CLI tool `mgl` added.
+
 ## 0.6.1
 - Bug fix for training loss_fn.
 

@@ -641,6 +641,44 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
 
+## matgl.cli module
+
+Command line interface for matgl.
+
+
+### matgl.cli.clear_cache(args)
+Clear cache command.
+
+
+* **Parameters**
+
+    **args** – Args from CLI.
+
+
+
+### matgl.cli.main()
+Handle main.
+
+
+### matgl.cli.predict_structure(args)
+Use MatGL models to perform predictions on structures.
+
+
+* **Parameters**
+
+    **args** – Args from CLI.
+
+
+
+### matgl.cli.relax_structure(args)
+Relax crystals.
+
+
+* **Parameters**
+
+    **args** – Args from CLI.
+
+
 ## matgl.config module
 
 Global configuration variables for matgl.

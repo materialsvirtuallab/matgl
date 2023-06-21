@@ -1,14 +1,18 @@
 """Implementation of Interatomic Potentials."""
 from __future__ import annotations
 
-import dgl
-import numpy as np
+from typing import TYPE_CHECKING
+
 import torch
 from torch import nn
 from torch.autograd import grad
 
 from matgl.layers import AtomRef
 from matgl.utils.io import IOMixIn
+
+if TYPE_CHECKING:
+    import dgl
+    import numpy as np
 
 
 class Potential(nn.Module, IOMixIn):
