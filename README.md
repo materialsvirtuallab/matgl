@@ -13,19 +13,20 @@
 ## Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
-natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
-shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
+natural representation for a collection of atoms. Graph deep learning models have been shown to consistently deliver
+exceptional performance as surrogate models for the prediction of materials properties.
 
-In this repository, we have re-implemented the original TensorFlow [MatErials 3-body Graph Network (m3gnet)][m3gnet]
-and its predecessor, [MEGNet][megnet], using the [Deep Graph Library (DGL)][dgl] and PyTorch.
-The goal is to improve the usability, extensibility and scalability of these models. Here are some key improvements
-over the TF implementations:
+MatGL is built on the [Deep Graph Library (DGL)][dgl] and PyTorch, with suitable adaptations for materials-specific
+applications. The goal is for MatGL to serve as an extensible platform to develop and share materials graph deep
+learning models. For the initial release, we have re-implemented the [MatErials 3-body Graph Network (M3GNet)]
+[m3gnet] and its predecessor, [MEGNet][megnet], which were originally implemented in Tensorflow, to improve the
+usability, extensibility and scalability of these models. Here are some key improvements over the TF implementations:
 
 - A more intuitive API and class structure based on DGL.
-- Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
+- Multi-GPU support via PyTorch Lightning.
 
 This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
-Nassar, Carmelo Gonzales). Please refer to the [official docs][doc] for more details.
+Nassar, Carmelo Gonzales).
 
 ## Status
 
@@ -38,9 +39,17 @@ Major milestones are summarized below. Please refer to the [changelog] for detai
 - v0.1.0 (Feb 16 2023): Initial implementations of M3GNet and MEGNet architectures have been completed. Expect
   bugs!
 
-## Architectures
+## Current Architectures
 
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic" width="50%">
+Here, we summarize the currently implemented architectures in MatGL. It should be stressed that this is by no means
+an exhaustive list, and we expect new architectures to be added by the core MatGL team as well as other contributors
+in future.
+
+<div style="float: left; padding: 10px; width: 300px">
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic">
+<p>Figure: Schematic of M3GNet/MEGNet</p>
+</div>
+
 
 ### MEGNet
 
@@ -95,13 +104,13 @@ as other simple administrative tasks (e.g., clearing the cache). Some simple exa
 1. To perform a relaxation,
 
     ```bash
-    mgl relax -i Li2O.cif -o Li2O_relax.cif
+    mgl relax --infile Li2O.cif --outfile Li2O_relax.cif
     ```
 
 2. To use one of the pre-trained property models,
 
     ```bash
-    mgl predict -m M3GNet-MP-2018.6.1-Eform -i Li2O.cif
+    mgl predict --model M3GNet-MP-2018.6.1-Eform --infile Li2O.cif
     ```
 
 3. To clear the cache,
