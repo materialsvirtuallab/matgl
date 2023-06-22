@@ -14,8 +14,19 @@ class DummyModel(torch.nn.Module):
     def forward(self):
         return torch.ones(1)
 
+    def predict_structure(self, structure):
+        return torch.ones(1)
+
 
 class TestTransformedTargetModel:
     def test_forward(self):
         model = TransformedTargetModel(DummyModel(), Normalizer(1, 2))
         assert float(model.forward()), pytest.approx(3)
+
+    def test_predict_structure(self, LiFePO4):
+        model = TransformedTargetModel(DummyModel(), Normalizer(1, 2))
+        assert float(model.predict_structure(LiFePO4)), pytest.approx(3)
+
+    def test_repr(self):
+        model = TransformedTargetModel(DummyModel(), Normalizer(1, 2))
+        assert repr(model) == "TransformedTargetModel:\n\tModel: DummyModel()\n\tTransformer: Normalizer(mean=1, std=2)"

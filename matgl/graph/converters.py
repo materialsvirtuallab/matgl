@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import abc
+from typing import TYPE_CHECKING
 
-import dgl
+if TYPE_CHECKING:
+    import dgl
 
 
 class GraphConverter(metaclass=abc.ABCMeta):

@@ -268,7 +268,7 @@ Useful defaults for all arguments have been specified based on MEGNet formation 
 
 
 
-#### forward(graph: DGLGraph, edge_feat: Tensor, node_feat: Tensor, state_feat: Tensor)
+#### forward(graph: dgl.DGLGraph, edge_feat: torch.Tensor, node_feat: torch.Tensor, state_feat: torch.Tensor)
 Forward pass of MEGnet. Executes all blocks.
 
 
@@ -326,10 +326,10 @@ Convenience method to directly predict property from structure.
 #### training(_: boo_ )
 ## matgl.models._wrappers module
 
-Implementations of pseudomodels that wraps other models.
+Implementations of pseudo-models that wrap other models.
 
 
-### _class_ matgl.models._wrappers.TransformedTargetModel(model: Module, target_transformer: [Transformer](matgl.data.md#matgl.data.transformer.Transformer))
+### _class_ matgl.models._wrappers.TransformedTargetModel(model: nn.Module, target_transformer: [Transformer](matgl.data.md#matgl.data.transformer.Transformer))
 Bases: `Module`, [`IOMixIn`](matgl.utils.md#matgl.utils.io.IOMixIn)
 
 A model where the target is first transformed prior to training and the reverse transformation is performed for
@@ -338,9 +338,15 @@ is almost never used for training since the general idea is to use the transform
 Instead, it is created after a model has been fitted for serialization for end user to call the model to perform
 predictions without having to worry about what target transformations have been performed.
 
-Args:
-model: Input model
-target_transformer: Transformer for target.
+
+* **Parameters**
+
+
+    * **model** (*nn.Module*) – Model to wrap.
+
+
+    * **target_transformer** ([*Transformer*](matgl.data.md#matgl.data.transformer.Transformer)) – Transformer to use for target transformation.
+
 
 
 #### forward(\*args, \*\*kwargs)

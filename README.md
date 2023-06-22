@@ -4,32 +4,33 @@
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 [![Coverage Status](https://coveralls.io/repos/github/materialsvirtuallab/matgl/badge.svg?branch=main)](https://coveralls.io/github/materialsvirtuallab/matgl?branch=main)
 
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
+# Materials Graph Library <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 
-# Materials Graph Library
+## Official Documentation [:books:]
 
-### Official Documentation: [:books:][doc]
+<https://matgl.ai>
 
 ## Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
-natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
-shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
+natural representation for a collection of atoms. Graph deep learning models have been shown to consistently deliver
+exceptional performance as surrogate models for the prediction of materials properties.
 
-In this repository, we have reimplemented the original Tensorflow [MatErials 3-body Graph Network (m3gnet)][m3gnet]
-and its predecessor, [MEGNet][megnet], using the [Deep Graph Library (DGL)][dgl] and PyTorch.
-The goal is to improve the usability, extensibility and scalability of these models. Here are some key improvements
-over the TF implementations:
+MatGL is built on the [Deep Graph Library (DGL)][dgl] and PyTorch, with suitable adaptations for materials-specific
+applications. The goal is for MatGL to serve as an extensible platform to develop and share materials graph deep
+learning models. For the initial release, we have re-implemented the [MatErials 3-body Graph Network (M3GNet)]
+[m3gnet] and its predecessor, [MEGNet][megnet], which were originally implemented in Tensorflow, to improve the
+usability, extensibility and scalability of these models. Here are some key improvements over the TF implementations:
 
 - A more intuitive API and class structure based on DGL.
-- Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
+- Multi-GPU support via PyTorch Lightning.
 
 This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
-Nassar, Carmelo Gonzales). Please refer to the [official documentation][doc] for more details.
+Nassar, Carmelo Gonzales).
 
 ## Status
 
-Major milestones are summarized below. Please refer to [change log][changelog] for details.
+Major milestones are summarized below. Please refer to the [changelog] for details.
 
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
@@ -38,9 +39,17 @@ Major milestones are summarized below. Please refer to [change log][changelog] f
 - v0.1.0 (Feb 16 2023): Initial implementations of M3GNet and MEGNet architectures have been completed. Expect
   bugs!
 
-## Architectures
+## Current Architectures
 
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic" width="50%">
+Here, we summarize the currently implemented architectures in MatGL. It should be stressed that this is by no means
+an exhaustive list, and we expect new architectures to be added by the core MatGL team as well as other contributors
+in future.
+
+<div style="float: left; padding: 10px; width: 300px">
+<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic">
+<p>Figure: Schematic of M3GNet/MEGNet</p>
+</div>
+
 
 ### MEGNet
 
@@ -85,9 +94,37 @@ pip install -e .
 ## Usage
 
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
-multi-fidelity band gap are now available. Users who just want to use the models out of the box should use the newly
-implemented `matgl.load_model` convenience method. The following is an example of a prediction of the formation
-energy for CsCl.
+multi-fidelity band gap are now available.
+
+### Command line (from v0.6.2)
+
+A CLI tool now provides the capability to perform quick relaxations or predictions using pre-trained models, as well
+as other simple administrative tasks (e.g., clearing the cache). Some simple examples:
+
+1. To perform a relaxation,
+
+    ```bash
+    mgl relax --infile Li2O.cif --outfile Li2O_relax.cif
+    ```
+
+2. To use one of the pre-trained property models,
+
+    ```bash
+    mgl predict --model M3GNet-MP-2018.6.1-Eform --infile Li2O.cif
+    ```
+
+3. To clear the cache,
+
+    ```bash
+    mgl clear
+    ```
+
+For a full range of options, use `mgl -h`.
+
+### Code
+
+Users who just want to use the models out of the box should use the newly implemented `matgl.load_model` convenience
+method. The following is an example of a prediction of the formation energy for CsCl.
 
 ```python
 from pymatgen.core import Lattice, Structure
@@ -108,12 +145,15 @@ import matgl
 print(matgl.get_available_pretrained_models())
 ```
 
+## Tutorials
+
+We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter notebooks]
+[jupyternb], which can be directly run on [Google Colab].
+
 ## Resources
 
-- [Jupyter notebooks][jupyternb] on the use of MatGL. These notebooks can be run on [Google Colab][colab]. This will
-  be the primary form of tutorials for now.
-- [API documentation][apidocs] for all classes and methods.
-- [Developer Guide](developer.md) outlines the key design elements of matgl, especially for developers wishing to
+- [API docs][apidocs] for all classes and methods.
+- [Developer Guide](developer.md) outlines the key design elements of `matgl`, especially for developers wishing to
   train and contribute matgl models.
 
 ## References
@@ -138,7 +178,7 @@ information. If you are using any of the pretrained models, please cite the rele
 
 ## FAQs
 
-1. **The `M3GNet-MP-2021.2.8-PES` differs from the original tensorflow (TF) implementation!**
+1. **The `M3GNet-MP-2021.2.8-PES` differs from the original TensorFlow (TF) implementation!**
 
    _Answer:_ `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
    Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
@@ -150,16 +190,10 @@ information. If you are using any of the pretrained models, please cite the rele
 2. **I am getting errors with `matgl.load_model()`!**
 
    _Answer:_ The most likely reason is that you have a cached older version of the model. We often refactor models to
-   ensure the best implementation. This can usually be solved by updating your matgl to the latest version
-   and clearing your cache using:
-
-   ```bash
-   pip install matgl --upgrade
-   python -c "import matgl; matgl.clear_cache()"
-   ```
-
-   On the next run, the latest model will be downloaded. With effect from v0.5.2, we have implemented a model
-   versioning scheme that will detect code vs model version conflicts and alert the user of such problems.
+   ensure the best implementation. This can usually be solved by updating your `matgl` to the latest version
+   and clearing your cache using the following command `mgl clear`. On the next run, the latest model will be
+   downloaded. With effect from v0.5.2, we have implemented a model versioning scheme that will detect code vs model
+   version conflicts and alert the user of such problems.
 
 3. **What pre-trained models should I be using?**
 
@@ -173,7 +207,7 @@ information. If you are using any of the pretrained models, please cite the rele
    _Answer:_ For code contributions, please fork and submit pull requests. You should read the
    [developer guide](developer.md) to understand the general design guidelines. We welcome pre-trained model
    contributions as well, which should also be submitted via PRs. Please follow the folder structure of the
-   pretrained models. In particular, we expect all models to come with a README and notebook
+   pretrained models. In particular, we expect all models to come with a `README.md` and notebook
    documenting its use and its key performance metrics. Also, we expect contributions to be on new properties
    or systems or to significantly outperform the existing models. We will develop an alternative means for model
    sharing in the future.
@@ -200,12 +234,13 @@ ACI-1548562.
 [changelog]: https://matgl.ai/changes "Changelog"
 [graphnetwork]: https://arxiv.org/abs/1806.01261 "Deepmind's paper"
 [megnet]: https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294 "MEGNet paper"
-[mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
-[m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
+[mfimegnet]: https://nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
+[m3gnet]: https://nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
 [apidocs]: https://matgl.ai/matgl.html "MatGL API docs"
 [doc]: https://matgl.ai "MatGL Documentation"
-[colab]: http://colab.google.com "Google Colab"
+[google colab]: https://colab.research.google.com/ "Google Colab"
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples
 [ongemail]: mailto:ongsp@ucsd.edu "Email"
 [mqm]: https://materialsqm.com "MaterialsQM"
+[tutorials]: https://matgl.ai/tutorials "Tutorials"

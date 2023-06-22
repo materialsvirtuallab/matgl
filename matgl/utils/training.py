@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
-import dgl
-import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 import torchmetrics
 from torch import nn
-from torch.optim import Optimizer
 
 from matgl.apps.pes import Potential
 from matgl.models import M3GNet
+
+if TYPE_CHECKING:
+    import dgl
+    import numpy as np
+    from torch.optim import Optimizer
 
 
 class MatglLightningModuleMixin:
@@ -61,6 +64,7 @@ class MatglLightningModuleMixin:
             on_step=False,
             prog_bar=True,
         )
+        return results["Total_Loss"]
 
     def test_step(self, batch: tuple, batch_idx: int):
         """Test step.
@@ -69,6 +73,7 @@ class MatglLightningModuleMixin:
             batch: Data batch.
             batch_idx: Batch index.
         """
+        torch.set_grad_enabled(True)
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
             {f"test_{key}": val for key, val in results.items()},
@@ -77,6 +82,7 @@ class MatglLightningModuleMixin:
             on_step=False,
             prog_bar=True,
         )
+        return results
 
     def configure_optimizers(self):
         """Configure optimizers."""
@@ -126,7 +132,7 @@ class MatglLightningModuleMixin:
             Prediction
         """
         torch.set_grad_enabled(True)
-        return self(batch)
+        return self.step(batch)
 
 
 class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
