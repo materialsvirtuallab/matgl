@@ -7,14 +7,14 @@ from math import pi
 import torch
 
 
-def polynomial_cutoff(r: torch.tensor, cutoff: float, exponent: int = 3) -> torch.tensor:
+def polynomial_cutoff(r: torch.Tensor, cutoff: float, exponent: int = 3) -> torch.Tensor:
     """Envelope polynomial function that ensures a smooth cutoff.
 
     Ensures first and second derivative vanish at cuttoff. As described in:
         https://arxiv.org/abs/2003.03123
 
     Args:
-        r (torch.tensor): radius distance tensor
+        r (torch.Tensor): radius distance tensor
         cutoff (float): cutoff distance.
         exponent (int): minimum exponent of the polynomial. Default is 3.
             The polynomial includes terms of order exponent, exponent + 1, exponent + 2.
@@ -33,7 +33,7 @@ def polynomial_cutoff(r: torch.tensor, cutoff: float, exponent: int = 3) -> torc
 def cosine_cutoff(r: torch.Tensor, cutoff: float) -> torch.Tensor:
     """Cosine cutoff function
     Args:
-        r (torch.tensor): radius distance tensor
+        r (torch.Tensor): radius distance tensor
         cutoff (float): cutoff distance.
 
     Returns: cosine cutoff functions
