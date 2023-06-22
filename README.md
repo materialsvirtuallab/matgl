@@ -6,7 +6,7 @@
 
 # Materials Graph Library <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 
-## Official Documentation 📚
+## Official Documentation [:books:]
 
 <https://matgl.ai>
 
@@ -87,7 +87,7 @@ pip install -e .
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
 multi-fidelity band gap are now available.
 
-### From the command line (from v0.6.2)
+### Command line (from v0.6.2)
 
 A CLI tool now provides the capability to perform quick relaxations or predictions using pre-trained models, as well
 as other simple administrative tasks (e.g., clearing the cache). Some simple examples:
@@ -112,7 +112,7 @@ as other simple administrative tasks (e.g., clearing the cache). Some simple exa
 
 For a full range of options, use `mgl -h`.
 
-### In code
+### Code
 
 Users who just want to use the models out of the box should use the newly implemented `matgl.load_model` convenience
 method. The following is an example of a prediction of the formation energy for CsCl.

@@ -45,7 +45,7 @@ def make_tutorials(ctx):
 
 
 @task
-def make_doc(ctx):
+def make_docs(ctx):
     """
     This new version requires markdown builder.
 
@@ -94,7 +94,7 @@ def make_doc(ctx):
             contents = f.read()
         with open("index.md", "w") as f:
             contents = contents.replace(
-                "\n### Official Documentation: [:books:][doc]",
+                "\n## Official Documentation [:books:]\n\n<https://matgl.ai>",
                 "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n",
             )
             contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents

@@ -1053,7 +1053,7 @@ Init ThreeBodyInteractions.
 
 
 
-#### forward(graph: DGLGraph, line_graph: DGLGraph, three_basis: Tensor, three_cutoff: float, node_feat: Tensor, edge_feat: Tensor)
+#### forward(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, three_basis: torch.Tensor, three_cutoff: float, node_feat: torch.Tensor, edge_feat: torch.Tensor)
 Forward function for ThreeBodyInteractions.
 
 

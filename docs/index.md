@@ -10,9 +10,7 @@ nav_order: 1
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 [![Coverage Status](https://coveralls.io/repos/github/materialsvirtuallab/matgl/badge.svg?branch=main)](https://coveralls.io/github/materialsvirtuallab/matgl?branch=main)
 
-<img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
-
-# Materials Graph Library
+# Materials Graph Library <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 {: .no_toc }
 
 ## Table of contents
@@ -27,7 +25,7 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 natural representation for a collection of atoms (e.g., molecules or crystals). Graph deep learning models have been
 shown to consistently deliver exceptional performance as surrogate models for the prediction of materials properties.
 
-In this repository, we have reimplemented the original Tensorflow [MatErials 3-body Graph Network (m3gnet)][m3gnet]
+In this repository, we have re-implemented the original TensorFlow [MatErials 3-body Graph Network (m3gnet)][m3gnet]
 and its predecessor, [MEGNet][megnet], using the [Deep Graph Library (DGL)][dgl] and PyTorch.
 The goal is to improve the usability, extensibility and scalability of these models. Here are some key improvements
 over the TF implementations:
@@ -36,11 +34,11 @@ over the TF implementations:
 - Multi-GPU support via PyTorch Lightning. A training utility module has been developed.
 
 This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
-Nassar, Carmelo Gonzales). Please refer to the [official documentation][doc] for more details.
+Nassar, Carmelo Gonzales). Please refer to the [official docs][doc] for more details.
 
 ## Status
 
-Major milestones are summarized below. Please refer to [change log][changelog] for details.
+Major milestones are summarized below. Please refer to the [changelog] for details.
 
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
@@ -98,7 +96,7 @@ pip install -e .
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
 multi-fidelity band gap are now available.
 
-### From the command line (from v0.6.2)
+### Command line (from v0.6.2)
 
 A CLI tool now provides the capability to perform quick relaxations or predictions using pre-trained models, as well
 as other simple administrative tasks (e.g., clearing the cache). Some simple examples:
@@ -123,7 +121,7 @@ as other simple administrative tasks (e.g., clearing the cache). Some simple exa
 
 For a full range of options, use `mgl -h`.
 
-### In code
+### Code
 
 Users who just want to use the models out of the box should use the newly implemented `matgl.load_model` convenience
 method. The following is an example of a prediction of the formation energy for CsCl.
@@ -149,13 +147,13 @@ print(matgl.get_available_pretrained_models())
 
 ## Tutorials
 
-A set of [tutorials][tutorials] have been written on the use of MatGL. These were generated from [Jupyter notebooks]
-[jupyternb], which can be directly run on [Google Colab][colab].
+We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter notebooks]
+[jupyternb], which can be directly run on [Google Colab].
 
 ## Resources
 
-- [API documentation][apidocs] for all classes and methods.
-- [Developer Guide](developer.md) outlines the key design elements of matgl, especially for developers wishing to
+- [API docs][apidocs] for all classes and methods.
+- [Developer Guide](developer.md) outlines the key design elements of `matgl`, especially for developers wishing to
   train and contribute matgl models.
 
 ## References
@@ -180,7 +178,7 @@ information. If you are using any of the pretrained models, please cite the rele
 
 ## FAQs
 
-1. **The `M3GNet-MP-2021.2.8-PES` differs from the original tensorflow (TF) implementation!**
+1. **The `M3GNet-MP-2021.2.8-PES` differs from the original TensorFlow (TF) implementation!**
 
    _Answer:_ `M3GNet-MP-2021.2.8-PES` is a refitted model with some data improvements and minor architectural changes.
    Porting over the weights from the TF version to DGL/PyTorch is non-trivial. We have performed reasonable benchmarking
@@ -192,7 +190,7 @@ information. If you are using any of the pretrained models, please cite the rele
 2. **I am getting errors with `matgl.load_model()`!**
 
    _Answer:_ The most likely reason is that you have a cached older version of the model. We often refactor models to
-   ensure the best implementation. This can usually be solved by updating your matgl to the latest version
+   ensure the best implementation. This can usually be solved by updating your `matgl` to the latest version
    and clearing your cache using the following command `mgl clear`. On the next run, the latest model will be
    downloaded. With effect from v0.5.2, we have implemented a model versioning scheme that will detect code vs model
    version conflicts and alert the user of such problems.
@@ -236,12 +234,12 @@ ACI-1548562.
 [changelog]: https://matgl.ai/changes "Changelog"
 [graphnetwork]: https://arxiv.org/abs/1806.01261 "Deepmind's paper"
 [megnet]: https://pubs.acs.org/doi/10.1021/acs.chemmater.9b01294 "MEGNet paper"
-[mfimegnet]: https://www.nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
-[m3gnet]: https://www.nature.com/articles/s43588-022-00349-3 "M3GNet paper"
+[mfimegnet]: https://nature.com/articles/s43588-020-00002-x "mfi MEGNet paper"
+[m3gnet]: https://nature.com/articles/s43588-022-00349-3 "M3GNet paper"
 [mp]: http://materialsproject.org "Materials Project"
 [apidocs]: https://matgl.ai/matgl.html "MatGL API docs"
 [doc]: https://matgl.ai "MatGL Documentation"
-[colab]: https://colab.research.google.com/ "Google Colab"
+[google colab]: https://colab.research.google.com/ "Google Colab"
 [jupyternb]: https://github.com/materialsvirtuallab/matgl/tree/main/examples
 [ongemail]: mailto:ongsp@ucsd.edu "Email"
 [mqm]: https://materialsqm.com "MaterialsQM"
