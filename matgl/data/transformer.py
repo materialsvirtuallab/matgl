@@ -68,7 +68,8 @@ class Normalizer(Transformer):
         return data * self.std + self.mean
 
     def __repr__(self):
-        return f"Normalizer: Mean={self.mean}, Std: {self.std}"
+        mean, std = self.mean, self.std
+        return f"Normalizer({mean=}, {std=})"
 
     @classmethod
     def from_data(cls, data):
