@@ -64,6 +64,7 @@ class MatglLightningModuleMixin:
             on_step=False,
             prog_bar=True,
         )
+        return results["Total_Loss"]
 
     def test_step(self, batch: tuple, batch_idx: int):
         """Test step.
@@ -72,6 +73,7 @@ class MatglLightningModuleMixin:
             batch: Data batch.
             batch_idx: Batch index.
         """
+        torch.set_grad_enabled(True)
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
             {f"test_{key}": val for key, val in results.items()},
@@ -80,6 +82,7 @@ class MatglLightningModuleMixin:
             on_step=False,
             prog_bar=True,
         )
+        return results
 
     def configure_optimizers(self):
         """Configure optimizers."""
@@ -129,7 +132,7 @@ class MatglLightningModuleMixin:
             Prediction
         """
         torch.set_grad_enabled(True)
-        return self(batch)
+        return self.step(batch)
 
 
 class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
