@@ -8,6 +8,7 @@ import sys
 import warnings
 
 from pymatgen.core.structure import Structure
+from pymatgen.ext.matproj import MPRester
 
 import matgl
 from matgl.ext.ase import Relaxer
@@ -60,10 +61,17 @@ def predict_structure(args):
         args: Args from CLI.
     """
     model = matgl.load_model(args.model)
-    for f in args.infile:
-        structure = Structure.from_file(f)
-        val = model.predict_structure(structure)
-        print(f"{args.model} prediction for {f}: {val}.")
+    if args.infile:
+        for f in args.infile:
+            structure = Structure.from_file(f)
+            val = model.predict_structure(structure)
+            print(f"{args.model} prediction for {f}: {val}.")
+    if args.mpids:
+        mpr = MPRester()
+        for mid in args.mpids:
+            structure = mpr.get_structure_by_material_id(mid)
+            val = model.predict_structure(structure)
+            print(f"{args.model} prediction for {mid} ({structure.composition.reduced_formula}): {val}.")
 
 
 def clear_cache(args):
@@ -126,12 +134,20 @@ def main():
 
     p_predict = subparsers.add_parser("predict", help="Perform a prediction with pre-trained models.")
 
-    p_predict.add_argument(
+    groups = p_predict.add_mutually_exclusive_group(required=True)
+    groups.add_argument(
+        "-p",
+        "--mpids",
+        dest="mpids",
+        nargs="+",
+        help="Materials Project IDs. Requires mp-api to be installed and set up.",
+    )
+
+    groups.add_argument(
         "-i",
         "--infile",
         dest="infile",
         nargs="+",
-        required=True,
         help="Input files containing structure. Any format supported by pymatgen's Structure.from_file method.",
     )
 
@@ -140,6 +156,7 @@ def main():
         "--model",
         dest="model",
         choices=matgl.get_available_pretrained_models(),
+        required=True,
         help="Model to use",
     )
 
