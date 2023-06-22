@@ -18,7 +18,6 @@ nav_order: 1
 * TOC
 {:toc}
 
-
 ## Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a

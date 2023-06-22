@@ -7,6 +7,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import re
 import shutil
 
 import requests
@@ -82,10 +83,6 @@ def make_docs(ctx):
                 f.write("\n".join(preamble + lines))
 
         ctx.run("rm -r markdown", warn=True)
-
-        # ctx.run("mv _static static")
-        # ctx.run("sed -i'.orig' -e 's/_static/static/g' matgl*.html")
-        # ctx.run("rm index.html", warn=True)
         ctx.run("cp ../*.md .")
         ctx.run("mv README.md index.md")
         ctx.run("rm -rf *.orig doctrees", warn=True)
@@ -93,9 +90,10 @@ def make_docs(ctx):
         with open("index.md") as f:
             contents = f.read()
         with open("index.md", "w") as f:
-            contents = contents.replace(
-                "\n## Official Documentation [:books:]\n\n<https://matgl.ai>",
-                "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n",
+            contents = re.sub(
+                r"\n## Official Documentation[^#]*",
+                "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n\n",
+                contents
             )
             contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents
 
@@ -111,7 +109,7 @@ def publish(ctx):
 
 @task
 def release_github(ctx):
-    desc = get_changelog(ctx)
+    desc = get_changelog()
     payload = {
         "tag_name": "v" + NEW_VER,
         "target_commitish": "main",
@@ -137,14 +135,12 @@ def release(ctx, notest=False):
     release_github(ctx)
 
 
-@task
-def get_changelog(ctx):
+def get_changelog():
     with open("changes.md") as f:
         contents = f.read()
-        i = contents.find(f"{NEW_VER}")
-        contents = contents[i + len(NEW_VER) :]
-        i = contents.find("#")
-        return contents[:i].strip()
+        m = re.search(f"## {NEW_VER}([^#]*)", contents)
+        changes = m.group(1).strip()
+        return changes
 
 
 @task
