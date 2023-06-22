@@ -113,7 +113,10 @@ class CHGNet(nn.Module, IOMixIn):
         else:
             self.element_types = element_types
 
+        # TODO change to a simple learnable 0-th order bessel function with max_n roots
         self.bond_expansion = BondExpansion(max_l=1, max_n=max_n, rbf_type="SphericalBessel", cutoff=cutoff)
+        # TODO nn.Linear for weights of bond expansion
+        # TODO need an rbf for the graph bonds using the threebody cutoff and nn.Linear for weights
         self.angle_expansion = None  # implement this
 
         # feature embeddings
@@ -127,6 +130,7 @@ class CHGNet(nn.Module, IOMixIn):
         self.three_body_interactions = nn.ModuleList(
             {
                 None  # implement the BondConvolution and AngleUpdate
+                # in here calculate the
                 for _ in range(nblocks - 1)
             }
         )
