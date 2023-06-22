@@ -16,16 +16,16 @@ def polynomial_cutoff(r: torch.tensor, cutoff: float, exponent: int = 3) -> torc
     Args:
         r (torch.tensor): radius distance tensor
         cutoff (float): cutoff distance.
-        exponent (int): minimum exponent of the polynomial. Default is 5.
-            The polynomial will include terms of order exponent, exponent + 1, exponent + 2.
+        exponent (int): minimum exponent of the polynomial. Default is 3.
+            The polynomial includes terms of order exponent, exponent + 1, exponent + 2.
 
     Returns: polynomial cutoff function
     """
-    a = -(exponent + 1) * (exponent + 2) / 2
-    b = exponent * (exponent + 2)
-    c = -exponent * (exponent + 1) / 2
+    coef1 = -(exponent + 1) * (exponent + 2) / 2
+    coef2 = exponent * (exponent + 2)
+    coef3 = -exponent * (exponent + 1) / 2
     ratio = r / cutoff
-    poly_envelope = 1 + a * ratio**exponent + b * ratio ** (exponent + 1) + c * ratio ** (exponent + 2)
+    poly_envelope = 1 + coef1 * ratio**exponent + coef2 * ratio ** (exponent + 1) + coef3 * ratio ** (exponent + 2)
 
     return torch.where(r <= cutoff, poly_envelope, 0.0)
 
