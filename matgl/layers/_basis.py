@@ -140,6 +140,49 @@ class SphericalBesselFunction:
         return sqrt(2.0 / cutoff) * torch.sin(n * pi / cutoff * r) / r
 
 
+class RadialBesselFunction(nn.Module):
+    """Zeroth order bessel function of the first kind.
+
+    Implements the proposed 1D radial basis function in terms of zeroth order bessel function of the first kind with
+    increasing number of roots and a given cutoff.
+
+    Details are given in: https://arxiv.org/abs/2003.03123
+
+    This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel fucntions), but with
+    optional learnable frequencies.
+    """
+
+    def __init__(self, max_n: int, cutoff: float, learnable: bool = False):
+        """
+        Args:
+            max_n: int, max number of roots (including max_n)
+            cutoff: float, cutoff radius
+            learnable: bool, whether to learn the location of roots
+        """
+        super().__init__()
+        self.max_n = max_n
+        self.inv_cutoff = 1 / cutoff
+        self.norm_const = (2 * self.inv_cutoff) ** 0.5
+
+        if learnable:
+            self.frequencies = torch.nn.Parameter(
+                data=torch.Tensor(
+                    pi * torch.arange(1, self.num_radial + 1, dtype=torch.float)
+                ),
+                requires_grad=True,
+            )
+        else:
+            self.register_buffer(
+                "frequencies",
+                pi * torch.arange(1, self.num_radial + 1, dtype=torch.float),
+            )
+
+    def forward(self, r: torch.Tensor) -> torch.Tensor:
+        r = r[:, None]  # (nEdges,1)
+        d_scaled = r * self.inv_cutoff
+        return self.norm_const * torch.sin(self.frequencies * d_scaled) / r
+
+
 class SphericalHarmonicsFunction:
     """Spherical Harmonics function."""
 
