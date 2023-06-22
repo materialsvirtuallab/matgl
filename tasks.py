@@ -163,3 +163,9 @@ def get_changelog(ctx):
         contents = contents[i+len(NEW_VER):]
         i = contents.find("#")
         return contents[:i].strip()
+
+
+@task
+def view_docs(ctx):
+    with cd("docs"):
+        ctx.run("bundle exec jekyll serve")
