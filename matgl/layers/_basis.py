@@ -166,9 +166,7 @@ class RadialBesselFunction(nn.Module):
 
         if learnable:
             self.frequencies = torch.nn.Parameter(
-                data=torch.Tensor(
-                    pi * torch.arange(1, self.max_n + 1, dtype=torch.float32)
-                ),
+                data=torch.Tensor(pi * torch.arange(1, self.max_n + 1, dtype=torch.float32)),
                 requires_grad=True,
             )
         else:
