@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import pytest
 import numpy as np
 import torch
 
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
+    remove_edges_by_features
 )
 
 
@@ -120,3 +123,31 @@ class TestCompute:
         np.testing.assert_array_almost_equal(
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
+
+
+@pytest.mark.parametrize("keep_ndata", [True, False])
+@pytest.mark.parametrize("keep_edata", [True, False])
+def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
+    s1, g1, state1 = graph_Mo
+    bv, bd = compute_pair_vector_and_distance(g1)
+    g1.edata["bond_vec"] = bv
+    g1.edata["bond_dist"] = bd
+
+    new_cutoff = 3.0
+    converter = Structure2Graph(element_types=get_element_list([s1]), cutoff=new_cutoff)
+    g2, state2 = converter.get_graph(s1)
+
+    # remove edges by features
+    new_g = remove_edges_by_features(
+        g1, "bond_dist", condition=lambda x: x > new_cutoff, keep_ndata=keep_ndata, keep_edata=keep_edata
+    )
+
+    assert new_g.num_edges() == g2.num_edges()
+    assert new_g.num_nodes() == g2.num_nodes()
+
+    if keep_ndata:
+        assert new_g.ndata.keys() == g1.ndata.keys()
+
+    if keep_edata:
+        assert new_g.edata.keys() == g1.edata.keys()
+        assert new_g.edata["bond_vec"].shape[1] == g1.edata["bond_vec"].shape[1]
