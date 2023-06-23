@@ -117,17 +117,18 @@ class MEGNetDataset(DGLDataset):
         name: str = "MEGNETDataset",
         graph_labels: list | None = None,
     ):
-        """Args:
-        structures: Pymatgen strutcure
-        labels: property values
-        label_name: label name
-        converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
-        initial: initial distance for Gaussian expansions
-        final: final distance for Gaussian expansions
-        num_centers: number of Gaussian functions
-        width: width of Gaussian functions
-        name: Name of dataset
-        graph_labels: graph attributes either integers and floating point numbers.
+        """
+        Args:
+            structures: Pymatgen structure
+            labels: property values
+            label_name: label name
+            converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
+            initial: initial distance for Gaussian expansions
+            final: final distance for Gaussian expansions
+            num_centers: number of Gaussian functions
+            width: width of Gaussian functions
+            name: Name of dataset
+            graph_labels: graph attributes either integers and floating point numbers.
         """
         self.converter = converter
         self.structures = structures
@@ -217,15 +218,16 @@ class M3GNetDataset(DGLDataset):
         name="M3GNETDataset",
         graph_labels: list | None = None,
     ):
-        """Args:
-        structures: Pymatgen strutcure
-        energies: Target energies
-        forces: Target forces
-        stresses: Target stresses
-        converter: dgl graph converter
-        threebody_cutoff: cutoff for three body
-        name: name of dataset
-        graph_labels: state attributes.
+        """
+        Args:
+            structures: Pymatgen structure
+            energies: Target energies
+            forces: Target forces
+            stresses: Target stresses
+            converter: dgl graph converter
+            threebody_cutoff: cutoff for three body
+            name: name of dataset
+            graph_labels: state attributes.
         """
         self.converter = converter
         self.structures = structures
