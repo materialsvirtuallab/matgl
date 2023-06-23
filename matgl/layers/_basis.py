@@ -157,7 +157,7 @@ class RadialBesselFunction(nn.Module):
         Args:
             max_n: int, max number of roots (including max_n)
             cutoff: float, cutoff radius
-            learnable: bool, whether to learn the location of roots
+            learnable: bool, whether to learn the location of roots.
         """
         super().__init__()
         self.max_n = max_n
