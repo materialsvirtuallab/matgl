@@ -128,7 +128,7 @@ def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
     for g in g_unbatched:
         if g.edges()[0].size(dim=0) > 0:
             graph_with_three_body = remove_edges_by_features(
-                g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff, keep_ndata=False
+                g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff
             )
         if graph_with_three_body.edata["bond_dist"].size(dim=0) > 0:
             l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
@@ -138,12 +138,13 @@ def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
 
 
 def remove_edges_by_features(
-        graph: dgl.DGLGraph,
-        feat_name: str,
-        condition: Callable[[torch.Tensor, Any, ...], torch.Tensor],
-        keep_ndata: bool = True,
-        keep_edata: bool = True,
-        *args, **kwargs
+    graph: dgl.DGLGraph,
+    feat_name: str,
+    condition: Callable[[torch.Tensor, Any, ...], torch.Tensor],
+    keep_ndata: bool = False,
+    keep_edata: bool = True,
+    *args,
+    **kwargs,
 ) -> dgl.DGLGraph:
     """Removes edges graph that do satisfy given condition based on a specified feature value.
 
