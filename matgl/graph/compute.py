@@ -137,6 +137,33 @@ def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
     return l_g_batched
 
 
+def create_bond_graph(graph: dgl.DGLGraph, cutoff: float):
+    """Calculate the bond graph from a graph.
+
+    Args:
+        graph: DGL graph
+        cutoff (float): cutoff for bond lengths to include in the line (bond) graph
+
+    Returns:
+        bond_graph: DGL graph containing bond information from graph
+    """
+    pruned_graph = remove_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > cutoff)
+    bond_graph = pruned_graph.line_graph(backtracking=False)
+
+    first_col = pruned_graph.edges()[0].reshape(-1, 1)
+    all_indices = torch.arange(pruned_graph.num_nodes()).reshape(1, -1)
+    n_bond_per_atom = torch.count_nonzero(first_col == all_indices, dim=0)
+    n_triple_ij = (n_bond_per_atom - 1).repeat_interleave(n_bond_per_atom)
+
+    # TODO: do we need n_triple_i and n_triple_s?
+
+    bond_graph.ndata["n_triple_ij"] = n_triple_ij
+    bond_graph.ndata["bond_dist"] = pruned_graph.edata["bond_dist"]
+    bond_graph.ndata["bond_vec"] = pruned_graph.edata["bond_vec"]
+    bond_graph.ndata["pbc_offset"] = pruned_graph.edata["pbc_offset"]
+    return bond_graph
+
+
 def remove_edges_by_features(
     graph: dgl.DGLGraph,
     feat_name: str,
