@@ -22,16 +22,17 @@ class EmbeddingBlock(nn.Module):
         ntypes_state: int | None = None,
         dim_state_embedding: int | None = None,
     ):
-        """Args:
-        degree_rbf (int): number of rbf
-        activation (nn.Module): activation type
-        dim_node_embedding (int): dimensionality of node features
-        dim_edge_embedding (int): dimensionality of edge features
-        dim_state_feats: dimensionality of state features
-        ntypes_node: number of node labels
-        include_state: Whether to include state embedding
-        ntypes_state: number of state labels
-        dim_state_embedding: dimensionality of state embedding.
+        """
+        Args:
+            degree_rbf (int): number of rbf
+            activation (nn.Module): activation type
+            dim_node_embedding (int): dimensionality of node features
+            dim_edge_embedding (int): dimensionality of edge features
+            dim_state_feats: dimensionality of state features
+            ntypes_node: number of node labels
+            include_state: Whether to include state embedding
+            ntypes_state: number of state labels
+            dim_state_embedding: dimensionality of state embedding.
         """
         super().__init__()
         self.include_state = include_state
@@ -54,14 +55,14 @@ class EmbeddingBlock(nn.Module):
         """Output embedded features.
 
         Args:
-        node_attr: node attribute
-        edge_attr: edge attribute
-        state_attr: state attribute
+            node_attr: node attribute
+            edge_attr: edge attribute
+            state_attr: state attribute
 
         Returns:
-        node_feat: embedded node features
-        edge_feat: embedded edge features
-        state_feat: embedded state features
+            node_feat: embedded node features
+            edge_feat: embedded edge features
+            state_feat: embedded state features
         """
         if self.ntypes_node is not None:
             node_feat = self.layer_node_embedding(node_attr)

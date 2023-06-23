@@ -60,11 +60,12 @@ class SphericalBesselFunction:
     """Calculate the spherical Bessel function based on sympy + pytorch implementations."""
 
     def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
-        """Args:
-        max_l: int, max order (excluding l)
-        max_n: int, max number of roots used in each l
-        cutoff: float, cutoff radius
-        smooth: Whether to smooth the function.
+        """
+        Args:
+            max_l: int, max order (excluding l)
+            max_n: int, max number of roots used in each l
+            cutoff: float, cutoff radius
+            smooth: Whether to smooth the function.
         """
         self.max_l = max_l
         self.max_n = max_n
@@ -91,11 +92,12 @@ class SphericalBesselFunction:
     def _calculate_smooth_symbolic_funcs(self) -> list:
         return _get_lambda_func(max_n=self.max_n, cutoff=self.cutoff)
 
-    def __call__(self, r):
+    def __call__(self, r: torch.Tensor) -> torch.Tensor:
         """Args:
             r: torch.Tensor, distance tensor, 1D.
 
-        Returns: [n, max_n * max_l] spherical Bessel function results
+        Returns:
+            torch.Tensor: [n, max_n * max_l] spherical Bessel function results
         """
         if self.smooth:
             return self._call_smooth_sbf(r)
@@ -128,7 +130,9 @@ class SphericalBesselFunction:
             r: torch.Tensor pytorch tensors
             cutoff: float, the cutoff radius
             max_n: int max number of basis
-        Returns: basis function expansion using first spherical Bessel function
+
+        Returns:
+            basis function expansion using first spherical Bessel function
         """
         n = (torch.arange(1, max_n + 1)).type(dtype=torch.float32)[None, :]
         r = r[:, None]
@@ -174,10 +178,11 @@ class SphericalHarmonicsFunction:
     """Spherical Harmonics function."""
 
     def __init__(self, max_l: int, use_phi: bool = True):
-        """Args:
-        max_l: int, max l (excluding l)
-        use_phi: bool, whether to use the polar angle. If not,
-        the function will compute `Y_l^0`.
+        """
+        Args:
+            max_l: int, max l (excluding l)
+            use_phi: bool, whether to use the polar angle. If not,
+            the function will compute `Y_l^0`.
         """
         self.max_l = max_l
         self.use_phi = use_phi
