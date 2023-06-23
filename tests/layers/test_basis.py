@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 import numpy as np
 from torch.testing import assert_close
 import torch
@@ -13,6 +15,7 @@ from matgl.layers._basis import (
     SphericalBesselFunction,
     SphericalBesselWithHarmonics,
     SphericalHarmonicsFunction,
+    FourierExpansion,
     RadialBesselFunction,
     spherical_bessel_smooth,
 )
@@ -125,10 +128,11 @@ def test_spherical_bessel_with_harmonics(graph_MoS):
     assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 27]
 
 
-def test_radial_bessel_function():
+@pytest.mark.parametrize("learnable", [True, False])
+def test_radial_bessel_function(learnable):
     max_n = 3
     r = torch.empty(10).normal_()
-    rbf = RadialBesselFunction(max_n=max_n, cutoff=5.0)
+    rbf = RadialBesselFunction(max_n=max_n, cutoff=5.0, learnable=learnable)
     res = rbf(r)
     assert res.shape == (10, max_n)
 
@@ -139,3 +143,39 @@ def test_radial_bessel_function():
 
     assert_close(res, res1.float())
     assert_close(res, res2.float())
+
+    if learnable:
+        assert rbf.frequencies.requires_grad
+    else:
+        assert not rbf.frequencies.requires_grad
+
+
+@pytest.mark.parametrize("learnable", [True, False])
+def test_fourier_expansion(learnable):
+    max_f = 5
+    fe = FourierExpansion(max_f=max_f, learnable=learnable)
+    x = torch.randn(10)
+    res = fe(x)
+
+    assert res.shape == (x.shape[0], 1 + max_f * 2)
+
+    cosines = torch.cos(torch.outer(x, torch.arange(0, max_f + 1))) / torch.pi
+    assert_close(res[:, ::2], cosines)
+
+    sines = torch.sin(torch.outer(x, torch.arange(1, max_f + 1))) / np.pi
+    assert_close(res[:, 1::2], sines)
+
+    interval = 2.0
+    fe = FourierExpansion(max_f=max_f, interval=interval, learnable=learnable)
+    res = fe(x)
+
+    cosines = torch.cos(torch.outer(x, torch.arange(0, max_f + 1)) * np.pi / interval) / interval
+    assert_close(res[:, ::2], cosines)
+
+    sines = torch.sin(torch.outer(x, torch.arange(1, max_f + 1)) * np.pi / interval) / interval
+    assert_close(res[:, 1::2], sines)
+
+    if learnable:
+        assert fe.frequencies.requires_grad
+    else:
+        assert not fe.frequencies.requires_grad
