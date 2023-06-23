@@ -137,18 +137,19 @@ def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
     return l_g_batched
 
 
-def create_bond_graph(graph: dgl.DGLGraph, cutoff: float):
+def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True):
     """Calculate the bond graph from a graph.
 
     Args:
         graph: DGL graph
         cutoff (float): cutoff for bond lengths to include in the line (bond) graph
+        shared (bool): whether to share node features between the bond graph and the original graph
 
     Returns:
         bond_graph: DGL graph containing bond information from graph
     """
     pruned_graph = remove_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > cutoff)
-    bond_graph = pruned_graph.line_graph(backtracking=False)
+    bond_graph = pruned_graph.line_graph(backtracking=False, shared=shared)
 
     first_col = pruned_graph.edges()[0].reshape(-1, 1)
     all_indices = torch.arange(pruned_graph.num_nodes()).reshape(1, -1)
@@ -158,9 +159,6 @@ def create_bond_graph(graph: dgl.DGLGraph, cutoff: float):
     # TODO: do we need n_triple_i and n_triple_s?
 
     bond_graph.ndata["n_triple_ij"] = n_triple_ij
-    bond_graph.ndata["bond_dist"] = pruned_graph.edata["bond_dist"]
-    bond_graph.ndata["bond_vec"] = pruned_graph.edata["bond_vec"]
-    bond_graph.ndata["pbc_offset"] = pruned_graph.edata["pbc_offset"]
     return bond_graph
 
 
