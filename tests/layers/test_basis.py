@@ -14,6 +14,7 @@ from matgl.layers._basis import (
     SphericalBesselWithHarmonics,
     SphericalHarmonicsFunction,
     FourierExpansion,
+    RadialBesselFunction,
     spherical_bessel_smooth,
 )
 from matgl.layers._three_body import combine_sbf_shf
@@ -123,6 +124,22 @@ def test_spherical_bessel_with_harmonics(graph_MoS):
     l_g1.apply_edges(compute_theta_and_phi)
     three_body_basis = sb_and_sh(l_g1)
     assert [three_body_basis.size(dim=0), three_body_basis.size(dim=1)] == [364, 27]
+
+
+def test_radial_bessel_function():
+    max_n = 3
+    r = torch.empty(10).normal_()
+    rbf = RadialBesselFunction(max_n=max_n, cutoff=5.0)
+    res = rbf(r)
+    assert res.shape == (10, max_n)
+
+    # compare with spherical bessel function
+    sbf = SphericalBesselFunction(max_l=1, max_n=max_n, cutoff=5.0, smooth=False)
+    res1 = sbf(r)
+    res2 = sbf.rbf_j0(r, cutoff=5.0, max_n=max_n)
+
+    assert_close(res, res1.float())
+    assert_close(res, res2.float())
 
 
 def test_fourier_expansion():
