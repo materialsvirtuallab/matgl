@@ -11,31 +11,15 @@ from __future__ import annotations
 
 import logging
 
-import dgl
-import torch
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
-from matgl.graph.compute import (
-    compute_pair_vector_and_distance,
-    compute_theta_and_phi,
-    create_line_graph,
-)
-
-from matgl.graph.converters import GraphConverter
-
 from matgl.layers import (
     MLP,
-    GatedMLP,
-    BondExpansion,
-    EmbeddingBlock,
     FourierExpansion,
-    SphericalBesselWithHarmonics,
-    ThreeBodyInteractions,
+    RadialBesselFunction,
 )
-from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
-
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +43,8 @@ class CHGNet(nn.Module, IOMixIn):
         cutoff_exponent: float = 5.0,
         max_n: int = 9,  # number of l = 0 bessel function frequencies
         max_f: int = 4,  # number of Fourier frequencies -> 4 * 2 + 1 = 9 of original CHGNet
-        learn_basis_freq: bool = True,
+        learn_basis: bool = True,
         nblocks: int = 4,
-
         # missing args from original chgnet
         # atom_conv_hidden_dim: Sequence[int] | int = 64,
         # update_bond: bool = True,
@@ -73,8 +56,6 @@ class CHGNet(nn.Module, IOMixIn):
         # mlp_hidden_dims: Sequence[int] | int = (64, 64),
         # mlp_dropout: float = 0,
         # mlp_first: bool = True,
-
-
         # additional args from m3gnet mgl
         # units: int = 64,
         # ntargets: int = 1,
@@ -84,7 +65,7 @@ class CHGNet(nn.Module, IOMixIn):
         is_intensive: bool = True,
         # readout_type: str = "average",  # or attention
         # task_type: str = "regression",
-        **kwargs
+        **kwargs,
     ):
         """"""
         super().__init__()
@@ -104,22 +85,25 @@ class CHGNet(nn.Module, IOMixIn):
         elif activation_type == "softexp":
             activation = SoftExponential()  # type: ignore
         else:
-            raise Exception(
-                "Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp"
-            )
+            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES  # make sure these match CHGNet
         else:
             self.element_types = element_types
 
-        # TODO change to a simple learnable 0-th order bessel function with max_n roots
-        self.bond_expansion = BondExpansion(max_l=1, max_n=max_n, rbf_type="SphericalBessel", cutoff=cutoff)
-        # TODO nn.Linear for weights of bond expansion
-        # TODO need an rbf for the graph bonds using the threebody cutoff and nn.Linear for weights
-        self.angle_expansion = None  # implement this
+        # basis expansions for bond lengths, triple interaction bond lengths and angles
+        self.bond_expansion = RadialBesselFunction(max_n=max_n, cutoff=cutoff, learnable=learn_basis)
+        self.threebody_bond_expansion = RadialBesselFunction(
+            max_n=max_n, cutoff=threebody_cutoff, learnable=learn_basis
+        )
+        self.angle_expansion = FourierExpansion(max_f=max_f, learnable=learn_basis)
 
-        # feature embeddings
+        # bond message smoothing weights
+        self.bond_weights = nn.Linear(max_n, dim_node_embedding, bias=False)
+        self.threebody_bond_weights = nn.Linear(max_n, dim_edge_embedding, bias=False)
+
+        # embedding block for atom, bond, angle, and optional state features
         self.atom_embedding = nn.Embedding(len(element_types), dim_node_embedding)
         # TODO add option for activation
         self.bond_embedding = MLP([max_n, dim_edge_embedding], activation=activation, activate_last=False)
@@ -137,10 +121,7 @@ class CHGNet(nn.Module, IOMixIn):
 
         # operations involving the graph (i.e. atom graph) to update atom and bond features
         self.graph_layers = nn.ModuleList(
-            {
-                None  # implement the AtomConvolution and BondUpdate
-                for _ in range(nblocks)
-            }
+            {None for _ in range(nblocks)}  # implement the AtomConvolution and BondUpdate
         )
 
         self.magmom_readout = nn.Linear(dim_node_embedding, 1)
