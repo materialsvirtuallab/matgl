@@ -3,11 +3,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    import dgl
+    import dgl, torch
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 

@@ -4,10 +4,9 @@ from __future__ import annotations
 import abc
 
 import numpy as np
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import torch, dgl
 
+import torch
+import dgl
 from dgl.backend import tensor
 
 
@@ -51,9 +50,8 @@ class GraphConverter(metaclass=abc.ABCMeta):
         """
         u, v = tensor(src_id), tensor(dst_id)
         g = dgl.graph((u, v))
-        isolated_atoms = list(set(range(len(structure))).difference(src_id))
-        if isolated_atoms:
-            g.add_nodes(len(isolated_atoms))
+        n_missing_node = len(structure) - g.num_nodes()  # isolated atoms without bonds
+        g.add_nodes(n_missing_node)
         g.edata["pbc_offset"] = torch.tensor(images)
         g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
         g.ndata["attr"] = tensor(Z)

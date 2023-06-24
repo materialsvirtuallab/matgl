@@ -124,14 +124,18 @@ class M3GNet(nn.Module, IOMixIn):
         elif activation_type == "softexp":
             activation = SoftExponential()  # type: ignore
         else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
+            raise Exception(
+                "Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp"
+            )
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES
         else:
             self.element_types = element_types  # type: ignore
 
-        self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth)
+        self.bond_expansion = BondExpansion(
+            max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth
+        )
 
         degree = max_n * max_l * max_l if use_phi else max_n * max_l
 
@@ -149,15 +153,23 @@ class M3GNet(nn.Module, IOMixIn):
         )
 
         self.basis_expansion = SphericalBesselWithHarmonics(
-            max_n=max_n, max_l=max_l, cutoff=cutoff, use_phi=use_phi, use_smooth=use_smooth
+            max_n=max_n,
+            max_l=max_l,
+            cutoff=cutoff,
+            use_phi=use_phi,
+            use_smooth=use_smooth,
         )
         self.three_body_interactions = nn.ModuleList(
             {
                 ThreeBodyInteractions(
                     update_network_atom=MLP(
-                        dims=[dim_node_embedding, degree], activation=nn.Sigmoid(), activate_last=True
+                        dims=[dim_node_embedding, degree],
+                        activation=nn.Sigmoid(),
+                        activate_last=True,
                     ),
-                    update_network_bond=GatedMLP(in_feats=degree, dims=[dim_edge_embedding], use_bias=False),
+                    update_network_bond=GatedMLP(
+                        in_feats=degree, dims=[dim_edge_embedding], use_bias=False
+                    ),
                 )
                 for _ in range(nblocks)
             }
@@ -178,9 +190,13 @@ class M3GNet(nn.Module, IOMixIn):
             }
         )
         if is_intensive:
-            input_feats = dim_node_embedding if field == "node_feat" else dim_edge_embedding
+            input_feats = (
+                dim_node_embedding if field == "node_feat" else dim_edge_embedding
+            )
             if readout_type == "set2set":
-                self.readout = Set2SetReadOut(num_steps=niters_set2set, num_layers=nlayers_set2set, field=field)
+                self.readout = Set2SetReadOut(
+                    num_steps=niters_set2set, num_layers=nlayers_set2set, field=field
+                )
                 readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)  # type: ignore
@@ -208,7 +224,12 @@ class M3GNet(nn.Module, IOMixIn):
         self.task_type = task_type
         self.is_intensive = is_intensive
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None):
+    def forward(
+        self,
+        g: dgl.DGLGraph,
+        state_attr: torch.Tensor | None = None,
+        l_g: dgl.DGLGraph | None = None,
+    ):
         """Performs message passing and updates node representations.
 
         Args:
@@ -229,17 +250,32 @@ class M3GNet(nn.Module, IOMixIn):
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
             valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
-            l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body][l_g.ndata["three_body_id"]]
-            l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body][l_g.ndata["three_body_id"]]
-            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body][l_g.ndata["three_body_id"]]
+            l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body][
+                l_g.edata["three_body_id"][0]
+            ]
+            l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body][
+                l_g.edata["three_body_id"][0]
+            ]
+            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body][
+                l_g.edata["three_body_id"][0]
+            ]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
-        three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
-        num_node_feats, num_edge_feats, num_state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
+        three_body_cutoff = polynomial_cutoff(
+            g.edata["bond_dist"], self.threebody_cutoff
+        )
+        num_node_feats, num_edge_feats, num_state_feats = self.embedding(
+            node_types, g.edata["rbf"], state_attr
+        )
         for i in range(self.n_blocks):
             num_edge_feats = self.three_body_interactions[i](
-                g, l_g, three_body_basis, three_body_cutoff, num_node_feats, num_edge_feats
+                g,
+                l_g,
+                three_body_basis,
+                three_body_cutoff,
+                num_node_feats,
+                num_edge_feats,
             )
             num_edge_feats, num_node_feats, num_state_feats = self.graph_layers[i](
                 g, num_edge_feats, num_node_feats, num_state_feats
@@ -258,7 +294,10 @@ class M3GNet(nn.Module, IOMixIn):
         return torch.squeeze(output)
 
     def predict_structure(
-        self, structure, state_feats: torch.Tensor | None = None, graph_converter: GraphConverter | None = None
+        self,
+        structure,
+        state_feats: torch.Tensor | None = None,
+        graph_converter: GraphConverter | None = None,
     ):
         """Convenience method to directly predict property from structure.
 

@@ -61,11 +61,12 @@ def compute_3body(g: dgl.DGLGraph):
     src_id, dst_id = (triple_bond_indices[:, 0], triple_bond_indices[:, 1])
     l_g = dgl.graph((src_id, dst_id))
     three_body_id = np.unique(triple_bond_indices)
-    l_g.ndata["bond_dist"] = g.edata["bond_dist"][three_body_id]
-    l_g.ndata["bond_vec"] = g.edata["bond_vec"][three_body_id]
-    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][three_body_id]
-    l_g.ndata["n_triple_ij"] = n_triple_ij[three_body_id]
-    l_g.ndata["three_body_id"] = torch.tensor(three_body_id)
+    max_three_body_id = max(np.concatenate([three_body_id + 1, [0]]))
+    l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
+    l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
+    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
+    l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
+    l_g.ndata["three_body_id"] = torch.tensor([three_body_id] * l_g.num_nodes())
     n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64)
     return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
 

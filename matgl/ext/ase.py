@@ -7,10 +7,12 @@ import io
 import pickle
 import sys
 from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import dgl
 
-import dgl
-import numpy as np
 import torch
+
+import numpy as np
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
