@@ -137,12 +137,13 @@ class RemoteFile:
     """Handling of download of remote files to a local cache."""
 
     def __init__(self, uri: str, cache_location: str | Path = MATGL_CACHE, force_download: bool = False):
-        """Args:
-        uri: Uniform resource identifier.
-        cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
-        $HOME/.matgl.
-        force_download: To speed up access, a model with the same name in the cache location will be used if
-        present. If you want to force a re-download, set this to True.
+        """
+        Args:
+            uri: Uniform resource identifier.
+            cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
+            $HOME/.matgl.
+            force_download: To speed up access, a model with the same name in the cache location will be used if
+            present. If you want to force a re-download, set this to True.
         """
         self.uri = uri
         toks = uri.split("/")

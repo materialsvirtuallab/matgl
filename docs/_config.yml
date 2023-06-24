@@ -2,7 +2,7 @@ title: MatGL
 email: ongsp@ucsd.edu
 description: >- # this means to ignore newlines until "baseurl:"
   A graph deep learning library for materials science.
-baseurl: "/"
+baseurl: ""
 url: "https://matgl.ai"
 # twitter_username: jekyllrb
 github_username:  materialsvirtuallab

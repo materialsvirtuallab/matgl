@@ -19,10 +19,11 @@ class Set2SetReadOut(nn.Module):
         num_layers: int,
         field: str,
     ):
-        """Args:
-        num_steps (int): Number of LSTM steps
-        num_layers (int): Number of layers.
-        field (str): Field of graph to perform the readout.
+        """
+        Args:
+            num_steps (int): Number of LSTM steps
+            num_layers (int): Number of layers.
+            field (str): Field of graph to perform the readout.
         """
         super().__init__()
         self.field = field
@@ -48,9 +49,10 @@ class ReduceReadOut(nn.Module):
     """
 
     def __init__(self, op: str = "mean", field: str = "node_feat"):
-        """Args:
-        op (str): op for the reduction
-        field (str): Field of graph to perform the reduction.
+        """
+        Args:
+            op (str): op for the reduction
+            field (str): Field of graph to perform the reduction.
         """
         super().__init__()
         self.op = op
@@ -58,7 +60,8 @@ class ReduceReadOut(nn.Module):
 
     def forward(self, g: dgl.DGLGraph):
         """Args:
-            g: DGL graph
+            g: DGL graph.
+
         Returns:
             torch.tensor.
         """
@@ -73,10 +76,11 @@ class WeightedReadOut(nn.Module):
     """Feed node features into Gated MLP as readout."""
 
     def __init__(self, in_feats: int, dims: list[int], num_targets: int):
-        """Args:
-        in_feats: input features (nodes)
-        dims: NN architecture for Gated MLP
-        num_targets: number of target properties.
+        """
+        Args:
+            in_feats: input features (nodes)
+            dims: NN architecture for Gated MLP
+            num_targets: number of target properties.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -85,7 +89,8 @@ class WeightedReadOut(nn.Module):
 
     def forward(self, g: dgl.DGLGraph):
         """Args:
-            g: DGL graph
+            g: DGL graph.
+
         Returns:
             atomic_properties: torch.Tensor.
         """
