@@ -129,6 +129,28 @@ def test_spherical_bessel_with_harmonics(graph_MoS):
 
 
 @pytest.mark.parametrize("learnable", [True, False])
+def test_radial_bessel_function(learnable):
+    max_n = 3
+    r = torch.empty(10).normal_()
+    rbf = RadialBesselFunction(max_n=max_n, cutoff=5.0, learnable=learnable)
+    res = rbf(r)
+    assert res.shape == (10, max_n)
+
+    # compare with spherical bessel function
+    sbf = SphericalBesselFunction(max_l=1, max_n=max_n, cutoff=5.0, smooth=False)
+    res1 = sbf(r)
+    res2 = sbf.rbf_j0(r, cutoff=5.0, max_n=max_n)
+
+    assert_close(res, res1.float())
+    assert_close(res, res2.float())
+
+    if learnable:
+        assert rbf.frequencies.requires_grad
+    else:
+        assert not rbf.frequencies.requires_grad
+
+
+@pytest.mark.parametrize("learnable", [True, False])
 def test_fourier_expansion(learnable):
     max_f = 5
     fe = FourierExpansion(max_f=max_f, learnable=learnable)
@@ -157,25 +179,3 @@ def test_fourier_expansion(learnable):
         assert fe.frequencies.requires_grad
     else:
         assert not fe.frequencies.requires_grad
-
-
-@pytest.mark.parametrize("learnable", [True, False])
-def test_radial_bessel_function(learnable):
-    max_n = 3
-    r = torch.empty(10).normal_()
-    rbf = RadialBesselFunction(max_n=max_n, cutoff=5.0, learnable=learnable)
-    res = rbf(r)
-    assert res.shape == (10, max_n)
-
-    # compare with spherical bessel function
-    sbf = SphericalBesselFunction(max_l=1, max_n=max_n, cutoff=5.0, smooth=False)
-    res1 = sbf(r)
-    res2 = sbf.rbf_j0(r, cutoff=5.0, max_n=max_n)
-
-    assert_close(res, res1.float())
-    assert_close(res, res2.float())
-
-    if learnable:
-        assert rbf.frequencies.requires_grad
-    else:
-        assert not rbf.frequencies.requires_grad

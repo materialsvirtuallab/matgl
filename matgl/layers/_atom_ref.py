@@ -14,8 +14,9 @@ class AtomRef(nn.Module):
         self,
         property_offset: np.array,  # type: ignore
     ) -> None:
-        """Args:
-        property_offset (np.array): a array of elemental property offset.
+        """
+        Args:
+            property_offset (np.array): a array of elemental property offset.
         """
         super().__init__()
         self.property_offset = torch.tensor(property_offset)
