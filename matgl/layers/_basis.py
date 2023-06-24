@@ -147,7 +147,7 @@ class RadialBesselFunction(nn.Module):
 
     Details are given in: https://arxiv.org/abs/2003.03123
 
-    This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel fucntions), but with
+    This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel functions), but with
     optional learnable frequencies.
     """
 
