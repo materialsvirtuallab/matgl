@@ -46,17 +46,21 @@ class GraphConverter(metaclass=abc.ABCMeta):
         Returns:
             DGLGraph object, state_attr
         """
-        isolated_atoms = list(set(range(len(structure))).difference(src_id))
-        if not isolated_atoms:
-            u, v = tensor(src_id), tensor(dst_id)
-        else:
-            u, v = tensor(np.concatenate([src_id, isolated_atoms])), tensor(
-                np.concatenate([dst_id, isolated_atoms])
-            )
-            images = np.concatenate(
-                [images, np.repeat([[1.0, 0.0, 0.0]], len(isolated_atoms), axis=0)]
-            )
+        u, v = tensor(src_id), tensor(dst_id)
         g = dgl.graph((u, v))
+        isolated_atoms = list(set(range(len(structure))).difference(src_id))
+        if isolated_atoms:
+            g.add_nodes(len(isolated_atoms))
+        # if not isolated_atoms:
+            # u, v = tensor(src_id), tensor(dst_id)
+        # else:
+        #     u, v = tensor(np.concatenate([src_id, isolated_atoms])), tensor(
+        #         np.concatenate([dst_id, isolated_atoms])
+        #     )
+            # images = np.concatenate(
+            #     [images, np.repeat([[1.0, 0.0, 0.0]], len(isolated_atoms), axis=0)]
+            # )
+        # g = dgl.graph((u, v))
         g.edata["pbc_offset"] = torch.tensor(images)
         g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
         g.ndata["attr"] = tensor(Z)
