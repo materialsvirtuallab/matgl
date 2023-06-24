@@ -83,7 +83,6 @@ class SphericalBesselFunction:
         symbolic formula.
 
         Returns: list of symbolic functions
-
         """
         x = sympy.symbols("x")
         funcs = [sympy.expand_func(sympy.functions.special.bessel.jn(i, x)) for i in range(self.max_l + 1)]
@@ -140,6 +139,82 @@ class SphericalBesselFunction:
         return sqrt(2.0 / cutoff) * torch.sin(n * pi / cutoff * r) / r
 
 
+class RadialBesselFunction(nn.Module):
+    """Zeroth order bessel function of the first kind.
+
+    Implements the proposed 1D radial basis function in terms of zeroth order bessel function of the first kind with
+    increasing number of roots and a given cutoff.
+
+    Details are given in: https://arxiv.org/abs/2003.03123
+
+    This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel fucntions), but with
+    optional learnable frequencies.
+    """
+
+    def __init__(self, max_n: int, cutoff: float, learnable: bool = False):
+        """
+        Args:
+            max_n: int, max number of roots (including max_n)
+            cutoff: float, cutoff radius
+            learnable: bool, whether to learn the location of roots.
+        """
+        super().__init__()
+        self.max_n = max_n
+        self.inv_cutoff = 1 / cutoff
+        self.norm_const = (2 * self.inv_cutoff) ** 0.5
+
+        if learnable:
+            self.frequencies = torch.nn.Parameter(
+                data=torch.Tensor(pi * torch.arange(1, self.max_n + 1, dtype=torch.float32)),
+                requires_grad=True,
+            )
+        else:
+            self.register_buffer(
+                "frequencies",
+                pi * torch.arange(1, self.max_n + 1, dtype=torch.float32),
+            )
+
+    def forward(self, r: torch.Tensor) -> torch.Tensor:
+        r = r[:, None]  # (nEdges,1)
+        d_scaled = r * self.inv_cutoff
+        return self.norm_const * torch.sin(self.frequencies * d_scaled) / r
+
+
+class FourierExpansion(nn.Module):
+    """Fourier Expansion of a (periodic) scalar feature."""
+
+    def __init__(self, max_f: int = 5, interval: float = pi, scale_factor: float = 1.0, learnable: bool = False):
+        """Args:
+        max_f (int): the maximum frequency of the Fourier expansion.
+            Default = 5
+        interval (float): the interval of the Fourier expansion, such that functions
+            are orthonormal over [-interval, interval]. Default = pi
+        scale_factor (float): pre-factor to scale all values.
+            learnable (bool): whether to set the frequencies as learnable parameters
+            Default = False.
+        """
+        super().__init__()
+        self.max_f = max_f
+        self.interval = interval
+        self.scale_factor = scale_factor
+        # Initialize frequencies at canonical
+        if learnable:
+            self.frequencies = torch.nn.Parameter(
+                data=torch.arange(0, max_f + 1, dtype=torch.float32),
+                requires_grad=True,
+            )
+        else:
+            self.register_buffer("frequencies", torch.arange(0, max_f + 1, dtype=torch.float32))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Expand x into cos and sin functions."""
+        result = x.new_zeros(x.shape[0], 1 + 2 * self.max_f)
+        tmp = torch.outer(x, self.frequencies)
+        result[:, ::2] = torch.cos(tmp * pi / self.interval)
+        result[:, 1::2] = torch.sin(tmp[:, 1:] * pi / self.interval)
+        return result / self.interval * self.scale_factor
+
+
 class SphericalHarmonicsFunction:
     """Spherical Harmonics function."""
 
@@ -193,7 +268,6 @@ def _y00(theta, phi):
         phi: torch.Tensor, the polar angle
 
     Returns: `Y_0^0` results
-
     """
     return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
