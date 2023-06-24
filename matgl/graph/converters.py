@@ -2,12 +2,10 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
 from dgl.backend import tensor
-from pymatgen.core import Molecule, Structure
 import dgl
 
 
