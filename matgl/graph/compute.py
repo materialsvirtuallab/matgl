@@ -5,7 +5,7 @@ import dgl
 import numpy as np
 import torch
 
-from matgl.ext.pymatgen_latest import get_empty_graph
+from matgl.ext.pymatgen import get_empty_graph
 
 
 def compute_3body(g: dgl.DGLGraph):
