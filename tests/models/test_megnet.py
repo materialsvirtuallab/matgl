@@ -6,6 +6,8 @@ import torch as th
 
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
+from pymatgen.core import Structure, Lattice
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 
 
 class TestMEGNet:
@@ -29,6 +31,26 @@ class TestMEGNet:
         graph.edata["edge_attr"] = bond_expansion(graph.edata["bond_dist"])
         state = th.tensor(state)
         output = model(graph, graph.edata["edge_attr"], graph.ndata["node_type"], state)
+        assert [th.numel(output)] == [1]
+
+    def test_megnet_isolated_atom(self, graph_MoS):
+        structure = Structure(Lattice.cubic(10.0), ["Mo"], [[0.0, 0, 0]])
+        model = MEGNet(
+            dim_node_embedding=16,
+            dim_edge_embedding=100,
+            dim_state_embedding=2,
+            nblocks=3,
+            include_states=True,
+            hidden_layer_sizes_input=(64, 32),
+            hidden_layer_sizes_conv=(64, 64, 32),
+            activation_type="swish",
+            nlayers_set2set=4,
+            niters_set2set=3,
+            hidden_layer_sizes_output=(32, 16),
+            is_classification=True,
+        )
+
+        output = model.predict_structure(structure)
         assert [th.numel(output)] == [1]
 
     def test_save_load(self):

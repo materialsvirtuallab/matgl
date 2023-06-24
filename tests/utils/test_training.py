@@ -12,14 +12,16 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
 from matgl.utils.training import ModelLightningModule, PotentialLightningModule
+from pymatgen.core import Structure, Lattice
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestModelTrainer:
     def test_megnet_training(self, LiFePO4, BaNiO3):
-        structures = [LiFePO4] * 5 + [BaNiO3] * 5
-        label = [-2] * 5 + [-3] * 5  # Artificial dataset.
+        isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
+        structures = [LiFePO4] * 5 + [BaNiO3] * 5 + [isolated_atom]
+        label = [-2] * 5 + [-3] * 5 + [-1]  # Artificial dataset.
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels=label, label_name="label")
@@ -64,8 +66,10 @@ class TestModelTrainer:
         assert pred_BNO_energy < 0
 
     def test_m3gnet_training(self, LiFePO4, BaNiO3):
-        structures = [LiFePO4, BaNiO3] * 5
-        energies = [-2.0, -3.0] * 5
+        isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
+        two_body = Structure(Lattice.cubic(10.0), ["Li", "Li"], [[0, 0, 0], [0.2, 0, 0]])
+        structures = [LiFePO4, BaNiO3] * 5 + [isolated_atom, two_body]
+        energies = [-2.0, -3.0] * 5 + [-1.0, -1.5]
         forces = [np.zeros((len(s), 3)).tolist() for s in structures]
         stresses = [np.zeros((3, 3)).tolist()] * len(structures)
         element_types = get_element_list([LiFePO4, BaNiO3])

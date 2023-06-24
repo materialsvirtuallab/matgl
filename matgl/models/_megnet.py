@@ -218,13 +218,13 @@ class MEGNet(nn.Module, IOMixIn):
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        if (g.in_degrees().cpu().numpy() < 2).all():
+        if (g.in_degrees().cpu().numpy() < 1).all():
             g2 = get_one_graph(g)
             g = dgl.batch([g, g2])
             state_feats = torch.vstack([state_feats, state_feats])
             bond_vec, bond_dist = compute_pair_vector_and_distance(g)
             g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-            return self(g, g.edara["edge_attr"], g.ndata["node_type"], state_feats).detach()
+            return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats)[:-1].detach()
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
         return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()

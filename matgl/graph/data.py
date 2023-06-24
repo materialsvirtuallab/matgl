@@ -160,8 +160,9 @@ class MEGNetDataset(DGLDataset):
         for idx in trange(num_graphs):
             structure = self.structures[idx]
             graph, state_attr = self.converter.get_graph(structure)
-            bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-            graph.edata["edge_attr"] = bond_expansion(bond_dist)
+            if (graph.in_degrees().cpu().numpy() > 0).any():
+                bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
+                graph.edata["edge_attr"] = bond_expansion(bond_dist)
             self.graphs.append(graph)
             self.state_attr.append(state_attr)
         if self.graph_labels is not None:
@@ -255,13 +256,15 @@ class M3GNetDataset(DGLDataset):
             graph, state_attr = self.converter.get_graph(structure)
             self.graphs.append(graph)
             self.state_attr.append(state_attr)
-            bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-            graph.edata["bond_vec"] = bond_vec
-            graph.edata["bond_dist"] = bond_dist
+            if (graph.in_degrees().cpu().numpy() > 0).any():
+                bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
+                graph.edata["bond_vec"] = bond_vec
+                graph.edata["bond_dist"] = bond_dist
             line_graph = create_line_graph(graph, self.threebody_cutoff)
-            line_graph.ndata.pop("bond_vec")
-            line_graph.ndata.pop("bond_dist")
-            line_graph.ndata.pop("pbc_offset")
+            if line_graph.num_nodes() > 0:
+                line_graph.ndata.pop("bond_vec")
+                line_graph.ndata.pop("bond_dist")
+                line_graph.ndata.pop("pbc_offset")
             self.line_graphs.append(line_graph)
         if self.graph_labels is not None:
             self.state_attr = torch.tensor(self.graph_labels).long()  # type: ignore

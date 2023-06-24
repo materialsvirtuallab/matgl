@@ -14,11 +14,12 @@ from matgl.graph.converters import GraphConverter
 
 def get_empty_graph(n_nodes: int):
     """
-    Get the dgl graph without edges (bond)
+    Get the dgl graph without edges (bond).
+
     Args:
         n_nodes: number of nodes
     Returns:
-        g: dgl.graph
+        g: dgl.graph.
     """
     g = dgl.graph([], num_nodes=n_nodes)
     return g
@@ -26,11 +27,12 @@ def get_empty_graph(n_nodes: int):
 
 def get_one_graph(g: dgl.DGLGraph):
     """
-    Get the working dgl graph including bonds and angles
+    Get the working dgl graph including bonds and angles.
+
     Args:
         g: DGL graph
     Returns:
-        g_new: dgl.graph
+        g_new: dgl.graph.
     """
     node_type = g.ndata["node_type"][0]
     lattice = [[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]]
@@ -39,11 +41,11 @@ def get_one_graph(g: dgl.DGLGraph):
 
     g_new = dgl.graph(([0, 0, 1, 1], [1, 2, 0, 2]))
     g_new.ndata["pos"] = torch.tensor([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.5, 0.866, 0.0]], dtype=torch.float64)
-    g_new.edata["pbc_offset"] = torch.tensor([[0, 0, 0] for i in range(g_new.num_edges())], dtype=torch.float64)
     g_new.ndata["attr"] = node_attr.repeat(3, 1)
     g_new.ndata["volume"] = volume.repeat(3)
     g_new.ndata["node_type"] = node_type.repeat(3)
     g_new.edata["lattice"] = tensor([[lattice] for i in range(g_new.num_edges())], dtype=torch.float64)
+    g_new.edata["pbc_offset"] = torch.tensor([[0, 0, 0] for i in range(g_new.num_edges())], dtype=torch.float64)
     return g_new
 
 
