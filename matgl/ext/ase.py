@@ -80,7 +80,6 @@ class Atoms2Graph(GraphConverter):
         Z = np.array(
             [np.eye(len(element_types))[element_types.index(i.symbol)] for i in atoms]
         )
-        atomic_number = np.array(atoms.get_atomic_numbers())
         lattice_matrix = np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float)
         volume = atoms.get_volume()
         cart_coords = np.ascontiguousarray(np.array(atoms.get_positions()), dtype=float)

@@ -4,9 +4,11 @@ from __future__ import annotations
 import abc
 
 import numpy as np
-import torch
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch, dgl
+
 from dgl.backend import tensor
-import dgl
 
 
 class GraphConverter(metaclass=abc.ABCMeta):
@@ -31,7 +33,9 @@ class GraphConverter(metaclass=abc.ABCMeta):
         cart_coords,
         volume=None,
     ) -> tuple[dgl.DGLGraph, list]:
-        """Args:
+        """
+
+        Args:
             structure: Input crystals or molecule of pymatgen structure or molecule types.
             src_id: site indices for starting point of bonds.
             dst_id: site indices for destination point of bonds.
@@ -43,6 +47,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
             volume: Volume of the structure.
         Returns:
             DGLGraph object, state_attr
+
         """
         u, v = tensor(src_id), tensor(dst_id)
         g = dgl.graph((u, v))
