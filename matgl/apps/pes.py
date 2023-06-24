@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import dgl
 import torch
 from torch import nn
 from torch.autograd import grad
@@ -13,7 +14,6 @@ from matgl.layers import AtomRef
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
-    import dgl
     import numpy as np
 
 
