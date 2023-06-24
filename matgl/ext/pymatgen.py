@@ -5,7 +5,6 @@ import dgl
 import numpy as np
 import scipy.sparse as sp
 import torch
-from dgl.backend import tensor
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 

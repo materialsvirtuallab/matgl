@@ -8,9 +8,7 @@ import numpy as np
 import torch
 from dgl.backend import tensor
 from pymatgen.core import Molecule, Structure
-from pymatgen.optimization.neighbors import find_points_in_spheres
-if TYPE_CHECKING:
-    import dgl
+import dgl
 
 
 class GraphConverter(metaclass=abc.ABCMeta):

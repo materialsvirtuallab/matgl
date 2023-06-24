@@ -318,8 +318,8 @@ class M3GNetDataset(DGLDataset):
             self.line_graphs[idx],
             self.state_attr[idx],
             self.energies[idx],
-            torch.tensor(self.forces[idx]),
-            torch.tensor(self.stresses[idx]),  # type: ignore
+            torch.tensor(self.forces[idx]).float(),
+            torch.tensor(self.stresses[idx]).float(),  # type: ignore
         )
 
     def __len__(self):

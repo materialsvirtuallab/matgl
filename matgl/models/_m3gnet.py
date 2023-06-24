@@ -229,9 +229,9 @@ class M3GNet(nn.Module, IOMixIn):
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
             valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
-            l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-            l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+            l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body][l_g.ndata["three_body_id"]]
+            l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body][l_g.ndata["three_body_id"]]
+            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body][l_g.ndata["three_body_id"]]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
