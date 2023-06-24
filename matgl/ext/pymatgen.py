@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import dgl
+
 import numpy as np
 import scipy.sparse as sp
 import torch
