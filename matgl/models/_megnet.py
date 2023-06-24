@@ -9,6 +9,7 @@ generalization. For more details on MEGNet, please refer to::
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import dgl
 import torch
@@ -17,9 +18,11 @@ from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.graph.converters import GraphConverter
 from matgl.layers import MLP, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock, SoftExponential, SoftPlus2
 from matgl.utils.io import IOMixIn
+
+if TYPE_CHECKING:
+    from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__file__)
 
@@ -92,16 +95,17 @@ class MEGNet(nn.Module, IOMixIn):
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_input]
         state_dims = [dim_state_embedding, *hidden_layer_sizes_input]
 
+        activation: nn.Module
         if activation_type == "swish":
-            activation = nn.SiLU()  # type: ignore
+            activation = nn.SiLU()
         elif activation_type == "sigmoid":
-            activation = nn.Sigmoid()  # type: ignore
+            activation = nn.Sigmoid()
         elif activation_type == "tanh":
-            activation = nn.Tanh()  # type: ignore
+            activation = nn.Tanh()
         elif activation_type == "softplus2":
-            activation = SoftPlus2()  # type: ignore
+            activation = SoftPlus2()
         elif activation_type == "softexp":
-            activation = SoftExponential()  # type: ignore
+            activation = SoftExponential()
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 

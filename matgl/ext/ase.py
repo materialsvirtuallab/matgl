@@ -6,6 +6,7 @@ import contextlib
 import io
 import pickle
 import sys
+from typing import TYPE_CHECKING
 
 import dgl
 import numpy as np
@@ -13,7 +14,6 @@ import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
-from ase.io import Trajectory
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.optimize.bfgs import BFGS
@@ -21,16 +21,20 @@ from ase.optimize.bfgslinesearch import BFGSLineSearch
 from ase.optimize.fire import FIRE
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
-from ase.optimize.optimize import Optimizer
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from dgl.backend import tensor
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
-from matgl.apps.pes import Potential
 from matgl.ext.pymatgen import get_empty_graph
 from matgl.graph.converters import GraphConverter
+
+if TYPE_CHECKING:
+    from ase.io import Trajectory
+    from ase.optimize.optimize import Optimizer
+
+    from matgl.apps.pes import Potential
 
 OPTIMIZERS = {
     "FIRE": FIRE,

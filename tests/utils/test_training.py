@@ -58,6 +58,10 @@ class TestModelTrainer:
         trainer = pl.Trainer(max_epochs=10, accelerator="cpu" if torch.backends.mps.is_available() else "auto")
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
+        results = trainer.test(dataloaders=test_loader)
+        assert "test_Total_Loss" in results[0]
+
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
@@ -104,6 +108,7 @@ class TestModelTrainer:
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=10, accelerator="cpu" if torch.backends.mps.is_available() else "auto")
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 

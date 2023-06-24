@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from matgl.layers._activations import SoftExponential, SoftPlus2
 from matgl.layers._atom_ref import AtomRef
-from matgl.layers._basis import GaussianExpansion, SphericalBesselWithHarmonics
+from matgl.layers._basis import FourierExpansion, GaussianExpansion, RadialBesselFunction, SphericalBesselWithHarmonics
 from matgl.layers._bond import BondExpansion
 from matgl.layers._core import MLP, EdgeSet2Set, GatedMLP
 from matgl.layers._embedding import EmbeddingBlock

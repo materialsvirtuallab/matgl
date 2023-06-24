@@ -1,8 +1,9 @@
 """Implementation of Interatomic Potentials."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import dgl
-import numpy as np
 import torch
 from torch import nn
 from torch.autograd import grad
@@ -11,6 +12,9 @@ from matgl.ext.pymatgen import get_one_graph
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
 from matgl.layers import AtomRef
 from matgl.utils.io import IOMixIn
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class Potential(nn.Module, IOMixIn):
