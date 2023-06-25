@@ -56,7 +56,12 @@ class Molecule2Graph(GraphConverter):
         natoms = len(mol)
         R = mol.cart_coords
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in mol])
+        Z = np.array(
+            [
+                np.eye(len(element_types))[element_types.index(site.specie.symbol)]
+                for site in mol
+            ]
+        )
         np.array([site.specie.Z for site in mol])
         weight = mol.composition.weight / len(mol)
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
@@ -65,7 +70,7 @@ class Molecule2Graph(GraphConverter):
         nbonds /= natoms
         adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
         adj = adj.tocoo()
-        g, _ = super().get_graph(
+        g, _ = super().get_graph_from_processed_structure(
             structure=mol,
             src_id=adj.row,
             dst_id=adj.col,
@@ -107,8 +112,15 @@ class Structure2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
-        lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
+        Z = np.array(
+            [
+                np.eye(len(element_types))[element_types.index(site.specie.symbol)]
+                for site in structure
+            ]
+        )
+        lattice_matrix = np.ascontiguousarray(
+            np.array(structure.lattice.matrix), dtype=float
+        )
         volume = structure.volume
         cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
         src_id, dst_id, images, bond_dist = find_points_in_spheres(
@@ -126,7 +138,7 @@ class Structure2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        g, state_attr = super().get_graph(
+        g, state_attr = super().get_graph_from_processed_structure(
             structure,
             src_id,
             dst_id,

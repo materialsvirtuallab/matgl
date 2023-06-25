@@ -66,7 +66,7 @@ def compute_3body(g: dgl.DGLGraph):
     l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
     l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
-    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64)
+    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64) # type: ignore
     return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
 
 
