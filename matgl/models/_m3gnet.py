@@ -10,13 +10,11 @@ please refer to::
 """
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING
-
 import dgl
+import logging
+import numpy as np
 import torch
 from torch import nn
-import numpy as np
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (

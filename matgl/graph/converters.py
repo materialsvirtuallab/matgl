@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import abc
 
-import numpy as np
-
-import torch
 import dgl
+import numpy as np
+import torch
+
 from dgl.backend import tensor
 
 
@@ -31,7 +31,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         element_types,
         cart_coords,
     ) -> tuple[dgl.DGLGraph, list]:
-        """
+        """Construct a dgl graph from processed structure and bond information.
 
         Args:
             structure: Input crystals or molecule of pymatgen structure or molecule types.
@@ -42,6 +42,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
             Z: Atomic number information of all atoms in the structure.
             element_types: Element symbols of all atoms in the structure.
             cart_coords: Cartisian coordinates of all atoms in the structure.
+
         Returns:
             DGLGraph object, state_attr
 

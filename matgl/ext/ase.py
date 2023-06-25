@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import contextlib
 import io
+import numpy as np
 import pickle
 import sys
+import torch
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import dgl
 
-import torch
 
-import numpy as np
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
