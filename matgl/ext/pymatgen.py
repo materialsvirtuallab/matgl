@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import dgl, torch
 
+if TYPE_CHECKING:
+    import dgl
+
+import torch
 import numpy as np
 import scipy.sparse as sp
 from pymatgen.core import Element, Molecule, Structure
@@ -54,12 +56,7 @@ class Molecule2Graph(GraphConverter):
         natoms = len(mol)
         R = mol.cart_coords
         element_types = self.element_types
-        Z = np.array(
-            [
-                np.eye(len(element_types))[element_types.index(site.specie.symbol)]
-                for site in mol
-            ]
-        )
+        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in mol])
         np.array([site.specie.Z for site in mol])
         weight = mol.composition.weight / len(mol)
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
@@ -77,7 +74,6 @@ class Molecule2Graph(GraphConverter):
             Z=Z,
             element_types=element_types,
             cart_coords=R,
-            volume=None
         )
         state_attr = [weight, nbonds]
         return g, state_attr
@@ -111,15 +107,8 @@ class Structure2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        Z = np.array(
-            [
-                np.eye(len(element_types))[element_types.index(site.specie.symbol)]
-                for site in structure
-            ]
-        )
-        lattice_matrix = np.ascontiguousarray(
-            np.array(structure.lattice.matrix), dtype=float
-        )
+        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
+        lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
         volume = structure.volume
         cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
         src_id, dst_id, images, bond_dist = find_points_in_spheres(
@@ -137,7 +126,7 @@ class Structure2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        return super().get_graph(
+        g, state_attr = super().get_graph(
             structure,
             src_id,
             dst_id,
@@ -146,5 +135,7 @@ class Structure2Graph(GraphConverter):
             Z,
             element_types,
             cart_coords,
-            volume,
         )
+        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
+        return g, state_attr
+
