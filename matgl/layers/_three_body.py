@@ -17,9 +17,7 @@ if TYPE_CHECKING:
 class ThreeBodyInteractions(nn.Module):
     """Include 3D interactions to the bond update."""
 
-    def __init__(
-        self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs
-    ):
+    def __init__(self, update_network_atom: nn.Module, update_network_bond: nn.Module, **kwargs):
         """Init ThreeBodyInteractions.
 
         Args:
@@ -51,9 +49,7 @@ class ThreeBodyInteractions(nn.Module):
             node_feat: node features
             edge_feat: edge features.
         """
-        end_atom_index = torch.gather(
-            graph.edges()[1], 0, line_graph.edges()[1].to(torch.int64)
-        )
+        end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1].to(torch.int64))
         atoms = self.update_network_atom(node_feat)
         end_atom_index = torch.unsqueeze(end_atom_index, 1)
         atoms = torch.squeeze(atoms[end_atom_index])

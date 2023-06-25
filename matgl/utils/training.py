@@ -102,7 +102,9 @@ class MatglLightningModuleMixin:
             )
         else:
             scheduler = self.scheduler
-        return [optimizer,], [
+        return [
+            optimizer,
+        ], [
             scheduler,
         ]
 
