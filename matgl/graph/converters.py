@@ -6,18 +6,11 @@ import abc
 import dgl
 import numpy as np
 import torch
-
 from dgl.backend import tensor
 
 
 class GraphConverter(metaclass=abc.ABCMeta):
     """Abstract base class for converters from input crystals/molecules to graphs."""
-
-    # def __init__(
-    #     self,
-    #     element_types: tuple[str, ...],
-    #     cutoff: float = 5.0,
-    # ):
 
     @abc.abstractmethod
     def get_graph(

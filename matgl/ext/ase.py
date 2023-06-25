@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import contextlib
 import io
-import numpy as np
 import pickle
 import sys
-import torch
 from typing import TYPE_CHECKING
+
+import numpy as np
+import torch
 
 if TYPE_CHECKING:
     import dgl
-
 
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes

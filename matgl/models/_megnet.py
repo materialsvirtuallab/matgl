@@ -17,7 +17,8 @@ from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.layers import MLP, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock, SoftExponential, SoftPlus2
+from matgl.layers import (MLP, BondExpansion, EdgeSet2Set, EmbeddingBlock,
+                          MEGNetBlock, SoftExponential, SoftPlus2)
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:

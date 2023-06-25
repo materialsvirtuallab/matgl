@@ -13,7 +13,8 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
-from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
+from matgl.graph.compute import (compute_pair_vector_and_distance,
+                                 create_line_graph)
 from matgl.layers import BondExpansion
 
 if TYPE_CHECKING:

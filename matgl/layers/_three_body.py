@@ -8,11 +8,8 @@ import numpy as np
 import torch
 from torch import nn
 
-from matgl.utils.maths import (
-    _block_repeat,
-    get_segment_indices_from_n,
-    scatter_sum,
-)
+from matgl.utils.maths import (_block_repeat, get_segment_indices_from_n,
+                               scatter_sum)
 
 if TYPE_CHECKING:
     import dgl

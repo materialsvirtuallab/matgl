@@ -10,33 +10,22 @@ please refer to::
 """
 from __future__ import annotations
 
-import dgl
 import logging
+from typing import TYPE_CHECKING
+
+import dgl
 import numpy as np
 import torch
 from torch import nn
-from typing import TYPE_CHECKING
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
-from matgl.graph.compute import (
-    compute_pair_vector_and_distance,
-    compute_theta_and_phi,
-    create_line_graph,
-)
-from matgl.layers import (
-    MLP,
-    BondExpansion,
-    EmbeddingBlock,
-    GatedMLP,
-    M3GNetBlock,
-    ReduceReadOut,
-    Set2SetReadOut,
-    SoftExponential,
-    SoftPlus2,
-    SphericalBesselWithHarmonics,
-    ThreeBodyInteractions,
-    WeightedReadOut,
-)
+from matgl.graph.compute import (compute_pair_vector_and_distance,
+                                 compute_theta_and_phi, create_line_graph)
+from matgl.layers import (MLP, BondExpansion, EmbeddingBlock, GatedMLP,
+                          M3GNetBlock, ReduceReadOut, Set2SetReadOut,
+                          SoftExponential, SoftPlus2,
+                          SphericalBesselWithHarmonics, ThreeBodyInteractions,
+                          WeightedReadOut)
 from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
 
