@@ -1,11 +1,14 @@
 """Interface with pymatgen objects."""
 from __future__ import annotations
 
-import dgl
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import dgl
+
 import numpy as np
 import scipy.sparse as sp
 import torch
-from dgl.backend import tensor
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
@@ -62,17 +65,17 @@ class Molecule2Graph(GraphConverter):
         nbonds /= natoms
         adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
         adj = adj.tocoo()
-        u, v = tensor(adj.row), tensor(adj.col)
-        g = dgl.graph((u, v))
-        g = dgl.to_bidirected(g)
-        g.ndata["pos"] = tensor(R)
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in mol]))
-        g.edata["pbc_offset"] = torch.zeros(g.num_edges(), 3)
-        g.edata["lattice"] = torch.zeros(g.num_edges(), 3, 3)
+        g, _ = super().get_graph_from_processed_structure(
+            structure=mol,
+            src_id=adj.row,
+            dst_id=adj.col,
+            images=torch.zeros(len(adj.row), 3),
+            lattice_matrix=torch.zeros(1, 3, 3),
+            Z=Z,
+            element_types=element_types,
+            cart_coords=R,
+        )
         state_attr = [weight, nbonds]
-        g.edata["pbc_offshift"] = torch.zeros(g.num_edges(), 3)
-
         return g, state_attr
 
 
@@ -105,7 +108,6 @@ class Structure2Graph(GraphConverter):
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
         Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
-        atomic_number = np.array([site.specie.Z for site in structure])
         lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
         volume = structure.volume
         cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
@@ -124,13 +126,15 @@ class Structure2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        u, v = tensor(src_id), tensor(dst_id)
-        g = dgl.graph((u, v))
-        g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor(np.stack([lattice_matrix for _ in range(g.num_edges())]))
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
-        g.ndata["pos"] = tensor(cart_coords)
-        g.ndata["volume"] = tensor([volume for _ in range(atomic_number.shape[0])])
-        state_attr = [0.0, 0.0]
+        g, state_attr = super().get_graph_from_processed_structure(
+            structure,
+            src_id,
+            dst_id,
+            images,
+            [lattice_matrix],
+            Z,
+            element_types,
+            cart_coords,
+        )
+        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
         return g, state_attr
