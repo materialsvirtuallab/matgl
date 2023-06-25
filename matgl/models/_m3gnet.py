@@ -15,6 +15,7 @@ import logging
 import numpy as np
 import torch
 from torch import nn
+from typing import TYPE_CHECKING
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (
