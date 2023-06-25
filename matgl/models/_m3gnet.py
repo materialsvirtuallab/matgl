@@ -19,13 +19,25 @@ import torch
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
-from matgl.graph.compute import (compute_pair_vector_and_distance,
-                                 compute_theta_and_phi, create_line_graph)
-from matgl.layers import (MLP, BondExpansion, EmbeddingBlock, GatedMLP,
-                          M3GNetBlock, ReduceReadOut, Set2SetReadOut,
-                          SoftExponential, SoftPlus2,
-                          SphericalBesselWithHarmonics, ThreeBodyInteractions,
-                          WeightedReadOut)
+from matgl.graph.compute import (
+    compute_pair_vector_and_distance,
+    compute_theta_and_phi,
+    create_line_graph,
+)
+from matgl.layers import (
+    MLP,
+    BondExpansion,
+    EmbeddingBlock,
+    GatedMLP,
+    M3GNetBlock,
+    ReduceReadOut,
+    Set2SetReadOut,
+    SoftExponential,
+    SoftPlus2,
+    SphericalBesselWithHarmonics,
+    ThreeBodyInteractions,
+    WeightedReadOut,
+)
 from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
 
@@ -238,15 +250,11 @@ class M3GNet(nn.Module, IOMixIn):
         if l_g is None:
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
-            valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
             three_body_id = np.unique(np.concatenate(l_g.edges()))
-            l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body][three_body_id]
-            l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body][
-                three_body_id
-            ]
-            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body][
-                three_body_id
-            ]
+            max_three_body_id = max(np.concatenate([three_body_id + 1, [0]]))
+            l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
+            l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
+            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
