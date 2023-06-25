@@ -3,9 +3,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    import dgl
-
 import numpy as np
 import scipy.sparse as sp
 import torch
@@ -13,6 +10,9 @@ from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 from matgl.graph.converters import GraphConverter
+
+if TYPE_CHECKING:
+    import dgl
 
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]:

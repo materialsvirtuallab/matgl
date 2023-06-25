@@ -10,10 +10,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
-
-if TYPE_CHECKING:
-    import dgl
-
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
@@ -32,6 +28,7 @@ from pymatgen.optimization.neighbors import find_points_in_spheres
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
+    import dgl
     from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
 
