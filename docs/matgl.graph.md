@@ -100,10 +100,42 @@ Abstract base class for converters from input crystals/molecules to graphs.
 
 
 #### _abstract_ get_graph(structure)
+Args:
+structure: Input crystals or molecule.
+
+Returns:
+DGLGraph object, state_attr
+
+
+#### get_graph_from_processed_structure(structure, src_id, dst_id, images, lattice_matrix, Z, element_types, cart_coords)
+Construct a dgl graph from processed structure and bond information.
+
 
 * **Parameters**
 
-    **structure** – Input crystals or molecule.
+
+    * **structure** – Input crystals or molecule of pymatgen structure or molecule types.
+
+
+    * **src_id** – site indices for starting point of bonds.
+
+
+    * **dst_id** – site indices for destination point of bonds.
+
+
+    * **images** – the periodic image offsets for the bonds.
+
+
+    * **lattice_matrix** – lattice information of the structure.
+
+
+    * **Z** – Atomic number information of all atoms in the structure.
+
+
+    * **element_types** – Element symbols of all atoms in the structure.
+
+
+    * **cart_coords** – Cartisian coordinates of all atoms in the structure.
 
 
 
@@ -122,15 +154,33 @@ Bases: `DGLDataset`
 
 Create a dataset including dgl graphs.
 
-Args:
-structures: Pymatgen strutcure
-energies: Target energies
-forces: Target forces
-stresses: Target stresses
-converter: dgl graph converter
-threebody_cutoff: cutoff for three body
-name: name of dataset
-graph_labels: state attributes.
+
+* **Parameters**
+
+
+    * **structures** – Pymatgen structure
+
+
+    * **energies** – Target energies
+
+
+    * **forces** – Target forces
+
+
+    * **stresses** – Target stresses
+
+
+    * **converter** – dgl graph converter
+
+
+    * **threebody_cutoff** – cutoff for three body
+
+
+    * **name** – name of dataset
+
+
+    * **graph_labels** – state attributes.
+
 
 
 #### has_cache(filename: str = 'dgl_graph.bin')
@@ -173,17 +223,39 @@ Bases: `DGLDataset`
 
 Create a dataset including dgl graphs.
 
-Args:
-structures: Pymatgen strutcure
-labels: property values
-label_name: label name
-converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
-initial: initial distance for Gaussian expansions
-final: final distance for Gaussian expansions
-num_centers: number of Gaussian functions
-width: width of Gaussian functions
-name: Name of dataset
-graph_labels: graph attributes either integers and floating point numbers.
+
+* **Parameters**
+
+
+    * **structures** – Pymatgen structure
+
+
+    * **labels** – property values
+
+
+    * **label_name** – label name
+
+
+    * **converter** – Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
+
+
+    * **initial** – initial distance for Gaussian expansions
+
+
+    * **final** – final distance for Gaussian expansions
+
+
+    * **num_centers** – number of Gaussian functions
+
+
+    * **width** – width of Gaussian functions
+
+
+    * **name** – Name of dataset
+
+
+    * **graph_labels** – graph attributes either integers and floating point numbers.
+
 
 
 #### has_cache(filename: str = 'dgl_graph.bin')
