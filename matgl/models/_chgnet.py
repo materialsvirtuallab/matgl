@@ -85,7 +85,9 @@ class CHGNet(nn.Module, IOMixIn):
         elif activation_type == "softexp":
             activation = SoftExponential()  # type: ignore
         else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
+            raise Exception(
+                "Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp"
+            )
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES  # make sure these match CHGNet
@@ -104,24 +106,24 @@ class CHGNet(nn.Module, IOMixIn):
         self.threebody_bond_weights = nn.Linear(max_n, dim_edge_embedding, bias=False)
 
         # embedding block for atom, bond, angle, and optional state features
+        self.state_embedding = nn.Embedding(dim_state_types, dim_state_feats) if include_state else None
         self.atom_embedding = nn.Embedding(len(element_types), dim_node_embedding)
         # TODO add option for activation
         self.bond_embedding = MLP([max_n, dim_edge_embedding], activation=activation, activate_last=False)
         self.angle_embedding = MLP([max_f, dim_angle_embedding], activation=activation, activate_last=False)
-        self.state_embedding = nn.Embedding(dim_state_types, dim_state_feats) if include_state else None
+
+        # operations involving the graph (i.e. atom graph) to update atom and bond features
+        self.atom_graph_layers = nn.ModuleList(
+            {None for _ in range(nblocks)}  # implement the AtomConvolution and BondUpdate
+        )
 
         # operations involving the line graph (i.e. bond graph) to update bond and angle features
-        self.three_body_interactions = nn.ModuleList(
+        self.bond_graph_layers = nn.ModuleList(
             {
                 None  # implement the BondConvolution and AngleUpdate
                 # in here calculate the
                 for _ in range(nblocks - 1)
             }
-        )
-
-        # operations involving the graph (i.e. atom graph) to update atom and bond features
-        self.graph_layers = nn.ModuleList(
-            {None for _ in range(nblocks)}  # implement the AtomConvolution and BondUpdate
         )
 
         self.magmom_readout = nn.Linear(dim_node_embedding, 1)
