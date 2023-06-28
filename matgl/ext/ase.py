@@ -8,7 +8,6 @@ import pickle
 import sys
 from typing import TYPE_CHECKING
 
-import dgl
 import numpy as np
 import torch
 from ase import Atoms, units
@@ -22,7 +21,6 @@ from ase.optimize.fire import FIRE
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
-from dgl.backend import tensor
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
@@ -30,6 +28,7 @@ from pymatgen.optimization.neighbors import find_points_in_spheres
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
+    import dgl
     from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
 
@@ -79,7 +78,6 @@ class Atoms2Graph(GraphConverter):
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
         Z = np.array([np.eye(len(element_types))[element_types.index(i.symbol)] for i in atoms])
-        atomic_number = np.array(atoms.get_atomic_numbers())
         lattice_matrix = np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float)
         volume = atoms.get_volume()
         cart_coords = np.ascontiguousarray(np.array(atoms.get_positions()), dtype=float)
@@ -98,16 +96,17 @@ class Atoms2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        u, v = tensor(src_id), tensor(dst_id)
-        g = dgl.graph((u, v))
-        g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["lattice"] = tensor(np.stack([lattice_matrix for _ in range(g.num_edges())]))
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(i.symbol)] for i in atoms]))
-        g.ndata["pos"] = tensor(cart_coords)
-        g.ndata["volume"] = tensor([volume for i in range(atomic_number.shape[0])])
-        state_attr = [0.0, 0.0]
-        g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix))
+        g, state_attr = super().get_graph_from_processed_structure(
+            AseAtomsAdaptor().get_structure(atoms),
+            src_id,
+            dst_id,
+            images,
+            [lattice_matrix],
+            Z,
+            element_types,
+            cart_coords,
+        )
+        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
         return g, state_attr
 
 

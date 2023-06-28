@@ -62,10 +62,12 @@ def compute_3body(g: dgl.DGLGraph):
 
     src_id, dst_id = (triple_bond_indices[:, 0], triple_bond_indices[:, 1])
     l_g = dgl.graph((src_id, dst_id))
-    l_g.ndata["bond_dist"] = g.edata["bond_dist"]
-    l_g.ndata["bond_vec"] = g.edata["bond_vec"]
-    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"]
-    l_g.ndata["n_triple_ij"] = n_triple_ij
+    three_body_id = np.unique(triple_bond_indices)
+    max_three_body_id = max(np.concatenate([three_body_id + 1, [0]]))
+    l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
+    l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
+    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
+    l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
     n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64)  # type: ignore
     return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
 
@@ -126,13 +128,11 @@ def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
     g_unbatched = dgl.unbatch(g_batched)
     l_g_unbatched = []
     for g in g_unbatched:
-        if g.edges()[0].size(dim=0) > 0:
-            graph_with_three_body = remove_edges_by_features(
-                g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff
-            )
-        if graph_with_three_body.edata["bond_dist"].size(dim=0) > 0:
-            l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
-            l_g_unbatched.append(l_g)
+        graph_with_three_body = remove_edges_by_features(
+            g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff
+        )
+        l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
+        l_g_unbatched.append(l_g)
     l_g_batched = dgl.batch(l_g_unbatched)
     return l_g_batched
 

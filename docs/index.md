@@ -21,13 +21,13 @@ nav_order: 1
 ## Introduction
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
-natural representation for a collection of atoms. Graph deep learning models have been shown to consistently deliver 
+natural representation for a collection of atoms. Graph deep learning models have been shown to consistently deliver
 exceptional performance as surrogate models for the prediction of materials properties.
 
-MatGL is built on the [Deep Graph Library (DGL)][dgl] and PyTorch, with suitable adaptations for materials-specific 
-applications. The goal is for MatGL to serve as an extensible platform to develop and share materials graph deep 
+MatGL is built on the [Deep Graph Library (DGL)][dgl] and PyTorch, with suitable adaptations for materials-specific
+applications. The goal is for MatGL to serve as an extensible platform to develop and share materials graph deep
 learning models. For the initial release, we have re-implemented the [MatErials 3-body Graph Network (M3GNet)]
-[m3gnet] and its predecessor, [MEGNet][megnet], which were originally implemented in Tensorflow, to improve the 
+[m3gnet] and its predecessor, [MEGNet][megnet], which were originally implemented in Tensorflow, to improve the
 usability, extensibility and scalability of these models. Here are some key improvements over the TF implementations:
 
 - A more intuitive API and class structure based on DGL.
@@ -49,8 +49,8 @@ Major milestones are summarized below. Please refer to the [changelog] for detai
 
 ## Current Architectures
 
-Here, we summarize the currently implemented architectures in MatGL. It should be stressed that this is by no means 
-an exhaustive list, and we expect new architectures to be added by the core MatGL team as well as other contributors 
+Here, we summarize the currently implemented architectures in MatGL. It should be stressed that this is by no means
+an exhaustive list, and we expect new architectures to be added by the core MatGL team as well as other contributors
 in future.
 
 <div style="float: left; padding: 10px; width: 300px">

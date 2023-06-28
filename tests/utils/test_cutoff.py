@@ -14,7 +14,8 @@ def test_cosine():
     assert_close(
         three_cutoff,
         torch.tensor([0.8536, 0.7270, 0.5782, 0.4218, 0.2730, 0.1464, 0.0545, 0.0062, 0.0000, 0.0000, 0.0000]),
-        atol=1e-4, rtol=0.0
+        atol=1e-4,
+        rtol=0.0,
     )
 
 
@@ -25,10 +26,9 @@ def test_polymonial_cutoff():
     envelope = polynomial_cutoff(r, three_body_cutoff)
     assert_close(
         envelope,
-        torch.tensor(
-            [0.8965, 0.7648, 0.5931, 0.4069, 0.2352, 0.1035, 0.0266, 0.0012, 0.0000, 0.0000, 0.0000]
-        ),
-        atol=1e-4, rtol=0.0
+        torch.tensor([0.8965, 0.7648, 0.5931, 0.4069, 0.2352, 0.1035, 0.0266, 0.0012, 0.0000, 0.0000, 0.0000]),
+        atol=1e-4,
+        rtol=0.0,
     )
 
     # test behaviour smoothing a SBF with cutoff

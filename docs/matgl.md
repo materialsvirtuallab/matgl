@@ -160,6 +160,9 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
             * [`GraphConverter.get_graph()`](matgl.graph.md#matgl.graph.converters.GraphConverter.get_graph)
 
 
+            * [`GraphConverter.get_graph_from_processed_structure()`](matgl.graph.md#matgl.graph.converters.GraphConverter.get_graph_from_processed_structure)
+
+
     * [matgl.graph.data module](matgl.graph.md#module-matgl.graph.data)
 
 
@@ -249,6 +252,15 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
     * [matgl.layers._basis module](matgl.layers.md#module-matgl.layers._basis)
 
 
+        * [`FourierExpansion`](matgl.layers.md#matgl.layers._basis.FourierExpansion)
+
+
+            * [`FourierExpansion.forward()`](matgl.layers.md#matgl.layers._basis.FourierExpansion.forward)
+
+
+            * [`FourierExpansion.training`](matgl.layers.md#matgl.layers._basis.FourierExpansion.training)
+
+
         * [`GaussianExpansion`](matgl.layers.md#matgl.layers._basis.GaussianExpansion)
 
 
@@ -259,6 +271,15 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
             * [`GaussianExpansion.training`](matgl.layers.md#matgl.layers._basis.GaussianExpansion.training)
+
+
+        * [`RadialBesselFunction`](matgl.layers.md#matgl.layers._basis.RadialBesselFunction)
+
+
+            * [`RadialBesselFunction.forward()`](matgl.layers.md#matgl.layers._basis.RadialBesselFunction.forward)
+
+
+            * [`RadialBesselFunction.training`](matgl.layers.md#matgl.layers._basis.RadialBesselFunction.training)
 
 
         * [`SphericalBesselFunction`](matgl.layers.md#matgl.layers._basis.SphericalBesselFunction)

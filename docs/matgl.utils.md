@@ -17,21 +17,35 @@ Cutoff functions for constructing M3GNet potentials.
 ### matgl.utils.cutoff.cosine_cutoff(r: Tensor, cutoff: float)
 Cosine cutoff function
 :param r: radius distance tensor
-:type r: torch.tensor
+:type r: torch.Tensor
 :param cutoff: cutoff distance.
 :type cutoff: float
 
 Returns: cosine cutoff functions
 
 
-### matgl.utils.cutoff.polynomial_cutoff(r, cutoff: float)
-Polynomial cutoff function
-:param r: radius distance tensor
-:type r: torch.tensor
-:param cutoff: cutoff distance.
-:type cutoff: float
+### matgl.utils.cutoff.polynomial_cutoff(r: Tensor, cutoff: float, exponent: int = 3)
+Envelope polynomial function that ensures a smooth cutoff.
 
-Returns: polynomial cutoff functions
+Ensures first and second derivative vanish at cuttoff. As described in:
+
+    [https://arxiv.org/abs/2003.03123](https://arxiv.org/abs/2003.03123)
+
+
+* **Parameters**
+
+
+    * **r** (*torch.Tensor*) – radius distance tensor
+
+
+    * **cutoff** (*float*) – cutoff distance.
+
+
+    * **exponent** (*int*) – minimum exponent of the polynomial. Default is 3.
+    The polynomial includes terms of order exponent, exponent + 1, exponent + 2.
+
+
+Returns: polynomial cutoff function
 
 ## matgl.utils.io module
 
@@ -127,12 +141,27 @@ Bases: `object`
 
 Handling of download of remote files to a local cache.
 
-Args:
-uri: Uniform resource identifier.
-cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
-$HOME/.matgl.
-force_download: To speed up access, a model with the same name in the cache location will be used if
-present. If you want to force a re-download, set this to True.
+
+* **Parameters**
+
+
+    * **uri** – Uniform resource identifier.
+
+
+    * **cache_location** – Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
+
+
+    * **$HOME/.matgl.** –
+
+
+    * **force_download** – To speed up access, a model with the same name in the cache location will be used if
+
+
+    * **re-download** (*present. If you want to force a*) –
+
+
+    * **True.** (*set this to*) –
+
 
 
 ### matgl.utils.io.get_available_pretrained_models()

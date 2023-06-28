@@ -14,6 +14,7 @@ import logging
 from typing import TYPE_CHECKING
 
 import dgl
+import numpy as np
 import torch
 from torch import nn
 
@@ -149,13 +150,19 @@ class M3GNet(nn.Module, IOMixIn):
         )
 
         self.basis_expansion = SphericalBesselWithHarmonics(
-            max_n=max_n, max_l=max_l, cutoff=cutoff, use_phi=use_phi, use_smooth=use_smooth
+            max_n=max_n,
+            max_l=max_l,
+            cutoff=cutoff,
+            use_phi=use_phi,
+            use_smooth=use_smooth,
         )
         self.three_body_interactions = nn.ModuleList(
             {
                 ThreeBodyInteractions(
                     update_network_atom=MLP(
-                        dims=[dim_node_embedding, degree], activation=nn.Sigmoid(), activate_last=True
+                        dims=[dim_node_embedding, degree],
+                        activation=nn.Sigmoid(),
+                        activate_last=True,
                     ),
                     update_network_bond=GatedMLP(in_feats=degree, dims=[dim_edge_embedding], use_bias=False),
                 )
@@ -208,7 +215,12 @@ class M3GNet(nn.Module, IOMixIn):
         self.task_type = task_type
         self.is_intensive = is_intensive
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None):
+    def forward(
+        self,
+        g: dgl.DGLGraph,
+        state_attr: torch.Tensor | None = None,
+        l_g: dgl.DGLGraph | None = None,
+    ):
         """Performs message passing and updates node representations.
 
         Args:
@@ -228,10 +240,11 @@ class M3GNet(nn.Module, IOMixIn):
         if l_g is None:
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
-            valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
-            l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-            l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+            three_body_id = np.unique(np.concatenate(l_g.edges()))
+            max_three_body_id = max(np.concatenate([three_body_id + 1, [0]]))
+            l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
+            l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
+            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
@@ -239,7 +252,12 @@ class M3GNet(nn.Module, IOMixIn):
         num_node_feats, num_edge_feats, num_state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
         for i in range(self.n_blocks):
             num_edge_feats = self.three_body_interactions[i](
-                g, l_g, three_body_basis, three_body_cutoff, num_node_feats, num_edge_feats
+                g,
+                l_g,
+                three_body_basis,
+                three_body_cutoff,
+                num_node_feats,
+                num_edge_feats,
             )
             num_edge_feats, num_node_feats, num_state_feats = self.graph_layers[i](
                 g, num_edge_feats, num_node_feats, num_state_feats
@@ -258,7 +276,10 @@ class M3GNet(nn.Module, IOMixIn):
         return torch.squeeze(output)
 
     def predict_structure(
-        self, structure, state_feats: torch.Tensor | None = None, graph_converter: GraphConverter | None = None
+        self,
+        structure,
+        state_feats: torch.Tensor | None = None,
+        graph_converter: GraphConverter | None = None,
     ):
         """Convenience method to directly predict property from structure.
 
@@ -274,7 +295,7 @@ class M3GNet(nn.Module, IOMixIn):
             from matgl.ext.pymatgen import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
-        g, stare_feats_default = graph_converter.get_graph(structure)
+        g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
-            state_feats = torch.tensor(stare_feats_default)
+            state_feats = torch.tensor(state_feats_default)
         return self(g=g, state_attr=state_feats).detach()
