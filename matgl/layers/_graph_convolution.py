@@ -465,23 +465,27 @@ class CHGNetAtomGraphConv(Module):
 
     def __init__(
         self,
-        include_states: bool,
+        include_state: bool,
         node_update_func: Module,
         node_weight_func: Module | None,
         edge_update_func: Module | None,
         edge_weight_func: Module | None,
         state_update_func: Module | None,
     ):
-        """Parameters:
-        include_state (bool): Whether including state
-        edge_update_func (Module): Update function for edges (Eq. 4)
-        edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
-        node_update_func (Module): Update function for nodes (Eq. 5)
-        node_weight_func (Module): Weight function for radial basis functions (Eq. 5)
-        attr_update_func (Module): Update function for state feats (Eq. 6).
+        """
+        Args:
+            include_state: Whether including state
+            node_update_func: Update function for nodes
+            node_weight_func: Weight function for radial basis functions.
+                If None is given, no layer-wise weights will be used.
+            edge_update_func: Update function for edges. If None is given, the
+                edges are not updated.
+            edge_weight_func: Weight function for radial basis functions
+                If None is given, no layer-wise weights will be used.
+            state_update_func: Update function for state feats
         """
         super().__init__()
-        self.include_states = include_states
+        self.include_state = include_state
         self.edge_update_func = edge_update_func
         self.edge_weight_func = edge_weight_func
         self.node_update_func = node_update_func
@@ -490,7 +494,7 @@ class CHGNetAtomGraphConv(Module):
 
     @staticmethod
     def from_dims(
-        include_states: bool,
+        include_state: bool,
         activation: Module,
         node_dims: list[int],
         edge_dims: list[int] | None = None,
@@ -502,19 +506,19 @@ class CHGNetAtomGraphConv(Module):
         """Create a CHGNetAtomGraphConv layer from dimensions.
 
         Args:
-            include_states (bool): whether including state or not
-            activation (nn.Nodule): activation function
-            node_dims (list): NN architecture for node update function
-            edge_dims (list): NN architecture for edge update function
-            state_dims (list): NN architecture for state update function
-            layer_node_weights (bool): whether to use layer-wise node weights
-            layer_edge_weights (bool): whether to use layer-wise edge weights
-            rbf_order (int): number of radial basis functions
+            include_state: whether including state or not
+            activation: activation function
+            node_dims: NN architecture for node update function
+            edge_dims: NN architecture for edge update function
+            state_dims: NN architecture for state update function
+            layer_node_weights: whether to use layer-wise node weights
+            layer_edge_weights: whether to use layer-wise edge weights
+            rbf_order: number of radial basis functions
                 if either layer_node_weights or layer_edge_weights is True then
                 rbf_order must be passed to initialize the weight functions
 
         Returns:
-            CHGNetAtomGraphConv (class)
+            CHGNetAtomGraphConv
         """
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = (
@@ -524,17 +528,17 @@ class CHGNetAtomGraphConv(Module):
         edge_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=edge_dims[-1], bias=False) if layer_edge_weights else None
         )
-        state_update_func = MLP(state_dims, activation, activate_last=True) if include_states else None
+        state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None
 
         return CHGNetAtomGraphConv(
-            include_states, node_update_func, node_weight_func, edge_update_func, edge_weight_func, state_update_func
+            include_state, node_update_func, node_weight_func, edge_update_func, edge_weight_func, state_update_func
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
         """Edge update functions.
 
         Args:
-            edges (DGL graph): edges in dgl graph
+            edges: edges in dgl graph
 
         Returns:
             mij: message passing between node i and j
@@ -545,7 +549,7 @@ class CHGNetAtomGraphConv(Module):
         rbf = edges.data["rbf"]
         rbf = rbf.float()
 
-        if self.include_states:
+        if self.include_state:
             u = edges.data["global_state"]
             inputs = torch.hstack([vi, eij, vj, u])
         else:
@@ -575,9 +579,8 @@ class CHGNetAtomGraphConv(Module):
         """Perform node update.
 
         Args:
-            graph: DGL graph
-            state_attr: State attributes
-            global_node_weights: atom graph node weights shared amongst layers
+            graph: DGL atom graph
+            shared_weights: atom graph node weights shared between convolution layers
 
         Returns:
             node_update: updated node features
@@ -588,7 +591,7 @@ class CHGNetAtomGraphConv(Module):
         dst_id = graph.edges()[1]
         vj = graph.ndata["features"][dst_id]
         rbf = graph.edata["rbf"]
-        if self.include_states:
+        if self.include_state:
             u = graph.edata["global_state"]
             inputs = torch.hstack([vi, eij, vj, u])
         else:
@@ -631,7 +634,7 @@ class CHGNetAtomGraphConv(Module):
         """Perform sequence of edge->node->states updates.
 
         Args:
-            graph: DGL graph
+            graph: atom graph
             edge_features: edge features
             node_features: node features
             state_attr: state attributes
@@ -642,7 +645,7 @@ class CHGNetAtomGraphConv(Module):
             graph.edata["features"] = edge_features
             graph.ndata["features"] = node_features
 
-            if self.include_states:
+            if self.include_state:
                 graph.edata["global_state"] = dgl.broadcast_edges(graph, state_attr)
 
             if self.edge_update_func is not None:
@@ -654,7 +657,97 @@ class CHGNetAtomGraphConv(Module):
             new_node_features = node_features + node_update
             graph.ndata["features"] = new_node_features
 
-            if self.include_states:
+            if self.include_state:
                 state_attr = self.state_update_(graph, state_attr)
 
         return new_node_features, new_edge_features, state_attr
+
+
+class CHGNetAtomGraphBlock(nn.Module):
+    """A CHGNet atom graph block as a sequence of operations involving a message passing layer over the atom graph."""
+
+    def __init__(
+        self,
+        activation: Module,
+        conv_hidden_dims: list[int],
+        num_node_feats: int,
+        num_edge_feats: int,
+        num_state_feats: int | None = None,
+        update_edge_feats: bool = False,
+        include_state: bool = False,
+        layer_node_weights: bool = False,
+        layer_edge_weights: bool = False,
+        rbf_order: int | None = None,
+        dropout: float | None = None,
+    ):
+        """
+        Args:
+            activation: activation function
+            conv_hidden_dims: dimensions of hidden layers
+            num_node_feats: number of node features
+            num_edge_feats: number of edge features
+            num_state_feats: number of state features
+            update_edge_feats: whether to update edge features
+            include_state: whether to include state attributes
+            layer_node_weights: whether to include layer-wise node weights
+            layer_edge_weights: whether to include layer-wise edge weights
+            rbf_order: order of radial basis functions
+            dropout: dropout probability
+        """
+        super().__init__()
+
+        node_input_dim = 2 * num_node_feats + num_edge_feats
+        if include_state:
+            node_input_dim += num_state_feats
+            state_dims = [num_node_feats + num_state_feats] + conv_hidden_dims + [num_state_feats]
+        else:
+            state_dims = None
+        node_dims = [node_input_dim] + conv_hidden_dims + [num_node_feats]
+        edge_dims = [node_input_dim] + conv_hidden_dims + [num_edge_feats] if update_edge_feats else None
+
+        self.conv_layer = CHGNetAtomGraphConv.from_dims(
+            include_state=include_state,
+            activation=activation,
+            node_dims=node_dims,
+            edge_dims=edge_dims,
+            state_dims=state_dims,
+            layer_node_weights=layer_node_weights,
+            layer_edge_weights=layer_edge_weights,
+            rbf_order=rbf_order,
+        )
+        self.dropout = nn.Dropout(dropout) if dropout is not None else None
+        self.out_layer = nn.Linear(num_node_feats, num_node_feats)
+
+    def forward(
+        self,
+        graph: dgl.DGLGraph,
+        edge_features: Tensor,
+        node_features: Tensor,
+        state_attr: Tensor,
+        shared_node_weights: Tensor,
+        shared_edge_weights: Tensor,
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        """Perform sequence of edge->node->states updates.
+
+        Args:
+            graph: atom graph
+            edge_features: edge features
+            node_features: node features
+            state_attr: state attributes
+            shared_node_weights: atom graph node weights shared amongst layers
+            shared_edge_weights: atom graph edge weights shared amongst layers
+        """
+        node_features, edge_features, state_attr = self.conv_layer(
+            graph,
+            edge_features,
+            node_features,
+            state_attr,
+            shared_node_weights,
+            shared_edge_weights,
+        )
+
+        if self.dropout is not None:
+            node_features = self.dropout(node_features)
+
+        node_features = self.out_layer(node_features)
+        return node_features, edge_features, state_attr
