@@ -458,3 +458,201 @@ class M3GNetBlock(Module):
             state_feat = self.dropout(state_feat)  # pylint: disable=E1102
 
         return edge_feat, node_feat, state_feat
+
+
+class CHGNetAtomGraphConv(Module):
+    """A CHGNet atom graph convolution layer in DGL."""
+
+    def __init__(
+        self,
+        include_states: bool,
+        node_update_func: Module,
+        node_weight_func: Module | None,
+        edge_update_func: Module | None,
+        edge_weight_func: Module | None,
+        state_update_func: Module | None,
+    ):
+        """Parameters:
+        include_state (bool): Whether including state
+        edge_update_func (Module): Update function for edges (Eq. 4)
+        edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
+        node_update_func (Module): Update function for nodes (Eq. 5)
+        node_weight_func (Module): Weight function for radial basis functions (Eq. 5)
+        attr_update_func (Module): Update function for state feats (Eq. 6).
+        """
+        super().__init__()
+        self.include_states = include_states
+        self.edge_update_func = edge_update_func
+        self.edge_weight_func = edge_weight_func
+        self.node_update_func = node_update_func
+        self.node_weight_func = node_weight_func
+        self.state_update_func = state_update_func
+
+    @staticmethod
+    def from_dims(
+        include_states: bool,
+        activation: Module,
+        node_dims: list[int],
+        edge_dims: list[int] | None = None,
+        state_dims: list[int] | None = None,
+        layer_node_weights: bool = False,
+        layer_edge_weights: bool = False,
+        rbf_order: int | None = None,
+    ) -> CHGNetAtomGraphConv:
+        """Create a CHGNetAtomGraphConv layer from dimensions.
+
+        Args:
+            include_states (bool): whether including state or not
+            activation (nn.Nodule): activation function
+            node_dims (list): NN architecture for node update function
+            edge_dims (list): NN architecture for edge update function
+            state_dims (list): NN architecture for state update function
+            layer_node_weights (bool): whether to use layer-wise node weights
+            layer_edge_weights (bool): whether to use layer-wise edge weights
+            rbf_order (int): number of radial basis functions
+                if either layer_node_weights or layer_edge_weights is True then
+                rbf_order must be passed to initialize the weight functions
+
+        Returns:
+            CHGNetAtomGraphConv (class)
+        """
+        node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
+        node_weight_func = (
+            nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if layer_node_weights else None
+        )
+        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:]) if edge_dims is not None else None
+        edge_weight_func = (
+            nn.Linear(in_features=rbf_order, out_features=edge_dims[-1], bias=False) if layer_edge_weights else None
+        )
+        state_update_func = MLP(state_dims, activation, activate_last=True) if include_states else None
+
+        return CHGNetAtomGraphConv(
+            include_states, node_update_func, node_weight_func, edge_update_func, edge_weight_func, state_update_func
+        )
+
+    def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
+        """Edge update functions.
+
+        Args:
+            edges (DGL graph): edges in dgl graph
+
+        Returns:
+            mij: message passing between node i and j
+        """
+        vi = edges.src["features"]
+        vj = edges.dst["features"]
+        eij = edges.data["features"]
+        rbf = edges.data["rbf"]
+        rbf = rbf.float()
+
+        if self.include_states:
+            u = edges.data["global_state"]
+            inputs = torch.hstack([vi, eij, vj, u])
+        else:
+            inputs = torch.hstack([vi, eij, vj])
+
+        mij = self.edge_update_func(inputs)
+        if self.edge_weight_func is not None:
+            mij = mij * self.edge_weight_func(rbf)
+
+        return {"mij": mij}
+
+    def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+        """Perform edge update.
+
+        Args:
+            graph: DGL graph
+            shared_weights: atom graph edge weights shared between convolution layers
+
+        Returns:
+            edge_update: edge features update
+        """
+        graph.apply_edges(self._edge_udf)
+        edge_update = graph.edata["mij"] * shared_weights
+        return edge_update
+
+    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+        """Perform node update.
+
+        Args:
+            graph: DGL graph
+            state_attr: State attributes
+            global_node_weights: atom graph node weights shared amongst layers
+
+        Returns:
+            node_update: updated node features
+        """
+        eij = graph.edata["features"]
+        src_id = graph.edges()[0]
+        vi = graph.ndata["features"][src_id]
+        dst_id = graph.edges()[1]
+        vj = graph.ndata["features"][dst_id]
+        rbf = graph.edata["rbf"]
+        if self.include_states:
+            u = graph.edata["global_state"]
+            inputs = torch.hstack([vi, eij, vj, u])
+        else:
+            inputs = torch.hstack([vi, vj, eij])
+
+        messages = self.node_update_func(inputs)
+        if self.node_weight_func is not None:
+            messages = messages * self.edge_weight_func(rbf)
+
+        graph.edata["message"] = messages
+        graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "features_"))
+        node_update = graph.ndata["features_"] * shared_weights
+        return node_update
+
+    def state_update_(self, graph: dgl.DGLGraph, state_attr: Tensor) -> Tensor:
+        """Perform attribute (global state) update.
+
+        Args:
+            graph: DGL graph
+            state_attr: graph features
+
+        Returns:
+        state_update: state_features update
+        """
+        u = state_attr
+        uv = dgl.readout_nodes(graph, feat="features", op="mean")
+        inputs = torch.hstack([u, uv])
+        state_attr = self.state_update_func(inputs)
+        return state_attr
+
+    def forward(
+        self,
+        graph: dgl.DGLGraph,
+        edge_feat: Tensor,
+        node_feat: Tensor,
+        state_attr: Tensor,
+        shared_node_weights: Tensor,
+        shared_edge_weights: Tensor,
+    ) -> tuple[Tensor, Tensor, Tensor]:
+        """Perform sequence of edge->node->states updates.
+
+        Args:
+            graph: DGL graph
+            edge_feat: edge features
+            node_feat: node features
+            state_attr: state attributes
+            shared_node_weights: atom graph node weights shared amongst layers
+            shared_edge_weights: atom graph edge weights shared amongst layers
+        """
+        with graph.local_scope():
+            graph.edata["features"] = edge_feat
+            graph.ndata["features"] = node_feat
+
+            if self.include_states:
+                graph.edata["global_state"] = dgl.broadcast_edges(graph, state_attr)
+
+            if self.edge_update_func is not None:
+                edge_update = self.edge_update_(graph, shared_edge_weights)
+                graph.edata["features"] = edge_feat + edge_update
+
+            node_update = self.node_update_(graph, shared_node_weights)
+            graph.ndata["features"] = node_feat + node_update
+
+            if self.include_states:
+                state_attr = self.state_update_(graph, state_attr)
+
+        return edge_feat + edge_update, node_feat + node_update, state_attr

@@ -10,6 +10,7 @@ The CHGNet model is described in the following paper: https://arxiv.org/abs/2302
 from __future__ import annotations
 
 import logging
+from typing import Literal
 
 from torch import nn
 
@@ -45,6 +46,7 @@ class CHGNet(nn.Module, IOMixIn):
         max_f: int = 4,  # number of Fourier frequencies -> 4 * 2 + 1 = 9 of original CHGNet
         learn_basis: bool = True,
         nblocks: int = 4,
+        shared_bond_weights: Literal["bond", "three_body_bond", "both"] = "both",
         # missing args from original chgnet
         # atom_conv_hidden_dim: Sequence[int] | int = 64,
         # update_bond: bool = True,
@@ -85,9 +87,7 @@ class CHGNet(nn.Module, IOMixIn):
         elif activation_type == "softexp":
             activation = SoftExponential()  # type: ignore
         else:
-            raise Exception(
-                "Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp"
-            )
+            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES  # make sure these match CHGNet
@@ -101,16 +101,22 @@ class CHGNet(nn.Module, IOMixIn):
         )
         self.angle_expansion = FourierExpansion(max_f=max_f, learnable=learn_basis)
 
-        # bond message smoothing weights
-        self.bond_weights = nn.Linear(max_n, dim_node_embedding, bias=False)
-        self.threebody_bond_weights = nn.Linear(max_n, dim_edge_embedding, bias=False)
-
         # embedding block for atom, bond, angle, and optional state features
         self.state_embedding = nn.Embedding(dim_state_types, dim_state_feats) if include_state else None
         self.atom_embedding = nn.Embedding(len(element_types), dim_node_embedding)
         # TODO add option for activation
         self.bond_embedding = MLP([max_n, dim_edge_embedding], activation=activation, activate_last=False)
         self.angle_embedding = MLP([max_f, dim_angle_embedding], activation=activation, activate_last=False)
+
+        # shared bond message smoothing weights
+        self.bond_weights = (
+            nn.Linear(max_n, dim_node_embedding, bias=False) if shared_bond_weights in ["bond", "both"] else None
+        )
+        self.threebody_bond_weights = (
+            nn.Linear(max_n, dim_edge_embedding, bias=False)
+            if shared_bond_weights in ["three_body_bond", "both"]
+            else None
+        )
 
         # operations involving the graph (i.e. atom graph) to update atom and bond features
         self.atom_graph_layers = nn.ModuleList(
