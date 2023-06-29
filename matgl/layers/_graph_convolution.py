@@ -652,6 +652,8 @@ class CHGNetAtomGraphConv(Module):
                 edge_update = self.edge_update_(graph, shared_edge_weights)
                 new_edge_features = edge_features + edge_update
                 graph.edata["features"] = new_edge_features
+            else:
+                new_edge_features = edge_features
 
             node_update = self.node_update_(graph, shared_node_weights)
             new_node_features = node_features + node_update
