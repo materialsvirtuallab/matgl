@@ -546,8 +546,6 @@ class CHGNetAtomGraphConv(Module):
         vi = edges.src["features"]
         vj = edges.dst["features"]
         eij = edges.data["features"]
-        rbf = edges.data["rbf"]
-        rbf = rbf.float()
 
         if self.include_state:
             u = edges.data["global_state"]
@@ -557,6 +555,8 @@ class CHGNetAtomGraphConv(Module):
 
         eij_ = self.edge_update_func(inputs)
         if self.edge_weight_func is not None:
+            rbf = edges.data["rbf"]
+            rbf = rbf.float()
             eij_ = eij_ * self.edge_weight_func(rbf)
 
         return {"features_": eij_}
@@ -590,7 +590,7 @@ class CHGNetAtomGraphConv(Module):
         vi = graph.ndata["features"][src_id]
         dst_id = graph.edges()[1]
         vj = graph.ndata["features"][dst_id]
-        rbf = graph.edata["rbf"]
+
         if self.include_state:
             u = graph.edata["global_state"]
             inputs = torch.hstack([vi, eij, vj, u])
@@ -599,6 +599,8 @@ class CHGNetAtomGraphConv(Module):
 
         messages = self.node_update_func(inputs)
         if self.node_weight_func is not None:
+            rbf = graph.edata["rbf"]
+            rbf = rbf.float()
             messages = messages * self.edge_weight_func(rbf)
 
         graph.edata["message"] = messages
@@ -670,13 +672,13 @@ class CHGNetAtomGraphBlock(nn.Module):
 
     def __init__(
         self,
-        activation: Module,
-        conv_hidden_dims: list[int],
         num_node_feats: int,
         num_edge_feats: int,
-        num_state_feats: int | None = None,
+        activation: Module,
+        conv_hidden_dims: list[int],
         update_edge_feats: bool = False,
         include_state: bool = False,
+        num_state_feats: int | None = None,
         layer_node_weights: bool = False,
         layer_edge_weights: bool = False,
         rbf_order: int | None = None,
@@ -684,13 +686,13 @@ class CHGNetAtomGraphBlock(nn.Module):
     ):
         """
         Args:
-            activation: activation function
-            conv_hidden_dims: dimensions of hidden layers
             num_node_feats: number of node features
             num_edge_feats: number of edge features
-            num_state_feats: number of state features
+            activation: activation function
+            conv_hidden_dims: dimensions of hidden layers
             update_edge_feats: whether to update edge features
             include_state: whether to include state attributes
+            num_state_feats: number of state features if include_state is True
             layer_node_weights: whether to include layer-wise node weights
             layer_edge_weights: whether to include layer-wise edge weights
             rbf_order: order of radial basis functions
