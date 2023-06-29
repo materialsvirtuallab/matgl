@@ -551,11 +551,11 @@ class CHGNetAtomGraphConv(Module):
         else:
             inputs = torch.hstack([vi, eij, vj])
 
-        mij = self.edge_update_func(inputs)
+        eij_ = self.edge_update_func(inputs)
         if self.edge_weight_func is not None:
-            mij = mij * self.edge_weight_func(rbf)
+            eij_ = eij_ * self.edge_weight_func(rbf)
 
-        return {"mij": mij}
+        return {"features_": eij_}
 
     def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
         """Perform edge update.
@@ -568,7 +568,7 @@ class CHGNetAtomGraphConv(Module):
             edge_update: edge features update
         """
         graph.apply_edges(self._edge_udf)
-        edge_update = graph.edata["mij"] * shared_weights
+        edge_update = graph.edata["features_"] * shared_weights
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
@@ -622,8 +622,8 @@ class CHGNetAtomGraphConv(Module):
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_feat: Tensor,
-        node_feat: Tensor,
+        edge_features: Tensor,
+        node_features: Tensor,
         state_attr: Tensor,
         shared_node_weights: Tensor,
         shared_edge_weights: Tensor,
@@ -632,27 +632,29 @@ class CHGNetAtomGraphConv(Module):
 
         Args:
             graph: DGL graph
-            edge_feat: edge features
-            node_feat: node features
+            edge_features: edge features
+            node_features: node features
             state_attr: state attributes
             shared_node_weights: atom graph node weights shared amongst layers
             shared_edge_weights: atom graph edge weights shared amongst layers
         """
         with graph.local_scope():
-            graph.edata["features"] = edge_feat
-            graph.ndata["features"] = node_feat
+            graph.edata["features"] = edge_features
+            graph.ndata["features"] = node_features
 
             if self.include_states:
                 graph.edata["global_state"] = dgl.broadcast_edges(graph, state_attr)
 
             if self.edge_update_func is not None:
                 edge_update = self.edge_update_(graph, shared_edge_weights)
-                graph.edata["features"] = edge_feat + edge_update
+                new_edge_features = edge_features + edge_update
+                graph.edata["features"] = new_edge_features
 
             node_update = self.node_update_(graph, shared_node_weights)
-            graph.ndata["features"] = node_feat + node_update
+            new_node_features = node_features + node_update
+            graph.ndata["features"] = new_node_features
 
             if self.include_states:
                 state_attr = self.state_update_(graph, state_attr)
 
-        return edge_feat + edge_update, node_feat + node_update, state_attr
+        return new_node_features, new_edge_features, state_attr
