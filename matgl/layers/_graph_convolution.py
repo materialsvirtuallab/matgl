@@ -460,15 +460,15 @@ class M3GNetBlock(Module):
         return edge_feat, node_feat, state_feat
 
 
-class CHGNetAtomGraphConv(Module):
+class CHGNetAtomGraphConv(nn.Module):
     """A CHGNet atom graph convolution layer in DGL."""
 
     def __init__(
         self,
         include_state: bool,
         node_update_func: Module,
-        node_weight_func: Module | None,
         edge_update_func: Module | None,
+        node_weight_func: Module | None,
         edge_weight_func: Module | None,
         state_update_func: Module | None,
     ):
@@ -476,10 +476,10 @@ class CHGNetAtomGraphConv(Module):
         Args:
             include_state: Whether including state
             node_update_func: Update function for nodes
-            node_weight_func: Weight function for radial basis functions.
-                If None is given, no layer-wise weights will be used.
             edge_update_func: Update function for edges. If None is given, the
                 edges are not updated.
+            node_weight_func: Weight function for radial basis functions.
+                If None is given, no layer-wise weights will be used.
             edge_weight_func: Weight function for radial basis functions
                 If None is given, no layer-wise weights will be used.
             state_update_func: Update function for state feats
@@ -492,8 +492,9 @@ class CHGNetAtomGraphConv(Module):
         self.node_weight_func = node_weight_func
         self.state_update_func = state_update_func
 
-    @staticmethod
+    @classmethod
     def from_dims(
+        cls,
         include_state: bool,
         activation: Module,
         node_dims: list[int],
@@ -530,8 +531,8 @@ class CHGNetAtomGraphConv(Module):
         )
         state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None
 
-        return CHGNetAtomGraphConv(
-            include_state, node_update_func, node_weight_func, edge_update_func, edge_weight_func, state_update_func
+        return cls(
+            include_state, node_update_func, edge_update_func, node_weight_func, edge_weight_func, state_update_func
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
@@ -627,8 +628,8 @@ class CHGNetAtomGraphConv(Module):
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_features: Tensor,
         node_features: Tensor,
+        edge_features: Tensor,
         state_attr: Tensor,
         shared_node_weights: Tensor,
         shared_edge_weights: Tensor,
@@ -637,15 +638,15 @@ class CHGNetAtomGraphConv(Module):
 
         Args:
             graph: atom graph
-            edge_features: edge features
             node_features: node features
+            edge_features: edge features
             state_attr: state attributes
             shared_node_weights: atom graph node weights shared amongst layers
             shared_edge_weights: atom graph edge weights shared amongst layers
         """
         with graph.local_scope():
-            graph.edata["features"] = edge_features
             graph.ndata["features"] = node_features
+            graph.edata["features"] = edge_features
 
             if self.include_state:
                 graph.edata["global_state"] = dgl.broadcast_edges(graph, state_attr)
@@ -755,3 +756,89 @@ class CHGNetAtomGraphBlock(nn.Module):
 
         node_features = self.out_layer(node_features)
         return node_features, edge_features, state_attr
+
+
+class CHGNetBondGraphConv(nn.Module):
+    """A CHGNet atom graph convolution layer in DGL."""
+
+    def __init__(
+        self,
+        node_update_func: Module,
+        node_weight_func: Module | None,
+        edge_update_func: Module | None,
+        edge_weight_func: Module | None,
+    ):
+        """
+        Args:
+            node_update_func: node update function (for bond features)
+            node_weight_func: layer node weight function
+            edge_update_func: edge update function (for angle features)
+            edge_weight_func: layer edge weight function
+        """
+        super().__init__()
+
+        self.node_update_func = node_update_func
+        self.node_weight_func = node_weight_func
+        self.edge_update_func = edge_update_func
+        self.edge_weight_func = edge_weight_func
+
+    @classmethod
+    def from_dims(
+        cls,
+        node_dims: list[int],
+        edge_dims: list[int],
+        node_weight_in_dims: int = 0,
+        edge_weight_in_dims: int = 0,
+    ) -> CHGNetBondGraphConv:
+        """
+        Args:
+            node_dims:
+            edge_dims:
+            node_weight_in_dims:
+            edge_weight_in_dims:
+
+        Returns:
+            CHGNetBondGraphConv
+        """
+        # TODO make sure this matches with CHGNet GatedMLP
+        node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
+        node_weight_func = nn.Linear(node_weight_in_dims, node_dims[-1]) if node_weight_in_dims > 0 else None
+
+        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:])
+        edge_weight_func = nn.Linear(edge_weight_in_dims, edge_dims[-1]) if edge_weight_in_dims > 0 else None
+
+        return cls(node_update_func, edge_update_func, node_weight_func, edge_weight_func)
+
+    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+        """
+
+        Args:
+            graph:
+            shared_weights:
+
+        Returns:
+
+        """
+        pass
+
+    def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+        """
+
+        Args:
+            graph:
+            shared_weights:
+
+        Returns:
+
+        """
+        pass
+
+    def forward(
+        self,
+        graph: dgl.DGLGraph,
+        node_features: Tensor,
+        edge_features: Tensor,
+        shared_node_weights: Tensor,
+        shared_edge_weights: Tensor,
+    ) -> tuple[Tensor, Tensor]:
+        pass
