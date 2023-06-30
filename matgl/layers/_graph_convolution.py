@@ -475,8 +475,8 @@ class CHGNetAtomGraphConv(nn.Module):
         """
         Args:
             include_state: Whether including state
-            node_update_func: Update function for nodes
-            edge_update_func: Update function for edges. If None is given, the
+            node_update_func: Update function for nodes (atoms)
+            edge_update_func: Update function for edges (bonds). If None is given, the
                 edges are not updated.
             node_weight_func: Weight function for radial basis functions.
                 If None is given, no layer-wise weights will be used.
@@ -509,9 +509,9 @@ class CHGNetAtomGraphConv(nn.Module):
         Args:
             include_state: whether including state or not
             activation: activation function
-            node_dims: NN architecture for node update function
-            edge_dims: NN architecture for edge update function
-            state_dims: NN architecture for state update function
+            node_dims: NN architecture for node update function given as a list of dimensions of each layer.
+            edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
+            state_dims: NN architecture for state update function given as a list of dimensions of each layer.
             layer_node_weights: whether to use layer-wise node weights
             layer_edge_weights: whether to use layer-wise edge weights
             rbf_order: number of radial basis functions
@@ -536,44 +536,47 @@ class CHGNetAtomGraphConv(nn.Module):
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
-        """Edge update functions.
+        """Edge user defined update function.
+
+        Update for bond features (edges) in atom graph.
 
         Args:
-            edges: edges in dgl graph
+            edges: edges in atom graph (ie bonds)
 
         Returns:
-            mij: message passing between node i and j
+            edge_update: edge features update
         """
-        vi = edges.src["features"]
-        vj = edges.dst["features"]
-        eij = edges.data["features"]
+        atom_i = edges.src["features"]  # first atom features
+        atom_j = edges.dst["features"]  # second atom features
+        bond_ij = edges.data["features"]  # bond features
 
         if self.include_state:
-            u = edges.data["global_state"]
-            inputs = torch.hstack([vi, eij, vj, u])
+            global_state = edges.data["global_state"]
+            inputs = torch.hstack([atom_i, bond_ij, atom_j, global_state])
         else:
-            inputs = torch.hstack([vi, eij, vj])
+            inputs = torch.hstack([atom_i, bond_ij, atom_j])
 
-        eij_ = self.edge_update_func(inputs)
+        edge_update = self.edge_update_func(inputs)
         if self.edge_weight_func is not None:
             rbf = edges.data["rbf"]
             rbf = rbf.float()
-            eij_ = eij_ * self.edge_weight_func(rbf)
+            edge_update = edge_update * self.edge_weight_func(rbf)
 
-        return {"features_": eij_}
+        return {"feat_update": edge_update}
 
     def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
         """Perform edge update.
 
         Args:
-            graph: DGL graph
+            graph: atom graph
             shared_weights: atom graph edge weights shared between convolution layers
 
         Returns:
             edge_update: edge features update
         """
         graph.apply_edges(self._edge_udf)
-        edge_update = graph.edata["features_"] * shared_weights
+        # TODO check dimensions appropriate here, or needs to be done in edge_udf
+        edge_update = graph.edata["feat_update"] * shared_weights
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
@@ -586,42 +589,46 @@ class CHGNetAtomGraphConv(nn.Module):
         Returns:
             node_update: updated node features
         """
-        eij = graph.edata["features"]
-        src_id = graph.edges()[0]
-        vi = graph.ndata["features"][src_id]
-        dst_id = graph.edges()[1]
-        vj = graph.ndata["features"][dst_id]
+        src, dst = graph.edges()
+        atom_i = graph.ndata["features"][src]  # first atom features
+        atom_j = graph.ndata["features"][dst]  # second atom features
+        bond_ij = graph.edata["features"]  # bond features
 
         if self.include_state:
-            u = graph.edata["global_state"]
-            inputs = torch.hstack([vi, eij, vj, u])
+            global_state = graph.edata["global_state"]
+            inputs = torch.hstack([atom_i, bond_ij, atom_j, global_state])
         else:
-            inputs = torch.hstack([vi, vj, eij])
+            inputs = torch.hstack([atom_i, bond_ij, atom_j])
 
         messages = self.node_update_func(inputs)
+
+        # smooth out the messages with layer-wise weights
         if self.node_weight_func is not None:
             rbf = graph.edata["rbf"]
             rbf = rbf.float()
-            messages = messages * self.edge_weight_func(rbf)
+            messages = messages * self.node_weight_func(rbf)
+        # smooth out the messages with shared weights
+        messages = messages * shared_weights
 
+        # message passing
         graph.edata["message"] = messages
-        graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "features_"))
-        node_update = graph.ndata["features_"] * shared_weights
+        graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "feat_update"))
+        node_update = graph.ndata["feat_update"]
+
         return node_update
 
     def state_update_(self, graph: dgl.DGLGraph, state_attr: Tensor) -> Tensor:
         """Perform attribute (global state) update.
 
         Args:
-            graph: DGL graph
-            state_attr: graph features
+            graph: atom graph
+            state_attr: global state features
 
         Returns:
-        state_update: state_features update
+            state_update: state features update
         """
-        u = state_attr
-        uv = dgl.readout_nodes(graph, feat="features", op="mean")
-        inputs = torch.hstack([u, uv])
+        node_avg = dgl.readout_nodes(graph, feat="features", op="mean")
+        inputs = torch.hstack([state_attr, node_avg])
         state_attr = self.state_update_func(inputs)
         return state_attr
 
@@ -643,6 +650,9 @@ class CHGNetAtomGraphConv(nn.Module):
             state_attr: state attributes
             shared_node_weights: atom graph node weights shared amongst layers
             shared_edge_weights: atom graph edge weights shared amongst layers
+
+        Returns:
+            tuple: updated node features, updated edge features, updated state attributes
         """
         with graph.local_scope():
             graph.ndata["features"] = node_features
@@ -766,72 +776,109 @@ class CHGNetBondGraphConv(nn.Module):
         node_update_func: Module,
         node_weight_func: Module | None,
         edge_update_func: Module | None,
-        edge_weight_func: Module | None,
     ):
         """
         Args:
             node_update_func: node update function (for bond features)
             node_weight_func: layer node weight function
             edge_update_func: edge update function (for angle features)
-            edge_weight_func: layer edge weight function
         """
         super().__init__()
 
         self.node_update_func = node_update_func
         self.node_weight_func = node_weight_func
         self.edge_update_func = edge_update_func
-        self.edge_weight_func = edge_weight_func
 
     @classmethod
     def from_dims(
         cls,
         node_dims: list[int],
         edge_dims: list[int],
-        node_weight_in_dims: int = 0,
-        edge_weight_in_dims: int = 0,
+        node_weight_input_dims: int = 0,
     ) -> CHGNetBondGraphConv:
         """
         Args:
-            node_dims:
-            edge_dims:
-            node_weight_in_dims:
-            edge_weight_in_dims:
+            node_dims: NN architecture for node update function given as a list of dimensions of each layer.
+            edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
+            node_weight_input_dims: input dimensions for linear layer of node weights.
+                If 0, no layer-wise weights are used.
 
         Returns:
             CHGNetBondGraphConv
         """
         # TODO make sure this matches with CHGNet GatedMLP
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
-        node_weight_func = nn.Linear(node_weight_in_dims, node_dims[-1]) if node_weight_in_dims > 0 else None
-
+        node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
         edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:])
-        edge_weight_func = nn.Linear(edge_weight_in_dims, edge_dims[-1]) if edge_weight_in_dims > 0 else None
 
-        return cls(node_update_func, edge_update_func, node_weight_func, edge_weight_func)
+        return cls(node_update_func, edge_update_func, node_weight_func)
+
+    def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
+        """Edge user defined update function.
+
+        Update angle features (edges in bond graph)
+
+        Args:
+            edges: edge batch
+
+        Returns:
+            edge_update: edge features update
+        """
+        bonds_i = edges.src["features"]  # first bonds features
+        bonds_j = edges.dst["features"]  # second bonds features
+        aa_ij = edges.data["features"]  # center atom and angle features
+        inputs = torch.hstack([bonds_i, aa_ij, bonds_j])
+        messages_ij = self.edge_update_func(inputs)
+        return {"feat_update": messages_ij}
+
+    def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
+        """
+
+        Args:
+            graph: bond graph (line graph of atom graph)
+
+        Returns:
+            edge_update: edge features update
+        """
+        graph.apply_edges(self._edge_udf)
+        edge_update = graph.edata["feat_update"]
+        return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
         """
 
         Args:
-            graph:
+            graph: bond graph (line graph of atom graph)
             shared_weights:
 
         Returns:
-
-        """
-        pass
-
-    def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+            node_update: bond features update
         """
 
-        Args:
-            graph:
-            shared_weights:
+        src, dst = graph.edges()
+        bonds_i = graph.ndata["features"][src]  # first bond feature
+        bonds_j = graph.ndata["features"][dst]  # second bond feature
+        aa_ij = graph.edata["features"]  # center atom and angle features
+        inputs = torch.hstack([bonds_i, aa_ij, bonds_j])
 
-        Returns:
+        messages = self.node_update_func(inputs)
 
-        """
-        pass
+        # smooth out messages with layer-wise weights
+        if self.node_weight_func is not None:
+            rbf = graph.ndata["rbf"]
+            weights = self.node_weight_func(rbf)
+            weights_i, weights_j = weights[src], weights[dst]
+            messages = messages * weights_i * weights_j
+
+        # smooth out messages with shared weights
+        weights_i, weights_j = shared_weights[src], shared_weights[dst]
+        messages = messages * weights_i * weights_j
+
+        # message passing
+        graph.edata["message"] = messages
+        graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "feat_update"))
+        node_update = graph.ndata["feat_update"]  # the bond update
+        return node_update
 
     def forward(
         self,
@@ -839,6 +886,36 @@ class CHGNetBondGraphConv(nn.Module):
         node_features: Tensor,
         edge_features: Tensor,
         shared_node_weights: Tensor,
-        shared_edge_weights: Tensor,
     ) -> tuple[Tensor, Tensor]:
-        pass
+        """Perform sequence of edge->node->states updates.
+
+        Args:
+            graph: bond graph (line graph of atom graph)
+            node_features: bond features
+            edge_features: concatenated center atom and angle features
+            shared_node_weights: shared node weights
+
+        Returns:
+            tuple: update edge features, update node features
+            note that the node features are the bond features included in the line graph only.
+        """
+        with graph.local_scope():
+            graph.ndata["features"] = node_features
+            graph.edata["features"] = edge_features
+
+            # node (bond) update
+            node_update = self.node_update_(graph, shared_node_weights)
+            new_node_features = node_features + node_update
+            graph.ndata["features"] = new_node_features
+
+            # angle (edge) update
+            edge_update = self.edge_update_(graph)
+            new_edge_features = edge_features + edge_update
+
+        return new_node_features, new_edge_features
+
+
+# TODO make sure this is shared with atom graph, or otherwise save the indices
+# of the atom feature tensor directly
+# TODO this is only an update for the bonds in line graph so shape will be different
+# need to do a scatter operation
