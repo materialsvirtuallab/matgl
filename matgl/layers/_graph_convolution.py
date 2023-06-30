@@ -735,7 +735,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         shared_node_weights: Tensor,
         shared_edge_weights: Tensor,
     ) -> tuple[Tensor, Tensor, Tensor]:
-        """Perform sequence of edge->node->states updates.
+        """Perform sequence of bond(optional)->atom->states(optional) updates.
 
         Args:
             graph: atom graph
@@ -753,6 +753,7 @@ class CHGNetAtomGraphBlock(nn.Module):
             shared_node_weights=shared_node_weights,
             shared_edge_weights=shared_edge_weights,
         )
+        # TODO move skip connections here? dropout before skip connections?
         atom_features = self.dropout(atom_features)
         bond_features = self.dropout(bond_features)
         state_attr = self.dropout(state_attr)
@@ -951,7 +952,37 @@ class CHGNetBondGraphBlock(nn.Module):
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
 
-# TODO make sure this is shared with atom graph, or otherwise save the indices
-# of the atom feature tensor directly
-# TODO this is only an update for the bonds in line graph so shape will be different
-# need to do a scatter operation
+    def forward(self, graph: dgl.DGLGraph, atom_features: Tensor, bond_features: Tensor, angle_features: Tensor,
+                shared_node_weights: Tensor) -> tuple[Tensor, Tensor]:
+        """Perform sequence of bond->angle updates.
+
+        Args:
+            graph: bond graph (line graph of atom graph)
+            atom_features: atom features
+            bond_features: bond features
+            angle_features: concatenated center atom and angle features
+            shared_node_weights: shared node message weights
+
+        Returns:
+            tuple: update bond features, update angle features
+        """
+
+        # TODO need to properly account gather operations
+        # TODO need to concat angle features with center atom features
+
+        node_features = None  # gather bond features in line graph only
+        edge_features = angle_features  # concat center atom and angle features
+
+        bond_updates, angle_updates = self.conv_layer(
+            graph, node_features, edge_features, shared_node_weights
+        )
+
+        bond_updates = self.bond_dropout(bond_updates)
+        angle_updates = self.angle_dropout(angle_updates)
+
+        new_bond_features = node_features + bond_updates
+        new_angle_features = angle_features + angle_updates
+
+        # TODO scatter new bond features to atom graph
+
+        return new_bond_features, new_angle_features
