@@ -683,8 +683,8 @@ class CHGNetAtomGraphBlock(nn.Module):
 
     def __init__(
         self,
-        num_node_feats: int,
-        num_edge_feats: int,
+        num_atom_feats: int,
+        num_bond_feats: int,
         activation: Module,
         conv_hidden_dims: list[int],
         update_edge_feats: bool = False,
@@ -697,8 +697,8 @@ class CHGNetAtomGraphBlock(nn.Module):
     ):
         """
         Args:
-            num_node_feats: number of node features
-            num_edge_feats: number of edge features
+            num_atom_feats: number of atom features
+            num_bond_feats: number of bond features
             activation: activation function
             conv_hidden_dims: dimensions of hidden layers
             update_edge_feats: whether to update edge features
@@ -711,14 +711,14 @@ class CHGNetAtomGraphBlock(nn.Module):
         """
         super().__init__()
 
-        node_input_dim = 2 * num_node_feats + num_edge_feats
+        node_input_dim = 2 * num_atom_feats + num_bond_feats
         if include_state:
             node_input_dim += num_state_feats
-            state_dims = [num_node_feats + num_state_feats] + conv_hidden_dims + [num_state_feats]
+            state_dims = [num_atom_feats + num_state_feats] + conv_hidden_dims + [num_state_feats]
         else:
             state_dims = None
-        node_dims = [node_input_dim] + conv_hidden_dims + [num_node_feats]
-        edge_dims = [node_input_dim] + conv_hidden_dims + [num_edge_feats] if update_edge_feats else None
+        node_dims = [node_input_dim] + conv_hidden_dims + [num_atom_feats]
+        edge_dims = [node_input_dim] + conv_hidden_dims + [num_bond_feats] if update_edge_feats else None
 
         self.conv_layer = CHGNetAtomGraphConv.from_dims(
             include_state=include_state,
@@ -731,7 +731,7 @@ class CHGNetAtomGraphBlock(nn.Module):
             rbf_order=rbf_order,
         )
         self.dropout = nn.Dropout(dropout) if dropout is not None else None
-        self.out_layer = nn.Linear(num_node_feats, num_node_feats)
+        self.out_layer = nn.Linear(num_atom_feats, num_atom_feats)
 
     def forward(
         self,
@@ -769,7 +769,10 @@ class CHGNetAtomGraphBlock(nn.Module):
 
 
 class CHGNetBondGraphConv(nn.Module):
-    """A CHGNet atom graph convolution layer in DGL."""
+    """A CHGNet atom graph convolution layer in DGL.
+
+    This implements both the bond and angle update functions in the CHGNet paper as line graph updates.
+    """
 
     def __init__(
         self,
@@ -913,6 +916,49 @@ class CHGNetBondGraphConv(nn.Module):
             new_edge_features = edge_features + edge_update
 
         return new_node_features, new_edge_features
+
+
+class CHGNetBondGraphBlock(nn.Module):
+    """A CHGNet atom graph block as a sequence of operations involving a message passing layer over the bond graph."""
+
+    def __init__(
+        self,
+        num_atom_feats: int,
+        num_bond_feats: int,
+        num_angle_feats: int,
+        bond_hidden_dims: list[int],
+        angle_hidden_dims: list[int],
+        bond_weight_input_dims: int = 0,
+        bond_dropout: float = 0.0,
+        angle_dropout: float = 0.0,
+    ):
+        """
+        Args:
+            num_atom_feats: number of atom features
+            num_bond_feats: number of bond features
+            num_angle_feats: number of angle features
+            bond_hidden_dims: dimensions of hidden layers of bond graph convolution
+            angle_hidden_dims: dimensions of hidden layers of angle update function
+            bond_weight_input_dims: dimensions of input to node weight function
+                If 0, no layer-wise node weights are used.
+            bond_dropout: dropout probability for bond graph convolution
+            angle_dropout: dropout probability for angle update function
+        """
+        super().__init__()
+
+        node_input_dim = 2 * num_bond_feats + num_angle_feats + num_atom_feats
+        node_dims = [node_input_dim] + bond_hidden_dims + [num_bond_feats]
+        edge_dims = [node_input_dim] + angle_hidden_dims + [num_angle_feats]
+
+        self.conv_layer = CHGNetBondGraphConv.from_dims(
+            node_dims=node_dims,
+            edge_dims=edge_dims,
+            node_weight_input_dims=bond_weight_input_dims,
+        )
+
+        self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
+        self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
+
 
 
 # TODO make sure this is shared with atom graph, or otherwise save the indices
