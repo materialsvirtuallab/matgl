@@ -460,7 +460,7 @@ class M3GNetBlock(Module):
         return edge_feat, node_feat, state_feat
 
 
-class CHGNetAtomGraphConv(nn.Module):
+class CHGNetGraphConv(nn.Module):
     """A CHGNet atom graph convolution layer in DGL."""
 
     def __init__(
@@ -500,10 +500,8 @@ class CHGNetAtomGraphConv(nn.Module):
         node_dims: list[int],
         edge_dims: list[int] | None = None,
         state_dims: list[int] | None = None,
-        layer_node_weights: bool = False,
-        layer_edge_weights: bool = False,
-        rbf_order: int | None = None,
-    ) -> CHGNetAtomGraphConv:
+        rbf_order: int = 0,
+    ) -> CHGNetGraphConv:
         """Create a CHGNetAtomGraphConv layer from dimensions.
 
         Args:
@@ -512,22 +510,21 @@ class CHGNetAtomGraphConv(nn.Module):
             node_dims: NN architecture for node update function given as a list of dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
             state_dims: NN architecture for state update function given as a list of dimensions of each layer.
-            layer_node_weights: whether to use layer-wise node weights
-            layer_edge_weights: whether to use layer-wise edge weights
-            rbf_order: number of radial basis functions
-                if either layer_node_weights or layer_edge_weights is True then
-                rbf_order must be passed to initialize the weight functions
+            rbf_order: RBF order specifying input dimensions for linear layer specifying message weights.
+                If 0, no layer-wise weights are used.
 
         Returns:
             CHGNetAtomGraphConv
         """
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = (
-            nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if layer_node_weights else None
+            nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False)
+            if rbf_order > 0 else None
         )
         edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:]) if edge_dims is not None else None
         edge_weight_func = (
-            nn.Linear(in_features=rbf_order, out_features=edge_dims[-1], bias=False) if layer_edge_weights else None
+            nn.Linear(in_features=rbf_order, out_features=edge_dims[-1], bias=False)
+            if rbf_order > 0 and edge_dims is not None else None
         )
         state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None
 
@@ -565,7 +562,7 @@ class CHGNetAtomGraphConv(nn.Module):
         return {"feat_update": edge_update}
 
     def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
-        """Perform edge update.
+        """Perform edge update -> bond features.
 
         Args:
             graph: atom graph
@@ -575,16 +572,16 @@ class CHGNetAtomGraphConv(nn.Module):
             edge_update: edge features update
         """
         graph.apply_edges(self._edge_udf)
-        # TODO check dimensions appropriate here, or needs to be done in edge_udf
+        # TODO this product must happen in edge_udf before aggregation
         edge_update = graph.edata["feat_update"] * shared_weights
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
-        """Perform node update.
+        """Perform node update -> atom features.
 
         Args:
             graph: DGL atom graph
-            shared_weights: atom graph node weights shared between convolution layers
+            shared_weights: node message shared weights
 
         Returns:
             node_update: updated node features
@@ -648,8 +645,8 @@ class CHGNetAtomGraphConv(nn.Module):
             node_features: node features
             edge_features: edge features
             state_attr: state attributes
-            shared_node_weights: atom graph node weights shared amongst layers
-            shared_edge_weights: atom graph edge weights shared amongst layers
+            shared_node_weights: shared node message weights
+            shared_edge_weights: shared edge message weights
 
         Returns:
             tuple: updated node features, updated edge features, updated state attributes
@@ -690,10 +687,8 @@ class CHGNetAtomGraphBlock(nn.Module):
         update_edge_feats: bool = False,
         include_state: bool = False,
         num_state_feats: int | None = None,
-        layer_node_weights: bool = False,
-        layer_edge_weights: bool = False,
-        rbf_order: int | None = None,
-        dropout: float | None = None,
+        rbf_order: int = 0,
+        dropout: float = 0.0,
     ):
         """
         Args:
@@ -704,9 +699,9 @@ class CHGNetAtomGraphBlock(nn.Module):
             update_edge_feats: whether to update edge features
             include_state: whether to include state attributes
             num_state_feats: number of state features if include_state is True
-            layer_node_weights: whether to include layer-wise node weights
-            layer_edge_weights: whether to include layer-wise edge weights
-            rbf_order: order of radial basis functions
+            rbf_order: whether to include layer-wise node weights
+             RBF order specifying input dimensions for linear layer specifying message weights.
+                If 0, no layer-wise weights are used.
             dropout: dropout probability
         """
         super().__init__()
@@ -720,24 +715,22 @@ class CHGNetAtomGraphBlock(nn.Module):
         node_dims = [node_input_dim] + conv_hidden_dims + [num_atom_feats]
         edge_dims = [node_input_dim] + conv_hidden_dims + [num_bond_feats] if update_edge_feats else None
 
-        self.conv_layer = CHGNetAtomGraphConv.from_dims(
+        self.conv_layer = CHGNetGraphConv.from_dims(
             include_state=include_state,
             activation=activation,
             node_dims=node_dims,
             edge_dims=edge_dims,
             state_dims=state_dims,
-            layer_node_weights=layer_node_weights,
-            layer_edge_weights=layer_edge_weights,
             rbf_order=rbf_order,
         )
-        self.dropout = nn.Dropout(dropout) if dropout is not None else None
+        self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
         self.out_layer = nn.Linear(num_atom_feats, num_atom_feats)
 
     def forward(
         self,
         graph: dgl.DGLGraph,
-        edge_features: Tensor,
-        node_features: Tensor,
+        atom_features: Tensor,
+        bond_features: Tensor,
         state_attr: Tensor,
         shared_node_weights: Tensor,
         shared_edge_weights: Tensor,
@@ -746,29 +739,28 @@ class CHGNetAtomGraphBlock(nn.Module):
 
         Args:
             graph: atom graph
-            edge_features: edge features
-            node_features: node features
+            atom_features: node features
+            bond_features: edge features
             state_attr: state attributes
-            shared_node_weights: atom graph node weights shared amongst layers
-            shared_edge_weights: atom graph edge weights shared amongst layers
+            shared_node_weights: node message weights shared amongst layers
+            shared_edge_weights: edge message weights shared amongst layers
         """
-        node_features, edge_features, state_attr = self.conv_layer(
-            graph,
-            edge_features,
-            node_features,
-            state_attr,
-            shared_node_weights,
-            shared_edge_weights,
+        atom_features, bond_features, state_attr = self.conv_layer(
+            graph=graph,
+            node_features=atom_features,
+            edge_features=bond_features,
+            state_attr=state_attr,
+            shared_node_weights=shared_node_weights,
+            shared_edge_weights=shared_edge_weights,
         )
+        atom_features = self.dropout(atom_features)
+        bond_features = self.dropout(bond_features)
+        state_attr = self.dropout(state_attr)
+        atom_features = self.out_layer(atom_features)
+        return atom_features, bond_features, state_attr
 
-        if self.dropout is not None:
-            node_features = self.dropout(node_features)
 
-        node_features = self.out_layer(node_features)
-        return node_features, edge_features, state_attr
-
-
-class CHGNetBondGraphConv(nn.Module):
+class CHGNetLineGraphConv(nn.Module):
     """A CHGNet atom graph convolution layer in DGL.
 
     This implements both the bond and angle update functions in the CHGNet paper as line graph updates.
@@ -798,12 +790,12 @@ class CHGNetBondGraphConv(nn.Module):
         node_dims: list[int],
         edge_dims: list[int],
         node_weight_input_dims: int = 0,
-    ) -> CHGNetBondGraphConv:
+    ) -> CHGNetLineGraphConv:
         """
         Args:
             node_dims: NN architecture for node update function given as a list of dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
-            node_weight_input_dims: input dimensions for linear layer of node weights.
+            node_weight_input_dims: input dimensions for linear layer of node weights. (the RBF order)
                 If 0, no layer-wise weights are used.
 
         Returns:
@@ -835,7 +827,7 @@ class CHGNetBondGraphConv(nn.Module):
         return {"feat_update": messages_ij}
 
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
-        """
+        """Perform edge update -> angle features.
 
         Args:
             graph: bond graph (line graph of atom graph)
@@ -848,11 +840,11 @@ class CHGNetBondGraphConv(nn.Module):
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
-        """
+        """Perform node update -> bond features.
 
         Args:
             graph: bond graph (line graph of atom graph)
-            shared_weights:
+            shared_weights: node message shared weights
 
         Returns:
             node_update: bond features update
@@ -896,7 +888,7 @@ class CHGNetBondGraphConv(nn.Module):
             graph: bond graph (line graph of atom graph)
             node_features: bond features
             edge_features: concatenated center atom and angle features
-            shared_node_weights: shared node weights
+            shared_node_weights: shared node message weights
 
         Returns:
             tuple: update edge features, update node features
@@ -950,7 +942,7 @@ class CHGNetBondGraphBlock(nn.Module):
         node_dims = [node_input_dim] + bond_hidden_dims + [num_bond_feats]
         edge_dims = [node_input_dim] + angle_hidden_dims + [num_angle_feats]
 
-        self.conv_layer = CHGNetBondGraphConv.from_dims(
+        self.conv_layer = CHGNetLineGraphConv.from_dims(
             node_dims=node_dims,
             edge_dims=edge_dims,
             node_weight_input_dims=bond_weight_input_dims,
@@ -958,8 +950,6 @@ class CHGNetBondGraphBlock(nn.Module):
 
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
-
-
 
 # TODO make sure this is shared with atom graph, or otherwise save the indices
 # of the atom feature tensor directly
