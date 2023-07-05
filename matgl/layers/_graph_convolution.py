@@ -711,11 +711,11 @@ class CHGNetAtomGraphBlock(nn.Module):
         node_input_dim = 2 * num_atom_feats + num_bond_feats
         if include_state:
             node_input_dim += num_state_feats
-            state_dims = [num_atom_feats + num_state_feats] + conv_hidden_dims + [num_state_feats]
+            state_dims = [num_atom_feats + num_state_feats, *conv_hidden_dims, num_state_feats]
         else:
             state_dims = None
-        node_dims = [node_input_dim] + conv_hidden_dims + [num_atom_feats]
-        edge_dims = [node_input_dim] + conv_hidden_dims + [num_bond_feats] if update_edge_feats else None
+        node_dims = [node_input_dim, *conv_hidden_dims, num_atom_feats]
+        edge_dims = [node_input_dim, *conv_hidden_dims, num_bond_feats] if update_edge_feats else None
 
         self.conv_layer = CHGNetGraphConv.from_dims(
             include_state=include_state,
@@ -941,8 +941,8 @@ class CHGNetBondGraphBlock(nn.Module):
         super().__init__()
 
         node_input_dim = 2 * num_bond_feats + num_angle_feats + num_atom_feats
-        node_dims = [node_input_dim] + bond_hidden_dims + [num_bond_feats]
-        edge_dims = [node_input_dim] + angle_hidden_dims + [num_angle_feats]
+        node_dims = [node_input_dim, *bond_hidden_dims, num_bond_feats]
+        edge_dims = [node_input_dim, *angle_hidden_dims, num_angle_feats]
 
         self.conv_layer = CHGNetLineGraphConv.from_dims(
             node_dims=node_dims,

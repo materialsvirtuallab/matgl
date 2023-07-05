@@ -26,6 +26,9 @@ from matgl.layers import (
     MLP,
     FourierExpansion,
     RadialBesselFunction,
+    ReduceReadOut,
+    WeightedReadOut,
+    Set2SetReadOut,
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,
 )
@@ -55,26 +58,23 @@ class CHGNet(nn.Module, IOMixIn):
         max_f: int = 4,  # number of Fourier frequencies -> 4 * 2 + 1 = 9 of original CHGNet
         learn_basis: bool = True,
         nblocks: int = 4,
-        shared_bond_weights: Literal["bond", "three_body_bond", "both"] = "both",
-        # missing args from original chgnet
-        atom_conv_hidden_dims: Sequence[int] = [64],
-        # update_bond: bool = True,
-        bond_conv_hidden_dims: Sequence[int] = [64],
+        shared_bond_weights: Literal["bond", "three_body_bond", "both"] | None = "both",
+        atom_conv_hidden_dims: Sequence[int] = (64,),
+        bond_conv_hidden_dims: Sequence[int] = (64,),
         angle_layer_hidden_dim: Sequence[int] | None = None,
-        # update_angle: bool = True,
-        # angle_layer_hidden_dim: Sequence[int] | int = 0,
-        # read_out: str = "ave",
-        # mlp_hidden_dims: Sequence[int] | int = (64, 64),
-        # mlp_first: bool = True,
-        # additional args from m3gnet mgl
-        # units: int = 64,
-        # ntargets: int = 1,
-        # field: str = "node_feat",
         conv_dropout: float = 0.0,
+        # missing args from original chgnet
+        # update_bond: bool = True,
+        # update_angle: bool = True,
+        # additional args from m3gnet mgl
+        num_targets: int = 1,
+        readout_field: str = "node_feat",
+        readout_hidden_dims: Sequence[int] = (64, 64),
         readout_dropout: float = 0.0,
         activation_type: str = "swish",
         is_intensive: bool = True,
-        # readout_type: str = "average",  # or attention
+        readout_type: Literal["sum", "average", "attention", "weighted"] = "sum",  # or attention
+        readout_mlp_first: bool = True,
         # task_type: str = "regression",
         **kwargs,
     ):
@@ -163,8 +163,19 @@ class CHGNet(nn.Module, IOMixIn):
 
         self.magmom_readout = nn.Linear(dim_atom_embedding, 1)
 
-        # TODO implement the readout layer attrs
-        self.final_layer = None  # MLP or GatedMLP with Linear readout
+        input_readout_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
+        self.readout_mlp = MLP([input_readout_dim, *readout_hidden_dims, num_targets], activation)
+
+        if readout_type == "sum":  # mlp first then reduce
+            self.readout = ReduceReadOut("sum", field=readout_field)
+        elif readout_type == "average":  # reduce then mlp
+            self.readout = ReduceReadOut("mean", field=readout_field)
+        elif readout_type == "weighted":  # weighted reduce
+            self.readout = WeightedReadOut(in_feats=input_readout_dim, dims=readout_hidden_dims, num_targets=num_targets)
+        elif readout_type == "attention":  # attention reduce
+            raise NotImplementedError  # TODO implement attention readout
+        else:
+            raise Exception("Undefined readout type, please try using mlp_reduce, reduce, weighted, attention")
 
         self.element_types = element_types
         self.max_n = max_n
@@ -173,6 +184,7 @@ class CHGNet(nn.Module, IOMixIn):
         self.cutoff = cutoff
         self.cutoff_exponent = cutoff_exponent
         self.three_body_cutoff = threebody_cutoff
+        self.readout_tyupe = readout_type
         self.is_intensive = is_intensive
 
     def forward(self, graph: dgl.DGLGraph, states: torch.Tensor | None = None) -> torch.Tensor:
