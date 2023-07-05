@@ -518,13 +518,13 @@ class CHGNetGraphConv(nn.Module):
         """
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = (
-            nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False)
-            if rbf_order > 0 else None
+            nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
         )
         edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:]) if edge_dims is not None else None
         edge_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=edge_dims[-1], bias=False)
-            if rbf_order > 0 and edge_dims is not None else None
+            if rbf_order > 0 and edge_dims is not None
+            else None
         )
         state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None
 
@@ -951,8 +951,14 @@ class CHGNetBondGraphBlock(nn.Module):
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
 
-    def forward(self, graph: dgl.DGLGraph, atom_features: Tensor, bond_features: Tensor, angle_features: Tensor,
-                shared_node_weights: Tensor) -> tuple[Tensor, Tensor]:
+    def forward(
+        self,
+        graph: dgl.DGLGraph,
+        atom_features: Tensor,
+        bond_features: Tensor,
+        angle_features: Tensor,
+        shared_node_weights: Tensor,
+    ) -> tuple[Tensor, Tensor]:
         """Perform sequence of bond->angle updates.
 
         Args:
@@ -969,9 +975,7 @@ class CHGNetBondGraphBlock(nn.Module):
         # concat center atom and angle features
         edge_features = torch.hstack([angle_features, atom_features[graph.edata["center_atom_index"]]])
 
-        bond_features_, angle_features = self.conv_layer(
-            graph, node_features, edge_features, shared_node_weights
-        )
+        bond_features_, angle_features = self.conv_layer(graph, node_features, edge_features, shared_node_weights)
 
         bond_features_ = self.bond_dropout(bond_features_)
         angle_features = self.angle_dropout(angle_features)
