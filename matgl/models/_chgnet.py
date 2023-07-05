@@ -12,9 +12,16 @@ from __future__ import annotations
 import logging
 from typing import Literal
 
+import dgl
+import torch
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
+from matgl.graph.compute import (
+    compute_pair_vector_and_distance,
+    compute_theta_and_phi,
+    create_line_graph,
+)
 from matgl.layers import (
     MLP,
     FourierExpansion,
@@ -145,3 +152,25 @@ class CHGNet(nn.Module, IOMixIn):
         self.three_body_cutoff = threebody_cutoff
         self.include_states = include_state
         self.is_intensive = is_intensive
+
+    def forward(self, graph: dgl.DGLGraph, states: torch.Tensor | None = None) -> torch.Tensor:
+        """Forward pass of the model.
+
+        Args:
+            graph (dgl.DGLGraph): Input graph.
+            states (torch.Tensor, optional): State features. Defaults to None.
+
+        Returns:
+            torch.Tensor: Model output.
+        """
+
+        # create bond graph (line graph)
+        bond_vec, bond_dist = compute_pair_vector_and_distance(g)
+        graph.edata["bond_vec"] = bond_vec
+        graph.edata["bond_dist"] = bond_dist
+        bond_graph = create_line_graph(graph, self.three_body_cutoff)
+        # TODO: this may be moved into create_line_graph
+        bond_graph.ndata["bond_index"] = graph.edata["bond_dist"] <= self.three_body_cutoff
+        bond_graph.edata["center_atom_index"] = torch.gather(graph.edges()[1], 0, bond_graph.edges()[1])
+        # TODO only compute theta (and not cos_theta)
+        bond_graph.apply_edges(compute_theta_and_phi)
