@@ -10,7 +10,7 @@ The CHGNet model is described in the following paper: https://arxiv.org/abs/2302
 from __future__ import annotations
 
 import logging
-from typing import Literal
+from typing import Literal, Sequence
 
 import dgl
 import torch
@@ -26,6 +26,8 @@ from matgl.layers import (
     MLP,
     FourierExpansion,
     RadialBesselFunction,
+    CHGNetAtomGraphBlock,
+    CHGNetBondGraphBlock,
 )
 from matgl.utils.io import IOMixIn
 
@@ -39,9 +41,9 @@ class CHGNet(nn.Module, IOMixIn):
 
     def __init__(
         self,
-        element_types: tuple[str],
-        dim_node_embedding: int = 64,
-        dim_edge_embedding: int = 64,
+        element_types: tuple[str] | None = None,
+        dim_atom_embedding: int = 64,
+        dim_bond_embedding: int = 64,
         dim_angle_embedding: int = 64,
         dim_state_embedding: int | None = None,
         dim_state_types: int | None = None,
@@ -55,21 +57,21 @@ class CHGNet(nn.Module, IOMixIn):
         nblocks: int = 4,
         shared_bond_weights: Literal["bond", "three_body_bond", "both"] = "both",
         # missing args from original chgnet
-        # atom_conv_hidden_dim: Sequence[int] | int = 64,
+        atom_conv_hidden_dims: Sequence[int] = [64],
         # update_bond: bool = True,
-        # bond_conv_hidden_dim: Sequence[int] | int = 64,
+        bond_conv_hidden_dims: Sequence[int] = [64],
+        angle_layer_hidden_dim: Sequence[int] | None = None,
         # update_angle: bool = True,
         # angle_layer_hidden_dim: Sequence[int] | int = 0,
-        # conv_dropout: float = 0,
         # read_out: str = "ave",
         # mlp_hidden_dims: Sequence[int] | int = (64, 64),
-        # mlp_dropout: float = 0,
         # mlp_first: bool = True,
         # additional args from m3gnet mgl
         # units: int = 64,
         # ntargets: int = 1,
         # field: str = "node_feat",
-        include_state: bool = False,
+        conv_dropout: float = 0.0,
+        readout_dropout: float = 0.0,
         activation_type: str = "swish",
         is_intensive: bool = True,
         # readout_type: str = "average",  # or attention
@@ -96,10 +98,7 @@ class CHGNet(nn.Module, IOMixIn):
         else:
             raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
-        if element_types is None:
-            self.element_types = DEFAULT_ELEMENT_TYPES  # make sure these match CHGNet
-        else:
-            self.element_types = element_types
+        element_types = element_types or DEFAULT_ELEMENT_TYPES
 
         # basis expansions for bond lengths, triple interaction bond lengths and angles
         self.bond_expansion = RadialBesselFunction(max_n=max_n, cutoff=cutoff, learnable=learn_basis)
@@ -109,48 +108,71 @@ class CHGNet(nn.Module, IOMixIn):
         self.angle_expansion = FourierExpansion(max_f=max_f, learnable=learn_basis)
 
         # embedding block for atom, bond, angle, and optional state features
-        self.state_embedding = nn.Embedding(dim_state_types, dim_state_feats) if include_state else None
-        self.atom_embedding = nn.Embedding(len(element_types), dim_node_embedding)
+        self.include_states = dim_state_types is not None and dim_state_feats is not None
+        self.state_embedding = nn.Embedding(dim_state_types, dim_state_feats) if self.include_states else None
+        self.atom_embedding = nn.Embedding(len(element_types), dim_atom_embedding)
         # TODO add option for activation
-        self.bond_embedding = MLP([max_n, dim_edge_embedding], activation=activation, activate_last=False)
+        self.bond_embedding = MLP([max_n, dim_bond_embedding], activation=activation, activate_last=False)
         self.angle_embedding = MLP([max_f, dim_angle_embedding], activation=activation, activate_last=False)
 
         # shared bond message smoothing weights
         self.bond_weights = (
-            nn.Linear(max_n, dim_node_embedding, bias=False) if shared_bond_weights in ["bond", "both"] else None
+            nn.Linear(max_n, dim_atom_embedding, bias=False) if shared_bond_weights in ["bond", "both"] else None
         )
         self.threebody_bond_weights = (
-            nn.Linear(max_n, dim_edge_embedding, bias=False)
+            nn.Linear(max_n, dim_bond_embedding, bias=False)
             if shared_bond_weights in ["three_body_bond", "both"]
             else None
         )
 
         # operations involving the graph (i.e. atom graph) to update atom and bond features
         self.atom_graph_layers = nn.ModuleList(
-            {None for _ in range(nblocks)}  # implement the AtomConvolution and BondUpdate
+            [
+                CHGNetAtomGraphBlock(
+                    num_atom_feats=dim_atom_embedding,
+                    num_bond_feats=dim_bond_embedding,
+                    #  this activation only applies to state update MLP, gMLP in core has silu hard-coded
+                    activation=activation,
+                    conv_hidden_dims=atom_conv_hidden_dims,
+                    update_edge_feats=False,
+                    include_state=self.include_states,
+                    num_state_feats=dim_state_embedding,
+                    rbf_order=max_n if shared_bond_weights in ["bond", "both"] else 0,
+                    dropout=conv_dropout,
+                )
+                for _ in range(nblocks)
+            ]
         )
 
         # operations involving the line graph (i.e. bond graph) to update bond and angle features
         self.bond_graph_layers = nn.ModuleList(
-            {
-                None  # implement the BondConvolution and AngleUpdate
-                # in here calculate the
+            [
+                CHGNetBondGraphBlock(
+                    num_atom_feats=dim_atom_embedding,
+                    num_bond_feats=dim_bond_embedding,
+                    num_angle_feats=dim_angle_embedding,
+                    bond_hidden_dims=bond_conv_hidden_dims,
+                    angle_hidden_dims=angle_layer_hidden_dim if angle_layer_hidden_dim is not None else [],
+                    bond_dropout=conv_dropout,
+                    angle_dropout=conv_dropout,
+                    rbf_order=max_n if shared_bond_weights in ["three_body_bond", "both"] else 0,
+                )
                 for _ in range(nblocks - 1)
-            }
+            ]
         )
 
-        self.magmom_readout = nn.Linear(dim_node_embedding, 1)
+        self.magmom_readout = nn.Linear(dim_atom_embedding, 1)
 
         # TODO implement the readout layer attrs
         self.final_layer = None  # MLP or GatedMLP with Linear readout
 
+        self.element_types = element_types
         self.max_n = max_n
         self.max_f = max_f
         self.n_blocks = nblocks
         self.cutoff = cutoff
         self.cutoff_exponent = cutoff_exponent
         self.three_body_cutoff = threebody_cutoff
-        self.include_states = include_state
         self.is_intensive = is_intensive
 
     def forward(self, graph: dgl.DGLGraph, states: torch.Tensor | None = None) -> torch.Tensor:
@@ -165,7 +187,7 @@ class CHGNet(nn.Module, IOMixIn):
         """
 
         # create bond graph (line graph)
-        bond_vec, bond_dist = compute_pair_vector_and_distance(g)
+        bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
         graph.edata["bond_vec"] = bond_vec
         graph.edata["bond_dist"] = bond_dist
         bond_graph = create_line_graph(graph, self.three_body_cutoff)

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Sequence
+
 import dgl
 import dgl.function as fn
 import torch
@@ -497,9 +499,9 @@ class CHGNetGraphConv(nn.Module):
         cls,
         include_state: bool,
         activation: Module,
-        node_dims: list[int],
-        edge_dims: list[int] | None = None,
-        state_dims: list[int] | None = None,
+        node_dims: Sequence[int],
+        edge_dims: Sequence[int] | None = None,
+        state_dims: Sequence[int] | None = None,
         rbf_order: int = 0,
     ) -> CHGNetGraphConv:
         """Create a CHGNetAtomGraphConv layer from dimensions.
@@ -683,7 +685,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         num_atom_feats: int,
         num_bond_feats: int,
         activation: Module,
-        conv_hidden_dims: list[int],
+        conv_hidden_dims: Sequence[int],
         update_edge_feats: bool = False,
         include_state: bool = False,
         num_state_feats: int | None = None,
@@ -918,9 +920,9 @@ class CHGNetBondGraphBlock(nn.Module):
         num_atom_feats: int,
         num_bond_feats: int,
         num_angle_feats: int,
-        bond_hidden_dims: list[int],
-        angle_hidden_dims: list[int],
-        bond_weight_input_dims: int = 0,
+        bond_hidden_dims: Sequence[int],
+        angle_hidden_dims: Sequence[int],
+        rbf_order: int = 0,
         bond_dropout: float = 0.0,
         angle_dropout: float = 0.0,
     ):
@@ -931,7 +933,7 @@ class CHGNetBondGraphBlock(nn.Module):
             num_angle_feats: number of angle features
             bond_hidden_dims: dimensions of hidden layers of bond graph convolution
             angle_hidden_dims: dimensions of hidden layers of angle update function
-            bond_weight_input_dims: dimensions of input to node weight function
+            rbf_order: dimensions of input to node weight function (num RBF functions)
                 If 0, no layer-wise node weights are used.
             bond_dropout: dropout probability for bond graph convolution
             angle_dropout: dropout probability for angle update function
@@ -945,7 +947,7 @@ class CHGNetBondGraphBlock(nn.Module):
         self.conv_layer = CHGNetLineGraphConv.from_dims(
             node_dims=node_dims,
             edge_dims=edge_dims,
-            node_weight_input_dims=bond_weight_input_dims,
+            node_weight_input_dims=rbf_order,
         )
 
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
