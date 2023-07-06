@@ -295,7 +295,7 @@ class M3GNetDataset(DGLDataset):
         if self.labels is None:
             labels_with_key = {"energies": self.energies, "forces": self.forces, "stresses": self.stresses}
         else:
-            labels_with_key = {self.label_name: self.labels}
+            labels_with_key = {self.label_name: self.labels}  # type: ignore
         save_graphs(filename, self.graphs)
         save_graphs(filename_line_graph, self.line_graphs)
         torch.save(self.state_attr, filename_state_attr)
@@ -326,7 +326,7 @@ class M3GNetDataset(DGLDataset):
             self.stresses = labels["stresses"]
             self.state_attr = torch.load("state_attr.pt")
         else:
-            self.labels = labels
+            self.labels = labels  # type: ignore
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
@@ -335,8 +335,8 @@ class M3GNetDataset(DGLDataset):
                 self.graphs[idx],
                 self.line_graphs[idx],
                 self.state_attr[idx],
-                self.energies[idx],
-                torch.tensor(self.forces[idx]).float(),
+                self.energies[idx],  # type: ignore
+                torch.tensor(self.forces[idx]).float(),  # type: ignore
                 torch.tensor(self.stresses[idx]).float(),  # type: ignore
             )
         return (self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx])
