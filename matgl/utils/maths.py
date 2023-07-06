@@ -56,7 +56,7 @@ def _block_repeat(array, block_size, repeats):
         indices.append(torch.tile(col_index[start : start + b], [repeats[i]]))
         start += b
     indices = torch.cat(indices, axis=0)
-    return torch.index_select(array, 1, indices)
+    return torch.index_select(array, 1, indices.to(array.device))
 
 
 @lru_cache(maxsize=128)
@@ -66,7 +66,8 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
 
     dn = [1.0]
     for i in range(1, max_n):
-        dn.append(1 - en[i] / dn[-1])
+        dn_value = 1 - en[i] / dn[-1]
+        dn.append(dn_value)
 
     fnr = [
         (-1) ** i
@@ -85,7 +86,8 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
 
     gnr = [fnr[0]]
     for i in range(1, max_n):
-        gnr.append(1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1]))
+        gnr_value = 1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1])
+        gnr.append(gnr_value)
     return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr]
 
 
@@ -101,8 +103,9 @@ def get_segment_indices_from_n(ns):
 
     Returns: segment indices tensor
     """
-    a = torch.arange(ns.size(dim=0))
-    return a.repeat_interleave(ns, dim=0)
+    B = ns
+    A = torch.arange(B.size(dim=0)).to(B.device)
+    return A.repeat_interleave(B, dim=0)
 
 
 def get_range_indices_from_n(ns):
@@ -184,7 +187,7 @@ def scatter_sum(input_tensor: torch.Tensor, segment_ids: torch.Tensor, num_segme
         size[dim] = 0
     else:
         size[dim] = num_segments
-    output = torch.zeros(size, dtype=input_tensor.dtype)
+    output = torch.zeros(size, dtype=input_tensor.dtype, device=input_tensor.device)
     return output.scatter_add_(dim, segment_ids, input_tensor)
 
 

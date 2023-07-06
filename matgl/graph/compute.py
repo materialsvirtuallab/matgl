@@ -60,8 +60,8 @@ def compute_3body(g: dgl.DGLGraph):
 
     src_id, dst_id = (triple_bond_indices[:, 0], triple_bond_indices[:, 1])
     l_g = dgl.graph((src_id, dst_id))
-    three_body_id = np.unique(triple_bond_indices)
-    max_three_body_id = max(np.concatenate([three_body_id + 1, [0]]))
+    three_body_id = torch.unique(triple_bond_indices)
+    max_three_body_id = max(torch.cat([three_body_id + 1, torch.tensor([0])]))
     l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
@@ -131,27 +131,23 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False) -> dict[str, t
     return {key: val, "triple_bond_lengths": edges.dst["bond_dist"]}
 
 
-def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
-    """Calculate the three body indices from pair atom indices.
+def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
+    """
+    Calculate the three body indices from pair atom indices.
 
     Args:
-        g_batched: Batched DGL graph
+        g: DGL graph
         threebody_cutoff (float): cutoff for three-body interactions
 
     Returns:
         l_g: DGL graph containing three body information from graph
     """
-    g_unbatched = dgl.unbatch(g_batched)
-    l_g_unbatched = []
-    for g in g_unbatched:
-        valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
-        src_id_with_three_body = g.edges()[0][valid_three_body]
-        dst_id_with_three_body = g.edges()[1][valid_three_body]
-        graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
-        graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-        graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-        graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
-        l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
-        l_g_unbatched.append(l_g)
-    l_g_batched = dgl.batch(l_g_unbatched)
-    return l_g_batched
+    valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
+    src_id_with_three_body = g.edges()[0][valid_three_body]
+    dst_id_with_three_body = g.edges()[1][valid_three_body]
+    graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
+    graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
+    graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
+    graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+    l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
+    return l_g

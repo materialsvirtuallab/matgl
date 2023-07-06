@@ -212,8 +212,12 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             results, batch_size
         """
-        g, labels, state_attr = batch
-        preds = self(g=g, state_attr=state_attr)
+        if isinstance(self.model, M3GNet):
+            g, l_g, state_attr, labels = batch
+            preds = self(g=g, l_g=l_g, state_attr=state_attr)
+        else:
+            g, labels, state_attr = batch
+            preds = self(g=g, state_attr=state_attr)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size

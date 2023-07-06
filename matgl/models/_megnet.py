@@ -199,7 +199,7 @@ class MEGNet(nn.Module, IOMixIn):
         if self.is_classification:
             output = torch.sigmoid(output)
 
-        return output
+        return torch.squeeze(output)
 
     def predict_structure(
         self,
