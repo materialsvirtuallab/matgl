@@ -118,5 +118,4 @@ class Potential(nn.Module, IOMixIn):
                 num_nodes = g.batch_num_nodes()[graph_id]
                 count_node = count_node + num_nodes
             stresses = torch.cat(sts)
-
         return total_energies, forces, stresses, hessian
