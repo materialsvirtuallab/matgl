@@ -73,7 +73,6 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
         dn_value = 1 - en[i] / dn[-1]
         dn.append(dn_value)
 
-
     fnr = []
     for i in range(max_n):
         fnr_value = (
