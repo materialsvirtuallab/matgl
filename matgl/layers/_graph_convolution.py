@@ -557,13 +557,13 @@ class CHGNetGraphConv(nn.Module):
 
         edge_update = self.edge_update_func(inputs)
         if self.edge_weight_func is not None:
-            rbf = edges.data["rbf"]
+            rbf = edges.data["bond_expansion"]
             rbf = rbf.float()
             edge_update = edge_update * self.edge_weight_func(rbf)
 
         return {"feat_update": edge_update}
 
-    def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+    def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
         """Perform edge update -> bond features.
 
         Args:
@@ -575,10 +575,11 @@ class CHGNetGraphConv(nn.Module):
         """
         graph.apply_edges(self._edge_udf)
         # TODO this product must happen in edge_udf before aggregation
-        edge_update = graph.edata["feat_update"] * shared_weights
+        if shared_weights is not None:
+            edge_update = graph.edata["feat_update"] * shared_weights
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
         """Perform node update -> atom features.
 
         Args:
@@ -603,11 +604,12 @@ class CHGNetGraphConv(nn.Module):
 
         # smooth out the messages with layer-wise weights
         if self.node_weight_func is not None:
-            rbf = graph.edata["rbf"]
+            rbf = graph.edata["bond_expansion"]
             rbf = rbf.float()
             messages = messages * self.node_weight_func(rbf)
         # smooth out the messages with shared weights
-        messages = messages * shared_weights
+        if shared_weights is not None:
+            messages = messages * shared_weights
 
         # message passing
         graph.edata["message"] = messages
@@ -637,8 +639,8 @@ class CHGNetGraphConv(nn.Module):
         node_features: Tensor,
         edge_features: Tensor,
         state_attr: Tensor,
-        shared_node_weights: Tensor,
-        shared_edge_weights: Tensor,
+        shared_node_weights: Tensor | None,
+        shared_edge_weights: Tensor | None,
     ) -> tuple[Tensor, Tensor, Tensor]:
         """Perform sequence of edge->node->states updates.
 
@@ -734,8 +736,8 @@ class CHGNetAtomGraphBlock(nn.Module):
         atom_features: Tensor,
         bond_features: Tensor,
         state_attr: Tensor,
-        shared_node_weights: Tensor,
-        shared_edge_weights: Tensor,
+        shared_node_weights: Tensor | None,
+        shared_edge_weights: Tensor | None,
     ) -> tuple[Tensor, Tensor, Tensor]:
         """Perform sequence of bond(optional)->atom->states(optional) updates.
 
@@ -841,7 +843,7 @@ class CHGNetLineGraphConv(nn.Module):
         edge_update = graph.edata["feat_update"]
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor) -> Tensor:
+    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
         """Perform node update -> bond features.
 
         Args:
@@ -862,14 +864,15 @@ class CHGNetLineGraphConv(nn.Module):
 
         # smooth out messages with layer-wise weights
         if self.node_weight_func is not None:
-            rbf = graph.ndata["rbf"]
+            rbf = graph.ndata["bond_expansion"]
             weights = self.node_weight_func(rbf)
             weights_i, weights_j = weights[src], weights[dst]
             messages = messages * weights_i * weights_j
 
         # smooth out messages with shared weights
-        weights_i, weights_j = shared_weights[src], shared_weights[dst]
-        messages = messages * weights_i * weights_j
+        if shared_weights is not None:
+            weights_i, weights_j = shared_weights[src], shared_weights[dst]
+            messages = messages * weights_i * weights_j
 
         # message passing
         graph.edata["message"] = messages
@@ -882,7 +885,7 @@ class CHGNetLineGraphConv(nn.Module):
         graph: dgl.DGLGraph,
         node_features: Tensor,
         edge_features: Tensor,
-        shared_node_weights: Tensor,
+        shared_node_weights: Tensor | None,
     ) -> tuple[Tensor, Tensor]:
         """Perform sequence of edge->node->states updates.
 
@@ -959,7 +962,7 @@ class CHGNetBondGraphBlock(nn.Module):
         atom_features: Tensor,
         bond_features: Tensor,
         angle_features: Tensor,
-        shared_node_weights: Tensor,
+        shared_node_weights: Tensor | None,
     ) -> tuple[Tensor, Tensor]:
         """Perform sequence of bond->angle updates.
 
