@@ -86,7 +86,7 @@ class M3GNet(nn.Module, IOMixIn):
             dim_edge_embedding (int): number of edge features
             dim_state_embedding (int): number of hidden neurons in state embedding
             dim_state_feats (int): number of state features after linear layer
-            dim_state_types (int): number of state labels
+            ntypes_state (int): number of state labels
             max_n (int): number of radial basis expansion
             max_l (int): number of angular expansion
             nblocks (int): number of convolution blocks
@@ -258,24 +258,22 @@ class M3GNet(nn.Module, IOMixIn):
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
-        num_node_feats, num_edge_feats, num_state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
+        node_feats, edge_feats, state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
         for i in range(self.n_blocks):
-            num_edge_feats = self.three_body_interactions[i](
+            edge_feats = self.three_body_interactions[i](
                 g,
                 l_g,
                 three_body_basis,
                 three_body_cutoff,
-                num_node_feats,
-                num_edge_feats,
+                node_feats,
+                edge_feats,
             )
-            num_edge_feats, num_node_feats, num_state_feats = self.graph_layers[i](
-                g, num_edge_feats, num_node_feats, num_state_feats
-            )
-        g.ndata["node_feat"] = num_node_feats
-        g.edata["edge_feat"] = num_edge_feats
+            edge_feats, node_feats, state_feats = self.graph_layers[i](g, edge_feats, node_feats, state_feats)
+        g.ndata["node_feat"] = node_feats
+        g.edata["edge_feat"] = edge_feats
         if self.is_intensive:
             node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, num_state_feats]) if self.include_states else node_vec  # type: ignore
+            vec = torch.hstack([node_vec, state_feats]) if self.include_states else node_vec  # type: ignore
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)

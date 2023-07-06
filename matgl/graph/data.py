@@ -228,13 +228,15 @@ class M3GNetDataset(DGLDataset):
     ):
         """
         Args:
+            converter: dgl graph converter
+            threebody_cutoff: cutoff for three body
             structures: Pymatgen structure
             energies: Target energies
             forces: Target forces
             stresses: Target stresses
-            converter: dgl graph converter
-            threebody_cutoff: cutoff for three body
+            labels: target properties
             name: name of dataset
+            label_name: name of target properties
             graph_labels: state attributes.
         """
         self.converter = converter
