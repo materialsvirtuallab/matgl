@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from functools import partial
 import numpy as np
 import torch
 
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
+    compute_theta,
     create_line_graph,
 )
 
@@ -108,6 +110,19 @@ class TestCompute:
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
 
+        # test only compute theta
+        line_graph.apply_edges(compute_theta)
+        np.testing.assert_array_almost_equal(
+            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
+        )
+
+        # test only compute theta with cosine
+        _ = line_graph.edata.pop("cos_theta")
+        line_graph.apply_edges(partial(compute_theta, cosine=True))
+        np.testing.assert_array_almost_equal(
+            np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
+        )
+
         s2, g2, state2 = graph_CH4
 
         bv, bd = compute_pair_vector_and_distance(g2)
@@ -117,6 +132,19 @@ class TestCompute:
 
         line_graph = create_line_graph(g2, 2.0)
         line_graph.apply_edges(compute_theta_and_phi)
+        np.testing.assert_array_almost_equal(
+            np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
+        )
+
+        # test only compute theta
+        line_graph.apply_edges(compute_theta)
+        np.testing.assert_array_almost_equal(
+            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
+        )
+
+        # test only compute theta with cosine
+        _ = line_graph.edata.pop("cos_theta")
+        line_graph.apply_edges(partial(compute_theta, cosine=True))
         np.testing.assert_array_almost_equal(
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )

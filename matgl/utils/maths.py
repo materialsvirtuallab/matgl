@@ -62,33 +62,27 @@ def _block_repeat(array, block_size, repeats):
 @lru_cache(maxsize=128)
 def _get_lambda_func(max_n, cutoff: float = 5.0):
     r = sympy.symbols("r")
-    d0 = 1.0
-    en = []
-    for i in range(max_n):
-        en_value = i**2 * (i + 2) ** 2 / (4 * (i + 1) ** 4 + 1)
-        en.append(en_value)
+    en = [i**2 * (i + 2) ** 2 / (4 * (i + 1) ** 4 + 1) for i in range(max_n)]
 
-    dn = [d0]
+    dn = [1.0]
     for i in range(1, max_n):
         dn_value = 1 - en[i] / dn[-1]
         dn.append(dn_value)
 
-    fnr = []
-    for i in range(max_n):
-        fnr_value = (
-            (-1) ** i
-            * sympy.sqrt(2.0)
-            * sympy.pi
-            / cutoff**1.5
-            * (i + 1)
-            * (i + 2)
-            / sympy.sqrt(1.0 * (i + 1) ** 2 + (i + 2) ** 2)
-            * (
-                sympy.sin(r * (i + 1) * sympy.pi / cutoff) / (r * (i + 1) * sympy.pi / cutoff)
-                + sympy.sin(r * (i + 2) * sympy.pi / cutoff) / (r * (i + 2) * sympy.pi / cutoff)
-            )
+    fnr = [
+        (-1) ** i
+        * sympy.sqrt(2.0)
+        * sympy.pi
+        / cutoff**1.5
+        * (i + 1)
+        * (i + 2)
+        / sympy.sqrt(1.0 * (i + 1) ** 2 + (i + 2) ** 2)
+        * (
+            sympy.sin(r * (i + 1) * sympy.pi / cutoff) / (r * (i + 1) * sympy.pi / cutoff)
+            + sympy.sin(r * (i + 2) * sympy.pi / cutoff) / (r * (i + 2) * sympy.pi / cutoff)
         )
-        fnr.append(fnr_value)
+        for i in range(max_n)
+    ]
 
     gnr = [fnr[0]]
     for i in range(1, max_n):
