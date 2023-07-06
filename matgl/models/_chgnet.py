@@ -19,7 +19,7 @@ from torch import nn
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
-    compute_theta_and_phi,
+    compute_theta,
     create_line_graph,
 )
 from matgl.layers import (
@@ -273,7 +273,7 @@ class CHGNet(nn.Module, IOMixIn):
         # TODO double check if this is correct
         bond_graph.edata["center_atom_index"] = torch.gather(graph.edges()[1], 0, bond_graph.edges()[1])
         # TODO only compute theta (and not cos_theta)
-        bond_graph.apply_edges(compute_theta_and_phi)
+        bond_graph.apply_edges(compute_theta)
         bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
 
         # compute state, atom, bond and angle embeddings
