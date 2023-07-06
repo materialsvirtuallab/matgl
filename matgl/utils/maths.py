@@ -65,15 +65,18 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
     d0 = 1.0
     en = []
     for i in range(max_n):
-        en.append(i**2 * (i + 2) ** 2 / (4 * (i + 1) ** 4 + 1))
+        en_value = i**2 * (i + 2) ** 2 / (4 * (i + 1) ** 4 + 1)
+        en.append(en_value)
 
     dn = [d0]
     for i in range(1, max_n):
-        dn.append(1 - en[i] / dn[-1])
+        dn_value = 1 - en[i] / dn[-1]
+        dn.append(dn_value)
+
 
     fnr = []
     for i in range(max_n):
-        fnr.append(
+        fnr_value = (
             (-1) ** i
             * sympy.sqrt(2.0)
             * sympy.pi
@@ -86,6 +89,7 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
                 + sympy.sin(r * (i + 2) * sympy.pi / cutoff) / (r * (i + 2) * sympy.pi / cutoff)
             )
         )
+        fnr.append(fnr_value)
 
     gnr = [fnr[0]]
     for i in range(1, max_n):

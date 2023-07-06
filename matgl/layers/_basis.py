@@ -309,11 +309,13 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
     en = n**2 * (n + 2) ** 2 / (4 * (n + 1) ** 4 + 1)
     dn = [torch.tensor(1.0)]
     for i in range(1, max_n):
-        dn.append(1 - en[0, i] / dn[-1])
+        dn_value = 1 - en[0, i] / dn[-1]
+        dn.append(dn_value)
     dn = torch.stack(dn)  # type: ignore
     gn = [fnr[:, 0]]
     for i in range(1, max_n):
-        gn.append(1 / torch.sqrt(dn[i]) * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1]))
+        gn_value = 1 / torch.sqrt(dn[i]) * (fnr[:, i] + torch.sqrt(en[0, i] / dn[i - 1]) * gn[-1])
+        gn.append(gn_value)
 
     return torch.t(torch.stack(gn))
 
