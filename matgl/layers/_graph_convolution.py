@@ -531,7 +531,12 @@ class CHGNetGraphConv(nn.Module):
         state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None
 
         return cls(
-            include_state, node_update_func, edge_update_func, node_weight_func, edge_weight_func, state_update_func
+            include_state=include_state,
+            node_update_func=node_update_func,
+            edge_update_func=edge_update_func,
+            node_weight_func=node_weight_func,
+            edge_weight_func=edge_weight_func,
+            state_update_func=state_update_func,
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
@@ -774,14 +779,14 @@ class CHGNetLineGraphConv(nn.Module):
     def __init__(
         self,
         node_update_func: Module,
-        node_weight_func: Module | None,
         edge_update_func: Module | None,
+        node_weight_func: Module | None,
     ):
         """
         Args:
             node_update_func: node update function (for bond features)
-            node_weight_func: layer node weight function
             edge_update_func: edge update function (for angle features)
+            node_weight_func: layer node weight function
         """
         super().__init__()
 
@@ -810,7 +815,9 @@ class CHGNetLineGraphConv(nn.Module):
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
         edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:])
 
-        return cls(node_update_func, edge_update_func, node_weight_func)
+        return cls(
+            node_update_func=node_update_func, edge_update_func=edge_update_func, node_weight_func=node_weight_func
+        )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
         """Edge user defined update function.
@@ -825,8 +832,9 @@ class CHGNetLineGraphConv(nn.Module):
         """
         bonds_i = edges.src["features"]  # first bonds features
         bonds_j = edges.dst["features"]  # second bonds features
-        aa_ij = edges.data["features"]  # center atom and angle features
-        inputs = torch.hstack([bonds_i, aa_ij, bonds_j])
+        angle_ij = edges.data["features"]
+        atom_ij = edges.data["aux_features"]  # center atom features
+        inputs = torch.hstack([bonds_i, angle_ij, atom_ij, bonds_j])
         messages_ij = self.edge_update_func(inputs)
         return {"feat_update": messages_ij}
 
@@ -857,8 +865,9 @@ class CHGNetLineGraphConv(nn.Module):
         src, dst = graph.edges()
         bonds_i = graph.ndata["features"][src]  # first bond feature
         bonds_j = graph.ndata["features"][dst]  # second bond feature
-        aa_ij = graph.edata["features"]  # center atom and angle features
-        inputs = torch.hstack([bonds_i, aa_ij, bonds_j])
+        angle_ij = graph.edata["features"]
+        atom_ij = graph.edata["aux_features"]  # center atom features
+        inputs = torch.hstack([bonds_i, angle_ij, atom_ij, bonds_j])
 
         messages = self.node_update_func(inputs)
 
@@ -885,6 +894,7 @@ class CHGNetLineGraphConv(nn.Module):
         graph: dgl.DGLGraph,
         node_features: Tensor,
         edge_features: Tensor,
+        aux_edge_features: Tensor,
         shared_node_weights: Tensor | None,
     ) -> tuple[Tensor, Tensor]:
         """Perform sequence of edge->node->states updates.
@@ -892,7 +902,9 @@ class CHGNetLineGraphConv(nn.Module):
         Args:
             graph: bond graph (line graph of atom graph)
             node_features: bond features (edge features (for bonds within three body cutoff in atom graph)
-            edge_features: concatenated center atom (at angle) and angle features
+            edge_features: angle features (edge features to be updated)
+            aux_edge_features: center atom features (edge features that are not updated)
+
             shared_node_weights: shared node message weights
 
         Returns:
@@ -902,6 +914,7 @@ class CHGNetLineGraphConv(nn.Module):
         with graph.local_scope():
             graph.ndata["features"] = node_features
             graph.edata["features"] = edge_features
+            graph.edata["aux_features"] = aux_edge_features
 
             # node (bond) update
             node_update = self.node_update_(graph, shared_node_weights)
@@ -977,13 +990,15 @@ class CHGNetBondGraphBlock(nn.Module):
             tuple: update bond features, update angle features
         """
         node_features = bond_features[graph.ndata["bond_index"]]
-        # concat center atom and angle features
-        edge_features = torch.hstack([angle_features, atom_features[graph.edata["center_atom_index"]]])
+        edge_features = angle_features
+        aux_edge_features = atom_features[graph.edata["center_atom_index"]]
 
-        bond_features_, angle_features = self.conv_layer(graph, node_features, edge_features, shared_node_weights)
+        bond_features_, angle_features = self.conv_layer(graph, node_features, edge_features, aux_edge_features, shared_node_weights)
 
         bond_features_ = self.bond_dropout(bond_features_)
         angle_features = self.angle_dropout(angle_features)
-        bond_features.scatter_(0, graph.ndata["bond_index"], bond_features_)
+        # what's the difference between these two?
+        bond_features.scatter_(0, graph.ndata["bond_index"].unsqueeze(dim=1), bond_features_)
+        # bond_features[graph.ndata["bond_index"]] = bond_features_
 
         return bond_features, angle_features

@@ -10,7 +10,7 @@ The CHGNet model is described in the following paper: https://arxiv.org/abs/2302
 from __future__ import annotations
 
 import logging
-from typing import Literal, Sequence
+from typing import Literal, Sequence, TYPE_CHECKING
 
 import dgl
 import torch
@@ -34,6 +34,10 @@ from matgl.layers import (
 )
 from matgl.utils.io import IOMixIn
 from matgl.utils.cutoff import polynomial_cutoff
+
+
+if TYPE_CHECKING:
+    from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__name__)
 
@@ -152,7 +156,7 @@ class CHGNet(nn.Module, IOMixIn):
             [max_n, dim_bond_embedding], activation=activation, activate_last=non_linear_bond_embedding
         )
         self.angle_embedding = MLP(
-            [max_f, dim_angle_embedding], activation=activation, activate_last=non_linear_angle_embedding
+            [2 * max_f + 1, dim_angle_embedding], activation=activation, activate_last=non_linear_angle_embedding
         )
 
         # shared message bond distance smoothing weights
@@ -204,7 +208,9 @@ class CHGNet(nn.Module, IOMixIn):
             ]
         )
 
-        self.sitewise_readout = nn.Linear(dim_atom_embedding, num_site_targets) if num_site_targets > 0 else lambda x: None
+        self.sitewise_readout = (
+            nn.Linear(dim_atom_embedding, num_site_targets) if num_site_targets > 0 else lambda x: None
+        )
 
         # TODO different allowed readouts for intensive/extensive targets and task types
         input_readout_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
@@ -235,12 +241,14 @@ class CHGNet(nn.Module, IOMixIn):
         self.task_type = task_type
         self.is_intensive = is_intensive
 
-    def forward(self, graph: dgl.DGLGraph, states: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor | None]:
+    def forward(
+        self, graph: dgl.DGLGraph, state_features: torch.Tensor | None = None
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         """Forward pass of the model.
 
         Args:
             graph (dgl.DGLGraph): Input graph.
-            states (torch.Tensor, optional): State features. Defaults to None.
+            state_features (torch.Tensor, optional): State features. Defaults to None.
 
         Returns:
             torch.Tensor: Model output.
@@ -258,7 +266,8 @@ class CHGNet(nn.Module, IOMixIn):
         # create bond graph (line graph) with necessary node and edge data
         bond_graph = create_line_graph(graph, self.three_body_cutoff)
         # TODO: this may be moved into create_line_graph
-        bond_graph.ndata["bond_index"] = graph.edata["bond_dist"] <= self.three_body_cutoff
+        bond_indices = torch.arange(0, graph.num_edges())[graph.edata["bond_dist"] <= self.three_body_cutoff]
+        bond_graph.ndata["bond_index"] = bond_indices
         # TODO smooth here or in block?
         bond_graph.ndata["bond_expansion"] = self.threebody_bond_expansion(bond_dist[bond_graph.ndata["bond_index"]])
         # TODO double check if this is correct
@@ -268,8 +277,8 @@ class CHGNet(nn.Module, IOMixIn):
         bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
 
         # compute state, atom, bond and angle embeddings
-        if self.state_embedding is not None and states is not None:
-            state_features = self.state_embedding(states)
+        if self.state_embedding is not None and state_features is not None:
+            state_features = self.state_embedding(state_features)
         else:
             state_features = None
         atom_features = self.atom_embedding(graph.ndata["node_type"])
@@ -322,3 +331,32 @@ class CHGNet(nn.Module, IOMixIn):
         structure_properties = torch.squeeze(structure_properties)
 
         return structure_properties, site_properties
+
+    def predict_structure(
+        self,
+        structure,
+        state_feats: torch.Tensor | None = None,
+        graph_converter: GraphConverter | None = None,
+    ):
+        """Convenience method to directly predict property from structure.
+
+        # TODO copied verbatim from m3gnet, should refactor?
+
+        Args:
+            structure: An input crystal/molecule.
+            state_feats (torch.tensor): Graph attributes
+            graph_converter: Object that implements a get_graph_from_structure.
+
+        Returns:
+            output (torch.tensor): output property
+        """
+        if graph_converter is None:
+            from matgl.ext.pymatgen import Structure2Graph
+
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
+
+        graph, state_feats_default = graph_converter.get_graph(structure)
+        if state_feats is None:
+            state_feats = torch.tensor(state_feats_default)
+        output = self(graph=graph, state_features=state_feats)
+        return [out.detach() for out in output]
