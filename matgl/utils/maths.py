@@ -66,8 +66,7 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
 
     dn = [1.0]
     for i in range(1, max_n):
-        dn_value = 1 - en[i] / dn[-1]
-        dn.append(dn_value)
+        dn.append(1 - en[i] / dn[-1])
 
     fnr = [
         (-1) ** i
@@ -86,8 +85,7 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
 
     gnr = [fnr[0]]
     for i in range(1, max_n):
-        gnr_value = 1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1])
-        gnr.append(gnr_value)
+        gnr.append(1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1]))
     return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr]
 
 
