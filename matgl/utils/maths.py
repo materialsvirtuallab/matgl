@@ -56,7 +56,7 @@ def _block_repeat(array, block_size, repeats):
         indices.append(torch.tile(col_index[start : start + b], [repeats[i]]))
         start += b
     indices = torch.cat(indices, axis=0)
-    return torch.index_select(array, 1, indices)
+    return torch.index_select(array, 1, indices.to(array.device))
 
 
 @lru_cache(maxsize=128)
@@ -65,15 +65,17 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
     d0 = 1.0
     en = []
     for i in range(max_n):
-        en.append(i**2 * (i + 2) ** 2 / (4 * (i + 1) ** 4 + 1))
+        en_value = i**2 * (i + 2) ** 2 / (4 * (i + 1) ** 4 + 1)
+        en.append(en_value)
 
     dn = [d0]
     for i in range(1, max_n):
-        dn.append(1 - en[i] / dn[-1])
+        dn_value = 1 - en[i] / dn[-1]
+        dn.append(dn_value)
 
     fnr = []
     for i in range(max_n):
-        fnr.append(
+        fnr_value = (
             (-1) ** i
             * sympy.sqrt(2.0)
             * sympy.pi
@@ -86,10 +88,12 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
                 + sympy.sin(r * (i + 2) * sympy.pi / cutoff) / (r * (i + 2) * sympy.pi / cutoff)
             )
         )
+        fnr.append(fnr_value)
 
     gnr = [fnr[0]]
     for i in range(1, max_n):
-        gnr.append(1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1]))
+        gnr_value = 1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1])
+        gnr.append(gnr_value)
     return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr]
 
 
@@ -105,8 +109,9 @@ def get_segment_indices_from_n(ns):
 
     Returns: segment indices tensor
     """
-    a = torch.arange(ns.size(dim=0))
-    return a.repeat_interleave(ns, dim=0)
+    B = ns
+    A = torch.arange(B.size(dim=0)).to(B.device)
+    return A.repeat_interleave(B, dim=0)
 
 
 def get_range_indices_from_n(ns):
@@ -188,7 +193,7 @@ def scatter_sum(input_tensor: torch.Tensor, segment_ids: torch.Tensor, num_segme
         size[dim] = 0
     else:
         size[dim] = num_segments
-    output = torch.zeros(size, dtype=input_tensor.dtype)
+    output = torch.zeros(size, dtype=input_tensor.dtype, device=input_tensor.device)
     return output.scatter_add_(dim, segment_ids, input_tensor)
 
 

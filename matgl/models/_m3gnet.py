@@ -14,7 +14,6 @@ import logging
 from typing import TYPE_CHECKING
 
 import dgl
-import numpy as np
 import torch
 from torch import nn
 
@@ -58,7 +57,7 @@ class M3GNet(nn.Module, IOMixIn):
         dim_node_embedding: int = 64,
         dim_edge_embedding: int = 64,
         dim_state_embedding: int | None = None,
-        dim_state_types: int | None = None,
+        ntypes_state: int | None = None,
         dim_state_feats: int | None = None,
         max_n: int = 3,
         max_l: int = 3,
@@ -87,7 +86,7 @@ class M3GNet(nn.Module, IOMixIn):
             dim_edge_embedding (int): number of edge features
             dim_state_embedding (int): number of hidden neurons in state embedding
             dim_state_feats (int): number of state features after linear layer
-            dim_state_types (int): number of state labels
+            ntypes_state (int): number of state labels
             max_n (int): number of radial basis expansion
             max_l (int): number of angular expansion
             nblocks (int): number of convolution blocks
@@ -143,6 +142,7 @@ class M3GNet(nn.Module, IOMixIn):
             dim_node_embedding=dim_node_embedding,
             dim_edge_embedding=dim_edge_embedding,
             ntypes_node=len(element_types),
+            ntypes_state=ntypes_state,
             dim_state_feats=dim_state_feats,
             include_state=include_state,
             dim_state_embedding=dim_state_embedding,
@@ -169,6 +169,9 @@ class M3GNet(nn.Module, IOMixIn):
                 for _ in range(nblocks)
             }
         )
+
+        if dim_state_feats is None:
+            dim_state_feats = dim_state_embedding
 
         self.graph_layers = nn.ModuleList(
             {
@@ -233,40 +236,44 @@ class M3GNet(nn.Module, IOMixIn):
         """
         node_types = g.ndata["node_type"]
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
-        g.edata["bond_vec"] = bond_vec
-        g.edata["bond_dist"] = bond_dist
+        g.edata["bond_vec"] = bond_vec.to(g.device)
+        g.edata["bond_dist"] = bond_dist.to(g.device)
 
         expanded_dists = self.bond_expansion(g.edata["bond_dist"])
         if l_g is None:
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
-            three_body_id = np.unique(np.concatenate(l_g.edges()))
-            max_three_body_id = max(np.concatenate([three_body_id + 1, [0]]))
-            l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
-            l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
-            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
+            if l_g.num_nodes() == g.num_edges():
+                valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
+                l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
+                l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
+                l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+            else:
+                three_body_id = torch.unique(torch.concatenate(l_g.edges()))
+                max_three_body_id = max(torch.cat([three_body_id + 1, torch.tensor([0])]))
+                l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
+                l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
+                l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
-        num_node_feats, num_edge_feats, num_state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
+        node_feats, edge_feats, state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
         for i in range(self.n_blocks):
-            num_edge_feats = self.three_body_interactions[i](
+            edge_feats = self.three_body_interactions[i](
                 g,
                 l_g,
                 three_body_basis,
                 three_body_cutoff,
-                num_node_feats,
-                num_edge_feats,
+                node_feats,
+                edge_feats,
             )
-            num_edge_feats, num_node_feats, num_state_feats = self.graph_layers[i](
-                g, num_edge_feats, num_node_feats, num_state_feats
-            )
-        g.ndata["node_feat"] = num_node_feats
-        g.edata["edge_feat"] = num_edge_feats
+            edge_feats, node_feats, state_feats = self.graph_layers[i](g, edge_feats, node_feats, state_feats)
+        g.ndata["node_feat"] = node_feats
+        g.edata["edge_feat"] = edge_feats
         if self.is_intensive:
             node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, state_attr]) if self.include_states else node_vec  # type: ignore
+            vec = torch.hstack([node_vec, state_feats]) if self.include_states else node_vec  # type: ignore
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
