@@ -258,22 +258,22 @@ class M3GNet(nn.Module, IOMixIn):
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
-        node_feats, edge_feats, state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
+        node_feat, edge_feat, state_feat = self.embedding(node_types, g.edata["rbf"], state_attr)
         for i in range(self.n_blocks):
-            edge_feats = self.three_body_interactions[i](
+            edge_feat = self.three_body_interactions[i](
                 g,
                 l_g,
                 three_body_basis,
                 three_body_cutoff,
-                node_feats,
-                edge_feats,
+                node_feat,
+                edge_feat,
             )
-            edge_feats, node_feats, state_feats = self.graph_layers[i](g, edge_feats, node_feats, state_feats)
-        g.ndata["node_feat"] = node_feats
-        g.edata["edge_feat"] = edge_feats
+            edge_feat, node_feat, state_feat = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
+        g.ndata["node_feat"] = node_feat
+        g.edata["edge_feat"] = edge_feat
         if self.is_intensive:
             node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, state_feats]) if self.include_states else node_vec  # type: ignore
+            vec = torch.hstack([node_vec, state_feat]) if self.include_states else node_vec  # type: ignore
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
