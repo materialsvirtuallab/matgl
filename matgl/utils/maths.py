@@ -93,7 +93,8 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
 
     gnr = [fnr[0]]
     for i in range(1, max_n):
-        gnr.append(1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1]))
+        gnr_value = 1 / sympy.sqrt(dn[i]) * (fnr[i] + sympy.sqrt(en[i] / dn[i - 1]) * gnr[-1])
+        gnr.append(gnr_value)
     return [sympy.lambdify([r], sympy.simplify(i), torch) for i in gnr]
 
 
