@@ -107,7 +107,6 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     angles.update(
         {
             "phi": torch.zeros_like(angles["cos_theta"]),
-            "triple_bond_lengths": edges.dst["bond_dist"],
         }
     )
     return angles
@@ -130,7 +129,7 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False) -> dict[str, t
     val = torch.sum(vec1 * vec2, dim=1) / (torch.norm(vec1, dim=1) * torch.norm(vec2, dim=1))
     if not cosine:
         val = torch.acos(val)
-    return {key: val}
+    return {key: val, "triple_bond_lengths": edges.dst["bond_dist"]}
 
 
 def create_line_graph(g_batched: dgl.DGLGraph, threebody_cutoff: float):
