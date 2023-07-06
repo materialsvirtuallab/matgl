@@ -122,7 +122,6 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False) -> dict[str, t
     Returns:
         dict[str, torch.Tensor]: Dictionary containing bond angles and distances
     """
-
     vec1 = edges.src["bond_vec"]
     vec2 = edges.dst["bond_vec"]
     key = "cos_theta" if cosine else "theta"
