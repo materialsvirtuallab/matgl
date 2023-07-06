@@ -57,7 +57,7 @@ class M3GNet(nn.Module, IOMixIn):
         dim_node_embedding: int = 64,
         dim_edge_embedding: int = 64,
         dim_state_embedding: int | None = None,
-        dim_state_types: int | None = None,
+        ntypes_state: int | None = None,
         dim_state_feats: int | None = None,
         max_n: int = 3,
         max_l: int = 3,
@@ -142,6 +142,7 @@ class M3GNet(nn.Module, IOMixIn):
             dim_node_embedding=dim_node_embedding,
             dim_edge_embedding=dim_edge_embedding,
             ntypes_node=len(element_types),
+            ntypes_state=ntypes_state,
             dim_state_feats=dim_state_feats,
             include_state=include_state,
             dim_state_embedding=dim_state_embedding,
@@ -149,19 +150,28 @@ class M3GNet(nn.Module, IOMixIn):
         )
 
         self.basis_expansion = SphericalBesselWithHarmonics(
-            max_n=max_n, max_l=max_l, cutoff=cutoff, use_phi=use_phi, use_smooth=use_smooth
+            max_n=max_n,
+            max_l=max_l,
+            cutoff=cutoff,
+            use_phi=use_phi,
+            use_smooth=use_smooth,
         )
         self.three_body_interactions = nn.ModuleList(
             {
                 ThreeBodyInteractions(
                     update_network_atom=MLP(
-                        dims=[dim_node_embedding, degree], activation=nn.Sigmoid(), activate_last=True
+                        dims=[dim_node_embedding, degree],
+                        activation=nn.Sigmoid(),
+                        activate_last=True,
                     ),
                     update_network_bond=GatedMLP(in_feats=degree, dims=[dim_edge_embedding], use_bias=False),
                 )
                 for _ in range(nblocks)
             }
         )
+
+        if dim_state_feats is None:
+            dim_state_feats = dim_state_embedding
 
         self.graph_layers = nn.ModuleList(
             {
@@ -208,7 +218,12 @@ class M3GNet(nn.Module, IOMixIn):
         self.task_type = task_type
         self.is_intensive = is_intensive
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None):
+    def forward(
+        self,
+        g: dgl.DGLGraph,
+        state_attr: torch.Tensor | None = None,
+        l_g: dgl.DGLGraph | None = None,
+    ):
         """Performs message passing and updates node representations.
 
         Args:
@@ -221,17 +236,24 @@ class M3GNet(nn.Module, IOMixIn):
         """
         node_types = g.ndata["node_type"]
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
-        g.edata["bond_vec"] = bond_vec
-        g.edata["bond_dist"] = bond_dist
+        g.edata["bond_vec"] = bond_vec.to(g.device)
+        g.edata["bond_dist"] = bond_dist.to(g.device)
 
         expanded_dists = self.bond_expansion(g.edata["bond_dist"])
         if l_g is None:
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
-            valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
-            l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-            l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-            l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+            if l_g.num_nodes() == g.num_edges():
+                valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
+                l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
+                l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
+                l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+            else:
+                three_body_id = torch.unique(torch.concatenate(l_g.edges()))
+                max_three_body_id = max(torch.cat([three_body_id + 1, torch.tensor([0])]))
+                l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
+                l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
+                l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)
@@ -239,7 +261,12 @@ class M3GNet(nn.Module, IOMixIn):
         num_node_feats, num_edge_feats, num_state_feats = self.embedding(node_types, g.edata["rbf"], state_attr)
         for i in range(self.n_blocks):
             num_edge_feats = self.three_body_interactions[i](
-                g, l_g, three_body_basis, three_body_cutoff, num_node_feats, num_edge_feats
+                g,
+                l_g,
+                three_body_basis,
+                three_body_cutoff,
+                num_node_feats,
+                num_edge_feats,
             )
             num_edge_feats, num_node_feats, num_state_feats = self.graph_layers[i](
                 g, num_edge_feats, num_node_feats, num_state_feats
@@ -248,7 +275,7 @@ class M3GNet(nn.Module, IOMixIn):
         g.edata["edge_feat"] = num_edge_feats
         if self.is_intensive:
             node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, state_attr]) if self.include_states else node_vec  # type: ignore
+            vec = torch.hstack([node_vec, num_state_feats]) if self.include_states else node_vec  # type: ignore
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
@@ -258,7 +285,10 @@ class M3GNet(nn.Module, IOMixIn):
         return torch.squeeze(output)
 
     def predict_structure(
-        self, structure, state_feats: torch.Tensor | None = None, graph_converter: GraphConverter | None = None
+        self,
+        structure,
+        state_feats: torch.Tensor | None = None,
+        graph_converter: GraphConverter | None = None,
     ):
         """Convenience method to directly predict property from structure.
 
@@ -271,15 +301,10 @@ class M3GNet(nn.Module, IOMixIn):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph, get_one_graph
+            from matgl.ext.pymatgen import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        if (g.in_degrees().cpu().numpy() < 2).all():
-            g2 = get_one_graph(g)
-            g = dgl.batch([g, g2])
-            state_feats = torch.vstack([state_feats, state_feats])
-            return self(g=g, state_attr=state_feats).detach()[:-1]
         return self(g=g, state_attr=state_feats).detach()

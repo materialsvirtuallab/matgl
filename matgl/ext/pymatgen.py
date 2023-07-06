@@ -1,52 +1,18 @@
 """Interface with pymatgen objects."""
 from __future__ import annotations
 
-import dgl
+from typing import TYPE_CHECKING
+
 import numpy as np
 import scipy.sparse as sp
 import torch
-from dgl.backend import tensor
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 from matgl.graph.converters import GraphConverter
 
-
-def get_empty_graph(n_nodes: int):
-    """
-    Get the dgl graph without edges (bond).
-
-    Args:
-        n_nodes: number of nodes
-    Returns:
-        g: dgl.graph.
-    """
-    g = dgl.graph([], num_nodes=n_nodes)
-    return g
-
-
-def get_one_graph(g: dgl.DGLGraph):
-    """
-    Get the working dgl graph including bonds and angles.
-
-    Args:
-        g: DGL graph
-    Returns:
-        g_new: dgl.graph.
-    """
-    node_type = g.ndata["node_type"][0]
-    lattice = [[10.0, 0.0, 0.0], [0.0, 10.0, 0.0], [0.0, 0.0, 10.0]]
-    node_attr = g.ndata["attr"][0]
-    volume = torch.tensor(8.0)
-
-    g_new = dgl.graph(([0, 0, 1, 1], [1, 2, 0, 2]))
-    g_new.ndata["pos"] = torch.tensor([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.5, 0.866, 0.0]], dtype=torch.float64)
-    g_new.ndata["attr"] = node_attr.repeat(3, 1)
-    g_new.ndata["volume"] = volume.repeat(3)
-    g_new.ndata["node_type"] = node_type.repeat(3)
-    g_new.edata["lattice"] = tensor([[lattice] for i in range(g_new.num_edges())], dtype=torch.float64)
-    g_new.edata["pbc_offset"] = torch.tensor([[0, 0, 0] for i in range(g_new.num_edges())], dtype=torch.float64)
-    return g_new
+if TYPE_CHECKING:
+    import dgl
 
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]:
@@ -97,22 +63,19 @@ class Molecule2Graph(GraphConverter):
         dists = mol.distance_matrix.flatten()
         nbonds = (np.count_nonzero(dists <= self.cutoff) - natoms) / 2
         nbonds /= natoms
-        # no neighbor
-        if nbonds == 0.0:
-            g = get_empty_graph(natoms)
-        else:
-            adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
-            adj = adj.tocoo()
-            u, v = tensor(adj.row), tensor(adj.col)
-            g = dgl.graph((u, v))
-            g = dgl.to_bidirected(g)
-            g.edata["pbc_offset"] = torch.zeros(g.num_edges(), 3)
-            g.edata["lattice"] = torch.zeros(g.num_edges(), 3, 3)
-        g.ndata["pos"] = tensor(R)
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in mol]))
+        adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
+        adj = adj.tocoo()
+        g, _ = super().get_graph_from_processed_structure(
+            structure=mol,
+            src_id=adj.row,
+            dst_id=adj.col,
+            images=torch.zeros(len(adj.row), 3),
+            lattice_matrix=torch.zeros(1, 3, 3),
+            Z=Z,
+            element_types=element_types,
+            cart_coords=R,
+        )
         state_attr = [weight, nbonds]
-
         return g, state_attr
 
 
@@ -145,7 +108,6 @@ class Structure2Graph(GraphConverter):
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
         Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
-        atomic_number = np.array([site.specie.Z for site in structure])
         lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
         volume = structure.volume
         cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
@@ -164,17 +126,15 @@ class Structure2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        # no neighbor
-        if len(src_id) == 0:
-            g = get_empty_graph(structure.num_sites)
-        else:
-            u, v = tensor(src_id), tensor(dst_id)
-            g = dgl.graph((u, v))
-            g.edata["pbc_offset"] = torch.tensor(images)
-            g.edata["lattice"] = tensor([[lattice_matrix] for i in range(g.num_edges())])
-        g.ndata["attr"] = tensor(Z)
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
-        g.ndata["pos"] = tensor(cart_coords)
-        g.ndata["volume"] = tensor([volume for _ in range(atomic_number.shape[0])])
-        state_attr = [0.0, 0.0]
+        g, state_attr = super().get_graph_from_processed_structure(
+            structure,
+            src_id,
+            dst_id,
+            images,
+            [lattice_matrix],
+            Z,
+            element_types,
+            cart_coords,
+        )
+        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
         return g, state_attr

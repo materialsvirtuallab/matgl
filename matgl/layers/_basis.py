@@ -60,16 +60,15 @@ class SphericalBesselFunction:
     """Calculate the spherical Bessel function based on sympy + pytorch implementations."""
 
     def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
-        """
-        Args:
-            max_l: int, max order (excluding l)
-            max_n: int, max number of roots used in each l
-            cutoff: float, cutoff radius
-            smooth: Whether to smooth the function.
+        """Args:
+        max_l: int, max order (excluding l)
+        max_n: int, max number of roots used in each l
+        cutoff: float, cutoff radius
+        smooth: Whether to smooth the function.
         """
         self.max_l = max_l
         self.max_n = max_n
-        self.cutoff = cutoff
+        self.cutoff = torch.tensor(cutoff)
         self.smooth = smooth
         if smooth:
             self.funcs = self._calculate_smooth_symbolic_funcs()
@@ -108,16 +107,18 @@ class SphericalBesselFunction:
         return torch.t(torch.stack(results))
 
     def _call_sbf(self, r):
+        r_c = r.clone()
+        r_c[r_c > self.cutoff] = self.cutoff
         roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n]
 
         results = []
         factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
         for i in range(self.max_l):
-            root = roots[i]
+            root = torch.tensor(roots[i])
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
-                func(r[:, None] * root[None, :] / self.cutoff) * factor / torch.abs(func_add1(root[None, :]))
+                func(r_c[:, None] * root[None, :] / self.cutoff) * factor / torch.abs(func_add1(root[None, :]))
             )
         return torch.cat(results, axis=1)
 

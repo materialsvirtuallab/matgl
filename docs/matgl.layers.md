@@ -100,8 +100,11 @@ Bases: `Module`
 
 Get total property offset for a system.
 
-Args:
-property_offset (np.array): a array of elemental property offset.
+
+* **Parameters**
+
+    **property_offset** (*np.array*) – a array of elemental property offset.
+
 
 
 #### fit(graphs: list, properties: np.typing.NDArray)
@@ -164,6 +167,32 @@ Get the number of atoms for different elements in the structure.
 ## matgl.layers._basis module
 
 
+### _class_ matgl.layers._basis.FourierExpansion(max_f: int = 5, interval: float = 3.141592653589793, scale_factor: float = 1.0, learnable: bool = False)
+Bases: `Module`
+
+Fourier Expansion of a (periodic) scalar feature.
+
+Args:
+max_f (int): the maximum frequency of the Fourier expansion.
+
+> Default = 5
+
+interval (float): the interval of the Fourier expansion, such that functions
+
+    are orthonormal over [-interval, interval]. Default = pi
+
+scale_factor (float): pre-factor to scale all values.
+
+    learnable (bool): whether to set the frequencies as learnable parameters
+    Default = False.
+
+
+#### forward(x: Tensor)
+Expand x into cos and sin functions.
+
+
+#### training(_: boo_ )
+
 ### _class_ matgl.layers._basis.GaussianExpansion(initial: float = 0.0, final: float = 4.0, num_centers: int = 20, width: None | float = 0.5)
 Bases: `Module`
 
@@ -210,6 +239,46 @@ Reinitialize model parameters.
 
 #### training(_: boo_ )
 
+### _class_ matgl.layers._basis.RadialBesselFunction(max_n: int, cutoff: float, learnable: bool = False)
+Bases: `Module`
+
+Zeroth order bessel function of the first kind.
+
+Implements the proposed 1D radial basis function in terms of zeroth order bessel function of the first kind with
+increasing number of roots and a given cutoff.
+
+Details are given in: [https://arxiv.org/abs/2003.03123](https://arxiv.org/abs/2003.03123)
+
+This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel fucntions), but with
+optional learnable frequencies.
+
+
+* **Parameters**
+
+
+    * **max_n** – int, max number of roots (including max_n)
+
+
+    * **cutoff** – float, cutoff radius
+
+
+    * **learnable** – bool, whether to learn the location of roots.
+
+
+
+#### forward(r: Tensor)
+Defines the computation performed at every call.
+
+Should be overridden by all subclasses.
+
+**NOTE**: Although the recipe for forward pass needs to be defined within
+this function, one should call the `Module` instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.
+
+
+#### training(_: boo_ )
+
 ### _class_ matgl.layers._basis.SphericalBesselFunction(max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False)
 Bases: `object`
 
@@ -239,7 +308,11 @@ vanishes at cutoff.
     * **max_n** – int max number of basis
 
 
-Returns: basis function expansion using first spherical Bessel function
+
+* **Returns**
+
+    basis function expansion using first spherical Bessel function
+
 
 
 ### _class_ matgl.layers._basis.SphericalBesselWithHarmonics(max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool)
@@ -287,10 +360,18 @@ Bases: `object`
 
 Spherical Harmonics function.
 
-Args:
-max_l: int, max l (excluding l)
-use_phi: bool, whether to use the polar angle. If not,
-the function will compute Y_l^0.
+
+* **Parameters**
+
+
+    * **max_l** – int, max l (excluding l)
+
+
+    * **use_phi** – bool, whether to use the polar angle. If not,
+
+
+    * **Y_l^0.** (*the function will compute*) –
+
 
 
 ### matgl.layers._basis.spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10)
@@ -328,16 +409,36 @@ Bases: `Module`
 
 Expand pair distances into a set of spherical bessel or gaussian functions.
 
-Args:
-max_l (int): order of angular part
-max_n (int): order of radial part
-cutoff (float): cutoff radius
-rbf_type (str): type of radial basis function .i.e. either “SphericalBessel” or ‘Gaussian’
-smooth (bool): whether apply the smooth version of spherical bessel functions or not
-initial (float): initial point for gaussian expansion
-final (float): final point for gaussian expansion
-num_centers (int): Number of centers for gaussian expansion.
-width (float): width of gaussian function.
+
+* **Parameters**
+
+
+    * **max_l** (*int*) – order of angular part
+
+
+    * **max_n** (*int*) – order of radial part
+
+
+    * **cutoff** (*float*) – cutoff radius
+
+
+    * **rbf_type** (*str*) – type of radial basis function .i.e. either “SphericalBessel” or ‘Gaussian’
+
+
+    * **smooth** (*bool*) – whether apply the smooth version of spherical bessel functions or not
+
+
+    * **initial** (*float*) – initial point for gaussian expansion
+
+
+    * **final** (*float*) – final point for gaussian expansion
+
+
+    * **num_centers** (*int*) – Number of centers for gaussian expansion.
+
+
+    * **width** (*float*) – width of gaussian function.
+
 
 
 #### forward(bond_dist: Tensor)
@@ -507,30 +608,67 @@ Bases: `Module`
 
 Embedding block for generating node, bond and state features.
 
-Args:
-degree_rbf (int): number of rbf
-activation (nn.Module): activation type
-dim_node_embedding (int): dimensionality of node features
-dim_edge_embedding (int): dimensionality of edge features
-dim_state_feats: dimensionality of state features
-ntypes_node: number of node labels
-include_state: Whether to include state embedding
-ntypes_state: number of state labels
-dim_state_embedding: dimensionality of state embedding.
+
+* **Parameters**
+
+
+    * **degree_rbf** (*int*) – number of rbf
+
+
+    * **activation** (*nn.Module*) – activation type
+
+
+    * **dim_node_embedding** (*int*) – dimensionality of node features
+
+
+    * **dim_edge_embedding** (*int*) – dimensionality of edge features
+
+
+    * **dim_state_feats** – dimensionality of state features
+
+
+    * **ntypes_node** – number of node labels
+
+
+    * **include_state** – Whether to include state embedding
+
+
+    * **ntypes_state** – number of state labels
+
+
+    * **dim_state_embedding** – dimensionality of state embedding.
+
 
 
 #### forward(node_attr, edge_attr, state_attr)
 Output embedded features.
 
-Args:
-node_attr: node attribute
-edge_attr: edge attribute
-state_attr: state attribute
 
-Returns:
-node_feat: embedded node features
-edge_feat: embedded edge features
-state_feat: embedded state features
+* **Parameters**
+
+
+    * **node_attr** – node attribute
+
+
+    * **edge_attr** – edge attribute
+
+
+    * **state_attr** – state attribute
+
+
+
+* **Returns**
+
+    embedded node features
+    edge_feat: embedded edge features
+    state_feat: embedded state features
+
+
+
+* **Return type**
+
+    node_feat
+
 
 
 #### training(_: boo_ )
@@ -929,16 +1067,22 @@ Bases: `Module`
 Reduce atom or bond attributes into lower dimensional tensors as readout.
 This could be summing up the atoms or bonds, or taking the mean, etc.
 
-Args:
-op (str): op for the reduction
-field (str): Field of graph to perform the reduction.
+
+* **Parameters**
+
+
+    * **op** (*str*) – op for the reduction
+
+
+    * **field** (*str*) – Field of graph to perform the reduction.
+
 
 
 #### forward(g: DGLGraph)
 
 * **Parameters**
 
-    **g** – DGL graph
+    **g** – DGL graph.
 
 
 
@@ -955,10 +1099,18 @@ Bases: `Module`
 
 The Set2Set readout function.
 
-Args:
-num_steps (int): Number of LSTM steps
-num_layers (int): Number of layers.
-field (str): Field of graph to perform the readout.
+
+* **Parameters**
+
+
+    * **num_steps** (*int*) – Number of LSTM steps
+
+
+    * **num_layers** (*int*) – Number of layers.
+
+
+    * **field** (*str*) – Field of graph to perform the readout.
+
 
 
 #### forward(g: DGLGraph)
@@ -979,17 +1131,25 @@ Bases: `Module`
 
 Feed node features into Gated MLP as readout.
 
-Args:
-in_feats: input features (nodes)
-dims: NN architecture for Gated MLP
-num_targets: number of target properties.
+
+* **Parameters**
+
+
+    * **in_feats** – input features (nodes)
+
+
+    * **dims** – NN architecture for Gated MLP
+
+
+    * **num_targets** – number of target properties.
+
 
 
 #### forward(g: DGLGraph)
 
 * **Parameters**
 
-    **g** – DGL graph
+    **g** – DGL graph.
 
 
 

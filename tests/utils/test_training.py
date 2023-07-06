@@ -14,7 +14,15 @@ from matgl.models import M3GNet, MEGNet
 from matgl.utils.training import ModelLightningModule, PotentialLightningModule
 from pymatgen.core import Structure, Lattice
 
+# This function is used for M3GNet property dataset
+from functools import partial
+
 module_dir = os.path.dirname(os.path.abspath(__file__))
+
+# The device can be chosen as "cpu" or "cuda". Note:"mps" is currently not available
+device = "cpu"
+torch.set_default_device(device)
+torch.set_float32_matmul_precision("high")
 
 
 class TestModelTrainer:
@@ -37,7 +45,8 @@ class TestModelTrainer:
             test_data=test_data,
             collate_fn=collate_fn,
             batch_size=2,
-            num_workers=1,
+            num_workers=0,
+            generator=torch.Generator(device=device),
         )
 
         model = MEGNet(
@@ -55,13 +64,13 @@ class TestModelTrainer:
 
         lit_model = ModelLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
-        trainer = pl.Trainer(max_epochs=10, accelerator="cpu" if torch.backends.mps.is_available() else "auto")
+        trainer = pl.Trainer(max_epochs=10, accelerator=device)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
         results = trainer.test(dataloaders=test_loader)
         assert "test_Total_Loss" in results[0]
-
+        model = model.to(torch.device(device))
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
@@ -98,7 +107,8 @@ class TestModelTrainer:
             test_data=test_data,
             collate_fn=collate_fn_efs,
             batch_size=2,
-            num_workers=1,
+            num_workers=0,
+            generator=torch.Generator(device=device),
         )
         model = M3GNet(
             element_types=element_types,
@@ -106,9 +116,56 @@ class TestModelTrainer:
         )
         lit_model = PotentialLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
-        trainer = pl.Trainer(max_epochs=10, accelerator="cpu" if torch.backends.mps.is_available() else "auto")
+        trainer = pl.Trainer(max_epochs=10, accelerator=device)
+
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
+        model = model.to(torch.device(device))
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
+
+        # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
+        assert pred_LFP_energy < 0
+        assert pred_BNO_energy < 0
+
+    def test_m3gnet_property_training(self, LiFePO4, BaNiO3):
+        isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
+        structures = [LiFePO4] * 5 + [BaNiO3] * 5 + [isolated_atom]
+        label = [-2] * 5 + [-3] * 5 + [-1]  # Artificial dataset.
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        converter = Structure2Graph(element_types=element_types, cutoff=5.0)
+        dataset = M3GNetDataset(
+            threebody_cutoff=4.0, structures=structures, converter=converter, labels=label, label_name="eform"
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        collate_fn_property = partial(collate_fn, include_line_graph=True)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=collate_fn_property,
+            batch_size=2,
+            num_workers=0,
+            generator=torch.Generator(device=device),
+        )
+        model = M3GNet(
+            element_types=element_types,
+            is_intensive=True,
+            readout_type="set2set",
+        )
+        lit_model = ModelLightningModule(model=model)
+        # We will use CPU if MPS is available since there is a serious bug.
+        trainer = pl.Trainer(max_epochs=10, accelerator=device)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
+        model = model.to(torch.device(device))
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
