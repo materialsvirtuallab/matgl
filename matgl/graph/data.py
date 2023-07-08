@@ -159,8 +159,8 @@ class MEGNetDataset(DGLDataset):
     def process(self) -> tuple:
         """Convert Pymatgen structure into dgl graphs."""
         num_graphs = self.labels.shape[0]
-        self.graphs = []
-        self.state_attr = []
+        graphs = []
+        state_attrs = []
         bond_expansion = BondExpansion(
             rbf_type="Gaussian", initial=self.initial, final=self.final, num_centers=self.num_centers, width=self.width
         )
@@ -169,16 +169,17 @@ class MEGNetDataset(DGLDataset):
             graph, state_attr = self.converter.get_graph(structure)
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["edge_attr"] = bond_expansion(bond_dist)
-            self.graphs.append(graph)
-            self.state_attr.append(state_attr)
+            graphs.append(graph)
+            state_attrs.append(state_attr)
         if self.graph_labels is not None:
             if np.array(self.graph_labels).dtype == "int64":
-                self.state_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+                state_attrs = torch.tensor(self.graph_labels).long()  # type: ignore
             else:
-                self.state_attr = torch.tensor(self.graph_labels)  # type: ignore
+                state_attrs = torch.tensor(self.graph_labels)  # type: ignore
         else:
-            self.state_attr = torch.tensor(self.state_attr)  # type: ignore
-
+            state_attrs = torch.tensor(state_attrs)  # type: ignore
+        self.graphs = graphs
+        self.state_attr = state_attrs
         return self.graphs, self.state_attr
 
     def save(self, filename: str = "dgl_graph.bin", filename_state_attr: str = "state_attr.pt"):
@@ -261,25 +262,29 @@ class M3GNetDataset(DGLDataset):
     def process(self) -> tuple:
         """Convert Pymatgen structure into dgl graphs."""
         num_graphs = len(self.structures)
-        self.graphs = []
-        self.line_graphs = []
-        self.state_attr = []
+        graphs = []
+        line_graphs = []
+        state_attrs = []
         for idx in trange(num_graphs):
             structure = self.structures[idx]
             graph, state_attr = self.converter.get_graph(structure)
-            self.graphs.append(graph)
-            self.state_attr.append(state_attr)
+            graphs.append(graph)
+            state_attrs.append(state_attr)
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["bond_vec"] = bond_vec
             graph.edata["bond_dist"] = bond_dist
             line_graph = create_line_graph(graph, self.threebody_cutoff)
             for name in ["bond_vec", "bond_dist", "pbc_offset"]:
                 line_graph.ndata.pop(name)
-            self.line_graphs.append(line_graph)
+            line_graphs.append(line_graph)
         if self.graph_labels is not None:
-            self.state_attr = torch.tensor(self.graph_labels).long()  # type: ignore
+            state_attrs = torch.tensor(self.graph_labels).long()  # type: ignore
         else:
-            self.state_attr = torch.tensor(self.state_attr)  # type: ignore
+            state_attrs = torch.tensor(state_attrs)  # type: ignore
+
+        self.graphs = graphs
+        self.line_graphs = line_graphs
+        self.state_attr = state_attrs
 
         return self.graphs, self.line_graphs, self.state_attr
 

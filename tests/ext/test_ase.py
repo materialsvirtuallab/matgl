@@ -28,9 +28,9 @@ def test_get_graph_from_atoms(LiFePO4):
     # check the number of nodes
     assert np.allclose(graph.num_nodes(), len(structure_ase.get_atomic_numbers()))
     # check the atomic feature of atom 0
-    assert np.allclose(graph.ndata["attr"][0].numpy(), [1, 0, 0, 0])
+    assert np.allclose(graph.ndata["node_type"].detach().numpy()[0], 0)
     # check the atomic feature of atom 4
-    assert np.allclose(graph.ndata["attr"][4].numpy(), [0, 1, 0, 0])
+    assert np.allclose(graph.ndata["node_type"].detach().numpy()[4], 1)
     # check the number of bonds
     assert np.allclose(graph.num_edges(), 704)
     # check the state features
