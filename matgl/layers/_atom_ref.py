@@ -59,18 +59,26 @@ class AtomRef(nn.Module):
         Returns:
             offset_per_graph
         """
+        num_elements = (
+            self.property_offset.size(dim=1) if self.property_offset.ndim > 1 else self.property_offset.size(dim=0)
+        )
+        one_hot = torch.eye(num_elements)[g.ndata["node_type"]]
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []
             for i in range(0, self.property_offset.size(dim=0)):
                 property_offset_batched = self.property_offset[i].repeat(g.num_nodes(), 1)
-                offset = property_offset_batched * g.ndata["attr"]
+                #                offset = property_offset_batched * g.ndata["attr"]
+                offset = property_offset_batched * one_hot
                 g.ndata["atomic_offset"] = torch.sum(offset, 1)
                 offset_batched = dgl.readout_nodes(g, "atomic_offset")
                 offset_batched_with_state.append(offset_batched)
             offset_batched_with_state = torch.stack(offset_batched_with_state)  # type: ignore
             return offset_batched_with_state[state_attr]  # type: ignore
         property_offset_batched = self.property_offset.repeat(g.num_nodes(), 1)
-        offset = property_offset_batched * g.ndata["attr"]
+        print("debug by kenko for property_batched", property_offset_batched.shape)
+        print("debug by kenko for one_hot", one_hot)
+        offset = property_offset_batched * one_hot
+        #        offset = property_offset_batched * g.ndata["attr"]
         g.ndata["atomic_offset"] = torch.sum(offset, 1)
         offset_batched = dgl.readout_nodes(g, "atomic_offset")
         return offset_batched

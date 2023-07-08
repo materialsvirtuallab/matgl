@@ -35,11 +35,12 @@ class TestCoreAndEmbedding:
             dim_node_embedding=16,
             dim_edge_embedding=16,
             dim_state_feats=16,
+            ntypes_node=2,
             include_state=True,
             activation=nn.SiLU(),
         )
         state_attr = torch.tensor([1.0, 2.0])
-        node_attr = g1.ndata["attr"]
+        node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
         node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, state_attr)
 
@@ -54,6 +55,7 @@ class TestCoreAndEmbedding:
             include_state=True,
             dim_state_embedding=32,
             ntypes_state=2,
+            ntypes_node=2,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed2(node_attr, edge_attr, torch.tensor([1]))
@@ -65,12 +67,15 @@ class TestCoreAndEmbedding:
             dim_edge_embedding=16,
             dim_state_feats=16,
             include_state=True,
+            ntypes_node=2,
             activation=nn.SiLU(),
         )
         node_feat, edge_feat, state_feat = embed3(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 16]
         # without any state feature
-        embed4 = EmbeddingBlock(degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=16, activation=nn.SiLU())
+        embed4 = EmbeddingBlock(
+            degree_rbf=9, dim_node_embedding=16, dim_edge_embedding=16, ntypes_node=2, activation=nn.SiLU()
+        )
         node_feat, edge_feat, state_feat = embed4(
             node_attr, edge_attr, torch.tensor([0.0, 0.0])
         )  # this will be default value

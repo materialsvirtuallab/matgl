@@ -56,7 +56,6 @@ class Molecule2Graph(GraphConverter):
         natoms = len(mol)
         R = mol.cart_coords
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in mol])
         np.array([site.specie.Z for site in mol])
         weight = mol.composition.weight / len(mol)
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
@@ -71,7 +70,6 @@ class Molecule2Graph(GraphConverter):
             dst_id=adj.col,
             images=torch.zeros(len(adj.row), 3),
             lattice_matrix=torch.zeros(1, 3, 3),
-            Z=Z,
             element_types=element_types,
             cart_coords=R,
         )
@@ -107,7 +105,6 @@ class Structure2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(site.specie.symbol)] for site in structure])
         lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
         volume = structure.volume
         cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
@@ -132,7 +129,6 @@ class Structure2Graph(GraphConverter):
             dst_id,
             images,
             [lattice_matrix],
-            Z,
             element_types,
             cart_coords,
         )

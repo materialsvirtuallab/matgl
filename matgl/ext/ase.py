@@ -77,7 +77,6 @@ class Atoms2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        Z = np.array([np.eye(len(element_types))[element_types.index(i.symbol)] for i in atoms])
         lattice_matrix = np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float)
         volume = atoms.get_volume()
         cart_coords = np.ascontiguousarray(np.array(atoms.get_positions()), dtype=float)
@@ -102,7 +101,6 @@ class Atoms2Graph(GraphConverter):
             dst_id,
             images,
             [lattice_matrix],
-            Z,
             element_types,
             cart_coords,
         )
