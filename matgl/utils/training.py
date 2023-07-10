@@ -285,8 +285,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         """
         super().__init__(**kwargs)
 
-        self.model = Potential(model=model, element_refs=element_refs, calc_stresses=calc_stress)
-
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         if data_mean is None:
@@ -301,6 +299,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.lr = lr
         self.decay_steps = decay_steps
         self.decay_alpha = decay_alpha
+        self.model = Potential(
+            model=model, element_refs=element_refs, calc_stresses=calc_stress, data_std=data_std, data_mean=data_mean
+        )
         if loss == "mse_loss":
             self.loss = F.mse_loss
         else:
