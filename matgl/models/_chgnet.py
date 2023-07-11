@@ -255,24 +255,24 @@ class CHGNet(nn.Module, IOMixIn):
         """
 
         # TODO should all ops be graph.local_scope? otherwise we are changing the state of the graph implicitly
-
         # compute bond vectors and distances and add to graph  # TODO this is better done in the graph converter
         bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
         graph.edata["bond_vec"] = bond_vec
         graph.edata["bond_dist"] = bond_dist
-        graph.edata["bond_expansion"] = self.bond_expansion(bond_dist)  # TODO smooth here or in block?
-        polynomial_cutoff(self.bond_expansion(bond_dist), self.cutoff, self.cutoff_exponent)
+        bond_expansion = self.bond_expansion(bond_dist)
+        smooth_cutoff = polynomial_cutoff(self.bond_expansion(bond_dist), self.cutoff, self.cutoff_exponent)
+        graph.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
         # create bond graph (line graph) with necessary node and edge data
         bond_graph = create_line_graph(graph, self.three_body_cutoff)
         # TODO: this may be moved into create_line_graph
         bond_indices = torch.arange(0, graph.num_edges())[graph.edata["bond_dist"] <= self.three_body_cutoff]
         bond_graph.ndata["bond_index"] = bond_indices
-        # TODO smooth here or in block?
-        bond_graph.ndata["bond_expansion"] = self.threebody_bond_expansion(bond_dist[bond_graph.ndata["bond_index"]])
+        threebody_bond_expansion = self.threebody_bond_expansion(bond_dist[bond_indices])
+        smooth_cutoff = polynomial_cutoff(threebody_bond_expansion, self.three_body_cutoff, self.cutoff_exponent)
+        bond_graph.ndata["bond_expansion"] = smooth_cutoff * threebody_bond_expansion
         # TODO double check if this is correct
         bond_graph.edata["center_atom_index"] = torch.gather(graph.edges()[1], 0, bond_graph.edges()[1])
-        # TODO only compute theta (and not cos_theta)
         bond_graph.apply_edges(compute_theta)
         bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
 
