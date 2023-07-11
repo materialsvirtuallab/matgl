@@ -6,6 +6,11 @@ nav_order: 3
 
 # Change Log
 
+## 0.7.0
+- MatGL now supports structures with isolated atoms. (@JiQi535)
+- Fourier expansion layer and generalize cutoff polynomial. (@lbluque)
+- Radial bessel (zeroth order bessel). (@lbluque)
+
 ## 0.6.2
 - Simple CLI tool `mgl` added.
 

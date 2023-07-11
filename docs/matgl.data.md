@@ -57,9 +57,15 @@ Bases: `Transformer`
 
 Performs a scaling of the data by centering to the mean and dividing by the standard deviation.
 
-Args:
-mean: Mean of the data
-std: Standard deviation of the data.
+
+* **Parameters**
+
+
+    * **mean** – Mean of the data
+
+
+    * **std** – Standard deviation of the data.
+
 
 
 #### _classmethod_ from_data(data)

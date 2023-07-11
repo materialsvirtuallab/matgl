@@ -8,11 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from matgl.utils.maths import (
-    _block_repeat,
-    get_segment_indices_from_n,
-    scatter_sum,
-)
+from matgl.utils.maths import _block_repeat, get_segment_indices_from_n, scatter_sum
 
 if TYPE_CHECKING:
     import dgl
@@ -70,6 +66,8 @@ class ThreeBodyInteractions(nn.Module):
             num_segments=graph.num_edges(),
             dim=0,
         )
+        if not new_bonds.data.shape[0]:
+            return edge_feat
         edge_feat_updated = edge_feat + self.update_network_bond(new_bonds)
         return edge_feat_updated
 
