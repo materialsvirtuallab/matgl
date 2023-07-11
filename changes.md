@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 0.7.1
+- Minor optimizations for memory and isolated atom training (@kenko911)
+
 ## 0.7.0
 - MatGL now supports structures with isolated atoms. (@JiQi535)
 - Fourier expansion layer and generalize cutoff polynomial. (@lbluque)
