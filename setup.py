@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 
-import numpy as np
 from setuptools import find_packages, setup
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -57,7 +56,6 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    include_dirs=[np.get_include()],
     entry_points={
         "console_scripts": [
             "mgl = matgl.cli:main",
