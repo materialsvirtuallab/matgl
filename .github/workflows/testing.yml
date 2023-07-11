@@ -17,7 +17,6 @@ on:
 
 jobs:
   test:
-    name: Testing
     strategy:
       max-parallel: 20
       matrix:
@@ -48,7 +47,6 @@ jobs:
   build:
     needs: test
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
-    name: Build source distribution
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -69,7 +67,6 @@ jobs:
     needs: build
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
     runs-on: ubuntu-latest
-    name: Release
     permissions:
       # For pypi trusted publishing
       id-token: write
