@@ -66,17 +66,11 @@ jobs:
     name: Build wheels
     needs: pytest
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, macos-latest ]
-        python-version: [ "38", "39", "310", "311" ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.3
-        env:
-          CIBW_BUILD: cp${{ matrix.python-version }}-*
       - name: Save artifact
         uses: actions/upload-artifact@v3
         with:
