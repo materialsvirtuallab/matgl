@@ -63,6 +63,7 @@ jobs:
           path: dist/*.tar.gz
 
   build_wheels:
+    name: Build wheels
     needs: pytest
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
     runs-on: ubuntu-latest
