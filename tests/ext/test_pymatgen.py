@@ -22,9 +22,9 @@ class TestPmg2Graph:
         # check the dst_ids
         assert np.allclose(graph.edges()[1].numpy(), [1, 2, 3, 4, 0, 2, 3, 4, 0, 1, 3, 4, 0, 1, 2, 4, 0, 1, 2, 3])
         # check the atomic features of atom C
-        assert np.allclose(graph.ndata["attr"][0], [0, 1])
+        assert np.allclose(graph.ndata["node_type"].detach().numpy()[0], 1)
         # check the atomic features of atom H
-        assert np.allclose(graph.ndata["attr"][1], [1, 0])
+        assert np.allclose(graph.ndata["node_type"].detach().numpy()[1], 0)
         # check the shape of state features
         assert np.allclose(len(state), 2)
         # check the value of state features
@@ -37,9 +37,9 @@ class TestPmg2Graph:
         # check the number of nodes
         assert np.allclose(graph.num_nodes(), lfp.num_sites)
         # check the atomic feature of atom 0
-        assert np.allclose(graph.ndata["attr"][0].numpy(), [1, 0, 0, 0])
+        assert np.allclose(graph.ndata["node_type"].detach().numpy()[0], 0)
         # check the atomic feature of atom 4
-        assert np.allclose(graph.ndata["attr"][4].numpy(), [0, 0, 0, 1])
+        assert np.allclose(graph.ndata["node_type"].detach().numpy()[4], 3)
         # check the number of bonds
         assert np.allclose(graph.num_edges(), 704)
         # check the state features
@@ -51,9 +51,9 @@ class TestPmg2Graph:
         # check the number of nodes
         assert np.allclose(graph.num_nodes(), structure_BaTiO3.num_sites)
         # check the atomic features of atom 0
-        assert np.allclose(graph.ndata["attr"][0], [0, 0, 1])
+        assert np.allclose(graph.ndata["node_type"].detach().numpy()[0], 2)
         # check the atomic features of atom 1
-        assert np.allclose(graph.ndata["attr"][1], [0, 1, 0])
+        assert np.allclose(graph.ndata["node_type"].detach().numpy()[1], 1)
         # check the number of edges
         assert np.allclose(graph.num_edges(), 76)
         # check the state features

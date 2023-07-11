@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 
-import numpy as np
 from setuptools import find_packages, setup
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -12,7 +11,7 @@ with open(os.path.join(this_dir, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="matgl",
-    version="0.7.0",
+    version="0.7.1",
     author="Tsz Wai Ko, Marcel Nassar, Ji Qi, Santiago Miret, Eliott Liu, Shyue Ping Ong",
     author_email="t1ko@ucsd.edu, ongsp@ucsd.edu",
     maintainer="Shyue Ping Ong",
@@ -57,7 +56,6 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    include_dirs=[np.get_include()],
     entry_points={
         "console_scripts": [
             "mgl = matgl.cli:main",

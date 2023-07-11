@@ -133,10 +133,11 @@ class MEGNet(nn.Module, IOMixIn):
             "skip": True,
         }
         # first block
-        blocks = [MEGNetBlock(dims=[dim_blocks_in], **block_args)]  # type: ignore
-        # other blocks
-        for _ in range(nblocks - 1):
-            blocks.append(MEGNetBlock(dims=[dim_blocks_out, *hidden_layer_sizes_input], **block_args))  # type: ignore
+        blocks = [MEGNetBlock(dims=[dim_blocks_in], **block_args)] + [  # type: ignore
+            MEGNetBlock(dims=[dim_blocks_out, *hidden_layer_sizes_input], **block_args)  # type: ignore
+            for _ in range(nblocks - 1)
+        ]
+
         self.blocks = nn.ModuleList(blocks)
 
         s2s_kwargs = {"n_iters": niters_set2set, "n_layers": nlayers_set2set}
@@ -198,7 +199,7 @@ class MEGNet(nn.Module, IOMixIn):
         if self.is_classification:
             output = torch.sigmoid(output)
 
-        return output
+        return torch.squeeze(output)
 
     def predict_structure(
         self,

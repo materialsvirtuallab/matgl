@@ -98,10 +98,11 @@ class TestGraphConv:
         num_node_feats = 16
         num_edge_feats = 24
         num_state_feats = 32
-        node_attr = g1.ndata["attr"]
+        node_attr = g1.ndata["node_type"]
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
             degree_rbf=9,
+            ntypes_node=2,
             dim_node_embedding=num_node_feats,
             dim_edge_embedding=num_edge_feats,
             dim_state_feats=num_state_feats,
@@ -147,13 +148,14 @@ class TestGraphConv:
         state_attr = torch.tensor([0.0, 0.0])
         embedding = EmbeddingBlock(
             degree_rbf=9,
+            ntypes_node=2,
             dim_node_embedding=num_node_feats,
             dim_edge_embedding=num_edge_feats,
             dim_state_feats=num_state_feats,
             include_state=True,
             activation=nn.SiLU(),
         )
-        node_attr = g1.ndata["attr"]
+        node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
         node_feat, edge_feat, state_feat = embedding(node_attr, edge_attr, state_attr)
         g1.ndata["node_feat"] = node_feat

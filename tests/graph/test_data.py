@@ -14,6 +14,9 @@ from matgl.graph.data import (
     collate_fn,
 )
 
+# This function is used for M3GNet property dataset
+from functools import partial
+
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -24,8 +27,8 @@ class TestDataset:
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels=label, label_name="label")
-        g1, label1, state1 = dataset[0]
-        g2, label2, state2 = dataset[1]
+        g1, state1, label1 = dataset[0]
+        g2, state2, label2 = dataset[1]
         assert label1 == label[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -40,8 +43,8 @@ class TestDataset:
         dataset = MEGNetDataset(
             structures=structures, converter=mol_graph, labels=label, label_name="label", name="MolDataset"
         )
-        g1, label1, state1 = dataset[0]
-        g2, label2, state2 = dataset[1]
+        g1, state1, label1 = dataset[0]
+        g2, state2, label2 = dataset[1]
         assert label1 == label[0]
         assert g1.num_edges() == mol_graph.get_graph(CH4)[0].num_edges()
         assert g1.num_nodes() == mol_graph.get_graph(CH4)[0].num_nodes()
@@ -158,6 +161,38 @@ class TestDataset:
             val_data=val_data,
             test_data=test_data,
             collate_fn=collate_fn,
+            batch_size=2,
+            num_workers=1,
+        )
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
+
+    def test_m3gnet_property_dataloader(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3] * 10
+        e_form = np.zeros(20)
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+        dataset = M3GNetDataset(
+            structures=structures,
+            converter=cry_graph,
+            threebody_cutoff=4.0,
+            labels=e_form,
+            label_name="Eform",
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        my_collate_fn = partial(collate_fn, include_line_graph=True)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=my_collate_fn,
             batch_size=2,
             num_workers=1,
         )

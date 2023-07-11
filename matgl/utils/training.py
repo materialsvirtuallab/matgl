@@ -212,8 +212,12 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             results, batch_size
         """
-        g, labels, state_attr = batch
-        preds = self(g=g, state_attr=state_attr)
+        if isinstance(self.model, M3GNet):
+            g, l_g, state_attr, labels = batch
+            preds = self(g=g, l_g=l_g, state_attr=state_attr)
+        else:
+            g, labels, state_attr = batch
+            preds = self(g=g, state_attr=state_attr)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size
@@ -281,8 +285,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         """
         super().__init__(**kwargs)
 
-        self.model = Potential(model=model, element_refs=element_refs, calc_stresses=calc_stress)
-
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         if data_mean is None:
@@ -297,6 +299,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.lr = lr
         self.decay_steps = decay_steps
         self.decay_alpha = decay_alpha
+        self.model = Potential(
+            model=model, element_refs=element_refs, calc_stresses=calc_stress, data_std=data_std, data_mean=data_mean
+        )
         if loss == "mse_loss":
             self.loss = F.mse_loss
         else:
