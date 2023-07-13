@@ -295,7 +295,7 @@ class TrajectoryObserver(collections.abc.Sequence):
         """Returns: DataFrame of energies, forces, streeses, cells and atom_positions."""
         return pd.DataFrame(
             {
-                "energies": [float(e) for e in self.energies],
+                "energies": self.energies,
                 "forces": self.forces,
                 "stresses": self.stresses,
                 "cells": self.cells,
