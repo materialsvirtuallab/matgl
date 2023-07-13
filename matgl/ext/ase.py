@@ -285,9 +285,7 @@ class TrajectoryObserver:
         self.cells.append(self.atoms.get_cell()[:])
 
     def as_pandas(self) -> pd.DataFrame:
-        """
-        Returns: DataFrame of energies, forces, streeses, cells and atom_positions.
-        """
+        """Returns: DataFrame of energies, forces, streeses, cells and atom_positions."""
         return pd.DataFrame(
             {
                 "energies": [float(e) for e in self.energies],
