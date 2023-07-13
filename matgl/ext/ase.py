@@ -9,6 +9,7 @@ import sys
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pandas as pd
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
@@ -282,6 +283,18 @@ class TrajectoryObserver:
         self.stresses.append(self.atoms.get_stress())
         self.atom_positions.append(self.atoms.get_positions())
         self.cells.append(self.atoms.get_cell()[:])
+
+    def as_pandas(self) -> pd.DataFrame:
+        """Returns: DataFrame of energies, forces, streeses, cells and atom_positions."""
+        return pd.DataFrame(
+            {
+                "energies": [float(e) for e in self.energies],
+                "forces": self.forces,
+                "stresses": self.stresses,
+                "cells": self.cells,
+                "atom_positions": self.atom_positions,
+            }
+        )
 
     def compute_energy(self) -> float:
         """Calculate the potential energy."""
