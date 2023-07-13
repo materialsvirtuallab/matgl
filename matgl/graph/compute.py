@@ -163,17 +163,26 @@ def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True):
         bond_graph: DGL graph containing bond information from graph
     """
     pruned_graph = remove_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > cutoff)
-    bond_graph = pruned_graph.line_graph(backtracking=False, shared=shared)
-
-    first_col = pruned_graph.edges()[0].reshape(-1, 1)
-    all_indices = torch.arange(pruned_graph.num_nodes()).reshape(1, -1)
-    n_bond_per_atom = torch.count_nonzero(first_col == all_indices, dim=0)
-    n_triple_ij = (n_bond_per_atom - 1).repeat_interleave(n_bond_per_atom)
-
-    # TODO: do we need n_triple_i and n_triple_s?
-
-    bond_graph.ndata["n_triple_ij"] = n_triple_ij
+    backtracking = has_aliased_edges(pruned_graph)
+    bond_graph = pruned_graph.line_graph(backtracking=backtracking, shared=shared)
     return bond_graph
+
+
+def has_aliased_edges(graph: dgl.DGLGraph) -> bool:
+    """Check if graph has aliased edges.
+
+    edges are aliased if they share the same node tuple but have different images.
+
+    Args:
+        graph: DGL graph
+
+    Returns:
+        bool: whether graph is self interacting
+    """
+    graph_adjacency = torch.stack(graph.edges(), dim=1)
+    num_undirected_edges = len(torch.unique(graph_adjacency.sort(dim=1)[0], dim=0))
+    half_num_edges = len(graph_adjacency) / 2
+    return num_undirected_edges < half_num_edges
 
 
 def remove_edges_by_features(
