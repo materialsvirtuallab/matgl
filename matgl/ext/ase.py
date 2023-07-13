@@ -279,7 +279,7 @@ class TrajectoryObserver(collections.abc.Sequence):
 
     def __call__(self) -> None:
         """The logic for saving the properties of an Atoms during the relaxation."""
-        self.energies.append(self.compute_energy())
+        self.energies.append(float(self.atoms.get_potential_energy()))
         self.forces.append(self.atoms.get_forces())
         self.stresses.append(self.atoms.get_stress())
         self.atom_positions.append(self.atoms.get_positions())
@@ -302,11 +302,6 @@ class TrajectoryObserver(collections.abc.Sequence):
                 "atom_positions": self.atom_positions,
             }
         )
-
-    def compute_energy(self) -> float:
-        """Calculate the potential energy."""
-        energy = self.atoms.get_potential_energy()
-        return energy
 
     def save(self, filename: str) -> None:
         """Save the trajectory to file.
