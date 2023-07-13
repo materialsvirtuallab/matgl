@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import collections
 import contextlib
 import io
 import pickle
@@ -257,7 +258,7 @@ class Relaxer:
         }
 
 
-class TrajectoryObserver:
+class TrajectoryObserver(collections.abc.Sequence):
     """Trajectory observer is a hook in the relaxation process that saves the
     intermediate structures.
     """
@@ -283,6 +284,12 @@ class TrajectoryObserver:
         self.stresses.append(self.atoms.get_stress())
         self.atom_positions.append(self.atoms.get_positions())
         self.cells.append(self.atoms.get_cell()[:])
+
+    def __getitem__(self, item):
+        return self.energies[item], self.forces[item], self.stresses[item], self.cells[item], self.atom_positions[item]
+
+    def __len__(self):
+        return len(self.energies)
 
     def as_pandas(self) -> pd.DataFrame:
         """Returns: DataFrame of energies, forces, streeses, cells and atom_positions."""
