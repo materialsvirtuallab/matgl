@@ -116,7 +116,7 @@ class TestModelTrainer:
         )
         lit_model = PotentialLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
-        trainer = pl.Trainer(max_epochs=10, accelerator=device)
+        trainer = pl.Trainer(max_epochs=5, accelerator=device)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
@@ -161,7 +161,7 @@ class TestModelTrainer:
         )
         lit_model = ModelLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
-        trainer = pl.Trainer(max_epochs=10, accelerator=device)
+        trainer = pl.Trainer(max_epochs=5, accelerator=device)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 

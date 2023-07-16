@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from math import pi
+from math import pi, sqrt
 
 import numpy as np
 import sympy
@@ -71,15 +71,15 @@ def _get_lambda_func(max_n, cutoff: float = 5.0):
 
     fnr = [
         (-1) ** i
-        * sympy.sqrt(2.0)
-        * sympy.pi
+        * sqrt(2.0)
+        * pi
         / cutoff**1.5
         * (i + 1)
         * (i + 2)
         / sympy.sqrt(1.0 * (i + 1) ** 2 + (i + 2) ** 2)
         * (
-            sympy.sin(r * (i + 1) * sympy.pi / cutoff) / (r * (i + 1) * sympy.pi / cutoff)
-            + sympy.sin(r * (i + 2) * sympy.pi / cutoff) / (r * (i + 2) * sympy.pi / cutoff)
+            sympy.sin(r * (i + 1) * pi / cutoff) / (r * (i + 1) * pi / cutoff)
+            + sympy.sin(r * (i + 2) * pi / cutoff) / (r * (i + 2) * pi / cutoff)
         )
         for i in range(max_n)
     ]
