@@ -152,7 +152,9 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
 
 
 def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True):
-    """Calculate the bond graph from a graph.
+    """Calculate the line graph from a directed graph.
+
+    Accounts for possible backtracking from aliased graph edges in periodic images.
 
     Args:
         graph: DGL graph
