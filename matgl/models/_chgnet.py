@@ -274,6 +274,7 @@ class CHGNet(nn.Module, IOMixIn):
         # TODO double check if this is correct
         bond_graph.edata["center_atom_index"] = torch.gather(graph.edges()[1], 0, bond_graph.edges()[1])
         bond_graph.apply_edges(compute_theta)
+        bond_graph.edata["theta"] = torch.pi - bond_graph.edata["theta"]  # head to tail edges
         bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
 
         # compute state, atom, bond and angle embeddings
@@ -339,8 +340,6 @@ class CHGNet(nn.Module, IOMixIn):
         graph_converter: GraphConverter | None = None,
     ):
         """Convenience method to directly predict property from structure.
-
-        # TODO copied verbatim from m3gnet, should refactor?
 
         Args:
             structure: An input crystal/molecule.
