@@ -151,7 +151,7 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     return l_g
 
 
-def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True):
+def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True, check_aliasing=True):
     """Calculate the line graph from a directed graph.
 
     Accounts for possible backtracking from aliased graph edges in periodic images.
@@ -160,12 +160,14 @@ def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True):
         graph: DGL graph
         cutoff (float): cutoff for bond lengths to include in the line (bond) graph
         shared (bool): whether to share node features between the bond graph and the original graph
+        check_aliasing (bool): whether to check for aliased edges in the graph
+            This is only necessary when cutoff radius is larger than half a unit cell vector
 
     Returns:
         bond_graph: DGL graph containing bond information from graph
     """
     pruned_graph = remove_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > cutoff)
-    backtracking = has_aliased_edges(pruned_graph)
+    backtracking = has_aliased_edges(pruned_graph) if check_aliasing else False
     bond_graph = pruned_graph.line_graph(backtracking=backtracking, shared=shared)
     if backtracking:
         backtracking_edge_ids = _get_backtracking_edge_ids(graph, bond_graph)
