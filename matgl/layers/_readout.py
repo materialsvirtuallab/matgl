@@ -7,6 +7,7 @@ import torch
 from dgl.nn import Set2Set
 from torch import nn
 
+from matgl.config import TORCH_DEFAULT_SEED
 from matgl.layers._core import EdgeSet2Set, GatedMLP
 
 
@@ -33,6 +34,12 @@ class Set2SetReadOut(nn.Module):
         self.edge_s2s: dict[int, EdgeSet2Set] = {}
 
     def forward(self, g: dgl.DGLGraph):
+        torch.use_deterministic_algorithms(True)
+        torch.manual_seed(TORCH_DEFAULT_SEED)
+        torch.cuda.manual_seed(TORCH_DEFAULT_SEED)
+        # # When running on the CuDNN backend, two further options must be set
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         if self.field == "node_feat":
             in_feats = g.ndata["node_feat"].size(dim=1)
             if in_feats not in self.node_s2s:  # init s2s only once to remove stochasticity
