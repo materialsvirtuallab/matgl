@@ -56,7 +56,6 @@ class Molecule2Graph(GraphConverter):
         natoms = len(mol)
         R = mol.cart_coords
         element_types = self.element_types
-        np.array([site.specie.Z for site in mol])
         weight = mol.composition.weight / len(mol)
         dist = np.linalg.norm(R[:, None, :] - R[None, :, :], axis=-1)
         dists = mol.distance_matrix.flatten()
@@ -68,8 +67,8 @@ class Molecule2Graph(GraphConverter):
             structure=mol,
             src_id=adj.row,
             dst_id=adj.col,
-            images=torch.zeros(len(adj.row), 3),
-            lattice_matrix=torch.zeros(1, 3, 3),
+            images=np.zeros((len(adj.row), 3)),
+            lattice_matrix=np.zeros((1, 3, 3)),
             element_types=element_types,
             cart_coords=R,
         )
