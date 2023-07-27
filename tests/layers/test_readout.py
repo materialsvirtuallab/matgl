@@ -97,15 +97,15 @@ class TestReadOut:
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         read_out = Set2SetReadOut(
-            num_steps=3,
-            num_layers=3,
+            n_iters=3,
+            n_layers=3,
             field="node_feat",
         )
         output = read_out(g1)
         assert [output.size(dim=0), output.size(dim=1)] == [1, 32]
         read_out2 = Set2SetReadOut(
-            num_steps=3,
-            num_layers=3,
+            n_iters=3,
+            n_layers=3,
             field="edge_feat",
         )
         output2 = read_out2(g1)

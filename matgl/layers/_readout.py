@@ -15,31 +15,34 @@ class Set2SetReadOut(nn.Module):
 
     def __init__(
         self,
-        num_steps: int,
-        num_layers: int,
+        n_iters: int,
+        n_layers: int,
         field: str,
     ):
         """
         Args:
-            num_steps (int): Number of LSTM steps
-            num_layers (int): Number of layers.
+            n_iters (int): Number of LSTM steps
+            n_layers (int): Number of layers.
             field (str): Field of graph to perform the readout.
         """
         super().__init__()
         self.field = field
-        self.num_steps = num_steps
-        self.num_layers = num_layers
+        self.n_iters = n_iters
+        self.n_layers = n_layers
+        self.node_s2s = None
+        self.edge_s2s = None
 
     def forward(self, g: dgl.DGLGraph):
-        s2s_kwargs = {"n_iters": self.num_steps, "n_layers": self.num_layers}
         if self.field == "node_feat":
             in_feats = g.ndata["node_feat"].size(dim=1)
-            set2set = Set2Set(in_feats, **s2s_kwargs)
-            out_tensor = set2set(g, g.ndata["node_feat"])
+            if self.node_s2s is None:  # init s2s only once to remove stochasticity
+                self.node_s2s = Set2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)  # type: ignore
+            out_tensor = self.node_s2s(g, g.ndata["node_feat"])  # type: ignore
         elif self.field == "edge_feat":
             in_feats = g.edata["edge_feat"].size(dim=1)
-            set2set = EdgeSet2Set(in_feats, **s2s_kwargs)
-            out_tensor = set2set(g, g.edata["edge_feat"])
+            if self.edge_s2s is None:  # init s2s only once to remove stochasticity
+                self.edge_s2s = EdgeSet2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)  # type: ignore
+            out_tensor = self.edge_s2s(g, g.edata["edge_feat"])  # type: ignore
         return out_tensor
 
 

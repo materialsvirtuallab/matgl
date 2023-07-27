@@ -190,7 +190,7 @@ class M3GNet(nn.Module, IOMixIn):
         if is_intensive:
             input_feats = dim_node_embedding if field == "node_feat" else dim_edge_embedding
             if readout_type == "set2set":
-                self.readout = Set2SetReadOut(num_steps=niters_set2set, num_layers=nlayers_set2set, field=field)
+                self.readout = Set2SetReadOut(n_iters=niters_set2set, n_layers=nlayers_set2set, field=field)
                 readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)  # type: ignore
