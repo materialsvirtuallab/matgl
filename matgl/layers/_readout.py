@@ -29,20 +29,20 @@ class Set2SetReadOut(nn.Module):
         self.field = field
         self.n_iters = n_iters
         self.n_layers = n_layers
-        self.node_s2s = None
-        self.edge_s2s = None
+        self.node_s2s: dict[int, Set2Set] = {}
+        self.edge_s2s: dict[int, EdgeSet2Set] = {}
 
     def forward(self, g: dgl.DGLGraph):
         if self.field == "node_feat":
             in_feats = g.ndata["node_feat"].size(dim=1)
-            if self.node_s2s is None:  # init s2s only once to remove stochasticity
-                self.node_s2s = Set2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)  # type: ignore
-            out_tensor = self.node_s2s(g, g.ndata["node_feat"])  # type: ignore
+            if in_feats not in self.node_s2s:  # init s2s only once to remove stochasticity
+                self.node_s2s[in_feats] = Set2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)
+            out_tensor = self.node_s2s[in_feats](g, g.ndata["node_feat"])  # type: ignore
         elif self.field == "edge_feat":
             in_feats = g.edata["edge_feat"].size(dim=1)
-            if self.edge_s2s is None:  # init s2s only once to remove stochasticity
-                self.edge_s2s = EdgeSet2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)  # type: ignore
-            out_tensor = self.edge_s2s(g, g.edata["edge_feat"])  # type: ignore
+            if in_feats not in self.edge_s2s:  # init s2s only once to remove stochasticity
+                self.edge_s2s[in_feats] = EdgeSet2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)
+            out_tensor = self.edge_s2s[in_feats](g, g.edata["edge_feat"])  # type: ignore
         return out_tensor
 
 
