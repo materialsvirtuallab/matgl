@@ -7,6 +7,7 @@ import torch
 from dgl.nn import Set2Set
 from torch import nn
 
+from matgl.config import TORCH_DEFAULT_SEED
 from matgl.layers._core import EdgeSet2Set, GatedMLP
 
 
@@ -15,31 +16,40 @@ class Set2SetReadOut(nn.Module):
 
     def __init__(
         self,
-        num_steps: int,
-        num_layers: int,
+        n_iters: int,
+        n_layers: int,
         field: str,
     ):
         """
         Args:
-            num_steps (int): Number of LSTM steps
-            num_layers (int): Number of layers.
+            n_iters (int): Number of LSTM steps
+            n_layers (int): Number of layers.
             field (str): Field of graph to perform the readout.
         """
         super().__init__()
         self.field = field
-        self.num_steps = num_steps
-        self.num_layers = num_layers
+        self.n_iters = n_iters
+        self.n_layers = n_layers
+        self.node_s2s: dict[int, Set2Set] = {}
+        self.edge_s2s: dict[int, EdgeSet2Set] = {}
 
     def forward(self, g: dgl.DGLGraph):
-        s2s_kwargs = {"n_iters": self.num_steps, "n_layers": self.num_layers}
+        torch.use_deterministic_algorithms(True)
+        torch.manual_seed(TORCH_DEFAULT_SEED)
+        torch.cuda.manual_seed(TORCH_DEFAULT_SEED)
+        # # When running on the CuDNN backend, two further options must be set
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         if self.field == "node_feat":
             in_feats = g.ndata["node_feat"].size(dim=1)
-            set2set = Set2Set(in_feats, **s2s_kwargs)
-            out_tensor = set2set(g, g.ndata["node_feat"])
+            if in_feats not in self.node_s2s:  # init s2s only once to remove stochasticity
+                self.node_s2s[in_feats] = Set2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)
+            out_tensor = self.node_s2s[in_feats](g, g.ndata["node_feat"])  # type: ignore
         elif self.field == "edge_feat":
             in_feats = g.edata["edge_feat"].size(dim=1)
-            set2set = EdgeSet2Set(in_feats, **s2s_kwargs)
-            out_tensor = set2set(g, g.edata["edge_feat"])
+            if in_feats not in self.edge_s2s:  # init s2s only once to remove stochasticity
+                self.edge_s2s[in_feats] = EdgeSet2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)
+            out_tensor = self.edge_s2s[in_feats](g, g.edata["edge_feat"])  # type: ignore
         return out_tensor
 
 

@@ -29,10 +29,14 @@ def test_three_body_interactions(graph_MoS):
     num_edge_feats = 16
     state_attr = torch.tensor([0.0, 0.0])
     embedding = EmbeddingBlock(
-        degree_rbf=9, dim_node_embedding=num_node_feats, dim_edge_embedding=num_edge_feats, activation=nn.SiLU()
+        degree_rbf=9,
+        dim_node_embedding=num_node_feats,
+        dim_edge_embedding=num_edge_feats,
+        activation=nn.SiLU(),
+        ntypes_node=2,
     )
 
-    node_attr = g1.ndata["attr"]
+    node_attr = g1.ndata["node_type"]
     edge_attr = g1.edata["rbf"]
     node_feat, edge_feat, state_feat = embedding(node_attr, edge_attr, state_attr)
     degree = max_n * max_l

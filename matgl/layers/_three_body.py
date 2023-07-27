@@ -49,15 +49,13 @@ class ThreeBodyInteractions(nn.Module):
             node_feat: node features
             edge_feat: edge features.
         """
-        end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1].to(torch.int64))
+        end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1])
         atoms = self.update_network_atom(node_feat)
         end_atom_index = torch.unsqueeze(end_atom_index, 1)
         atoms = torch.squeeze(atoms[end_atom_index])
         basis = three_basis * atoms
         three_cutoff = torch.unsqueeze(three_cutoff, dim=1)  # type: ignore
-        weights = torch.reshape(
-            three_cutoff[torch.stack(list(line_graph.edges()), dim=1).to(torch.int64)], (-1, 2)  # type: ignore
-        )
+        weights = torch.reshape(three_cutoff[torch.stack(list(line_graph.edges()), dim=1)], (-1, 2))  # type: ignore
         weights = torch.prod(weights, axis=-1)  # type: ignore
         basis = basis * weights[:, None]
         new_bonds = scatter_sum(

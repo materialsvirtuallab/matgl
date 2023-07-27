@@ -9,6 +9,7 @@ import json
 import os
 import re
 import shutil
+from pprint import pprint
 
 import requests
 from invoke import task
@@ -123,7 +124,7 @@ def release_github(ctx):
         data=json.dumps(payload),
         headers={"Authorization": "token " + os.environ["GITHUB_RELEASES_TOKEN"]},
     )
-    print(response.text)
+    pprint(response.json())
 
 
 @task
@@ -131,7 +132,7 @@ def release(ctx, notest=False):
     ctx.run("rm -r dist build matgl.egg-info", warn=True)
     if not notest:
         ctx.run("pytest tests")
-    publish(ctx)
+    # publish(ctx)
     release_github(ctx)
 
 

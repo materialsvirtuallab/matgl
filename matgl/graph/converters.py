@@ -28,7 +28,6 @@ class GraphConverter(metaclass=abc.ABCMeta):
         dst_id,
         images,
         lattice_matrix,
-        Z,
         element_types,
         cart_coords,
     ) -> tuple[dgl.DGLGraph, list]:
@@ -40,7 +39,6 @@ class GraphConverter(metaclass=abc.ABCMeta):
             dst_id: site indices for destination point of bonds.
             images: the periodic image offsets for the bonds.
             lattice_matrix: lattice information of the structure.
-            Z: Atomic number information of all atoms in the structure.
             element_types: Element symbols of all atoms in the structure.
             cart_coords: Cartisian coordinates of all atoms in the structure.
 
@@ -54,7 +52,6 @@ class GraphConverter(metaclass=abc.ABCMeta):
         g.add_nodes(n_missing_node)
         g.edata["pbc_offset"] = torch.tensor(images)
         g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
-        g.ndata["attr"] = tensor(Z)
         g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
         g.ndata["pos"] = tensor(cart_coords)
         state_attr = [0.0, 0.0]
