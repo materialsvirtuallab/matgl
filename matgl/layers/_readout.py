@@ -15,12 +15,14 @@ class Set2SetReadOut(nn.Module):
 
     def __init__(
         self,
+        in_feats: int,
         num_steps: int,
         num_layers: int,
         field: str,
     ):
         """
         Args:
+            in_feats (int): length of input feature vector
             num_steps (int): Number of LSTM steps
             num_layers (int): Number of layers.
             field (str): Field of graph to perform the readout.
@@ -29,17 +31,16 @@ class Set2SetReadOut(nn.Module):
         self.field = field
         self.num_steps = num_steps
         self.num_layers = num_layers
+        if field == "node_feat":
+            self.set2set = Set2Set(in_feats, num_steps, num_layers)
+        elif field == "edge_feat":
+            self.set2set = EdgeSet2Set(in_feats, num_steps, num_layers)
 
     def forward(self, g: dgl.DGLGraph):
-        s2s_kwargs = {"n_iters": self.num_steps, "n_layers": self.num_layers}
         if self.field == "node_feat":
-            in_feats = g.ndata["node_feat"].size(dim=1)
-            set2set = Set2Set(in_feats, **s2s_kwargs)
-            out_tensor = set2set(g, g.ndata["node_feat"])
+            out_tensor = self.set2set(g, g.ndata["node_feat"])
         elif self.field == "edge_feat":
-            in_feats = g.edata["edge_feat"].size(dim=1)
-            set2set = EdgeSet2Set(in_feats, **s2s_kwargs)
-            out_tensor = set2set(g, g.edata["edge_feat"])
+            out_tensor = self.set2set(g, g.edata["edge_feat"])
         return out_tensor
 
 

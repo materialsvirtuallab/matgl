@@ -101,7 +101,7 @@
                     "Pu"
                 ],
                 "dim_state_embedding": null,
-                "dim_state_types": null,
+                "ntypes_state": null,
                 "max_n": 3,
                 "max_l": 3,
                 "nblocks": 3,
