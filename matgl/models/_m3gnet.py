@@ -49,7 +49,7 @@ logger = logging.getLogger(__file__)
 class M3GNet(nn.Module, IOMixIn):
     """The main M3GNet model."""
 
-    __version__ = 1
+    __version__ = 2
 
     def __init__(
         self,
