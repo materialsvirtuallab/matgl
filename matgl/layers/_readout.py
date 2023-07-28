@@ -16,31 +16,32 @@ class Set2SetReadOut(nn.Module):
     def __init__(
         self,
         in_feats: int,
-        num_steps: int,
-        num_layers: int,
+        n_iters: int,
+        n_layers: int,
         field: str,
     ):
         """
         Args:
             in_feats (int): length of input feature vector
-            num_steps (int): Number of LSTM steps
-            num_layers (int): Number of layers.
+            n_iters (int): Number of LSTM steps
+            n_layers (int): Number of layers.
             field (str): Field of graph to perform the readout.
         """
         super().__init__()
         self.field = field
-        self.num_steps = num_steps
-        self.num_layers = num_layers
+        self.n_iters = n_iters
+        self.n_layers = n_layers
         if field == "node_feat":
-            self.set2set = Set2Set(in_feats, num_steps, num_layers)
+            self.set2set = Set2Set(in_feats, n_iters, n_layers)
         elif field == "edge_feat":
-            self.set2set = EdgeSet2Set(in_feats, num_steps, num_layers)
+            self.set2set = EdgeSet2Set(in_feats, n_iters, n_layers)
 
     def forward(self, g: dgl.DGLGraph):
         if self.field == "node_feat":
             out_tensor = self.set2set(g, g.ndata["node_feat"])
         elif self.field == "edge_feat":
             out_tensor = self.set2set(g, g.edata["edge_feat"])
+
         return out_tensor
 
 
