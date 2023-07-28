@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import collections
 import contextlib
 import io
 import pickle
@@ -257,7 +258,7 @@ class Relaxer:
         }
 
 
-class TrajectoryObserver:
+class TrajectoryObserver(collections.abc.Sequence):
     """Trajectory observer is a hook in the relaxation process that saves the
     intermediate structures.
     """
@@ -278,28 +279,29 @@ class TrajectoryObserver:
 
     def __call__(self) -> None:
         """The logic for saving the properties of an Atoms during the relaxation."""
-        self.energies.append(self.compute_energy())
+        self.energies.append(float(self.atoms.get_potential_energy()))
         self.forces.append(self.atoms.get_forces())
         self.stresses.append(self.atoms.get_stress())
         self.atom_positions.append(self.atoms.get_positions())
         self.cells.append(self.atoms.get_cell()[:])
 
+    def __getitem__(self, item):
+        return self.energies[item], self.forces[item], self.stresses[item], self.cells[item], self.atom_positions[item]
+
+    def __len__(self):
+        return len(self.energies)
+
     def as_pandas(self) -> pd.DataFrame:
         """Returns: DataFrame of energies, forces, streeses, cells and atom_positions."""
         return pd.DataFrame(
             {
-                "energies": [float(e) for e in self.energies],
+                "energies": self.energies,
                 "forces": self.forces,
                 "stresses": self.stresses,
                 "cells": self.cells,
                 "atom_positions": self.atom_positions,
             }
         )
-
-    def compute_energy(self) -> float:
-        """Calculate the potential energy."""
-        energy = self.atoms.get_potential_energy()
-        return energy
 
     def save(self, filename: str) -> None:
         """Save the trajectory to file.

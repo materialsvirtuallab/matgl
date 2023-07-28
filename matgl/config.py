@@ -106,6 +106,9 @@ os.makedirs(MATGL_CACHE, exist_ok=True)
 PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 
+TORCH_DEFAULT_SEED = 42
+
+
 def clear_cache(confirm: bool = True):
     """Deletes all files in the matgl.cache. This is used to clean out downloaded models.
 

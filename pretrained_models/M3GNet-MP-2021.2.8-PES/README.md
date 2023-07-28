@@ -16,8 +16,8 @@ MP-2021.2.8: Materials Project structure relaxations as of 2021.2.8.
 ## Training and validation errors
 
 MAEs of energies, forces and stresses, respectively
-- Training: 19.977 eV/atom, 0.063 eV/A, 0.272 GPa
-- Validation: 23.713 eV/atom, 0.070 eV/A, 0.394 GPa
+- Training: 19.977 meV/atom, 0.063 eV/A, 0.272 GPa
+- Validation: 23.713 meV/atom, 0.070 eV/A, 0.394 GPa
 
 ## Cubic crystals benchmark
 

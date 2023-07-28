@@ -29,6 +29,8 @@ def test_Relaxer(MoS):
     traj = results["trajectory"].as_pandas()
     assert s.lattice.a < 3.5
     assert traj["energies"].iloc[-1] < traj["energies"].iloc[0]
+    for t in results["trajectory"]:
+        assert len(t) == 5
 
 
 def test_get_graph_from_atoms(LiFePO4):
