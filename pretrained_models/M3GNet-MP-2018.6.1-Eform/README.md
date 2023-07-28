@@ -16,7 +16,7 @@ MP-2018.6.1: Materials Project formation energy as of 2018.6.1.
 MAE of formation energy in eV/atom.
 - Training: 0.007 eV/atom
 - Validation: 0.019 eV/atom
-- Test: 0.022 eV/atom
+- Test: 0.019 eV/atom
 
 # References
 
