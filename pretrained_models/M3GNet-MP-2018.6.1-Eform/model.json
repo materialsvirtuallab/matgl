@@ -7,7 +7,7 @@
         "model": {
             "@class": "M3GNet",
             "@module": "matgl.models._m3gnet",
-            "@model_version": 1,
+            "@model_version": 2,
             "init_args": {
                 "element_types": [
                     "H",
@@ -101,7 +101,7 @@
                     "Pu"
                 ],
                 "dim_state_embedding": null,
-                "dim_state_types": null,
+                "ntypes_state": null,
                 "max_n": 3,
                 "max_l": 3,
                 "nblocks": 3,
