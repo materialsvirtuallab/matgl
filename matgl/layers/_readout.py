@@ -51,7 +51,7 @@ class ReduceReadOut(nn.Module):
     This could be summing up the atoms or bonds, or taking the mean, etc.
     """
 
-    def __init__(self, op: str = "mean", field: str = "node_feat"):
+    def __init__(self, op: str = "mean", field: Literal["node_feat", "edge_feat"] = "node_feat"):
         """
         Args:
             op (str): op for the reduction
@@ -69,10 +69,8 @@ class ReduceReadOut(nn.Module):
             torch.tensor.
         """
         if self.field == "node_feat":
-            reduced_tensor = dgl.readout_nodes(g, feat="node_feat", op=self.op)
-        elif self.field == "edge_feat":
-            reduced_tensor = dgl.readout_edges(g, feat="edge_feat", op=self.op)
-        return reduced_tensor
+            return dgl.readout_nodes(g, feat="node_feat", op=self.op)
+        return dgl.readout_edges(g, feat="edge_feat", op=self.op)
 
 
 class WeightedReadOut(nn.Module):
