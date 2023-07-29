@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import dgl
 import torch
 from dgl.nn import Set2Set
 from torch import nn
 
-from matgl.layers._core import EdgeSet2Set, GatedMLP
+from ._core import EdgeSet2Set, GatedMLP
 
 
 class Set2SetReadOut(nn.Module):
@@ -18,7 +20,7 @@ class Set2SetReadOut(nn.Module):
         in_feats: int,
         n_iters: int,
         n_layers: int,
-        field: str,
+        field: Literal["node_feat", "edge_feat"],
     ):
         """
         Args:
@@ -35,14 +37,13 @@ class Set2SetReadOut(nn.Module):
             self.set2set = Set2Set(in_feats, n_iters, n_layers)
         elif field == "edge_feat":
             self.set2set = EdgeSet2Set(in_feats, n_iters, n_layers)
+        else:
+            raise ValueError("Field must be node_feat or edge_feat")
 
     def forward(self, g: dgl.DGLGraph):
         if self.field == "node_feat":
-            out_tensor = self.set2set(g, g.ndata["node_feat"])
-        elif self.field == "edge_feat":
-            out_tensor = self.set2set(g, g.edata["edge_feat"])
-
-        return out_tensor
+            return self.set2set(g, g.ndata["node_feat"])
+        return self.set2set(g, g.edata["edge_feat"])
 
 
 class ReduceReadOut(nn.Module):
