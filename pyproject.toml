@@ -73,14 +73,12 @@ ignore = [
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
-extend-exclude = ["tests"]
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
-"maths.py" = ["PERF"]
 "setup.py" = ["D"]
 "tasks.py" = ["D"]
-"tests/**/*" = ["D"]
+"tests/**/*" = ["D", "PERF"]
 "docs/**/*" = ["D"]
 "examples/**/*" = ["D"]
 
@@ -100,3 +98,21 @@ ignore_missing_imports = true
 [tool.codespell]
 ignore-words-list = "mater,te,nd"
 check-filenames = true
+
+[tool.coverage.run]
+relative_files = true
+
+[tool.coverage.report]
+exclude_lines = [
+  "@deprecated",
+  "def __repr__",
+  "if 0:",
+  "if __name__ == .__main__.:",
+  "if self.debug:",
+  "if settings.DEBUG",
+  "pragma: no cover",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "show_plot",
+  "input"
+]

@@ -3,10 +3,10 @@ from __future__ import annotations
 import os
 
 import torch as th
+from pymatgen.core import Lattice, Structure
 
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
-from pymatgen.core import Structure, Lattice
 
 
 class TestMEGNet:

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import os
 
+# This function is used for M3GNet property dataset
+from functools import partial
+
 import numpy as np
 from dgl.data.utils import split_dataset
 from pymatgen.core import Molecule
@@ -13,9 +16,6 @@ from matgl.graph.data import (
     MGLDataLoader,
     collate_fn,
 )
-
-# This function is used for M3GNet property dataset
-from functools import partial
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

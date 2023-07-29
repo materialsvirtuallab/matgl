@@ -3,19 +3,19 @@ from __future__ import annotations
 import os
 import shutil
 
+# This function is used for M3GNet property dataset
+from functools import partial
+
 import numpy as np
 import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
+from pymatgen.core import Lattice, Structure
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
 from matgl.utils.training import ModelLightningModule, PotentialLightningModule
-from pymatgen.core import Structure, Lattice
-
-# This function is used for M3GNet property dataset
-from functools import partial
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

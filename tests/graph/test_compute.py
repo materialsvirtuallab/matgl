@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from functools import partial
+
 import numpy as np
 import torch
 
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
-    compute_theta_and_phi,
     compute_theta,
+    compute_theta_and_phi,
     create_line_graph,
 )
 
