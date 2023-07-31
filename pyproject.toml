@@ -113,6 +113,5 @@ exclude_lines = [
   "pragma: no cover",
   "raise AssertionError",
   "raise NotImplementedError",
-  "show_plot",
   "input"
 ]
