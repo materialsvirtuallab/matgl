@@ -101,6 +101,7 @@ check-filenames = true
 
 [tool.coverage.run]
 relative_files = true
+omit = "cli.py"
 
 [tool.coverage.report]
 exclude_lines = [
@@ -114,5 +115,6 @@ exclude_lines = [
   "raise AssertionError",
   "raise NotImplementedError",
   "input",
-  "if TYPE_CHECKING:"
+  "if TYPE_CHECKING:",
+  "except PackageNotFoundError:"
 ]
