@@ -15,7 +15,7 @@ from pymatgen.core import Lattice, Structure
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
-from matgl.utils.training import ModelLightningModule, PotentialLightningModule
+from matgl.utils.training import ModelLightningModule, PotentialLightningModule, xavier_init
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -61,7 +61,7 @@ class TestModelTrainer:
             hidden_layer_sizes_outputput=[32, 16],
             is_classification=False,
         )
-
+        xavier_init(model)
         lit_model = ModelLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=10, accelerator=device)
