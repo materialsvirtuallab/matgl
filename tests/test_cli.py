@@ -7,7 +7,7 @@ def test_entrypoint(Mo):
     Mo.to(filename="Mo.cif")
     exit_status = os.system("mgl relax -i Mo.cif -o Mo_relaxed.cif")
     assert exit_status == 0
-    exit_status = os.system("mgl relax -i Mo.cif -s hello")
+    exit_status = os.system("mgl relax -i Mo.cif -s _hello")
     assert exit_status == 0
     assert os.path.exists("Mo_hello.cif")
     exit_status = os.system("mgl relax -i Mo.cif")
