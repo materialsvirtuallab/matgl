@@ -72,9 +72,13 @@ def MoS():
 
 
 @pytest.fixture(scope="session")
-def graph_Mo():
-    s = Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
-    return get_graph(s, 5.0)
+def Mo():
+    return Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
+
+
+@pytest.fixture(scope="session")
+def graph_Mo(Mo):
+    return get_graph(Mo, 5.0)
 
 
 @pytest.fixture(scope="session")
