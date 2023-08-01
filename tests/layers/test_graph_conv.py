@@ -170,17 +170,19 @@ class TestGraphConv:
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
         assert [state_feat_new.size(dim=0), state_feat_new.size(dim=1)] == [1, 64]
 
-        # without state features
-        state_feat = None
-        graph_conv = M3GNetBlock(
-            degree=3 * 3,
-            num_node_feats=num_node_feats,
-            num_edge_feats=num_edge_feats,
-            num_state_feats=num_state_feats,
-            conv_hiddens=[32, 16],
-            activation=nn.SiLU(),
-            include_state=False,
-        )
-        edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
+        # without state features, with and without dropout.
+        for dropout in (0.5, None):
+            state_feat = None
+            graph_conv = M3GNetBlock(
+                degree=3 * 3,
+                num_node_feats=num_node_feats,
+                num_edge_feats=num_edge_feats,
+                num_state_feats=num_state_feats,
+                conv_hiddens=[32, 16],
+                activation=nn.SiLU(),
+                include_state=False,
+                dropout=dropout,
+            )
+            edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]

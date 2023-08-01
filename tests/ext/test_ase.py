@@ -56,7 +56,8 @@ def test_get_graph_from_atoms(LiFePO4):
 
 def test_molecular_dynamics(LiFePO4):
     pot = load_model("M3GNet-MP-2021.2.8-PES")
-    md = MolecularDynamics(LiFePO4, potential=pot)
-    md.run(10)
-    assert md.dyn is not None
-    md.set_atoms(LiFePO4)
+    for ensemble in ["nvt", "npt", "npt_berendsen"]:
+        md = MolecularDynamics(LiFePO4, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
+        md.run(10)
+        assert md.dyn is not None
+        md.set_atoms(LiFePO4)
