@@ -452,6 +452,8 @@ class MolecularDynamics:
         Args:
             atoms (Atoms): new atoms for running MD.
         """
+        if isinstance(atoms, (Structure, Molecule)):
+            atoms = AseAtomsAdaptor().get_atoms(atoms)
         calculator = self.atoms.calc
         self.atoms = atoms
         self.dyn.atoms = atoms
