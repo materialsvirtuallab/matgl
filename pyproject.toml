@@ -113,5 +113,6 @@ exclude_lines = [
   "pragma: no cover",
   "raise AssertionError",
   "raise NotImplementedError",
-  "input"
+  "input",
+  "if TYPE_CHECKING:"
 ]
