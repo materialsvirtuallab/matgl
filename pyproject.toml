@@ -101,7 +101,7 @@ check-filenames = true
 
 [tool.coverage.run]
 relative_files = true
-omit = "cli.py"
+omit = ["cli.py"]
 
 [tool.coverage.report]
 exclude_lines = [
