@@ -159,7 +159,7 @@ class RemoteFile:
             logger.info(f"Using cached local file at {self.local_path}...")
 
     def _download(self):
-        r = requests.get(self.uri, allow_redirects=True)
+        r = requests.get(self.uri)
         with open(self.local_path, "wb") as f:
             f.write(r.content)
 
@@ -210,7 +210,7 @@ def load_model(path: Path, **kwargs):
             return cls_.load(fpaths, **kwargs)
     except BaseException:
         raise ValueError(
-            "Bad serialized model detected. It is possible that you have an older model cached. Please "
+            "Bad serialized model or bad model name. It is possible that you have an older model cached. Please "
             'clear your cache by running `python -c "import matgl; matgl.clear_cache()"`'
         ) from None
 
