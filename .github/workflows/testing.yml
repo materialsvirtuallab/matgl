@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
+      PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
 
     steps:
       - uses: actions/checkout@v3
