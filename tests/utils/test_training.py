@@ -110,10 +110,7 @@ class TestModelTrainer:
             num_workers=0,
             generator=torch.Generator(device=device),
         )
-        model = M3GNet(
-            element_types=element_types,
-            is_intensive=False,
-        )
+        model = M3GNet(element_types=element_types, is_intensive=False)
         lit_model = PotentialLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=5, accelerator=device)
@@ -172,6 +169,10 @@ class TestModelTrainer:
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
+
+        results = trainer.predict(model=lit_model, dataloaders=test_loader)
+
+        assert "MAE" in results[0][0]
 
     @classmethod
     def teardown_class(cls):
