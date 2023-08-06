@@ -7,6 +7,7 @@ import os
 import sys
 import warnings
 
+import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.ext.matproj import MPRester
 
@@ -32,7 +33,7 @@ def relax_structure(args):
 
         logger.info(f"Initial structure\n{structure}")
         logger.info("Loading model...")
-        pot = matgl.load_model("M3GNet-MP-2021.2.8-PES")
+        pot = matgl.load_model(args.model)
         logger.info("Relaxing...")
         relaxer = Relaxer(potential=pot)
         relax_results = relaxer.relax(structure, fmax=0.01)
@@ -47,8 +48,18 @@ def relax_structure(args):
             final_structure.to(filename=args.outfile)
             print(f"Structure written to {args.outfile}!")
         else:
-            print("Final structure")
-            print(final_structure)
+            print("Lattice parameters")
+            old_lattice = structure.lattice
+            new_lattice = final_structure.lattice
+            for param in ("a", "b", "c", "alpha", "beta", "gamma"):
+                print(f"{param}: {getattr(old_lattice, param):.3f} -> {getattr(new_lattice, param):.3f}")
+            print("Sites (Fractional coordinates)")
+
+            def fmt_fcoords(fc):
+                return np.array2string(fc, formatter={"float_kind": lambda x: "%.5f" % x})
+
+            for old_site, new_site in zip(structure, final_structure):
+                print(f"{old_site.species}: {fmt_fcoords(old_site.frac_coords)} -> {fmt_fcoords(new_site.frac_coords)}")
 
     return 0
 
@@ -104,6 +115,15 @@ def main():
         nargs="+",
         required=True,
         help="Input files containing structure. Any format supported by pymatgen's Structure.from_file method.",
+    )
+
+    p_relax.add_argument(
+        "-m",
+        "--model",
+        dest="model",
+        choices=[m for m in matgl.get_available_pretrained_models() if m.endswith("PES")],
+        default="M3GNet-MP-2021.2.8-DIRECT-PES",
+        help="Model to use.",
     )
 
     p_relax.add_argument(
