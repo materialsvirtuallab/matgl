@@ -249,13 +249,17 @@ class CHGNet(nn.Module, IOMixIn):
         self.is_intensive = is_intensive
 
     def forward(
-        self, graph: dgl.DGLGraph, state_features: torch.Tensor | None = None
+        self,
+        graph: dgl.DGLGraph,
+        state_features: torch.Tensor | None = None,
+        line_graph: dgl.DGLGraph | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
         """Forward pass of the model.
 
         Args:
             graph (dgl.DGLGraph): Input graph.
             state_features (torch.Tensor, optional): State features. Defaults to None.
+            line_graph (dgl.DGLGraph, optional): Line graph. Defaults to None and is computed internally.
 
         Returns:
             torch.Tensor: Model output.
@@ -271,7 +275,7 @@ class CHGNet(nn.Module, IOMixIn):
         graph.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
         # create bond graph (line graph) with necessary node and edge data
-        bond_graph = create_directed_line_graph(graph, self.three_body_cutoff)
+        bond_graph = line_graph if line_graph is not None else create_directed_line_graph(graph, self.three_body_cutoff)
         bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
         threebody_bond_expansion = self.threebody_bond_expansion(bond_graph.ndata["bond_dist"])
         smooth_cutoff = polynomial_cutoff(threebody_bond_expansion, self.three_body_cutoff, self.cutoff_exponent)
