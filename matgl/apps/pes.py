@@ -56,7 +56,9 @@ class Potential(nn.Module, IOMixIn):
         self.data_mean = data_mean if data_mean is not None else torch.zeros(1)
         self.data_std = data_std if data_std is not None else torch.ones(1)
 
-    def _calc_forces_stresses_hessian(self, g: dgl.DGLGraph,  total_energies: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _calc_forces_stresses_hessian(
+        self, g: dgl.DGLGraph, total_energies: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Calculate optional forces, stresses and hessian."""
         forces = torch.zeros(1)
         stresses = torch.zeros(1)
@@ -108,7 +110,7 @@ class Potential(nn.Module, IOMixIn):
 
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, ...]:
         """Args:
             g: DGL graph
             state_attr: State attrs
@@ -134,13 +136,8 @@ class PotentialWithSiteWise(Potential):
     """Same as Potential but allows models that predict energies and site wise properties."""
 
     def forward(
-        self,
-        graph: dgl.DGLGraph,
-        state_attr: torch.Tensor | None = None,
-        line_graph: dgl.DGLGraph | None = None,
-        total_energies: torch.Tensor | None = None,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-
+        self, graph: dgl.DGLGraph, state_attr: torch.Tensor | None = None, line_graph: dgl.DGLGraph | None = None
+    ) -> tuple[torch.Tensor, ...]:
         if self.calc_forces:
             graph.ndata["pos"].requires_grad_(True)
 
