@@ -79,6 +79,7 @@ class CHGNet(nn.Module, IOMixIn):
         atom_conv_hidden_dims: Sequence[int] = (64,),
         bond_conv_hidden_dims: Sequence[int] = (64,),
         angle_layer_hidden_dim: Sequence[int] | None = None,
+        atom2bond_hidden_dims: Sequence[int] | None = None,
         conv_dropout: float = 0.0,
         num_targets: int = 1,
         num_site_targets: int = 1,
@@ -115,6 +116,8 @@ class CHGNet(nn.Module, IOMixIn):
             atom_conv_hidden_dims: hidden dimensions for the atom graph convolution layers.
             bond_conv_hidden_dims: hidden dimensions for the bond graph convolution layers.
             angle_layer_hidden_dim: hidden dimensions for the angle layer.
+            atom2bond_hidden_dims: hidden dimensions for the atom to bond message passing layer in atom graph.
+                Default is None, which means no atom to bond message passing layer in atom graph.
             conv_dropout: dropout probability for the graph convolution layers.
             num_targets: number of targets to predict.
             num_site_targets: number of site-wise targets to predict. (ie magnetic moments)
@@ -185,7 +188,7 @@ class CHGNet(nn.Module, IOMixIn):
                     #  this activation only applies to state update MLP, gMLP in core has silu hard-coded
                     activation=activation,
                     conv_hidden_dims=atom_conv_hidden_dims,
-                    update_edge_feats=False,
+                    edge_hidden_dims=atom2bond_hidden_dims,
                     include_state=self.include_states,
                     num_state_feats=dim_state_embedding,
                     dropout=conv_dropout,

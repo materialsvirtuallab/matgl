@@ -694,7 +694,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         num_bond_feats: int,
         activation: Module,
         conv_hidden_dims: Sequence[int],
-        update_edge_feats: bool = False,
+        edge_hidden_dims: Sequence[int] | None = None,
         include_state: bool = False,
         num_state_feats: int | None = None,
         rbf_order: int = 0,
@@ -706,7 +706,7 @@ class CHGNetAtomGraphBlock(nn.Module):
             num_bond_feats: number of bond features
             activation: activation function
             conv_hidden_dims: dimensions of hidden layers
-            update_edge_feats: whether to update edge features
+            edge_hidden_dims: dimensions of hidden layers for node to edge update (ie apply_edges)
             include_state: whether to include state attributes
             num_state_feats: number of state features if include_state is True
             rbf_order: whether to include layer-wise node weights
@@ -723,7 +723,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         else:
             state_dims = None
         node_dims = [node_input_dim, *conv_hidden_dims, num_atom_feats]
-        edge_dims = [node_input_dim, *conv_hidden_dims, num_bond_feats] if update_edge_feats else None
+        edge_dims = [node_input_dim, *edge_hidden_dims, num_bond_feats] if edge_hidden_dims else None
 
         self.conv_layer = CHGNetGraphConv.from_dims(
             include_state=include_state,
