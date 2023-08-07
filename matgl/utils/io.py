@@ -147,9 +147,8 @@ class RemoteFile:
         toks = uri.split("/")
         self.model_name = toks[-2]
         self.fname = toks[-1]
-        cache_location = Path(cache_location)
-        os.makedirs(cache_location / self.model_name, exist_ok=True)
-        self.local_path = cache_location / self.model_name / self.fname
+        self.cache_location = Path(cache_location)
+        self.local_path = self.cache_location / self.model_name / self.fname
         if (not self.local_path.exists()) or force_download:
             logger.info("Downloading from remote location...")
             self._download()
@@ -159,6 +158,7 @@ class RemoteFile:
     def _download(self):
         r = requests.get(self.uri)
         if r.status_code == 200:
+            os.makedirs(self.cache_location / self.model_name, exist_ok=True)
             with open(self.local_path, "wb") as f:
                 f.write(r.content)
         else:

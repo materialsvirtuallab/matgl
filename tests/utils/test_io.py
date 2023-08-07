@@ -60,6 +60,7 @@ def test_remote_file():
             "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/bad_name/model.pt",
             cache_location=".",
         )
+    assert not os.path.exists("bad_name")  # Ensure that the bad_name folder is not created.
 
 
 def test_get_available_pretrained_models():
