@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import logging
 import os
-import sys
 import warnings
 
 import numpy as np
@@ -214,8 +213,4 @@ def main():
 
     args = parser.parse_args()
 
-    try:
-        return args.func(args)
-    except AttributeError:
-        parser.print_help()
-        sys.exit(-1)
+    return args.func(args)

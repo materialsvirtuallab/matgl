@@ -116,5 +116,6 @@ exclude_lines = [
   "input",
   "if TYPE_CHECKING:",
   "except PackageNotFoundError:",
-  "raise RuntimeError"
+  "raise RuntimeError",
+  "logging.basicConfig"
 ]
