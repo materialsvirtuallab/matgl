@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import pytest
 import torch
 
 from matgl.models import M3GNet
@@ -19,6 +20,12 @@ class TestM3GNet:
         os.remove("model.pt")
         os.remove("model.json")
         os.remove("state.pt")
+
+    def test_exceptions(self):
+        with pytest.raises(ValueError, match="Invalid activation type"):
+            _ = M3GNet(element_types=None, is_intensive=False, activation_type="whatever")
+        with pytest.raises(ValueError, match="Classification task cannot be extensive."):
+            _ = M3GNet(element_types=["Mo", "S"], is_intensive=False, task_type="classification")
 
     def test_model_intensive(self, graph_MoS):
         structure, graph, state = graph_MoS

@@ -108,7 +108,7 @@ class MEGNet(nn.Module, IOMixIn):
         elif activation_type == "softexp":
             activation = SoftExponential()
         else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
+            raise ValueError("Invalid activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
         self.embedding = EmbeddingBlock(
             degree_rbf=dim_edge_embedding,

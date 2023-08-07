@@ -124,7 +124,7 @@ class M3GNet(nn.Module, IOMixIn):
         elif activation_type == "softexp":
             activation = SoftExponential()  # type: ignore
         else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
+            raise ValueError("Invalid activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES
@@ -205,7 +205,7 @@ class M3GNet(nn.Module, IOMixIn):
 
         else:
             if task_type == "classification":
-                raise ValueError("Classification task cannot be extensive")
+                raise ValueError("Classification task cannot be extensive.")
             self.final_layer = WeightedReadOut(
                 in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets  # type: ignore
             )
