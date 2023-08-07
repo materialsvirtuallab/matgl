@@ -76,19 +76,11 @@ def predict_structure(args):
     if args.infile:
         if args.model == "MEGNet-MP-2019.4.1-BandGap-mfi":
             state_dict = ["PBE", "GLLB-SC", "HSE", "SCAN"]
-            if len(args.infile) == 1 or not args.infile[1].isdigit():
-                print(
-                    "Error: the multi-fidelity MEGNet bandgap model requires the first argument"
-                    "as structure file and the second arguments as state label (int) iteratively!!"
-                )
-                exit()
-            for count in range(0, len(args.infile), 2):
-                structure = Structure.from_file(args.infile[count])
-                val = model.predict_structure(structure, torch.tensor(int(args.infile[count + 1])))
-                print(
-                    f"{args.model} prediction for {args.infile[count]} with "
-                    f"{state_dict[int(args.infile[count + 1])]} bandgap: {val} eV."
-                )
+            for count, f in enumerate(args.infile):
+                s = args.state_attr[count]  # Get the corresponding state attribute
+                structure = Structure.from_file(f)
+                val = model.predict_structure(structure, torch.tensor(int(s)))
+                print(f"{args.model} prediction for {f} with {state_dict[int(s)]} bandgap: {val} eV.")
 
         else:
             for f in args.infile:
@@ -187,6 +179,14 @@ def main():
         dest="infile",
         nargs="+",
         help="Input files containing structure. Any format supported by pymatgen's Structure.from_file method.",
+    )
+
+    p_predict.add_argument(
+        "-s",
+        "--state",
+        dest="state_attr",
+        nargs="+",
+        help="state attributes containing label. This should be an integer.",
     )
 
     p_predict.add_argument(

@@ -13,9 +13,7 @@ def test_entrypoint(Mo):
     assert os.path.exists("Mo_hello.cif")
     exit_status = os.system("mgl relax -i Mo.cif")
     assert exit_status == 0
-    exit_status = os.system("mgl predict -i Mo.cif 1 -m MEGNet-MP-2019.4.1-BandGap-mfi")
-    assert exit_status == 0
-    exit_status = os.system("mgl predict -i Mo.cif -m MEGNet-MP-2019.4.1-BandGap-mfi")
+    exit_status = os.system("mgl predict -i Mo.cif -s 1 -m MEGNet-MP-2019.4.1-BandGap-mfi")
     assert exit_status == 0
     exit_status = os.system("mgl predict -i Mo.cif -m MEGNet-MP-2018.6.1-Eform")
     assert exit_status == 0
