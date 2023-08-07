@@ -140,9 +140,7 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     Returns:
         l_g: DGL graph containing three body information from graph
     """
-    graph_with_three_body = remove_edges_by_features(
-        g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff
-    )
+    graph_with_three_body = prune_edges_by_features(g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
     l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
     return l_g
 
@@ -162,7 +160,7 @@ def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True, check_ali
     Returns:
         bond_graph: DGL graph containing bond information from graph
     """
-    pruned_graph = remove_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > cutoff)
+    pruned_graph = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > cutoff)
     backtracking = has_aliased_edges(pruned_graph) if check_aliasing else False
     bond_graph = pruned_graph.line_graph(backtracking=backtracking, shared=shared)
     if backtracking:
@@ -221,7 +219,7 @@ def _get_backtracking_edge_ids(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph) ->
     return tuple(backtracking_edge_ids)
 
 
-def remove_edges_by_features(
+def prune_edges_by_features(
     graph: dgl.DGLGraph,
     feat_name: str,
     condition: Callable[[torch.Tensor, Any, ...], torch.Tensor],
@@ -252,7 +250,9 @@ def remove_edges_by_features(
     valid_edges = torch.logical_not(condition(graph.edata[feat_name], *args, **kwargs))
     src, dst = graph.edges()
     src, dst = src[valid_edges], dst[valid_edges]
+    e_ids = valid_edges.nonzero().squeeze()
     new_g = dgl.graph((src, dst))
+    new_g.edata["edge_ids"] = e_ids  # keep track of original edge ids
 
     if keep_ndata:
         for key, value in graph.ndata.items():

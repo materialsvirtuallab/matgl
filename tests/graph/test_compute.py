@@ -12,7 +12,7 @@ from matgl.graph.compute import (
     compute_theta,
     compute_theta_and_phi,
     create_line_graph,
-    remove_edges_by_features
+    prune_edges_by_features,
 )
 
 
@@ -167,16 +167,19 @@ def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
     g2, state2 = converter.get_graph(s1)
 
     # remove edges by features
-    new_g = remove_edges_by_features(
+    new_g = prune_edges_by_features(
         g1, "bond_dist", condition=lambda x: x > new_cutoff, keep_ndata=keep_ndata, keep_edata=keep_edata
     )
+    valid_edges = g1.edata["bond_dist"] <= new_cutoff
 
     assert new_g.num_edges() == g2.num_edges()
     assert new_g.num_nodes() == g2.num_nodes()
+    assert torch.allclose(new_g.edata["edge_ids"], valid_edges.nonzero().squeeze())
 
     if keep_ndata:
         assert new_g.ndata.keys() == g1.ndata.keys()
 
     if keep_edata:
-        assert new_g.edata.keys() == g1.edata.keys()
-        assert new_g.edata["bond_vec"].shape[1] == g1.edata["bond_vec"].shape[1]
+        for key in g1.edata.keys():
+            if key != "edge_ids":
+                assert torch.allclose(new_g.edata[key], g1.edata[key][valid_edges])
