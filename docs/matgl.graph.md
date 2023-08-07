@@ -51,6 +51,32 @@ bond_vec (torch.tensor): bond distance between two atoms
 bond_dist (torch.tensor): vector from src node to dst node
 
 
+### matgl.graph.compute.compute_theta(edges: EdgeBatch, cosine: bool = False)
+User defined dgl function to calculate bond angles from edges in a graph.
+
+
+* **Parameters**
+
+
+    * **edges** – DGL graph edges
+
+
+    * **cosine** – Whether to return the cosine of the angle or the angle itself
+
+
+
+* **Returns**
+
+    Dictionary containing bond angles and distances
+
+
+
+* **Return type**
+
+    dict[str, torch.Tensor]
+
+
+
 ### matgl.graph.compute.compute_theta_and_phi(edges: EdgeBatch)
 Calculate bond angle Theta and Phi using dgl graphs.
 
@@ -63,14 +89,14 @@ phi: torch.Tensor
 triple_bond_lengths (torch.tensor):
 
 
-### matgl.graph.compute.create_line_graph(g_batched: DGLGraph, threebody_cutoff: float)
+### matgl.graph.compute.create_line_graph(g: DGLGraph, threebody_cutoff: float)
 Calculate the three body indices from pair atom indices.
 
 
 * **Parameters**
 
 
-    * **g_batched** – Batched DGL graph
+    * **g** – DGL graph
 
 
     * **threebody_cutoff** (*float*) – cutoff for three-body interactions
@@ -107,7 +133,7 @@ Returns:
 DGLGraph object, state_attr
 
 
-#### get_graph_from_processed_structure(structure, src_id, dst_id, images, lattice_matrix, Z, element_types, cart_coords)
+#### get_graph_from_processed_structure(structure, src_id, dst_id, images, lattice_matrix, element_types, cart_coords)
 Construct a dgl graph from processed structure and bond information.
 
 
@@ -129,9 +155,6 @@ Construct a dgl graph from processed structure and bond information.
     * **lattice_matrix** – lattice information of the structure.
 
 
-    * **Z** – Atomic number information of all atoms in the structure.
-
-
     * **element_types** – Element symbols of all atoms in the structure.
 
 
@@ -149,13 +172,19 @@ Construct a dgl graph from processed structure and bond information.
 Tools to construct a dataset of DGL graphs.
 
 
-### _class_ matgl.graph.data.M3GNetDataset(structures: list, energies: list, forces: list, stresses: None | list, converter: GraphConverter, threebody_cutoff: float, name='M3GNETDataset', graph_labels: list | None = None)
+### _class_ matgl.graph.data.M3GNetDataset(converter: GraphConverter, threebody_cutoff: float, structures: list, energies: list | None = None, forces: list | None = None, stresses: list | None = None, labels: list | None = None, name='M3GNETDataset', label_name: str | None = None, graph_labels: list | None = None)
 Bases: `DGLDataset`
 
 Create a dataset including dgl graphs.
 
 
 * **Parameters**
+
+
+    * **converter** – dgl graph converter
+
+
+    * **threebody_cutoff** – cutoff for three body
 
 
     * **structures** – Pymatgen structure
@@ -170,13 +199,13 @@ Create a dataset including dgl graphs.
     * **stresses** – Target stresses
 
 
-    * **converter** – dgl graph converter
-
-
-    * **threebody_cutoff** – cutoff for three body
+    * **labels** – target properties
 
 
     * **name** – name of dataset
+
+
+    * **label_name** – name of target properties
 
 
     * **graph_labels** – state attributes.
@@ -333,7 +362,7 @@ Dataloader for MEGNet training.
 
 
 
-### matgl.graph.data.collate_fn(batch)
+### matgl.graph.data.collate_fn(batch, include_line_graph: bool = False)
 Merge a list of dgl graphs to form a batch.
 
 
