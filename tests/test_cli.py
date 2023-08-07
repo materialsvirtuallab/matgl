@@ -3,10 +3,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import matgl
-
-matgl.clear_cache(confirm=False)
-
 
 def test_entrypoint(Mo):
     Mo.to(filename="Mo.cif")
