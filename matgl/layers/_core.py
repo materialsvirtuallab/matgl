@@ -57,7 +57,7 @@ class MLP(nn.Module):
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
                 return layer
-        return None
+        raise RuntimeError
 
     @property
     def depth(self) -> int:

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import dgl
 import torch
 from dgl.nn import Set2Set
 from torch import nn
 
-from matgl.config import TORCH_DEFAULT_SEED
-from matgl.layers._core import EdgeSet2Set, GatedMLP
+from ._core import EdgeSet2Set, GatedMLP
 
 
 class Set2SetReadOut(nn.Module):
@@ -16,12 +17,14 @@ class Set2SetReadOut(nn.Module):
 
     def __init__(
         self,
+        in_feats: int,
         n_iters: int,
         n_layers: int,
-        field: str,
+        field: Literal["node_feat", "edge_feat"],
     ):
         """
         Args:
+            in_feats (int): length of input feature vector
             n_iters (int): Number of LSTM steps
             n_layers (int): Number of layers.
             field (str): Field of graph to perform the readout.
@@ -30,27 +33,17 @@ class Set2SetReadOut(nn.Module):
         self.field = field
         self.n_iters = n_iters
         self.n_layers = n_layers
-        self.node_s2s: dict[int, Set2Set] = {}
-        self.edge_s2s: dict[int, EdgeSet2Set] = {}
+        if field == "node_feat":
+            self.set2set = Set2Set(in_feats, n_iters, n_layers)
+        elif field == "edge_feat":
+            self.set2set = EdgeSet2Set(in_feats, n_iters, n_layers)
+        else:
+            raise ValueError("Field must be node_feat or edge_feat")
 
     def forward(self, g: dgl.DGLGraph):
-        torch.use_deterministic_algorithms(True)
-        torch.manual_seed(TORCH_DEFAULT_SEED)
-        torch.cuda.manual_seed(TORCH_DEFAULT_SEED)
-        # # When running on the CuDNN backend, two further options must be set
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
         if self.field == "node_feat":
-            in_feats = g.ndata["node_feat"].size(dim=1)
-            if in_feats not in self.node_s2s:  # init s2s only once to remove stochasticity
-                self.node_s2s[in_feats] = Set2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)
-            out_tensor = self.node_s2s[in_feats](g, g.ndata["node_feat"])  # type: ignore
-        elif self.field == "edge_feat":
-            in_feats = g.edata["edge_feat"].size(dim=1)
-            if in_feats not in self.edge_s2s:  # init s2s only once to remove stochasticity
-                self.edge_s2s[in_feats] = EdgeSet2Set(in_feats, n_iters=self.n_iters, n_layers=self.n_layers)
-            out_tensor = self.edge_s2s[in_feats](g, g.edata["edge_feat"])  # type: ignore
-        return out_tensor
+            return self.set2set(g, g.ndata["node_feat"])
+        return self.set2set(g, g.edata["edge_feat"])
 
 
 class ReduceReadOut(nn.Module):
@@ -58,7 +51,7 @@ class ReduceReadOut(nn.Module):
     This could be summing up the atoms or bonds, or taking the mean, etc.
     """
 
-    def __init__(self, op: str = "mean", field: str = "node_feat"):
+    def __init__(self, op: str = "mean", field: Literal["node_feat", "edge_feat"] = "node_feat"):
         """
         Args:
             op (str): op for the reduction
@@ -76,10 +69,8 @@ class ReduceReadOut(nn.Module):
             torch.tensor.
         """
         if self.field == "node_feat":
-            reduced_tensor = dgl.readout_nodes(g, feat="node_feat", op=self.op)
-        elif self.field == "edge_feat":
-            reduced_tensor = dgl.readout_edges(g, feat="edge_feat", op=self.op)
-        return reduced_tensor
+            return dgl.readout_nodes(g, feat="node_feat", op=self.op)
+        return dgl.readout_edges(g, feat="edge_feat", op=self.op)
 
 
 class WeightedReadOut(nn.Module):

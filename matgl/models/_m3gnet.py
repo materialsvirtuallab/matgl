@@ -11,7 +11,7 @@ please refer to::
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import dgl
 import torch
@@ -49,7 +49,7 @@ logger = logging.getLogger(__file__)
 class M3GNet(nn.Module, IOMixIn):
     """The main M3GNet model."""
 
-    __version__ = 1
+    __version__ = 2
 
     def __init__(
         self,
@@ -74,7 +74,7 @@ class M3GNet(nn.Module, IOMixIn):
         use_phi: bool = False,
         niters_set2set: int = 3,
         nlayers_set2set: int = 3,
-        field: str = "node_feat",
+        field: Literal["node_feat", "edge_feat"] = "node_feat",
         include_state: bool = False,
         activation_type: str = "swish",
         **kwargs,
@@ -190,7 +190,9 @@ class M3GNet(nn.Module, IOMixIn):
         if is_intensive:
             input_feats = dim_node_embedding if field == "node_feat" else dim_edge_embedding
             if readout_type == "set2set":
-                self.readout = Set2SetReadOut(n_iters=niters_set2set, n_layers=nlayers_set2set, field=field)
+                self.readout = Set2SetReadOut(
+                    in_feats=input_feats, n_iters=niters_set2set, n_layers=nlayers_set2set, field=field
+                )
                 readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)  # type: ignore

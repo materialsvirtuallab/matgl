@@ -107,7 +107,7 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
         * [`TrajectoryObserver`](matgl.ext.md#matgl.ext.ase.TrajectoryObserver)
 
 
-            * [`TrajectoryObserver.compute_energy()`](matgl.ext.md#matgl.ext.ase.TrajectoryObserver.compute_energy)
+            * [`TrajectoryObserver.as_pandas()`](matgl.ext.md#matgl.ext.ase.TrajectoryObserver.as_pandas)
 
 
             * [`TrajectoryObserver.save()`](matgl.ext.md#matgl.ext.ase.TrajectoryObserver.save)
@@ -143,6 +143,9 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
 
 
         * [`compute_pair_vector_and_distance()`](matgl.graph.md#matgl.graph.compute.compute_pair_vector_and_distance)
+
+
+        * [`compute_theta()`](matgl.graph.md#matgl.graph.compute.compute_theta)
 
 
         * [`compute_theta_and_phi()`](matgl.graph.md#matgl.graph.compute.compute_theta_and_phi)

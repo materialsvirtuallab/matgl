@@ -14,10 +14,13 @@ import pytest
 from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
+import matgl
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
 )
+
+matgl.clear_cache(confirm=False)
 
 
 def get_graph(structure, cutoff):
@@ -72,9 +75,13 @@ def MoS():
 
 
 @pytest.fixture(scope="session")
-def graph_Mo():
-    s = Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
-    return get_graph(s, 5.0)
+def Mo():
+    return Structure(Lattice.cubic(3.17), ["Mo", "Mo"], [[0.01, 0, 0], [0.5, 0.5, 0.5]])
+
+
+@pytest.fixture(scope="session")
+def graph_Mo(Mo):
+    return get_graph(Mo, 5.0)
 
 
 @pytest.fixture(scope="session")

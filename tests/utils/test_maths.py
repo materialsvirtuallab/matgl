@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dgl
 import numpy as np
+import pytest
 import torch
 
 from matgl.utils.maths import (
@@ -20,6 +21,8 @@ def test_spherical_bessel_roots():
     roots = spherical_bessel_roots(max_l=1, max_n=5)
     roots2 = SPHERICAL_BESSEL_ROOTS
     assert np.allclose(roots2[0, :5], roots.ravel())
+    roots = spherical_bessel_roots(max_l=3, max_n=5)
+    assert roots[0][0], pytest.approx(np.pi)
 
 
 def test_torch_operations():

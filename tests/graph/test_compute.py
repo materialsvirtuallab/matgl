@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import pytest
 from functools import partial
+
 import numpy as np
 import torch
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
-    compute_theta_and_phi,
     compute_theta,
+    compute_theta_and_phi,
     create_line_graph,
     remove_edges_by_features
 )

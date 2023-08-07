@@ -187,7 +187,7 @@ def scatter_sum(input_tensor: torch.Tensor, segment_ids: torch.Tensor, num_segme
         size[dim] = 0
     else:
         size[dim] = num_segments
-    output = torch.zeros(size, dtype=input_tensor.dtype)
+    output = torch.zeros(size, dtype=input_tensor.dtype, device=input_tensor.device)
     return output.scatter_add_(dim, segment_ids, input_tensor)
 
 

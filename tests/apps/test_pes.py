@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import pytest
 import torch
+from pymatgen.core import Lattice, Structure
 
 from matgl.apps.pes import Potential
-from pymatgen.core import Structure, Lattice
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.models._m3gnet import M3GNet
-from pymatgen.core import Structure, Lattice
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
 
 
 @pytest.fixture()

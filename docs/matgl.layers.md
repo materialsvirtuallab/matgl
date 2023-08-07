@@ -249,7 +249,7 @@ increasing number of roots and a given cutoff.
 
 Details are given in: [https://arxiv.org/abs/2003.03123](https://arxiv.org/abs/2003.03123)
 
-This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel fucntions), but with
+This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel functions), but with
 optional learnable frequencies.
 
 
@@ -1061,7 +1061,7 @@ Perform attribute (global state) update.
 Readout layer for M3GNet.
 
 
-### _class_ matgl.layers._readout.ReduceReadOut(op: str = 'mean', field: str = 'node_feat')
+### _class_ matgl.layers._readout.ReduceReadOut(op: str = 'mean', field: Literal['node_feat', 'edge_feat'] = 'node_feat')
 Bases: `Module`
 
 Reduce atom or bond attributes into lower dimensional tensors as readout.
@@ -1094,7 +1094,7 @@ This could be summing up the atoms or bonds, or taking the mean, etc.
 
 #### training(_: boo_ )
 
-### _class_ matgl.layers._readout.Set2SetReadOut(num_steps: int, num_layers: int, field: str)
+### _class_ matgl.layers._readout.Set2SetReadOut(in_feats: int, n_iters: int, n_layers: int, field: Literal['node_feat', 'edge_feat'])
 Bases: `Module`
 
 The Set2Set readout function.
@@ -1103,10 +1103,13 @@ The Set2Set readout function.
 * **Parameters**
 
 
-    * **num_steps** (*int*) – Number of LSTM steps
+    * **in_feats** (*int*) – length of input feature vector
 
 
-    * **num_layers** (*int*) – Number of layers.
+    * **n_iters** (*int*) – Number of LSTM steps
+
+
+    * **n_layers** (*int*) – Number of layers.
 
 
     * **field** (*str*) – Field of graph to perform the readout.

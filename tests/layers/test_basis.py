@@ -1,22 +1,21 @@
 from __future__ import annotations
 
-import pytest
-
 import numpy as np
-from torch.testing import assert_close
+import pytest
 import torch
+from torch.testing import assert_close
 
 from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
 )
 from matgl.layers._basis import (
+    FourierExpansion,
     GaussianExpansion,
+    RadialBesselFunction,
     SphericalBesselFunction,
     SphericalBesselWithHarmonics,
     SphericalHarmonicsFunction,
-    FourierExpansion,
-    RadialBesselFunction,
     spherical_bessel_smooth,
 )
 from matgl.layers._three_body import combine_sbf_shf
@@ -37,6 +36,15 @@ def test_gaussian():
     assert np.allclose(rbf[0][0], np.exp(-0.5 * np.power(1.0 - 0.0, 2.0)))
     # check the last value of expanded distance
     assert np.allclose(rbf[0][-1], np.exp(-0.5 * np.power(1.0 - 4.0, 2.0)))
+
+    rbf_gaussian = GaussianExpansion(width=None)
+    r = torch.tensor([1.0])
+    rbf = rbf_gaussian(r)
+    # check the shape of a vector
+    assert np.allclose([rbf.size(dim=0), rbf.size(dim=1)], [1, 20])
+    # check the first value of expanded distance
+    assert rbf[0][0].numpy() == pytest.approx(0.00865169521421194)
+    rbf_gaussian.reset_parameters()
 
 
 def test_sphericalbesselfunction():

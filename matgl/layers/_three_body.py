@@ -49,7 +49,7 @@ class ThreeBodyInteractions(nn.Module):
             node_feat: node features
             edge_feat: edge features.
         """
-        end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1])
+        end_atom_index = torch.gather(graph.edges()[1], 0, line_graph.edges()[1].to(torch.int64))
         atoms = self.update_network_atom(node_feat)
         end_atom_index = torch.unsqueeze(end_atom_index, 1)
         atoms = torch.squeeze(atoms[end_atom_index])

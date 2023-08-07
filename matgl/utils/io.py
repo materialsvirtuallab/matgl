@@ -111,11 +111,9 @@ class IOMixIn:
 
         _check_ver(cls, model_data)
 
-        if not torch.cuda.is_available():
-            state = torch.load(fpaths["state.pt"], map_location=torch.device("cpu"))
-        else:
-            state = torch.load(fpaths["state.pt"])
-        d = torch.load(fpaths["model.pt"])
+        map_location = torch.device("cpu") if not torch.cuda.is_available() else None
+        state = torch.load(fpaths["state.pt"], map_location=map_location)
+        d = torch.load(fpaths["model.pt"], map_location=map_location)
 
         # Deserialize any args that are IOMixIn subclasses.
         for k, v in d.items():
@@ -159,7 +157,7 @@ class RemoteFile:
             logger.info(f"Using cached local file at {self.local_path}...")
 
     def _download(self):
-        r = requests.get(self.uri, allow_redirects=True)
+        r = requests.get(self.uri)
         with open(self.local_path, "wb") as f:
             f.write(r.content)
 
@@ -210,7 +208,7 @@ def load_model(path: Path, **kwargs):
             return cls_.load(fpaths, **kwargs)
     except BaseException:
         raise ValueError(
-            "Bad serialized model detected. It is possible that you have an older model cached. Please "
+            "Bad serialized model or bad model name. It is possible that you have an older model cached. Please "
             'clear your cache by running `python -c "import matgl; matgl.clear_cache()"`'
         ) from None
 

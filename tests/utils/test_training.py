@@ -3,19 +3,19 @@ from __future__ import annotations
 import os
 import shutil
 
+# This function is used for M3GNet property dataset
+from functools import partial
+
 import numpy as np
 import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
+from pymatgen.core import Lattice, Structure
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
-from matgl.utils.training import ModelLightningModule, PotentialLightningModule
-from pymatgen.core import Structure, Lattice
-
-# This function is used for M3GNet property dataset
-from functools import partial
+from matgl.utils.training import ModelLightningModule, PotentialLightningModule, xavier_init
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -61,7 +61,7 @@ class TestModelTrainer:
             hidden_layer_sizes_outputput=[32, 16],
             is_classification=False,
         )
-
+        xavier_init(model)
         lit_model = ModelLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=10, accelerator=device)
@@ -110,10 +110,7 @@ class TestModelTrainer:
             num_workers=0,
             generator=torch.Generator(device=device),
         )
-        model = M3GNet(
-            element_types=element_types,
-            is_intensive=False,
-        )
+        model = M3GNet(element_types=element_types, is_intensive=False)
         lit_model = PotentialLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=5, accelerator=device)
@@ -172,6 +169,10 @@ class TestModelTrainer:
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
+
+        results = trainer.predict(model=lit_model, dataloaders=test_loader)
+
+        assert "MAE" in results[0][0]
 
     @classmethod
     def teardown_class(cls):

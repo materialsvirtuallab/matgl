@@ -106,7 +106,7 @@ Perform calculation for an input Atoms.
 Properties calculator can handle (energy, forces, …)
 
 
-### _class_ matgl.ext.ase.MolecularDynamics(atoms: Atoms, potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: torch.Tensor | None = None, ensemble: str = 'nvt', temperature: int = 300, timestep: float = 1.0, pressure: float = 6.324209121801212e-07, taut: float | None = None, taup: float | None = None, compressibility_au: float | None = None, trajectory: str | Trajectory | None = None, logfile: str | None = None, loginterval: int = 1, append_trajectory: bool = False)
+### _class_ matgl.ext.ase.MolecularDynamics(atoms: Atoms, potential: [Potential](matgl.apps.md#matgl.apps.pes.Potential), state_attr: torch.Tensor | None = None, ensemble: Literal['nvt', 'npt', 'npt_berendsen'] = 'nvt', temperature: int = 300, timestep: float = 1.0, pressure: float = 6.324209121801212e-07, taut: float | None = None, taup: float | None = None, compressibility_au: float | None = None, trajectory: str | Trajectory | None = None, logfile: str | None = None, loginterval: int = 1, append_trajectory: bool = False)
 Bases: `object`
 
 Molecular dynamics class.
@@ -250,7 +250,7 @@ Relax an input Atoms.
 
 
 ### _class_ matgl.ext.ase.TrajectoryObserver(atoms: Atoms)
-Bases: `object`
+Bases: `Sequence`
 
 Trajectory observer is a hook in the relaxation process that saves the
 intermediate structures.
@@ -264,8 +264,8 @@ Init the Trajectory Observer from a Atoms.
 
 
 
-#### compute_energy()
-Calculate the potential energy.
+#### as_pandas()
+Returns: DataFrame of energies, forces, streeses, cells and atom_positions.
 
 
 #### save(filename: str)

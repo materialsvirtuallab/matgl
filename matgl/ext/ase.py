@@ -7,7 +7,7 @@ import contextlib
 import io
 import pickle
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
@@ -329,7 +329,7 @@ class MolecularDynamics:
         atoms: Atoms,
         potential: Potential,
         state_attr: torch.Tensor | None = None,
-        ensemble: str = "nvt",
+        ensemble: Literal["nvt", "npt", "npt_berendsen"] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
         pressure: float = 1.01325 * units.bar,
@@ -452,6 +452,8 @@ class MolecularDynamics:
         Args:
             atoms (Atoms): new atoms for running MD.
         """
+        if isinstance(atoms, (Structure, Molecule)):
+            atoms = AseAtomsAdaptor().get_atoms(atoms)
         calculator = self.atoms.calc
         self.atoms = atoms
         self.dyn.atoms = atoms

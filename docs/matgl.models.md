@@ -23,7 +23,7 @@ Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
 ```
 
 
-### _class_ matgl.models._m3gnet.M3GNet(element_types: tuple[str], dim_node_embedding: int = 64, dim_edge_embedding: int = 64, dim_state_embedding: int | None = None, dim_state_types: int | None = None, dim_state_feats: int | None = None, max_n: int = 3, max_l: int = 3, nblocks: int = 3, rbf_type='SphericalBessel', is_intensive: bool = True, readout_type: str = 'weighted_atom', task_type: str = 'regression', cutoff: float = 5.0, threebody_cutoff: float = 4.0, units: int = 64, ntargets: int = 1, use_smooth: bool = False, use_phi: bool = False, niters_set2set: int = 3, nlayers_set2set: int = 3, field: str = 'node_feat', include_state: bool = False, activation_type: str = 'swish', \*\*kwargs)
+### _class_ matgl.models._m3gnet.M3GNet(element_types: tuple[str], dim_node_embedding: int = 64, dim_edge_embedding: int = 64, dim_state_embedding: int | None = None, ntypes_state: int | None = None, dim_state_feats: int | None = None, max_n: int = 3, max_l: int = 3, nblocks: int = 3, rbf_type='SphericalBessel', is_intensive: bool = True, readout_type: str = 'weighted_atom', task_type: str = 'regression', cutoff: float = 5.0, threebody_cutoff: float = 4.0, units: int = 64, ntargets: int = 1, use_smooth: bool = False, use_phi: bool = False, niters_set2set: int = 3, nlayers_set2set: int = 3, field: Literal['node_feat', 'edge_feat'] = 'node_feat', include_state: bool = False, activation_type: str = 'swish', \*\*kwargs)
 Bases: `Module`, [`IOMixIn`](matgl.utils.md#matgl.utils.io.IOMixIn)
 
 The main M3GNet model.
@@ -47,7 +47,7 @@ The main M3GNet model.
     * **dim_state_feats** (*int*) – number of state features after linear layer
 
 
-    * **dim_state_types** (*int*) – number of state labels
+    * **ntypes_state** (*int*) – number of state labels
 
 
     * **max_n** (*int*) – number of radial basis expansion

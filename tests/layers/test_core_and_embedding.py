@@ -18,6 +18,10 @@ class TestCoreAndEmbedding:
         layer = MLP(dims=[10, 3], activation=nn.SiLU())
         out = layer(x).double()
         assert [out.size()[0], out.size()[1]] == [4, 3]
+        assert layer.last_linear.out_features == 3
+        assert layer.depth == 1
+        assert layer.out_features == 3
+        assert layer.in_features == 10
 
     def test_gated_mlp(self, x):
         torch.manual_seed(42)

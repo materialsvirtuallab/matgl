@@ -106,11 +106,7 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     triple_bond_lengths (torch.tensor):
     """
     angles = compute_theta(edges, cosine=True)
-    angles.update(
-        {
-            "phi": torch.zeros_like(angles["cos_theta"]),
-        }
-    )
+    angles["phi"] = torch.zeros_like(angles["cos_theta"])
     return angles
 
 
