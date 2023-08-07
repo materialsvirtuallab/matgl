@@ -20,15 +20,16 @@ from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta,
-    create_line_graph,
+    create_directed_line_graph,
 )
 from matgl.layers import (
     MLP,
     FourierExpansion,
     RadialBesselFunction,
+    SoftPlus2,
+    SoftExponential,
     ReduceReadOut,
     WeightedReadOut,
-    Set2SetReadOut,
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,
 )
@@ -40,6 +41,15 @@ if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__name__)
+
+
+activation_types = {
+    "swish": nn.SiLU(),
+    "tanh": nn.Tanh(),
+    "sigmoid": nn.Sigmoid(),
+    "softplus2": SoftPlus2(),
+    "softexp": SoftExponential(),
+}
 
 
 class CHGNet(nn.Module, IOMixIn):
@@ -78,7 +88,7 @@ class CHGNet(nn.Module, IOMixIn):
         readout_hidden_dims: Sequence[int] = (64, 64),
         readout_dropout: float = 0.0,
         activation_type: str = "swish",
-        is_intensive: bool = True,
+        is_intensive: bool = False,
         task_type: Literal["regression", "classification"] = "regression",
         **kwargs,
     ):
@@ -121,23 +131,17 @@ class CHGNet(nn.Module, IOMixIn):
 
         self.save_args(locals(), kwargs)
 
-        # TODO implement a "get_activation" function with available activations to avoid
-        #  this if/else block
-        if activation_type == "swish":
-            activation = nn.SiLU()  # type: ignore
-        elif activation_type == "tanh":
-            activation = nn.Tanh()  # type: ignore
-        elif activation_type == "sigmoid":
-            activation = nn.Sigmoid()  # type: ignore
-        elif activation_type == "softplus2":
-            activation = SoftPlus2()  # type: ignore
-        elif activation_type == "softexp":
-            activation = SoftExponential()  # type: ignore
-        else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
-
         if task_type == "classification":
             raise NotImplementedError("classification with CHGNet not yet implemented")
+        elif is_intensive:
+            raise NotImplementedError("intensive targets with CHGNet not yet implemented")
+
+        # TODO implement a "get_activation" function with available activations to avoid
+        #  this if/else block
+        try:
+            activation = activation_types[activation_type]
+        except KeyError:
+            raise Exception(f"Undefined activation type, please use one of {list(activation_types.keys())}")
 
         element_types = element_types or DEFAULT_ELEMENT_TYPES
 
@@ -264,27 +268,27 @@ class CHGNet(nn.Module, IOMixIn):
         graph.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
         # create bond graph (line graph) with necessary node and edge data
-        bond_graph = create_line_graph(graph, self.three_body_cutoff)
-        # TODO: this may be moved into create_line_graph
-        bond_indices = torch.arange(0, graph.num_edges())[graph.edata["bond_dist"] <= self.three_body_cutoff]
-        bond_graph.ndata["bond_index"] = bond_indices
-        threebody_bond_expansion = self.threebody_bond_expansion(bond_dist[bond_indices])
+        bond_graph = create_directed_line_graph(graph, self.three_body_cutoff)
+        bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
+        threebody_bond_expansion = self.threebody_bond_expansion(bond_graph.ndata["bond_dist"])
         smooth_cutoff = polynomial_cutoff(threebody_bond_expansion, self.three_body_cutoff, self.cutoff_exponent)
         bond_graph.ndata["bond_expansion"] = smooth_cutoff * threebody_bond_expansion
-        # TODO double check if this is correct
-        bond_graph.edata["center_atom_index"] = torch.gather(graph.edges()[1], 0, bond_graph.edges()[1])
+        # the center atom is the dst atom of the src bond or the reverse (the src atom of the dst bond)
+        # need to use "bond_index" just to be safe always
+        bond_indices = bond_graph.ndata["bond_index"][bond_graph.edges()[0]]
+        bond_graph.edata["center_atom_index"] = graph.edges()[1][bond_indices]
         bond_graph.apply_edges(compute_theta)
-        bond_graph.edata["theta"] = torch.pi - bond_graph.edata["theta"]  # head to tail edges
+        bond_graph.edata["theta"] = torch.pi - bond_graph.edata["theta"]  # correct angle for head to tail bond vectors
         bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
 
         # compute state, atom, bond and angle embeddings
+        atom_features = self.atom_embedding(graph.ndata["node_type"])
+        bond_features = self.bond_embedding(graph.edata["bond_expansion"])
+        angle_features = self.angle_embedding(bond_graph.edata["angle_expansion"])
         if self.state_embedding is not None and state_features is not None:
             state_features = self.state_embedding(state_features)
         else:
             state_features = None
-        atom_features = self.atom_embedding(graph.ndata["node_type"])
-        bond_features = self.bond_embedding(graph.edata["bond_expansion"])
-        angle_features = self.angle_embedding(bond_graph.edata["angle_expansion"])
 
         # shared message weights
         atom_bond_weights = (

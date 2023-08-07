@@ -998,8 +998,8 @@ class CHGNetBondGraphBlock(nn.Module):
 
         bond_features_ = self.bond_dropout(bond_features_)
         angle_features = self.angle_dropout(angle_features)
-        # what's the difference between these two?
         bond_features.scatter_(0, graph.ndata["bond_index"].unsqueeze(dim=1), bond_features_)
-        # bond_features[graph.ndata["bond_index"]] = bond_features_
+        #  or equivalently
+        #bond_features[graph.ndata["bond_index"]] = bond_features_
 
         return bond_features, angle_features
