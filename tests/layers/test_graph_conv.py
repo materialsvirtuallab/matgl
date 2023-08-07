@@ -65,20 +65,16 @@ def test_megnet_layer():
 def test_megnet_block():
     DIM = 5
     N1, N2 = 64, 32
-    block = MEGNetBlock(
-        dims=[5, 10, 13],
-        conv_hiddens=[N1, N1, N2],
-        act=nn.SiLU(),
-        skip=False,
-    )
-    graphs = get_graphs(5, NDIM=DIM, EDIM=DIM, GDIM=DIM)
-    batched_graph, attrs = batch(graphs)
+    for dropout in (0.5, None):
+        block = MEGNetBlock(dims=[5, 10, 13], conv_hiddens=[N1, N1, N2], act=nn.SiLU(), skip=False, dropout=dropout)
+        graphs = get_graphs(5, NDIM=DIM, EDIM=DIM, GDIM=DIM)
+        batched_graph, attrs = batch(graphs)
 
-    # one pass
-    edge_feat = batched_graph.edata.pop("edge_feat")
-    node_feat = batched_graph.ndata.pop("node_feat")
-    out = block(batched_graph, edge_feat, node_feat, attrs)
-    return out
+        # one pass
+        edge_feat = batched_graph.edata.pop("edge_feat")
+        node_feat = batched_graph.ndata.pop("node_feat")
+        _ = block(batched_graph, edge_feat, node_feat, attrs)
+        # TODO: need proper tests of values with asserts
 
 
 class TestGraphConv:
@@ -174,17 +170,19 @@ class TestGraphConv:
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
         assert [state_feat_new.size(dim=0), state_feat_new.size(dim=1)] == [1, 64]
 
-        # without state features
-        state_feat = None
-        graph_conv = M3GNetBlock(
-            degree=3 * 3,
-            num_node_feats=num_node_feats,
-            num_edge_feats=num_edge_feats,
-            num_state_feats=num_state_feats,
-            conv_hiddens=[32, 16],
-            activation=nn.SiLU(),
-            include_state=False,
-        )
-        edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
+        # without state features, with and without dropout.
+        for dropout in (0.5, None):
+            state_feat = None
+            graph_conv = M3GNetBlock(
+                degree=3 * 3,
+                num_node_feats=num_node_feats,
+                num_edge_feats=num_edge_feats,
+                num_state_feats=num_state_feats,
+                conv_hiddens=[32, 16],
+                activation=nn.SiLU(),
+                include_state=False,
+                dropout=dropout,
+            )
+            edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]

@@ -10,9 +10,10 @@ from matgl.models import M3GNet
 class TestM3GNet:
     def test_model(self, graph_MoS):
         structure, graph, state = graph_MoS
-        model = M3GNet(element_types=["Mo", "S"], is_intensive=False)
-        output = model(g=graph)
-        assert torch.numel(output) == 1
+        for act in ["swish", "tanh", "sigmoid", "softplus2", "softexp"]:
+            model = M3GNet(element_types=["Mo", "S"], is_intensive=False, activation_type=act)
+            output = model(g=graph)
+            assert torch.numel(output) == 1
         model.save(".")
         M3GNet.load(".")
         os.remove("model.pt")

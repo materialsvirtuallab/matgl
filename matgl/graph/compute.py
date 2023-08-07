@@ -1,6 +1,8 @@
 """Computing various graph based operations."""
 from __future__ import annotations
 
+from typing import Any, Callable
+
 import dgl
 import numpy as np
 import torch
@@ -103,31 +105,30 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     phi: torch.Tensor
     triple_bond_lengths (torch.tensor):
     """
-    angles = compute_theta(edges, cosine=True)
-    angles.update(
-        {
-            "phi": torch.zeros_like(angles["cos_theta"]),
-        }
-    )
+    angles = compute_theta(edges, cosine=True, directed=False)
+    angles["phi"] = torch.zeros_like(angles["cos_theta"])
     return angles
 
 
-def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False) -> dict[str, torch.Tensor]:
+def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True) -> dict[str, torch.Tensor]:
     """User defined dgl function to calculate bond angles from edges in a graph.
 
     Args:
         edges: DGL graph edges
         cosine: Whether to return the cosine of the angle or the angle itself
+        directed: Whether to the line graph was created with create directed line graph.
+            In which case aliased bonds (which are self edges in atom graph) need to
+            have their bond vectors flipped.
 
     Returns:
         dict[str, torch.Tensor]: Dictionary containing bond angles and distances
     """
-    vec1 = edges.src["bond_vec"]
+    vec1 = edges.src["bond_vec"] * edges.src["src_bond_sign"] if directed else edges.src["bond_vec"]
     vec2 = edges.dst["bond_vec"]
     key = "cos_theta" if cosine else "theta"
     val = torch.sum(vec1 * vec2, dim=1) / (torch.norm(vec1, dim=1) * torch.norm(vec2, dim=1))
     if not cosine:
-        val = torch.acos(val)
+        val = torch.acos(val)  # * (1 - 1e-7))  # stability for floating point numbers > 1.0
     return {key: val, "triple_bond_lengths": edges.dst["bond_dist"]}
 
 
@@ -142,12 +143,123 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     Returns:
         l_g: DGL graph containing three body information from graph
     """
-    valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
-    src_id_with_three_body = g.edges()[0][valid_three_body]
-    dst_id_with_three_body = g.edges()[1][valid_three_body]
-    graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
-    graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-    graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-    graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+    graph_with_three_body = prune_edges_by_features(g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
     l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
     return l_g
+
+
+def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> dgl.DGLGraph:
+    """Creates a line graph from a graph, considers periodic boundary conditions.
+
+    Args:
+        graph: DGL graph representing atom graph
+        threebody_cutoff: cutoff for three-body interactions
+
+    Returns:
+        line_graph: DGL graph line graph of pruned graph to three body cutoff
+    """
+    pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
+
+    src_indices, dst_indices = pg.edges()
+    images = pg.edata["pbc_offset"]
+    all_indices = torch.arange(pg.number_of_nodes()).unsqueeze(dim=0)
+    num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
+    num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
+    lg_src = torch.empty(num_edges_per_bond.sum(), dtype=torch.long)
+    lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=torch.long)
+
+    incoming_edges = src_indices.unsqueeze(1) == dst_indices
+    is_self_edge = src_indices == dst_indices
+    not_self_edge = ~is_self_edge
+
+    n = 0
+    # create line graph edges for bonds that are self edges in atom graph
+    edge_inds_s = is_self_edge.nonzero().squeeze()
+    if is_self_edge.any():
+        lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
+        lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1]
+        lg_src_s = lg_src_s[lg_src_s != lg_dst_s]
+        lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
+        n = len(lg_dst_s)
+        lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
+
+    # create line graph edges for bonds that are not self edges in atom graph
+    shared_src = src_indices.unsqueeze(1) == src_indices
+    back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
+    incoming = incoming_edges & (shared_src | ~back_tracking)
+
+    edge_inds_ns = not_self_edge.nonzero().squeeze()
+    lg_src_ns = incoming[not_self_edge].nonzero()[:, 1]
+    lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
+    lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
+
+    lg = dgl.graph((lg_src, lg_dst))
+    for key in pg.edata:
+        lg.ndata[key] = pg.edata[key]
+
+    # we need to store the sign of bond vector when a bond is a src node in the line
+    # graph in order to appropriately calculate angles when self edges are involved
+    lg.ndata["src_bond_sign"] = torch.ones((lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype)
+    lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_inds_s]
+    return lg
+
+
+def has_aliased_edges(graph: dgl.DGLGraph) -> bool:
+    """Check if graph has aliased edges.
+
+    edges are aliased if they share the same node tuple but have different images.
+
+    Args:
+        graph: DGL graph
+
+    Returns:
+        bool: whether graph has aliased edges
+    """
+    graph_adjacency = torch.stack(graph.edges(), dim=1)
+    num_unique_edges = len(torch.unique(graph_adjacency, dim=0))
+    return num_unique_edges < graph.number_of_edges()
+
+
+def prune_edges_by_features(
+    graph: dgl.DGLGraph,
+    feat_name: str,
+    condition: Callable[[torch.Tensor, Any, ...], torch.Tensor],
+    keep_ndata: bool = False,
+    keep_edata: bool = True,
+    *args,
+    **kwargs,
+) -> dgl.DGLGraph:
+    """Removes edges graph that do satisfy given condition based on a specified feature value.
+
+    Returns a new graph with edges removed.
+
+    Args:
+        graph: DGL graph
+        feat_name: edge field name
+        condition: condition function. Must be a function where the first is the value
+            of the edge field data and returns a Tensor of boolean values.
+        keep_ndata: whether to keep node features
+        keep_edata: whether to keep edge features
+        *args: additional arguments to pass to condition function
+        **kwargs: additional keyword arguments to pass to condition function
+
+    Returns: dgl.Graph with removed edges.
+    """
+    if feat_name not in graph.edata.keys():
+        raise ValueError(f"Edge field {feat_name} not an edge feature in given graph.")
+
+    valid_edges = torch.logical_not(condition(graph.edata[feat_name], *args, **kwargs))
+    src, dst = graph.edges()
+    src, dst = src[valid_edges], dst[valid_edges]
+    e_ids = valid_edges.nonzero().squeeze()
+    new_g = dgl.graph((src, dst))
+    new_g.edata["edge_ids"] = e_ids  # keep track of original edge ids
+
+    if keep_ndata:
+        for key, value in graph.ndata.items():
+            new_g.ndata[key] = value
+    if keep_edata:
+        for key, value in graph.edata.items():
+            new_g.edata[key] = value[valid_edges]
+
+    return new_g

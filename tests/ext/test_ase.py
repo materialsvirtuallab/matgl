@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import os.path
+
 import numpy as np
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from matgl import load_model
 from matgl.apps.pes import Potential
-from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, Relaxer
+from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, Relaxer
 from matgl.models import M3GNet
 
 
@@ -24,13 +26,15 @@ def test_M3GNetCalculator(MoS):
 def test_Relaxer(MoS):
     pot = load_model("M3GNet-MP-2021.2.8-PES")
     r = Relaxer(pot)
-    results = r.relax(MoS)
+    results = r.relax(MoS, traj_file="MoS_relax.traj")
     s = results["final_structure"]
     traj = results["trajectory"].as_pandas()
     assert s.lattice.a < 3.5
     assert traj["energies"].iloc[-1] < traj["energies"].iloc[0]
     for t in results["trajectory"]:
         assert len(t) == 5
+    assert os.path.exists("MoS_relax.traj")
+    os.remove("MoS_relax.traj")
 
 
 def test_get_graph_from_atoms(LiFePO4):
@@ -48,3 +52,12 @@ def test_get_graph_from_atoms(LiFePO4):
     assert np.allclose(graph.num_edges(), 704)
     # check the state features
     assert np.allclose(state, [0.0, 0.0])
+
+
+def test_molecular_dynamics(LiFePO4):
+    pot = load_model("M3GNet-MP-2021.2.8-PES")
+    for ensemble in ["nvt", "npt", "npt_berendsen"]:
+        md = MolecularDynamics(LiFePO4, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
+        md.run(10)
+        assert md.dyn is not None
+        md.set_atoms(LiFePO4)

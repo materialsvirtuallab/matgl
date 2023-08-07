@@ -11,7 +11,7 @@ please refer to::
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import dgl
 import torch
@@ -74,7 +74,7 @@ class M3GNet(nn.Module, IOMixIn):
         use_phi: bool = False,
         niters_set2set: int = 3,
         nlayers_set2set: int = 3,
-        field: str = "node_feat",
+        field: Literal["node_feat", "edge_feat"] = "node_feat",
         include_state: bool = False,
         activation_type: str = "swish",
         **kwargs,

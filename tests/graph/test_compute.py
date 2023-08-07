@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 from functools import partial
+
 import numpy as np
+import pytest
 import torch
 
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
-    compute_theta_and_phi,
     compute_theta,
+    compute_theta_and_phi,
+    create_directed_line_graph,
     create_line_graph,
+    prune_edges_by_features,
 )
 
 
@@ -111,14 +116,14 @@ class TestCompute:
         )
 
         # test only compute theta
-        line_graph.apply_edges(compute_theta)
+        line_graph.apply_edges(partial(compute_theta, directed=False))
         np.testing.assert_array_almost_equal(
             np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
         )
 
         # test only compute theta with cosine
         _ = line_graph.edata.pop("cos_theta")
-        line_graph.apply_edges(partial(compute_theta, cosine=True))
+        line_graph.apply_edges(partial(compute_theta, cosine=True, directed=False))
         np.testing.assert_array_almost_equal(
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
@@ -137,14 +142,75 @@ class TestCompute:
         )
 
         # test only compute theta
-        line_graph.apply_edges(compute_theta)
+        line_graph.apply_edges(partial(compute_theta, directed=False))
         np.testing.assert_array_almost_equal(
             np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
         )
 
         # test only compute theta with cosine
         _ = line_graph.edata.pop("cos_theta")
-        line_graph.apply_edges(partial(compute_theta, cosine=True))
+        line_graph.apply_edges(partial(compute_theta, cosine=True, directed=False))
         np.testing.assert_array_almost_equal(
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
+
+
+@pytest.mark.parametrize("keep_ndata", [True, False])
+@pytest.mark.parametrize("keep_edata", [True, False])
+def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
+    s1, g1, state1 = graph_Mo
+    bv, bd = compute_pair_vector_and_distance(g1)
+    g1.edata["bond_vec"] = bv
+    g1.edata["bond_dist"] = bd
+
+    new_cutoff = 3.0
+    converter = Structure2Graph(element_types=get_element_list([s1]), cutoff=new_cutoff)
+    g2, state2 = converter.get_graph(s1)
+
+    # remove edges by features
+    new_g = prune_edges_by_features(
+        g1, "bond_dist", condition=lambda x: x > new_cutoff, keep_ndata=keep_ndata, keep_edata=keep_edata
+    )
+    valid_edges = g1.edata["bond_dist"] <= new_cutoff
+
+    assert new_g.num_edges() == g2.num_edges()
+    assert new_g.num_nodes() == g2.num_nodes()
+    assert torch.allclose(new_g.edata["edge_ids"], valid_edges.nonzero().squeeze())
+
+    if keep_ndata:
+        assert new_g.ndata.keys() == g1.ndata.keys()
+
+    if keep_edata:
+        for key in g1.edata:
+            if key != "edge_ids":
+                assert torch.allclose(new_g.edata[key], g1.edata[key][valid_edges])
+
+
+def test_directed_line_graph(graph_Mo, graph_CH4):
+    s1, g1, state1 = graph_Mo
+    bv, bd = compute_pair_vector_and_distance(g1)
+    print(max(bd))
+    g1.edata["bond_vec"] = bv
+    g1.edata["bond_dist"] = bd
+    cos_loop = _calculate_cos_loop(g1, 4.0)
+    theta_loop = np.arccos(np.array(cos_loop))
+
+    line_graph = create_directed_line_graph(g1, 4.0)
+
+    line_graph.apply_edges(compute_theta)
+    # need to shift by pi since bond vectors are directed
+    line_graph.edata["theta"] = torch.pi - line_graph.edata["theta"]
+    np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])))
+
+    s2, g2, state2 = graph_CH4
+    bv, bd = compute_pair_vector_and_distance(g2)
+    g2.edata["bond_vec"] = bv
+    g2.edata["bond_dist"] = bd
+    cos_loop = _calculate_cos_loop(g2, 2.0)
+    theta_loop = np.arccos(np.array(cos_loop))
+
+    line_graph = create_directed_line_graph(g2, 2.0)
+    line_graph.apply_edges(compute_theta)
+    # need to shift by pi since bond vectors are directed
+    line_graph.edata["theta"] = torch.pi - line_graph.edata["theta"]
+    np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])))

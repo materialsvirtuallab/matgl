@@ -6,6 +6,15 @@ nav_order: 3
 
 # Change Log
 
+## 0.8.1
+- Fixed bug with loading of models trained with GPUs.
+- Updated default model for relaxations to be the `M3GNet-MP-2021.2.8-DIRECT-PES model`.
+
+## 0.8.0
+- Fix a bug with use of set2set in M3Gnet implementation that affected intensive models such as the formation energy
+  model. M3GNet model version is updated to 2 to invalidate previous models. Note that PES models are unaffected.
+  (@kenko911)
+
 ## 0.7.1
 - Minor optimizations for memory and isolated atom training (@kenko911)
 

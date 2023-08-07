@@ -49,20 +49,15 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform):.3f} eV/atom.")
 ```
 
-    The predicted formation energy for CsCl is -2.272 eV/atom.
-
-
 ## Using the M3GNet-MP-2018.6.1-Eform model
 
 
 ```python
+# Load the pre-trained M3GNet formation energy model
 model = matgl.load_model("M3GNet-MP-2018.6.1-Eform")
 eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform):.3f} eV/atom.")
 ```
-
-    The predicted formation energy for CsCl is -2.233 eV/atom.
-
 
 # MP Band gap
 
@@ -83,8 +78,3 @@ for i, method in ((0, "PBE"), (1, "GLLB-SC"), (2, "HSE"), (3, "SCAN")):
     )
     print(f"The predicted {method} band gap for CsCl is {float(bandgap):.3f} eV.")
 ```
-
-    The predicted PBE band gap for CsCl is 4.825 eV.
-    The predicted GLLB-SC band gap for CsCl is 8.323 eV.
-    The predicted HSE band gap for CsCl is 6.317 eV.
-    The predicted SCAN band gap for CsCl is 5.965 eV.

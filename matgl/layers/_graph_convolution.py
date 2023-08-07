@@ -457,7 +457,8 @@ class M3GNetBlock(Module):
         if self.dropout:
             edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102
             node_feat = self.dropout(node_feat)  # pylint: disable=E1102
-            state_feat = self.dropout(state_feat)  # pylint: disable=E1102
+            if state_feat is not None:
+                state_feat = self.dropout(state_feat)  # pylint: disable=E1102
 
         return edge_feat, node_feat, state_feat
 
