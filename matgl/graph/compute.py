@@ -145,30 +145,6 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     return l_g
 
 
-def create_bond_graph(graph: dgl.DGLGraph, cutoff: float, shared=True, check_aliasing=True):
-    """Calculate the line graph from a directed graph.
-
-    Accounts for possible backtracking from aliased graph edges in periodic images.
-
-    Args:
-        graph: DGL graph
-        cutoff (float): cutoff for bond lengths to include in the line (bond) graph
-        shared (bool): whether to share node features between the bond graph and the original graph
-        check_aliasing (bool): whether to check for aliased edges in the graph
-            This is only necessary when cutoff radius is larger than half a unit cell vector
-
-    Returns:
-        bond_graph: DGL graph containing bond information from graph
-    """
-    pruned_graph = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > cutoff)
-    backtracking = has_aliased_edges(pruned_graph) if check_aliasing else False
-    bond_graph = pruned_graph.line_graph(backtracking=backtracking, shared=shared)
-    if backtracking:
-        backtracking_edge_ids = _get_backtracking_edge_ids(graph, bond_graph)
-        bond_graph.remove_edges(backtracking_edge_ids)
-    return bond_graph
-
-
 def has_aliased_edges(graph: dgl.DGLGraph) -> bool:
     """Check if graph has aliased edges.
 
@@ -183,40 +159,6 @@ def has_aliased_edges(graph: dgl.DGLGraph) -> bool:
     graph_adjacency = torch.stack(graph.edges(), dim=1)
     num_unique_edges = len(torch.unique(graph_adjacency, dim=0))
     return num_unique_edges < graph.number_of_edges()
-
-
-def _get_backtracking_edge_ids(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph) -> tuple:
-    """Get backtracking edges for a graph.
-
-    This obtains the backtracking edges in a line graph considering periodic boundary conditions (ie pbc offsets).
-
-    An edge in a line graph is considered truly backtracking if the following two are true :
-        1) it is backtracking, ie connects two graph edges in opposite directions (u, v) and (v, u)
-        2) both edges have the same pbc offset, i.e. they are actually the same edge (in opposite directions)
-
-    This really only happens for cells small enough w.r.t to the cutoff radius.
-
-    Args:
-        graph: DGL graph, original graph, must have pbc_offset edge data
-        line_graph: DGL line graph
-
-    Returns:
-        tuple of backtracking edges
-    """
-    # create adjacency arrays for both graphs
-    # use numpy to use reverse indexing (no need for tensors here anyway)
-    g_adjacency = np.stack(graph.edges(), axis=1, dtype=int)
-    lg_adjacency = np.stack(line_graph.edges(), axis=1, dtype=int)
-
-    # create a mask of line graph edges that are backtracking (w/o considering pbc offsets)
-    backtrack_mask = np.all(g_adjacency[lg_adjacency] == g_adjacency[lg_adjacency][:, ::-1, ::-1], axis=(1, 2))
-    # create a masks of line graph edges that have the same pbc offset
-    pbc_offsets = graph.edata["pbc_offset"][lg_adjacency].numpy().astype(int)
-    pbc_mask = np.all(pbc_offsets == pbc_offsets[:, ::-1], axis=(1, 2))
-
-    # the actual backtracking edges are those that are backtracking and have the same pbc offset
-    backtracking_edge_ids = np.where(np.logical_and(backtrack_mask, pbc_mask))[0]
-    return tuple(backtracking_edge_ids)
 
 
 def prune_edges_by_features(
