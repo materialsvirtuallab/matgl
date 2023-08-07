@@ -1,6 +1,6 @@
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE)
 [![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
-[![Testing](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Testing/badge.svg)
+[![Testing](https://github.com/materialsvirtuallab/matgl/actions/workflows/testing.yml/badge.svg)](https://github.com/materialsvirtuallab/matgl/actions/workflows/testing.yml)
 [![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 [![codecov](https://codecov.io/gh/materialsvirtuallab/matgl/branch/main/graph/badge.svg?token=3V3O79GODQ)](https://codecov.io/gh/materialsvirtuallab/matgl)
 
