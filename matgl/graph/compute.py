@@ -123,7 +123,7 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool
     Returns:
         dict[str, torch.Tensor]: Dictionary containing bond angles and distances
     """
-    vec1 = edges.src["bond_vec_src"] if directed else edges.src["bond_vec"]
+    vec1 = edges.src["bond_vec"] * edges.src["src_bond_sign"] if directed else edges.src["bond_vec"]
     vec2 = edges.dst["bond_vec"]
     key = "cos_theta" if cosine else "theta"
     val = torch.sum(vec1 * vec2, dim=1) / (torch.norm(vec1, dim=1) * torch.norm(vec2, dim=1))
@@ -197,10 +197,10 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
     for key in pg.edata:
         lg.ndata[key] = pg.edata[key]
 
-    # we need to store the bond vector when a bond is a src node in the line graph
-    # in order to appropriately calculate angles when self edges are involved
-    lg.ndata["bond_vec_src"] = lg.ndata["bond_vec"].detach().clone()
-    lg.ndata["bond_vec_src"][edge_inds_s] = -lg.ndata["bond_vec_src"][edge_inds_s]
+    # we need to store the sign of bond vector when a bond is a src node in the line
+    # graph in order to appropriately calculate angles when self edges are involved
+    lg.ndata["src_bond_sign"] = torch.ones((lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype)
+    lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_inds_s]
     return lg
 
 
