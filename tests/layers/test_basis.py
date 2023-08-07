@@ -37,6 +37,15 @@ def test_gaussian():
     # check the last value of expanded distance
     assert np.allclose(rbf[0][-1], np.exp(-0.5 * np.power(1.0 - 4.0, 2.0)))
 
+    rbf_gaussian = GaussianExpansion(width=None)
+    r = torch.tensor([1.0])
+    rbf = rbf_gaussian(r)
+    # check the shape of a vector
+    assert np.allclose([rbf.size(dim=0), rbf.size(dim=1)], [1, 20])
+    # check the first value of expanded distance
+    assert rbf[0][0].numpy() == pytest.approx(0.00865169521421194)
+    rbf_gaussian.reset_parameters()
+
 
 def test_sphericalbesselfunction():
     r = torch.linspace(1.0, 5.0, 11)

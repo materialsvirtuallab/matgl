@@ -21,6 +21,7 @@ class TestCoreAndEmbedding:
         assert layer.last_linear.out_features == 3
         assert layer.depth == 1
         assert layer.out_features == 3
+        assert layer.in_features == 10
 
     def test_gated_mlp(self, x):
         torch.manual_seed(42)
