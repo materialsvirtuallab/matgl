@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+import requests
 import torch
 
 from matgl.utils.io import IOMixIn, RemoteFile, get_available_pretrained_models, load_model
@@ -54,6 +55,12 @@ def test_remote_file():
     except FileNotFoundError:
         pass
 
+    with pytest.raises(requests.RequestException, match="Bad uri:"):
+        _ = RemoteFile(
+            "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/bad_name/model.pt",
+            cache_location=".",
+        )
+
 
 def test_get_available_pretrained_models():
     model_names = get_available_pretrained_models()
@@ -70,5 +77,5 @@ def test_load_model():
     model = load_model(this_dir / ".." / ".." / "pretrained_models" / "MEGNet-MP-2018.6.1-Eform")
     assert issubclass(model.__class__, torch.nn.Module)
 
-    with pytest.raises(ValueError, match="bad model name"):
+    with pytest.raises(ValueError, match="No valid model found in pre-trained_models"):
         load_model("badbadmodelname")

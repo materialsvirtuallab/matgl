@@ -158,8 +158,11 @@ class RemoteFile:
 
     def _download(self):
         r = requests.get(self.uri)
-        with open(self.local_path, "wb") as f:
-            f.write(r.content)
+        if r.status_code == 200:
+            with open(self.local_path, "wb") as f:
+                f.write(r.content)
+        else:
+            raise requests.RequestException(f"Bad uri: {self.uri}")
 
     def __enter__(self):
         """Support with context.
@@ -236,11 +239,8 @@ def _get_file_paths(path: Path, **kwargs):
 
     try:
         return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
-    except BaseException:
-        raise ValueError(
-            f"No valid model found in {path} or among pre-trained_models at "
-            f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-        ) from None
+    except requests.RequestException:
+        raise ValueError(f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}.") from None
 
 
 def _check_ver(cls_, d: dict):
