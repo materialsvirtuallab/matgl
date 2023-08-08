@@ -102,9 +102,7 @@ class MatglLightningModuleMixin:
             )
         else:
             scheduler = self.scheduler
-        return [
-            optimizer,
-        ], [
+        return [optimizer,], [
             scheduler,
         ]
 
@@ -252,6 +250,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         energy_weight: float = 1.0,
         force_weight: float = 1.0,
         stress_weight: float | None = None,
+        site_wise_weight: float | None = None,
         data_mean=None,
         data_std=None,
         calc_stress: bool = False,
@@ -272,6 +271,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             energy_weight: relative importance of energy
             force_weight: relative importance of force
             stress_weight: relative importance of stress
+            site_wise_weight: relative importance of additional site-wise predictions.
             data_mean: average of training data
             data_std: standard deviation of training data
             calc_stress: whether stress calculation is required
@@ -296,11 +296,19 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.energy_weight = energy_weight
         self.force_weight = force_weight
         self.stress_weight = stress_weight
+        self.site_wise_weight = site_wise_weight
         self.lr = lr
         self.decay_steps = decay_steps
         self.decay_alpha = decay_alpha
+
+        calc_site_wise = site_wise_weight is not None
         self.model = Potential(
-            model=model, element_refs=element_refs, calc_stresses=calc_stress, data_std=data_std, data_mean=data_mean
+            model=model,
+            element_refs=element_refs,
+            calc_stresses=calc_stress,
+            calc_site_wise=calc_site_wise,
+            data_std=data_std,
+            data_mean=data_mean,
         )
         if loss == "mse_loss":
             self.loss = F.mse_loss
@@ -319,6 +327,10 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             energy, force, stress, h
         """
+        if self.model.calc_site_wise:
+            e, f, s, h, m = self.model(g=g, l_g=l_g, state_attr=state_attr)
+            return e, f.float(), s, h, m
+
         e, f, s, h = self.model(g=g, l_g=l_g, state_attr=state_attr)
         return e, f.float(), s, h
 
@@ -330,11 +342,17 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             results, batch_size
         """
         torch.set_grad_enabled(True)
-        g, l_g, state_attr, energies, forces, stresses = batch
-        e, f, s, _ = self(g=g, state_attr=state_attr, l_g=l_g)
-        f = f.to(torch.float)
-        preds: tuple = (e, f, s)
-        labels: tuple = (energies, forces, stresses)
+        if self.model.calc_site_wise:
+            g, l_g, state_attr, energies, forces, stresses, site_wise = batch
+            e, f, s, _, m = self(g=g, state_attr=state_attr, l_g=l_g)
+            preds: tuple = (e, f, s, m)
+            labels: tuple = (energies, forces, stresses, site_wise)
+        else:
+            g, l_g, state_attr, energies, forces, stresses = batch
+            e, f, s, _ = self(g=g, state_attr=state_attr, l_g=l_g)
+            preds: tuple = (e, f, s)
+            labels: tuple = (energies, forces, stresses)
+
         num_atoms = g.batch_num_nodes()
         results = self.loss_fn(
             loss=self.loss,  # type: ignore
@@ -343,6 +361,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             energy_weight=self.energy_weight,
             force_weight=self.force_weight,
             stress_weight=self.stress_weight,
+            site_wise_weight=self.site_wise_weight,
             num_atoms=num_atoms,
         )
         batch_size = preds[0].numel()
@@ -357,6 +376,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         energy_weight: float | None = None,
         force_weight: float | None = None,
         stress_weight: float | None = None,
+        site_wise_weight: float | None = None,
         num_atoms: int | None = None,
     ):
         """Compute losses for EFS.
@@ -368,6 +388,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             energy_weight: Weight for energy loss.
             force_weight: Weight for force loss.
             stress_weight: Weight for stress loss.
+            site_wise_weight: Weight for site-wise loss.
             num_atoms: Number of atoms.
 
         Returns::
@@ -383,37 +404,46 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             }
 
         """
-        e_target, f_target, s_target = labels
-        pred_e, pred_f, pred_s = preds
+        # labels and preds are (energy, force, stress, (optional) site_wise)
+        e_loss = self.loss(labels[0] / num_atoms, preds[0] / num_atoms)
+        f_loss = self.loss(labels[1], preds[1])
 
-        e_loss = self.loss(e_target / num_atoms, pred_e / num_atoms)
-        f_loss = self.loss(f_target, pred_f)
+        e_mae = self.mae(labels[0] / num_atoms, preds[0] / num_atoms)
+        f_mae = self.mae(labels[1], preds[1])
 
-        e_mae = self.mae(e_target / num_atoms, pred_e / num_atoms)
-        f_mae = self.mae(f_target, pred_f)
-
-        e_rmse = self.rmse(e_target / num_atoms, pred_e / num_atoms)
-        f_rmse = self.rmse(f_target, pred_f)
+        e_rmse = self.rmse(labels[0] / num_atoms, preds[0] / num_atoms)
+        f_rmse = self.rmse(labels[1], preds[1])
 
         s_mae = torch.zeros(1)
         s_rmse = torch.zeros(1)
 
+        m_mae = torch.zeros(1)
+        m_rmse = torch.zeros(1)
+
+        total_loss = energy_weight * e_loss + force_weight * f_loss
+
         if stress_weight is not None:
-            s_loss = loss(s_target, pred_s)
-            s_mae = self.mae(s_target, pred_s)
-            s_rmse = self.rmse(s_target, pred_s)
-            total_loss = energy_weight * e_loss + force_weight * f_loss + stress_weight * s_loss
-        else:
-            total_loss = energy_weight * e_loss + force_weight * f_loss
+            s_loss = loss(labels[2], preds[2])
+            s_mae = self.mae(labels[2], preds[2])
+            s_rmse = self.rmse(labels[2], preds[2])
+            total_loss = total_loss + stress_weight * s_loss
+
+        if site_wise_weight is not None:
+            m_loss = loss(labels[3], preds[3])
+            m_mae = self.mae(labels[3], preds[3])
+            m_rmse = self.rmse(labels[3], preds[3])
+            total_loss = total_loss + site_wise_weight * m_loss
 
         return {
             "Total_Loss": total_loss,
             "Energy_MAE": e_mae,
             "Force_MAE": f_mae,
             "Stress_MAE": s_mae,
+            "Site_Wise_MAE": m_mae,
             "Energy_RMSE": e_rmse,
             "Force_RMSE": f_rmse,
             "Stress_RMSE": s_rmse,
+            "Site_Wise_RMSE": m_rmse,
         }
 
 
