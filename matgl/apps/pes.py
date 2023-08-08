@@ -122,31 +122,21 @@ class Potential(nn.Module, IOMixIn):
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
 
-        total_energies = self.data_std * self.model(g=g, state_attr=state_attr, l_g=l_g) + self.data_mean
+        predictions = self.model(g, state_attr, l_g)
+        if isinstance(predictions, tuple) and len(predictions) > 1:
+            total_energies, site_wise = predictions
+        else:
+            total_energies = predictions
+            site_wise = None
+
+        total_energies = self.data_std * total_energies + self.data_mean
         if self.element_refs is not None:
             property_offset = torch.squeeze(self.element_refs(g))
             total_energies += property_offset
 
         forces, stresses, hessian = self._calc_forces_stresses_hessian(g, total_energies)
 
+        if site_wise is not None:
+            return total_energies, forces, stresses, hessian, site_wise
+
         return total_energies, forces, stresses, hessian
-
-
-class PotentialWithSiteWise(Potential):
-    """Same as Potential but allows models that predict energies and site wise properties."""
-
-    def forward(
-        self, graph: dgl.DGLGraph, state_attr: torch.Tensor | None = None, line_graph: dgl.DGLGraph | None = None
-    ) -> tuple[torch.Tensor, ...]:
-        if self.calc_forces:
-            graph.ndata["pos"].requires_grad_(True)
-
-        total_energies, site_wise = self.model(graph, state_attr, line_graph)
-        total_energies = self.data_std * total_energies + self.data_mean
-        if self.element_refs is not None:
-            property_offset = torch.squeeze(self.element_refs(graph))
-            total_energies += property_offset
-
-        forces, stresses, hessian = self._calc_forces_stresses_hessian(graph, total_energies)
-
-        return total_energies, forces, stresses, hessian, site_wise
