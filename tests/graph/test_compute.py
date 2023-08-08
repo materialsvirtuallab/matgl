@@ -118,7 +118,7 @@ class TestCompute:
         # test only compute theta
         line_graph.apply_edges(partial(compute_theta, directed=False))
         np.testing.assert_array_almost_equal(
-            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
+            np.sort(np.arccos(np.array(cos_loop) * (1 - 1e-7))), np.sort(np.array(line_graph.edata["theta"]))
         )
 
         # test only compute theta with cosine
@@ -193,7 +193,7 @@ def test_directed_line_graph(graph_Mo, graph_CH4):
     g1.edata["bond_vec"] = bv
     g1.edata["bond_dist"] = bd
     cos_loop = _calculate_cos_loop(g1, 4.0)
-    theta_loop = np.arccos(np.array(cos_loop))
+    theta_loop = np.arccos(np.array(cos_loop) * (1 - 1e-7))
 
     line_graph = create_directed_line_graph(g1, 4.0)
 
