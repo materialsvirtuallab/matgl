@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 import dgl
 import dgl.function as fn
@@ -11,6 +11,9 @@ from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
 
 from matgl.layers._core import MLP, GatedMLP
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class MEGNetGraphConv(Module):

@@ -10,9 +10,8 @@ The CHGNet model is described in the following paper: https://arxiv.org/abs/2302
 from __future__ import annotations
 
 import logging
-from typing import Literal, Sequence, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
-import dgl
 import torch
 from torch import nn
 
@@ -24,20 +23,23 @@ from matgl.graph.compute import (
 )
 from matgl.layers import (
     MLP,
-    FourierExpansion,
-    RadialBesselFunction,
-    SoftPlus2,
-    SoftExponential,
-    ReduceReadOut,
-    WeightedReadOut,
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,
+    FourierExpansion,
+    RadialBesselFunction,
+    ReduceReadOut,
+    SoftExponential,
+    SoftPlus2,
+    WeightedReadOut,
 )
-from matgl.utils.io import IOMixIn
 from matgl.utils.cutoff import polynomial_cutoff
-
+from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    import dgl
+
     from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__name__)
@@ -59,7 +61,7 @@ class CHGNet(nn.Module, IOMixIn):
 
     def __init__(
         self,
-        element_types: tuple[str] | None = None,
+        element_types: tuple[str, ...] | None = None,
         dim_atom_embedding: int = 64,
         dim_bond_embedding: int = 64,
         dim_angle_embedding: int = 64,
@@ -136,7 +138,8 @@ class CHGNet(nn.Module, IOMixIn):
 
         if task_type == "classification":
             raise NotImplementedError("classification with CHGNet not yet implemented")
-        elif is_intensive:
+
+        if is_intensive:
             raise NotImplementedError("intensive targets with CHGNet not yet implemented")
 
         # TODO implement a "get_activation" function with available activations to avoid
@@ -144,7 +147,7 @@ class CHGNet(nn.Module, IOMixIn):
         try:
             activation = activation_types[activation_type]
         except KeyError:
-            raise Exception(f"Undefined activation type, please use one of {list(activation_types.keys())}")
+            raise ValueError(f"Undefined activation type, please use one of {list(activation_types.keys())}") from None
 
         element_types = element_types or DEFAULT_ELEMENT_TYPES
 
