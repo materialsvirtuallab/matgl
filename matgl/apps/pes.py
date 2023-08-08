@@ -56,58 +56,6 @@ class Potential(nn.Module, IOMixIn):
         self.data_mean = data_mean if data_mean is not None else torch.zeros(1)
         self.data_std = data_std if data_std is not None else torch.ones(1)
 
-    def _calc_forces_stresses_hessian(
-        self, g: dgl.DGLGraph, total_energies: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Calculate optional forces, stresses and hessian."""
-        forces = torch.zeros(1)
-        stresses = torch.zeros(1)
-        hessian = torch.zeros(1)
-
-        if self.calc_forces:
-            grads = grad(
-                total_energies,
-                [g.ndata["pos"], g.edata["bond_vec"]],
-                grad_outputs=torch.ones_like(total_energies),
-                create_graph=True,
-                retain_graph=True,
-            )
-
-            forces = -grads[0]
-            if self.calc_hessian:
-                r = -grads[0].view(-1)
-                s = r.size(0)
-                hessian = total_energies.new_zeros((s, s))
-                for iatom in range(s):
-                    tmp = grad([r[iatom]], g.ndata["pos"], retain_graph=iatom < s)[0]
-                    if tmp is not None:
-                        hessian[iatom] = tmp.view(-1)
-        if self.calc_stresses:
-            f_ij = -grads[1]
-            sts: list = []
-            count_edge = 0
-            count_node = 0
-            for graph_id in range(g.batch_size):
-                num_edges = g.batch_num_edges()[graph_id]
-                num_nodes = 0
-                sts.append(
-                    -1
-                    * (
-                        160.21766208
-                        * torch.matmul(
-                            g.edata["bond_vec"][count_edge : count_edge + num_edges].T,
-                            f_ij[count_edge : count_edge + num_edges],
-                        )
-                        / g.ndata["volume"][count_node + num_nodes]
-                    )
-                )
-                count_edge = count_edge + num_edges
-                num_nodes = g.batch_num_nodes()[graph_id]
-                count_node = count_node + num_nodes
-            stresses = torch.cat(sts)
-
-        return forces, stresses, hessian
-
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None
     ) -> tuple[torch.Tensor, ...]:
