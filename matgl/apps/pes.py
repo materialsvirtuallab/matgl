@@ -29,6 +29,7 @@ class Potential(nn.Module, IOMixIn):
         calc_forces: bool = True,
         calc_stresses: bool = True,
         calc_hessian: bool = False,
+        calc_site_wise: bool = False,
     ):
         """Initialize Potential from a model and elemental references.
 
@@ -40,6 +41,7 @@ class Potential(nn.Module, IOMixIn):
             calc_forces: Enable force calculations.
             calc_stresses: Enable stress calculations.
             calc_hessian: Enable hessian calculations.
+            calc_site_wise: Enable site-wise property calculation.
         """
         super().__init__()
         self.save_args(locals())
@@ -47,6 +49,7 @@ class Potential(nn.Module, IOMixIn):
         self.calc_forces = calc_forces
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
+        self.calc_site_wise = calc_site_wise
         self.element_refs: AtomRef | None
         if element_refs is not None:
             self.element_refs = AtomRef(property_offset=element_refs)
@@ -126,7 +129,7 @@ class Potential(nn.Module, IOMixIn):
                 count_node = count_node + num_nodes
             stresses = torch.cat(sts)
 
-        if site_wise is not None:
+        if self.calc_site_wise:
             return total_energies, forces, stresses, hessian, site_wise
 
         return total_energies, forces, stresses, hessian
