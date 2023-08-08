@@ -17,7 +17,7 @@ from torch import nn
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.layers import MLP, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock, SoftExponential, SoftPlus2
+from matgl.layers import MLP, ActivationFunction, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
@@ -96,19 +96,12 @@ class MEGNet(nn.Module, IOMixIn):
         edge_dims = [dim_edge_embedding, *hidden_layer_sizes_input]
         state_dims = [dim_state_embedding, *hidden_layer_sizes_input]
 
-        activation: nn.Module
-        if activation_type == "swish":
-            activation = nn.SiLU()
-        elif activation_type == "sigmoid":
-            activation = nn.Sigmoid()
-        elif activation_type == "tanh":
-            activation = nn.Tanh()
-        elif activation_type == "softplus2":
-            activation = SoftPlus2()
-        elif activation_type == "softexp":
-            activation = SoftExponential()
-        else:
-            raise ValueError("Invalid activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
+        try:
+            activation: nn.Module = ActivationFunction[activation_type].value()
+        except KeyError:
+            raise ValueError(
+                f"Invalid activation type, please try using one of {[af.name for af in ActivationFunction]}"
+            ) from None
 
         self.embedding = EmbeddingBlock(
             degree_rbf=dim_edge_embedding,
