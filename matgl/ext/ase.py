@@ -197,7 +197,7 @@ class Relaxer:
             relax_cell (bool): whether to relax the lattice cell
             stress_weight (float): the stress weight for relaxation.
         """
-        self.opt_class: Optimizer = OPTIMIZERS[optimizer.lower()] if isinstance(optimizer, str) else optimizer
+        self.optimizer: Optimizer = OPTIMIZERS[optimizer.lower()] if isinstance(optimizer, str) else optimizer
         self.calculator = M3GNetCalculator(
             potential=potential, state_attr=state_attr, stress_weight=stress_weight  # type: ignore
         )
@@ -236,7 +236,7 @@ class Relaxer:
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
                 atoms = ExpCellFilter(atoms)
-            optimizer = self.opt_class(atoms, **kwargs)
+            optimizer = self.optimizer(atoms, **kwargs)
             optimizer.attach(obs, interval=interval)
             optimizer.run(fmax=fmax, steps=steps)
             obs()
