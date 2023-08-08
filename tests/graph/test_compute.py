@@ -189,7 +189,6 @@ def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
 def test_directed_line_graph(graph_Mo, graph_CH4):
     s1, g1, state1 = graph_Mo
     bv, bd = compute_pair_vector_and_distance(g1)
-    print(max(bd))
     g1.edata["bond_vec"] = bv
     g1.edata["bond_dist"] = bd
     cos_loop = _calculate_cos_loop(g1, 4.0)
