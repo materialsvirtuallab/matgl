@@ -584,8 +584,9 @@ class CHGNetGraphConv(nn.Module):
         """
         graph.apply_edges(self._edge_udf)
         # TODO this product must happen in edge_udf before aggregation
+        edge_update = graph.edata["feat_update"]
         if shared_weights is not None:
-            edge_update = graph.edata["feat_update"] * shared_weights
+            edge_update = edge_update * shared_weights
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:

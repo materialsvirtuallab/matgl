@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Literal
 
 import torch
 from torch import nn
+from dgl import readout_nodes
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (
@@ -27,7 +28,6 @@ from matgl.layers import (
     CHGNetBondGraphBlock,
     FourierExpansion,
     RadialBesselFunction,
-    ReduceReadOut,
     SoftExponential,
     SoftPlus2,
     WeightedReadOut,
@@ -85,8 +85,7 @@ class CHGNet(nn.Module, IOMixIn):
         conv_dropout: float = 0.0,
         num_targets: int = 1,
         num_site_targets: int = 1,
-        readout_type: Literal["sum", "average", "attention", "weighted"] = "sum",
-        readout_mlp_first: bool = True,
+        readout_operation: Literal["sum", "mean"] = "sum",
         readout_field: Literal["node_feat", "edge_feat"] = "node_feat",
         readout_hidden_dims: Sequence[int] = (64, 64),
         readout_dropout: float = 0.0,
@@ -123,8 +122,7 @@ class CHGNet(nn.Module, IOMixIn):
             conv_dropout: dropout probability for the graph convolution layers.
             num_targets: number of targets to predict.
             num_site_targets: number of site-wise targets to predict. (ie magnetic moments)
-            readout_type: type of readout to use.
-            readout_mlp_first: whether to apply the readout MLP before or after the readout function.
+            readout_operation: type of readout pooling operation to use.
             readout_field: field to readout from the graph.
             readout_hidden_dims: hidden dimensions for the readout MLP.
             readout_dropout: dropout probability for the readout MLP.
@@ -224,21 +222,11 @@ class CHGNet(nn.Module, IOMixIn):
 
         # TODO different allowed readouts for intensive/extensive targets and task types
         input_readout_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
-        self.readout_mlp = MLP([input_readout_dim, *readout_hidden_dims, num_targets], activation)
-
-        if readout_type == "sum":  # mlp first then reduce
-            self.readout = ReduceReadOut("sum", field=readout_field)
-        elif readout_type == "average":  # reduce then mlp
-            self.readout = ReduceReadOut("mean", field=readout_field)
-        elif readout_type == "weighted":  # weighted reduce
-            self.readout = WeightedReadOut(
+        self.readout_layer = WeightedReadOut(
                 in_feats=input_readout_dim, dims=readout_hidden_dims, num_targets=num_targets
-            )
-        elif readout_type == "attention":  # attention reduce
-            raise NotImplementedError  # TODO implement attention readout
-        else:
-            raise Exception("Undefined readout type, please try using mlp_reduce, reduce, weighted, attention")
+        )
 
+        self.readout_operation = readout_operation
         self.element_types = element_types
         self.max_n = max_n
         self.max_f = max_f
@@ -246,8 +234,6 @@ class CHGNet(nn.Module, IOMixIn):
         self.cutoff = cutoff
         self.cutoff_exponent = cutoff_exponent
         self.three_body_cutoff = threebody_cutoff
-        self.readout_type = readout_type
-        self.readout_mlp_first = readout_mlp_first
         self.task_type = task_type
         self.is_intensive = is_intensive
 
@@ -330,19 +316,13 @@ class CHGNet(nn.Module, IOMixIn):
             graph, atom_features, bond_features, state_features, atom_bond_weights, bond_bond_weights
         )
 
-        graph.ndata["atom_features"] = atom_features
-        graph.edata["bond_features"] = bond_features
+        graph.ndata["node_feat"] = atom_features
+        graph.edata["edge_feat"] = bond_features
         # bond_graph.edata["angle_features"] = angle_features
 
-        # readout  # TODO return crystal features?
-        if self.readout_mlp_first:
-            graph.ndata["node_feat"] = self.readout_mlp(atom_features)
-            structure_properties = self.readout(graph)
-        else:
-            graph.ndata["node_feat"] = atom_features
-            crystal_features = self.readout(graph)
-            structure_properties = self.readout_mlp(crystal_features) * graph.num_nodes()
-
+        # readout  # TODO return crystal features? add an additional optional layer to compute them
+        graph.ndata["atomic_properties"] = self.readout_layer(graph)
+        structure_properties = readout_nodes(graph, "atomic_properties", op=self.readout_operation)
         structure_properties = torch.squeeze(structure_properties)
 
         return structure_properties, site_properties
