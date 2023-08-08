@@ -128,7 +128,7 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool
     key = "cos_theta" if cosine else "theta"
     val = torch.sum(vec1 * vec2, dim=1) / (torch.norm(vec1, dim=1) * torch.norm(vec2, dim=1))
     if not cosine:
-        val = torch.acos(val)  # * (1 - 1e-7))  # stability for floating point numbers > 1.0
+        val = torch.acos(val * (1 - 1e-7))  # stability for floating point numbers > 1.0
     return {key: val, "triple_bond_lengths": edges.dst["bond_dist"]}
 
 

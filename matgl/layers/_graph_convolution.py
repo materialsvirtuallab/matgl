@@ -994,12 +994,12 @@ class CHGNetBondGraphBlock(nn.Module):
         edge_features = angle_features
         aux_edge_features = atom_features[graph.edata["center_atom_index"]]
 
-        bond_features_, angle_features = self.conv_layer(graph, node_features, edge_features, aux_edge_features, shared_node_weights)
+        bond_features_, angle_features = self.conv_layer(
+            graph, node_features, edge_features, aux_edge_features, shared_node_weights
+        )
 
         bond_features_ = self.bond_dropout(bond_features_)
         angle_features = self.angle_dropout(angle_features)
-        bond_features.scatter_(0, graph.ndata["bond_index"].unsqueeze(dim=1), bond_features_)
-        #  or equivalently
-        #bond_features[graph.ndata["bond_index"]] = bond_features_
+        bond_features[graph.ndata["bond_index"]] = bond_features_
 
         return bond_features, angle_features
