@@ -117,7 +117,7 @@ class Potential(nn.Module, IOMixIn):
             l_g: Line graph.
 
         Returns:
-            energies, forces, stresses, hessian: torch.Tensor
+            (energies, forces, stresses, hessian) or (energies, forces, stresses, hessian, site-wise properties)
         """
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
