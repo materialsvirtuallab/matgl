@@ -34,9 +34,7 @@ if TYPE_CHECKING:
 
 
 class OPTIMIZERS(Enum):
-    """
-    An enumeration of optimizers for used in
-    """
+    """An enumeration of optimizers for used in."""
 
     fire = opt.fire.FIRE
     bfgs = opt.bfgs.BFGS
