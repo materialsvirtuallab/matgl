@@ -343,17 +343,20 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             results, batch_size
         """
+        preds: tuple
+        labels: tuple
+
         torch.set_grad_enabled(True)
         if self.model.calc_site_wise:
             g, l_g, state_attr, energies, forces, stresses, site_wise = batch
             e, f, s, _, m = self(g=g, state_attr=state_attr, l_g=l_g)
-            preds: tuple = (e, f, s, m)
-            labels: tuple = (energies, forces, stresses, site_wise)
+            preds = (e, f, s, m)
+            labels = (energies, forces, stresses, site_wise)
         else:
             g, l_g, state_attr, energies, forces, stresses = batch
             e, f, s, _ = self(g=g, state_attr=state_attr, l_g=l_g)
-            preds: tuple = (e, f, s)
-            labels: tuple = (energies, forces, stresses)
+            preds = (e, f, s)
+            labels = (energies, forces, stresses)
 
         num_atoms = g.batch_num_nodes()
         results = self.loss_fn(
