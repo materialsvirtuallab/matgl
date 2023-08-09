@@ -80,7 +80,6 @@ def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     bond_vec (torch.tensor): bond distance between two atoms
     bond_dist (torch.tensor): vector from src node to dst node
     """
-
     dst_pos = g.ndata["pos"][g.edges()[1]] + g.edata["pbc_offshift"]
     src_pos = g.ndata["pos"][g.edges()[0]]
     bond_vec = (dst_pos - src_pos).float()
