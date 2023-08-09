@@ -4,10 +4,10 @@ from __future__ import annotations
 import argparse
 import logging
 import os
-import sys
 import warnings
 
 import numpy as np
+import torch
 from pymatgen.core.structure import Structure
 from pymatgen.ext.matproj import MPRester
 
@@ -73,10 +73,19 @@ def predict_structure(args):
     """
     model = matgl.load_model(args.model)
     if args.infile:
-        for f in args.infile:
-            structure = Structure.from_file(f)
-            val = model.predict_structure(structure)
-            print(f"{args.model} prediction for {f}: {val}.")
+        if args.model == "MEGNet-MP-2019.4.1-BandGap-mfi":
+            state_dict = ["PBE", "GLLB-SC", "HSE", "SCAN"]
+            for count, f in enumerate(args.infile):
+                s = args.state_attr[count]  # Get the corresponding state attribute
+                structure = Structure.from_file(f)
+                val = model.predict_structure(structure, torch.tensor(int(s)))
+                print(f"{args.model} prediction for {f} with {state_dict[int(s)]} bandgap: {val} eV.")
+
+        else:
+            for f in args.infile:
+                structure = Structure.from_file(f)
+                val = model.predict_structure(structure)
+                print(f"{args.model} prediction for {f}: {val} eV/atom.")
     if args.mpids:
         mpr = MPRester()
         for mid in args.mpids:
@@ -172,6 +181,14 @@ def main():
     )
 
     p_predict.add_argument(
+        "-s",
+        "--state",
+        dest="state_attr",
+        nargs="+",
+        help="state attributes containing label. This should be an integer.",
+    )
+
+    p_predict.add_argument(
         "-m",
         "--model",
         dest="model",
@@ -196,8 +213,4 @@ def main():
 
     args = parser.parse_args()
 
-    try:
-        return args.func(args)
-    except AttributeError:
-        parser.print_help()
-        sys.exit(-1)
+    return args.func(args)

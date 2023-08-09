@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+from enum import Enum
 
 import torch
 from torch import nn
@@ -70,3 +71,14 @@ class SoftExponential(nn.Module):
         if self.alpha < 0.0:
             return -torch.log(1.0 - self.alpha * (x + self.alpha)) / self.alpha
         return (torch.exp(self.alpha * x) - 1.0) / self.alpha + self.alpha
+
+
+class ActivationFunction(Enum):
+    """Enumeration of optional activation functions."""
+
+    swish = nn.SiLU
+    sigmoid = nn.Sigmoid
+    tanh = nn.Tanh
+    softplus = nn.Softplus
+    softplus2 = SoftPlus2
+    softexp = SoftExponential

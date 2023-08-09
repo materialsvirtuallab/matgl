@@ -147,9 +147,8 @@ class RemoteFile:
         toks = uri.split("/")
         self.model_name = toks[-2]
         self.fname = toks[-1]
-        cache_location = Path(cache_location)
-        os.makedirs(cache_location / self.model_name, exist_ok=True)
-        self.local_path = cache_location / self.model_name / self.fname
+        self.cache_location = Path(cache_location)
+        self.local_path = self.cache_location / self.model_name / self.fname
         if (not self.local_path.exists()) or force_download:
             logger.info("Downloading from remote location...")
             self._download()
@@ -158,8 +157,12 @@ class RemoteFile:
 
     def _download(self):
         r = requests.get(self.uri)
-        with open(self.local_path, "wb") as f:
-            f.write(r.content)
+        if r.status_code == 200:
+            os.makedirs(self.cache_location / self.model_name, exist_ok=True)
+            with open(self.local_path, "wb") as f:
+                f.write(r.content)
+        else:
+            raise requests.RequestException(f"Bad uri: {self.uri}")
 
     def __enter__(self):
         """Support with context.
@@ -236,11 +239,8 @@ def _get_file_paths(path: Path, **kwargs):
 
     try:
         return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
-    except BaseException:
-        raise ValueError(
-            f"No valid model found in {path} or among pre-trained_models at "
-            f"{MATGL_CACHE} or {PRETRAINED_MODELS_BASE_URL}."
-        ) from None
+    except requests.RequestException:
+        raise ValueError(f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}.") from None
 
 
 def _check_ver(cls_, d: dict):

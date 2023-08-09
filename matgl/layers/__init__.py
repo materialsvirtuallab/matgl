@@ -1,7 +1,7 @@
 """This package implements the layers for M*GNet."""
 from __future__ import annotations
 
-from matgl.layers._activations import SoftExponential, SoftPlus2
+from matgl.layers._activations import ActivationFunction
 from matgl.layers._atom_ref import AtomRef
 from matgl.layers._basis import FourierExpansion, RadialBesselFunction, SphericalBesselWithHarmonics
 from matgl.layers._bond import BondExpansion

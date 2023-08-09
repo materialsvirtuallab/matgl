@@ -7,8 +7,10 @@ import contextlib
 import io
 import pickle
 import sys
+from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
+import ase.optimize as opt
 import numpy as np
 import pandas as pd
 import torch
@@ -17,12 +19,6 @@ from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
-from ase.optimize.bfgs import BFGS
-from ase.optimize.bfgslinesearch import BFGSLineSearch
-from ase.optimize.fire import FIRE
-from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
-from ase.optimize.mdmin import MDMin
-from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
@@ -36,16 +32,18 @@ if TYPE_CHECKING:
 
     from matgl.apps.pes import Potential
 
-OPTIMIZERS = {
-    "FIRE": FIRE,
-    "BFGS": BFGS,
-    "LBFGS": LBFGS,
-    "LBFGSLineSearch": LBFGSLineSearch,
-    "MDMin": MDMin,
-    "SciPyFminCG": SciPyFminCG,
-    "SciPyFminBFGS": SciPyFminBFGS,
-    "BFGSLineSearch": BFGSLineSearch,
-}
+
+class OPTIMIZERS(Enum):
+    """An enumeration of optimizers for used in."""
+
+    fire = opt.fire.FIRE
+    bfgs = opt.bfgs.BFGS
+    lbfgs = opt.lbfgs.LBFGS
+    lbfgslinesearch = opt.lbfgs.LBFGSLineSearch
+    mdmin = opt.mdmin.MDMin
+    scipyfmincg = opt.sciopt.SciPyFminCG
+    scipyfminbfgs = opt.sciopt.SciPyFminBFGS
+    bfgslinesearch = opt.bfgslinesearch.BFGSLineSearch
 
 
 class Atoms2Graph(GraphConverter):
@@ -197,14 +195,7 @@ class Relaxer:
             relax_cell (bool): whether to relax the lattice cell
             stress_weight (float): the stress weight for relaxation.
         """
-        if isinstance(optimizer, str):
-            optimizer_obj = OPTIMIZERS.get(optimizer, None)
-        elif optimizer is None:
-            raise ValueError("Optimizer cannot be None")
-        else:
-            optimizer_obj = optimizer
-
-        self.opt_class: Optimizer = optimizer_obj
+        self.optimizer: Optimizer = OPTIMIZERS[optimizer.lower()].value if isinstance(optimizer, str) else optimizer
         self.calculator = M3GNetCalculator(
             potential=potential, state_attr=state_attr, stress_weight=stress_weight  # type: ignore
         )
@@ -243,7 +234,7 @@ class Relaxer:
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
                 atoms = ExpCellFilter(atoms)
-            optimizer = self.opt_class(atoms, **kwargs)
+            optimizer = self.optimizer(atoms, **kwargs)
             optimizer.attach(obs, interval=interval)
             optimizer.run(fmax=fmax, steps=steps)
             obs()

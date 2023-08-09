@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import pytest
 import torch as th
 from pymatgen.core import Lattice, Structure
 
@@ -31,6 +32,8 @@ class TestMEGNet:
             graph.edata["edge_attr"] = bond_expansion(graph.edata["bond_dist"])
             state = th.tensor(state)
             output = model(graph, graph.edata["edge_attr"], graph.ndata["node_type"], state)
+        with pytest.raises(ValueError, match="Invalid activation type"):
+            _ = MEGNet(is_intensive=False, activation_type="whatever")
         assert [th.numel(output)] == [1]
 
     def test_megnet_isolated_atom(self, graph_MoS):

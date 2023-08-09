@@ -163,6 +163,8 @@ We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter not
 - [API docs][apidocs] for all classes and methods.
 - [Developer Guide](developer.md) outlines the key design elements of `matgl`, especially for developers wishing to
   train and contribute matgl models.
+- AdvancedSoft has implemented a [LAMMPS interface](https://github.com/advancesoftcorp/lammps/tree/based-on-lammps_2Jun2022/src/ML-M3GNET)
+  to both the TF and MatGL version of M3Gnet.
 
 ## References
 

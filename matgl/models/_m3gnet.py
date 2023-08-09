@@ -25,14 +25,13 @@ from matgl.graph.compute import (
 )
 from matgl.layers import (
     MLP,
+    ActivationFunction,
     BondExpansion,
     EmbeddingBlock,
     GatedMLP,
     M3GNetBlock,
     ReduceReadOut,
     Set2SetReadOut,
-    SoftExponential,
-    SoftPlus2,
     SphericalBesselWithHarmonics,
     ThreeBodyInteractions,
     WeightedReadOut,
@@ -113,18 +112,12 @@ class M3GNet(nn.Module, IOMixIn):
 
         self.save_args(locals(), kwargs)
 
-        if activation_type == "swish":
-            activation = nn.SiLU()  # type: ignore
-        elif activation_type == "tanh":
-            activation = nn.Tanh()  # type: ignore
-        elif activation_type == "sigmoid":
-            activation = nn.Sigmoid()  # type: ignore
-        elif activation_type == "softplus2":
-            activation = SoftPlus2()  # type: ignore
-        elif activation_type == "softexp":
-            activation = SoftExponential()  # type: ignore
-        else:
-            raise Exception("Undefined activation type, please try using swish, sigmoid, tanh, softplus2, softexp")
+        try:
+            activation: nn.Module = ActivationFunction[activation_type].value()
+        except KeyError:
+            raise ValueError(
+                f"Invalid activation type, please try using one of {[af.name for af in ActivationFunction]}"
+            ) from None
 
         if element_types is None:
             self.element_types = DEFAULT_ELEMENT_TYPES
@@ -205,7 +198,7 @@ class M3GNet(nn.Module, IOMixIn):
 
         else:
             if task_type == "classification":
-                raise ValueError("Classification task cannot be extensive")
+                raise ValueError("Classification task cannot be extensive.")
             self.final_layer = WeightedReadOut(
                 in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets  # type: ignore
             )
