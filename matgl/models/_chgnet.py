@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Literal
 
 import torch
 from torch import nn
-from dgl import readout_nodes
+from dgl import readout_nodes, readout_edges
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (
@@ -24,11 +24,11 @@ from matgl.graph.compute import (
 )
 from matgl.layers import (
     MLP,
+    GatedMLP,
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,
     FourierExpansion,
     RadialBesselFunction,
-    WeightedReadOut,
     ActivationFunction
 )
 from matgl.utils.cutoff import polynomial_cutoff
@@ -73,14 +73,15 @@ class CHGNet(nn.Module, IOMixIn):
         bond_conv_hidden_dims: Sequence[int] = (64,),
         angle_layer_hidden_dims: Sequence[int] | None = (),
         conv_dropout: float = 0.0,
-        num_targets: int = 1,
-        num_site_targets: int = 1,
-        readout_operation: Literal["sum", "mean"] = "sum",
-        readout_field: Literal["node_feat", "edge_feat"] = "node_feat",
-        readout_hidden_dims: Sequence[int] = (64, 64),
-        readout_dropout: float = 0.0,
+        final_mlp_type: Literal["gated", "mlp"] = "mlp",
+        final_hidden_dims: Sequence[int] = (64, 64),
+        final_dropout: float = 0.0,
+        pooling_operation: Literal["sum", "mean"] = "sum",
+        readout_field: Literal["atom_feat", "bond_feat", "angle_feat"] = "atom_feat",
         activation_type: str = "swish",
         is_intensive: bool = False,
+        num_targets: int = 1,
+        num_site_targets: int = 1,
         task_type: Literal["regression", "classification"] = "regression",
         **kwargs,
     ):
@@ -109,14 +110,15 @@ class CHGNet(nn.Module, IOMixIn):
             bond_conv_hidden_dims: hidden dimensions for the bond graph convolution layers.
             angle_layer_hidden_dims: hidden dimensions for the angle layer.
             conv_dropout: dropout probability for the graph convolution layers.
-            num_targets: number of targets to predict.
-            num_site_targets: number of site-wise targets to predict. (ie magnetic moments)
-            readout_operation: type of readout pooling operation to use.
+            final_mlp_type: type of readout block, options are "gated" for a Gated MLP and "mlp".
+            final_hidden_dims: hidden dimensions for the readout MLP.
+            final_dropout: dropout probability for the readout MLP.
+            pooling_operation: type of readout pooling operation to use.
             readout_field: field to readout from the graph.
-            readout_hidden_dims: hidden dimensions for the readout MLP.
-            readout_dropout: dropout probability for the readout MLP.
             activation_type: activation function to use.
             is_intensive: whether the target is intensive or extensive.
+            num_targets: number of targets to predict.
+            num_site_targets: number of site-wise targets to predict. (ie magnetic moments)
             task_type: type of task to perform.
         """
         super().__init__()
@@ -150,10 +152,16 @@ class CHGNet(nn.Module, IOMixIn):
         self.state_embedding = nn.Embedding(dim_state_feats, dim_state_embedding) if self.include_states else None
         self.atom_embedding = nn.Embedding(len(element_types), dim_atom_embedding)
         self.bond_embedding = MLP(
-            [max_n, dim_bond_embedding], activation=activation, activate_last=non_linear_bond_embedding
+            [max_n, dim_bond_embedding],
+            activation=activation,
+            activate_last=non_linear_bond_embedding,
+            bias_last=False
         )
         self.angle_embedding = MLP(
-            [2 * max_f + 1, dim_angle_embedding], activation=activation, activate_last=non_linear_angle_embedding
+            [2 * max_f + 1, dim_angle_embedding],
+            activation=activation,
+            activate_last=non_linear_angle_embedding,
+            bias_last=False
         )
 
         # shared message bond distance smoothing weights
@@ -211,19 +219,30 @@ class CHGNet(nn.Module, IOMixIn):
 
         # TODO different allowed readouts for intensive/extensive targets and task types
         # TODO chgnet has a simple MLP instead of a gMLP for the readout
-        input_readout_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
-        self.readout_layer = WeightedReadOut(
-                in_feats=input_readout_dim, dims=readout_hidden_dims, num_targets=num_targets
-        )
+        input_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
+        if final_mlp_type == "mlp":
+            self.final_layer = MLP(
+                dims=[input_dim, *final_hidden_dims, num_targets], activation=activation, activate_last=False
+            )
+        elif final_mlp_type == "gated":
+            self.final_layer = GatedMLP(
+                in_feats=input_dim, dims=[*final_hidden_dims, num_targets], activate_last=False
+            )
+        else:
+            raise ValueError(f"Invalid final MLP type: {final_mlp_type}")
 
-        self.readout_operation = readout_operation
         self.element_types = element_types
         self.max_n = max_n
         self.max_f = max_f
-        self.n_blocks = num_blocks
         self.cutoff = cutoff
         self.cutoff_exponent = cutoff_exponent
         self.three_body_cutoff = threebody_cutoff
+
+        self.n_blocks = num_blocks
+        self.readout_operation = pooling_operation
+        self.readout_field = readout_field
+        self.readout_type = final_mlp_type
+
         self.task_type = task_type
         self.is_intensive = is_intensive
 
@@ -306,15 +325,23 @@ class CHGNet(nn.Module, IOMixIn):
             graph, atom_features, bond_features, state_features, atom_bond_weights, bond_bond_weights
         )
 
-        graph.ndata["node_feat"] = atom_features
-        graph.edata["edge_feat"] = bond_features
+        # really only needed if using the readout modules in _readout.py
+        # graph.ndata["node_feat"] = atom_features
+        # graph.edata["edge_feat"] = bond_features
         # bond_graph.edata["angle_features"] = angle_features
 
-        # readout  # TODO return crystal features? add an additional optional layer to compute them
-        graph.ndata["atomic_properties"] = self.readout_layer(graph)
-        structure_properties = readout_nodes(graph, "atomic_properties", op=self.readout_operation)
-        structure_properties = torch.squeeze(structure_properties)
+        # readout
+        if self.readout_field == "atom_feat":
+            graph.ndata["atomic_properties"] = self.final_layer(atom_features)
+            structure_properties = readout_nodes(graph, "atomic_properties", op=self.readout_operation)
+        elif self.readout_field == "bond_feat":
+            graph.edata["bond_properties"] = self.final_layer(bond_features)
+            structure_properties = readout_edges(graph, "bond_properties", op=self.readout_operation)
+        else:  # self.readout_field == "angle_feat":
+            bond_graph.edata["angle_properties"] = self.final_layer(angle_features)
+            structure_properties = readout_edges(bond_graph, "angle_properties", op=self.readout_operation)
 
+        structure_properties = torch.squeeze(structure_properties)
         return structure_properties, site_properties
 
     def predict_structure(
