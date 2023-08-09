@@ -71,7 +71,7 @@ class CHGNet(nn.Module, IOMixIn):
         atom_conv_hidden_dims: Sequence[int] = (64,),
         bond_layer_hidden_dims: Sequence[int] | None = None,
         bond_conv_hidden_dims: Sequence[int] = (64,),
-        angle_layer_hidden_dims: Sequence[int] | None = None,
+        angle_layer_hidden_dims: Sequence[int] | None = (),
         conv_dropout: float = 0.0,
         num_targets: int = 1,
         num_site_targets: int = 1,
@@ -196,7 +196,7 @@ class CHGNet(nn.Module, IOMixIn):
                     num_bond_feats=dim_bond_embedding,
                     num_angle_feats=dim_angle_embedding,
                     bond_hidden_dims=bond_conv_hidden_dims,
-                    angle_hidden_dims=angle_layer_hidden_dims if angle_layer_hidden_dims is not None else [],
+                    angle_hidden_dims=angle_layer_hidden_dims,
                     bond_dropout=conv_dropout,
                     angle_dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["three_body_bond", "both"] else 0,
@@ -210,6 +210,7 @@ class CHGNet(nn.Module, IOMixIn):
         )
 
         # TODO different allowed readouts for intensive/extensive targets and task types
+        # TODO chgnet has a simple MLP instead of a gMLP for the readout
         input_readout_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
         self.readout_layer = WeightedReadOut(
                 in_feats=input_readout_dim, dims=readout_hidden_dims, num_targets=num_targets

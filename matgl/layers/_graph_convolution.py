@@ -727,7 +727,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         else:
             state_dims = None
         node_dims = [node_input_dim, *conv_hidden_dims, num_atom_feats]
-        edge_dims = [node_input_dim, *edge_hidden_dims, num_bond_feats] if edge_hidden_dims else None
+        edge_dims = [node_input_dim, *edge_hidden_dims, num_bond_feats] if edge_hidden_dims is not None else None
 
         self.conv_layer = CHGNetGraphConv.from_dims(
             include_state=include_state,
@@ -768,9 +768,8 @@ class CHGNetAtomGraphBlock(nn.Module):
             shared_edge_weights=shared_edge_weights,
         )
         # move skip connections here? dropout before skip connections?
-        atom_features = self.dropout(atom_features)
+        atom_features = self.out_layer(self.dropout(atom_features))
         bond_features = self.dropout(bond_features)
-        atom_features = self.out_layer(atom_features)
         if state_attr is not None:
             state_attr = self.dropout(state_attr)
 
@@ -820,7 +819,7 @@ class CHGNetLineGraphConv(nn.Module):
         """
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
-        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:])
+        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:]) if edge_dims is not None else None
 
         return cls(
             node_update_func=node_update_func, edge_update_func=edge_update_func, node_weight_func=node_weight_func
@@ -928,9 +927,13 @@ class CHGNetLineGraphConv(nn.Module):
             new_node_features = node_features + node_update
             graph.ndata["features"] = new_node_features
 
-            # angle (edge) update
-            edge_update = self.edge_update_(graph)
-            new_edge_features = edge_features + edge_update
+            # edge (angle) update (should angle update be done before node update?)
+            if self.edge_update_func is not None:
+                edge_update = self.edge_update_(graph)
+                new_edge_features = edge_features + edge_update
+                graph.edata["features"] = new_edge_features
+            else:
+                new_edge_features = edge_features
 
         return new_node_features, new_edge_features
 
@@ -965,7 +968,7 @@ class CHGNetBondGraphBlock(nn.Module):
 
         node_input_dim = 2 * num_bond_feats + num_angle_feats + num_atom_feats
         node_dims = [node_input_dim, *bond_hidden_dims, num_bond_feats]
-        edge_dims = [node_input_dim, *angle_hidden_dims, num_angle_feats]
+        edge_dims = [node_input_dim, *angle_hidden_dims, num_angle_feats] if angle_hidden_dims is not None else None
 
         self.conv_layer = CHGNetLineGraphConv.from_dims(
             node_dims=node_dims,
@@ -975,6 +978,7 @@ class CHGNetBondGraphBlock(nn.Module):
 
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
+        self.out_layer = nn.Linear(num_bond_feats, num_bond_feats)
 
     def forward(
         self,
@@ -1004,7 +1008,7 @@ class CHGNetBondGraphBlock(nn.Module):
             graph, node_features, edge_features, aux_edge_features, shared_node_weights
         )
 
-        bond_features_ = self.bond_dropout(bond_features_)
+        bond_features_ = self.out_layer(self.bond_dropout(bond_features_))
         angle_features = self.angle_dropout(angle_features)
         bond_features[graph.ndata["bond_index"]] = bond_features_
 
