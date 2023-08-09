@@ -80,7 +80,7 @@ class CHGNet(nn.Module, IOMixIn):
         layer_bond_weights: Literal["bond", "three_body_bond", "both"] | None = None,
         atom_conv_hidden_dims: Sequence[int] = (64,),
         bond_conv_hidden_dims: Sequence[int] = (64,),
-        angle_layer_hidden_dim: Sequence[int] | None = None,
+        angle_layer_hidden_dims: Sequence[int] | None = None,
         atom2bond_hidden_dims: Sequence[int] | None = None,
         conv_dropout: float = 0.0,
         num_targets: int = 1,
@@ -116,7 +116,7 @@ class CHGNet(nn.Module, IOMixIn):
             layer_bond_weights: whether to use independent weights in each convolution layer.
             atom_conv_hidden_dims: hidden dimensions for the atom graph convolution layers.
             bond_conv_hidden_dims: hidden dimensions for the bond graph convolution layers.
-            angle_layer_hidden_dim: hidden dimensions for the angle layer.
+            angle_layer_hidden_dims: hidden dimensions for the angle layer.
             atom2bond_hidden_dims: hidden dimensions for the atom to bond message passing layer in atom graph.
                 Default is None, which means no atom to bond message passing layer in atom graph.
             conv_dropout: dropout probability for the graph convolution layers.
@@ -207,7 +207,7 @@ class CHGNet(nn.Module, IOMixIn):
                     num_bond_feats=dim_bond_embedding,
                     num_angle_feats=dim_angle_embedding,
                     bond_hidden_dims=bond_conv_hidden_dims,
-                    angle_hidden_dims=angle_layer_hidden_dim if angle_layer_hidden_dim is not None else [],
+                    angle_hidden_dims=angle_layer_hidden_dims if angle_layer_hidden_dims is not None else [],
                     bond_dropout=conv_dropout,
                     angle_dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["three_body_bond", "both"] else 0,

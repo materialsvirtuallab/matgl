@@ -770,8 +770,10 @@ class CHGNetAtomGraphBlock(nn.Module):
         # move skip connections here? dropout before skip connections?
         atom_features = self.dropout(atom_features)
         bond_features = self.dropout(bond_features)
-        state_attr = self.dropout(state_attr)
         atom_features = self.out_layer(atom_features)
+        if state_attr is not None:
+            state_attr = self.dropout(state_attr)
+
         return atom_features, bond_features, state_attr
 
 
