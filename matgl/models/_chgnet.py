@@ -28,9 +28,8 @@ from matgl.layers import (
     CHGNetBondGraphBlock,
     FourierExpansion,
     RadialBesselFunction,
-    SoftExponential,
-    SoftPlus2,
     WeightedReadOut,
+    ActivationFunction
 )
 from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
@@ -43,15 +42,6 @@ if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__name__)
-
-
-activation_types = {
-    "swish": nn.SiLU(),
-    "tanh": nn.Tanh(),
-    "sigmoid": nn.Sigmoid(),
-    "softplus2": SoftPlus2(),
-    "softexp": SoftExponential(),
-}
 
 
 class CHGNet(nn.Module, IOMixIn):
@@ -140,12 +130,12 @@ class CHGNet(nn.Module, IOMixIn):
         if is_intensive:
             raise NotImplementedError("intensive targets with CHGNet not yet implemented")
 
-        # TODO implement a "get_activation" function with available activations to avoid
-        #  this if/else block
         try:
-            activation = activation_types[activation_type]
+            activation: nn.Module = ActivationFunction[activation_type].value()
         except KeyError:
-            raise ValueError(f"Undefined activation type, please use one of {list(activation_types.keys())}") from None
+            raise ValueError(
+                f"Invalid activation type, please try using one of {[af.name for af in ActivationFunction]}"
+            ) from None
 
         element_types = element_types or DEFAULT_ELEMENT_TYPES
 
