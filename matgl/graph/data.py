@@ -13,7 +13,7 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
-from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
+from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph, create_directed_line_graph
 from matgl.layers import BondExpansion
 
 if TYPE_CHECKING:
@@ -347,6 +347,158 @@ class M3GNetDataset(DGLDataset):
                 torch.tensor(self.stresses[idx]).float(),  # type: ignore
             )
         return (self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx])
+
+    def __len__(self):
+        """Get size of dataset."""
+        return len(self.graphs)
+
+
+class CHGNetDataset(DGLDataset):
+    """Create a CHGNet dataset including dgl graphs."""
+
+    def __init__(
+        self,
+        converter: GraphConverter,
+        threebody_cutoff: float,
+        structures: list,
+        energies: list,
+        forces: list | None = None,
+        stresses: list | None = None,
+        magmoms: list | None = None,
+        labels: list | None = None,
+        name="CHGNETDataset",
+        label_name: str | None = None,
+        graph_labels: list | None = None,
+    ):
+        """
+        Args:
+            converter: dgl graph converter
+            threebody_cutoff: cutoff for three body
+            structures: Pymatgen structure
+            energies: Target energies
+            forces: Target forces
+            stresses: Target stresses
+            magmoms: Target magmoms
+            labels: target properties
+            name: name of dataset
+            label_name: name of target properties
+            graph_labels: state attributes.
+        """
+        self.converter = converter
+        self.threebody_cutoff = threebody_cutoff
+        self.structures = structures
+        self.energies = energies
+        self.forces = np.zeros(len(self.structures)) if forces is None else forces
+        self.stresses = np.zeros(len(self.structures)) if stresses is None else stresses
+        self.magmoms = np.zeros(len(self.structures)) if magmoms is None else magmoms
+        self.labels = labels
+        self.label_name = label_name
+        self.graph_labels = graph_labels
+        self.graphs = None
+        self.line_graphs = None
+        self.state_attr = None
+        super().__init__(name=name)
+
+    def has_cache(self, filename: str = "dgl_graph.bin") -> bool:
+        """Check if the dgl_graph.bin exists or not
+        Args:
+            :filename: Name of file storing dgl graphs
+        Returns: True if file exists.
+        """
+        return os.path.exists(filename)
+
+    def process(self) -> tuple:
+        """Convert Pymatgen structure into dgl graphs."""
+        num_graphs = len(self.structures)
+        graphs, line_graphs, state_attrs = [], [], []
+
+        for idx in trange(num_graphs):
+            structure = self.structures[idx]
+            graph, state_attr = self.converter.get_graph(structure)
+            graphs.append(graph)
+            state_attrs.append(state_attr)
+            bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
+            graph.edata["bond_vec"] = bond_vec
+            graph.edata["bond_dist"] = bond_dist
+            line_graph = create_directed_line_graph(graph, self.threebody_cutoff)
+            line_graphs.append(line_graph)
+
+        if self.graph_labels is not None:
+            state_attrs = torch.tensor(self.graph_labels).long()  # type: ignore
+        else:
+            state_attrs = torch.tensor(state_attrs)  # type: ignore
+
+        self.graphs = graphs
+        self.line_graphs = line_graphs
+        self.state_attr = state_attrs
+
+        return self.graphs, self.line_graphs, self.state_attr
+
+    def save(
+        self,
+        filename: str = "dgl_graph.bin",
+        filename_line_graph: str = "dgl_line_graph.bin",
+        filename_state_attr: str = "state_attr.pt",
+    ):
+        """Save dgl graphs
+        Args:
+        :filename: Name of file storing dgl graphs
+        :filename_state_attr: Name of file storing graph attrs.
+        """
+        if self.labels is None:
+            labels_with_key = {
+                "energies": self.energies,
+                "forces": self.forces,
+                "stresses": self.stresses,
+                "magmoms": self.magmoms,
+            }
+        else:
+            labels_with_key = {self.label_name: self.labels}  # type: ignore
+        save_graphs(filename, self.graphs)
+        save_graphs(filename_line_graph, self.line_graphs)
+        torch.save(self.state_attr, filename_state_attr)
+        with open("labels.json", "w") as file:
+            json.dump(labels_with_key, file)
+
+    def load(
+        self,
+        filename: str = "dgl_graph.bin",
+        filename_line_graph: str = "dgl_line_graph.bin",
+        filename_state_attr: str = "state_attr.pt",
+    ):
+        """
+        Load dgl graphs from files.
+
+        Args:
+            filename: Name of file storing dgl graphs
+            filename_line_graph: Name of file storing dgl line graphs
+            filename_state_attr: Name of file storing state attrs.
+        """
+        self.graphs = load_graphs(filename)
+        self.line_graphs = load_graphs(filename_line_graph)
+        with open("labels.json") as file:
+            labels: dict = json.load(file)
+        if self.labels is None:
+            self.energies = labels["energies"]
+            self.forces = labels["forces"]
+            self.stresses = labels["stresses"]
+            self.state_attr = torch.load("state_attr.pt")
+        else:
+            self.labels = labels  # type: ignore
+
+    def __getitem__(self, idx: int):
+        """Get graph and label with idx."""
+        if self.labels is None:
+            return (
+                self.graphs[idx],
+                self.line_graphs[idx],
+                self.state_attr[idx],
+                self.energies[idx],  # type: ignore
+                torch.tensor(self.forces[idx]).float(),  # type: ignore
+                torch.tensor(self.stresses[idx]).float(),  # type: ignore
+                torch.tensor(self.magmoms[idx]).float(),  # type: ignore
+            )
+        return self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx]
 
     def __len__(self):
         """Get size of dataset."""
