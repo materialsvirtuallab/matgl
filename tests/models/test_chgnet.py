@@ -11,14 +11,14 @@ from matgl.ext.pymatgen import Structure2Graph
 
 @pytest.mark.parametrize("dropout", [0.0, 0.5])
 @pytest.mark.parametrize("learn_basis", [True, False])
-@pytest.mark.parametrize("atom2bond_dim", [None, (16,)])
+@pytest.mark.parametrize("bond_dim", [None, (16,)])
 @pytest.mark.parametrize("angle_dim", [None, (16,)])
 @pytest.mark.parametrize("activation", ["swish", "softplus2"])
-def test_model(graph_MoS, activation, angle_dim, atom2bond_dim, learn_basis, dropout):
+def test_model(graph_MoS, activation, angle_dim, bond_dim, learn_basis, dropout):
     structure, graph, state = graph_MoS
     model = CHGNet(
         element_types=["Mo", "S"], activation_type=activation,
-        atom2bond_dim=atom2bond_dim,
+        bond_layer_hidden_dims=bond_dim,
         learn_basis=learn_basis,
         angle_layer_hidden_dims=angle_dim,
         conv_dropout=dropout,
