@@ -5,6 +5,7 @@ from functools import partial
 import numpy as np
 import pytest
 import torch
+import torch.testing as tt
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
@@ -14,6 +15,7 @@ from matgl.graph.compute import (
     create_directed_line_graph,
     create_line_graph,
     prune_edges_by_features,
+    ensure_directed_line_graph_compatibility
 )
 
 
@@ -201,3 +203,26 @@ def test_directed_line_graph(graph_data, cutoff, request):
 
     # this test might be lax with just 3 decimal places
     np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])), decimal=3)
+
+
+def test_ensure_directed_line_graph_compat(graph_MoSH):
+    s, g, state = graph_MoSH
+    bv, bd = compute_pair_vector_and_distance(g)
+    g.edata["bond_vec"] = bv
+    g.edata["bond_dist"] = bd
+    line_graph = create_directed_line_graph(g, 3.0)
+    edge_ids = line_graph.ndata["edge_ids"].clone()
+    src_bond_sign = line_graph.ndata["src_bond_sign"].clone()
+    line_graph.ndata["edge_ids"] = torch.arange(line_graph.num_nodes())
+    line_graph.ndata["src_bond_sign"] = torch.zeros(line_graph.num_nodes())
+
+    assert not torch.allclose(line_graph.ndata["edge_ids"], edge_ids)
+    assert not torch.allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
+
+    # test that the line graph is not compatible
+    line_graph = ensure_directed_line_graph_compatibility(g, line_graph, 3.0)
+    tt.assert_allclose(line_graph.ndata["edge_ids"], edge_ids)
+    tt.assert_allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
+
+    with pytest.raises(AssertionError):
+        ensure_directed_line_graph_compatibility(g, line_graph, 2.0)
