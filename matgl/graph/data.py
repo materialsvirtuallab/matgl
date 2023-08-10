@@ -366,9 +366,9 @@ class CHGNetDataset(DGLDataset):
         stresses: list | None = None,
         magmoms: list | None = None,
         labels: list | None = None,
-        name="CHGNETDataset",
         label_name: str | None = None,
         graph_labels: list | None = None,
+        name: str = "CHGNETDataset",
     ):
         """
         Args:
@@ -465,6 +465,7 @@ class CHGNetDataset(DGLDataset):
         filename: str = "dgl_graph.bin",
         filename_line_graph: str = "dgl_line_graph.bin",
         filename_state_attr: str = "state_attr.pt",
+        filename_labels: str = "labels.json",
     ):
         """
         Load dgl graphs from files.
@@ -473,10 +474,11 @@ class CHGNetDataset(DGLDataset):
             filename: Name of file storing dgl graphs
             filename_line_graph: Name of file storing dgl line graphs
             filename_state_attr: Name of file storing state attrs.
+            filename_labels: Name of file storing labels.
         """
         self.graphs = load_graphs(filename)
         self.line_graphs = load_graphs(filename_line_graph)
-        with open("labels.json") as file:
+        with open(filename_labels) as file:
             labels: dict = json.load(file)
         if self.labels is None:
             self.energies = labels["energies"]
