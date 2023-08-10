@@ -21,6 +21,7 @@ from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta,
     create_directed_line_graph,
+    ensure_directed_line_graph_compatibility
 )
 from matgl.layers import (
     MLP,
@@ -266,14 +267,19 @@ class CHGNet(nn.Module, IOMixIn):
         # TODO should all ops be graph.local_scope? otherwise we are changing the state of the graph implicitly
         # compute bond vectors and distances and add to graph  # TODO this is better done in the graph converter
         bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-        graph.edata["bond_vec"] = bond_vec
-        graph.edata["bond_dist"] = bond_dist
+        graph.edata["bond_vec"] = bond_vec.to(graph.device)
+        graph.edata["bond_dist"] = bond_dist.to(graph.device)
         bond_expansion = self.bond_expansion(bond_dist)
         smooth_cutoff = polynomial_cutoff(self.bond_expansion(bond_dist), self.cutoff, self.cutoff_exponent)
         graph.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
         # create bond graph (line graph) with necessary node and edge data
-        bond_graph = line_graph if line_graph is not None else create_directed_line_graph(graph, self.three_body_cutoff)
+        if line_graph is None:
+            bond_graph = create_directed_line_graph(graph, self.three_body_cutoff)
+        else:
+            # need to ensure the line graph matches the graph
+            bond_graph = ensure_directed_line_graph_compatibility(graph, line_graph, self.three_body_cutoff)
+
         bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
         threebody_bond_expansion = self.threebody_bond_expansion(bond_graph.ndata["bond_dist"])
         smooth_cutoff = polynomial_cutoff(threebody_bond_expansion, self.three_body_cutoff, self.cutoff_exponent)
@@ -283,7 +289,6 @@ class CHGNet(nn.Module, IOMixIn):
         bond_indices = bond_graph.ndata["bond_index"][bond_graph.edges()[0]]
         bond_graph.edata["center_atom_index"] = graph.edges()[1][bond_indices]
         bond_graph.apply_edges(compute_theta)
-        bond_graph.edata["theta"] = torch.pi - bond_graph.edata["theta"]  # correct angle for head to tail bond vectors
         bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
 
         # compute state, atom, bond and angle embeddings

@@ -117,7 +117,7 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool
         edges: DGL graph edges
         cosine: Whether to return the cosine of the angle or the angle itself
         directed: Whether to the line graph was created with create directed line graph.
-            In which case aliased bonds (which are self edges in atom graph) need to
+            In which case bonds (only those that are not self bonds) need to
             have their bond vectors flipped.
 
     Returns:
@@ -200,8 +200,34 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
     # we need to store the sign of bond vector when a bond is a src node in the line
     # graph in order to appropriately calculate angles when self edges are involved
     lg.ndata["src_bond_sign"] = torch.ones((lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype)
-    lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_inds_s]
+    # if we flip self edges then we need to correct computed angles by pi - angle
+    # lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
+    lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
     return lg
+
+
+def ensure_directed_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float) -> dgl.DGLGraph:
+    """ Ensure that line graph is compatible with graph.
+
+    Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
+
+    Args:
+        graph: atomistic graph
+        line_graph: line graph of atomistic graph
+        threebody_cutoff: cutoff for three-body interactions
+    """
+    assert line_graph.number_of_nodes() == graph.number_of_edges()
+    valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
+    edge_ids = valid_edges.nonzero().squeeze()
+    line_graph.ndata["edge_ids"] = edge_ids
+    for key in graph.edata.keys():
+        line_graph.edata[key] = graph.edata[key][edge_ids]
+    src_indices, dst_indices = graph.edges()
+    self_edge_ids = (src_indices[edge_ids] == dst_indices[edge_ids]).nonzero().squeeze()
+    line_graph.ndata["src_bond_sign"] = torch.ones((line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype)
+    line_graph.ndata["src_bond_sign"][self_edge_ids] = -line_graph.ndata["src_bond_sign"][self_edge_ids]
+
+    return line_graph
 
 
 def has_aliased_edges(graph: dgl.DGLGraph) -> bool:

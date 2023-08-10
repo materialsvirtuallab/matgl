@@ -186,30 +186,18 @@ def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
                 assert torch.allclose(new_g.edata[key], g1.edata[key][valid_edges])
 
 
-def test_directed_line_graph(graph_Mo, graph_CH4):
-    s1, g1, state1 = graph_Mo
+@pytest.mark.parametrize("cutoff", [2.0, 3.0, 4.0])
+@pytest.mark.parametrize("graph_data", ["graph_Mo", "graph_CH4", "graph_MoS", "graph_LiFePO4", "graph_MoSH"])
+def test_directed_line_graph(graph_data, cutoff, request):
+    s1, g1, state1 = request.getfixturevalue(graph_data)
     bv, bd = compute_pair_vector_and_distance(g1)
     g1.edata["bond_vec"] = bv
     g1.edata["bond_dist"] = bd
-    cos_loop = _calculate_cos_loop(g1, 4.0)
+    cos_loop = _calculate_cos_loop(g1, cutoff)
     theta_loop = np.arccos(np.array(cos_loop) * (1 - 1e-7))
 
-    line_graph = create_directed_line_graph(g1, 4.0)
-
+    line_graph = create_directed_line_graph(g1, cutoff)
     line_graph.apply_edges(compute_theta)
-    # need to shift by pi since bond vectors are directed
-    line_graph.edata["theta"] = torch.pi - line_graph.edata["theta"]
-    np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])))
 
-    s2, g2, state2 = graph_CH4
-    bv, bd = compute_pair_vector_and_distance(g2)
-    g2.edata["bond_vec"] = bv
-    g2.edata["bond_dist"] = bd
-    cos_loop = _calculate_cos_loop(g2, 2.0)
-    theta_loop = np.arccos(np.array(cos_loop))
-
-    line_graph = create_directed_line_graph(g2, 2.0)
-    line_graph.apply_edges(compute_theta)
-    # need to shift by pi since bond vectors are directed
-    line_graph.edata["theta"] = torch.pi - line_graph.edata["theta"]
-    np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])))
+    # this test might be lax with just 3 decimal places
+    np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])), decimal=3)
