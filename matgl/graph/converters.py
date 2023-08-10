@@ -51,9 +51,9 @@ class GraphConverter(metaclass=abc.ABCMeta):
         n_missing_node = len(structure) - g.num_nodes()  # isolated atoms without bonds
         g.add_nodes(n_missing_node)
         g.edata["pbc_offset"] = torch.tensor(images)
+        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], tensor(lattice_matrix[0]))
         g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
         g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
         g.ndata["pos"] = tensor(cart_coords)
         state_attr = [0.0, 0.0]
-        g.edata["pbc_offshift"] = torch.matmul(tensor(images), tensor(lattice_matrix[0]))
         return g, state_attr
