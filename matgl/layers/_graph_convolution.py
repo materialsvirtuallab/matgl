@@ -471,7 +471,6 @@ class CHGNetGraphConv(nn.Module):
 
     def __init__(
         self,
-        include_state: bool,
         node_update_func: Module,
         edge_update_func: Module | None,
         node_weight_func: Module | None,
@@ -488,10 +487,10 @@ class CHGNetGraphConv(nn.Module):
                 If None is given, no layer-wise weights will be used.
             edge_weight_func: Weight function for radial basis functions
                 If None is given, no layer-wise weights will be used.
-            state_update_func: Update function for state feats
+            state_update_func: Update function for state feats.
         """
         super().__init__()
-        self.include_state = include_state
+        self.include_state = state_update_func is not None
         self.edge_update_func = edge_update_func
         self.edge_weight_func = edge_weight_func
         self.node_update_func = node_update_func
@@ -501,7 +500,6 @@ class CHGNetGraphConv(nn.Module):
     @classmethod
     def from_dims(
         cls,
-        include_state: bool,
         activation: Module,
         node_dims: Sequence[int],
         edge_dims: Sequence[int] | None = None,
@@ -511,7 +509,6 @@ class CHGNetGraphConv(nn.Module):
         """Create a CHGNetAtomGraphConv layer from dimensions.
 
         Args:
-            include_state: whether including state or not
             activation: activation function
             node_dims: NN architecture for node update function given as a list of dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
@@ -532,10 +529,9 @@ class CHGNetGraphConv(nn.Module):
             if rbf_order > 0 and edge_dims is not None
             else None
         )
-        state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None
+        state_update_func = MLP(state_dims, activation, activate_last=True) if state_dims is not None else None
 
         return cls(
-            include_state=include_state,
             node_update_func=node_update_func,
             edge_update_func=edge_update_func,
             node_weight_func=node_weight_func,
@@ -564,7 +560,7 @@ class CHGNetGraphConv(nn.Module):
         else:
             inputs = torch.hstack([atom_i, bond_ij, atom_j])
 
-        edge_update = self.edge_update_func(inputs)
+        edge_update = self.edge_update_func(inputs)  # type: ignore
         if self.edge_weight_func is not None:
             rbf = edges.data["bond_expansion"]
             rbf = rbf.float()
@@ -640,7 +636,7 @@ class CHGNetGraphConv(nn.Module):
         """
         node_avg = dgl.readout_nodes(graph, feat="features", op="mean")
         inputs = torch.hstack([state_attr, node_avg])
-        state_attr = self.state_update_func(inputs)
+        state_attr = self.state_update_func(inputs)  # type: ignore
         return state_attr
 
     def forward(
@@ -684,7 +680,7 @@ class CHGNetGraphConv(nn.Module):
             graph.ndata["features"] = new_node_features
 
             if self.include_state:
-                state_attr = self.state_update_(graph, state_attr)
+                state_attr = self.state_update_(graph, state_attr)  # type: ignore
 
         return new_node_features, new_edge_features, state_attr
 
@@ -699,7 +695,6 @@ class CHGNetAtomGraphBlock(nn.Module):
         activation: Module,
         conv_hidden_dims: Sequence[int],
         edge_hidden_dims: Sequence[int] | None = None,
-        include_state: bool = False,
         num_state_feats: int | None = None,
         rbf_order: int = 0,
         dropout: float = 0.0,
@@ -711,17 +706,16 @@ class CHGNetAtomGraphBlock(nn.Module):
             activation: activation function
             conv_hidden_dims: dimensions of hidden layers
             edge_hidden_dims: dimensions of hidden layers for node to edge update (ie apply_edges)
-            include_state: whether to include state attributes
             num_state_feats: number of state features if include_state is True
             rbf_order: whether to include layer-wise node weights
              RBF order specifying input dimensions for linear layer specifying message weights.
-                If 0, no layer-wise weights are used.
-            dropout: dropout probability
+                If 0, no layer-wise weights are used
+            dropout: dropout probability.
         """
         super().__init__()
 
         node_input_dim = 2 * num_atom_feats + num_bond_feats
-        if include_state:
+        if num_state_feats is not None:
             node_input_dim += num_state_feats
             state_dims = [num_atom_feats + num_state_feats, *conv_hidden_dims, num_state_feats]
         else:
@@ -730,7 +724,6 @@ class CHGNetAtomGraphBlock(nn.Module):
         edge_dims = [node_input_dim, *edge_hidden_dims, num_bond_feats] if edge_hidden_dims is not None else None
 
         self.conv_layer = CHGNetGraphConv.from_dims(
-            include_state=include_state,
             activation=activation,
             node_dims=node_dims,
             edge_dims=edge_dims,
@@ -792,7 +785,7 @@ class CHGNetLineGraphConv(nn.Module):
         Args:
             node_update_func: node update function (for bond features)
             edge_update_func: edge update function (for angle features)
-            node_weight_func: layer node weight function
+            node_weight_func: layer node weight function.
         """
         super().__init__()
 
@@ -841,7 +834,7 @@ class CHGNetLineGraphConv(nn.Module):
         angle_ij = edges.data["features"]
         atom_ij = edges.data["aux_features"]  # center atom features
         inputs = torch.hstack([bonds_i, angle_ij, atom_ij, bonds_j])
-        messages_ij = self.edge_update_func(inputs)
+        messages_ij = self.edge_update_func(inputs)  # type: ignore
         return {"feat_update": messages_ij}
 
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
@@ -867,7 +860,6 @@ class CHGNetLineGraphConv(nn.Module):
         Returns:
             node_update: bond features update
         """
-
         src, dst = graph.edges()
         bonds_i = graph.ndata["features"][src]  # first bond feature
         bonds_j = graph.ndata["features"][dst]  # second bond feature
@@ -961,8 +953,8 @@ class CHGNetBondGraphBlock(nn.Module):
             angle_hidden_dims: dimensions of hidden layers of angle update function
             rbf_order: dimensions of input to node weight function (num RBF functions)
                 If 0, no layer-wise node weights are used.
-            bond_dropout: dropout probability for bond graph convolution
-            angle_dropout: dropout probability for angle update function
+            bond_dropout: dropout probability for bond graph convolution.
+            angle_dropout: dropout probability for angle update function.
         """
         super().__init__()
 

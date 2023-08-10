@@ -13,24 +13,24 @@ import logging
 from typing import TYPE_CHECKING, Literal
 
 import torch
+from dgl import readout_edges, readout_nodes
 from torch import nn
-from dgl import readout_nodes, readout_edges
 
 from matgl.config import DEFAULT_ELEMENT_TYPES
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta,
     create_directed_line_graph,
-    ensure_directed_line_graph_compatibility
+    ensure_directed_line_graph_compatibility,
 )
 from matgl.layers import (
     MLP,
-    GatedMLP,
+    ActivationFunction,
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,
     FourierExpansion,
+    GatedMLP,
     RadialBesselFunction,
-    ActivationFunction
 )
 from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
@@ -121,6 +121,7 @@ class CHGNet(nn.Module, IOMixIn):
             num_targets: number of targets to predict.
             num_site_targets: number of site-wise targets to predict. (ie magnetic moments)
             task_type: type of task to perform.
+            **kwargs: additional keyword arguments.
         """
         super().__init__()
 
@@ -153,16 +154,13 @@ class CHGNet(nn.Module, IOMixIn):
         self.state_embedding = nn.Embedding(dim_state_feats, dim_state_embedding) if self.include_states else None
         self.atom_embedding = nn.Embedding(len(element_types), dim_atom_embedding)
         self.bond_embedding = MLP(
-            [max_n, dim_bond_embedding],
-            activation=activation,
-            activate_last=non_linear_bond_embedding,
-            bias_last=False
+            [max_n, dim_bond_embedding], activation=activation, activate_last=non_linear_bond_embedding, bias_last=False
         )
         self.angle_embedding = MLP(
             [2 * max_f + 1, dim_angle_embedding],
             activation=activation,
             activate_last=non_linear_angle_embedding,
-            bias_last=False
+            bias_last=False,
         )
 
         # shared message bond distance smoothing weights
@@ -188,7 +186,6 @@ class CHGNet(nn.Module, IOMixIn):
                     activation=activation,
                     conv_hidden_dims=atom_conv_hidden_dims,
                     edge_hidden_dims=bond_layer_hidden_dims,
-                    include_state=self.include_states,
                     num_state_feats=dim_state_embedding,
                     dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["bond", "both"] else 0,
@@ -226,9 +223,7 @@ class CHGNet(nn.Module, IOMixIn):
                 dims=[input_dim, *final_hidden_dims, num_targets], activation=activation, activate_last=False
             )
         elif final_mlp_type == "gated":
-            self.final_layer = GatedMLP(
-                in_feats=input_dim, dims=[*final_hidden_dims, num_targets], activate_last=False
-            )
+            self.final_layer = GatedMLP(in_feats=input_dim, dims=[*final_hidden_dims, num_targets], activate_last=False)
         else:
             raise ValueError(f"Invalid final MLP type: {final_mlp_type}")
 
@@ -263,7 +258,6 @@ class CHGNet(nn.Module, IOMixIn):
         Returns:
             torch.Tensor: Model output.
         """
-
         # TODO should all ops be graph.local_scope? otherwise we are changing the state of the graph implicitly
         # compute bond vectors and distances and add to graph  # TODO this is better done in the graph converter
         bond_vec, bond_dist = compute_pair_vector_and_distance(graph)

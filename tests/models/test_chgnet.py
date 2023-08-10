@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import os
-import pytest
 
+import pytest
 import torch
 
-from matgl.models import CHGNet
 from matgl.ext.pymatgen import Structure2Graph
+from matgl.models import CHGNet
 
 
 @pytest.mark.parametrize("dropout", [0.0, 0.5])
@@ -17,7 +17,8 @@ from matgl.ext.pymatgen import Structure2Graph
 def test_model(graph_MoS, activation, angle_dim, bond_dim, learn_basis, dropout):
     structure, graph, state = graph_MoS
     model = CHGNet(
-        element_types=["Mo", "S"], activation_type=activation,
+        element_types=["Mo", "S"],
+        activation_type=activation,
         bond_layer_hidden_dims=bond_dim,
         learn_basis=learn_basis,
         angle_layer_hidden_dims=angle_dim,
@@ -60,7 +61,7 @@ def test_prediction_validity(structure, request):
 
     assert torch.allclose(
         torch.unique(torch.round(swout, decimals=4), sorted=True),
-        torch.unique(torch.round(swout2, decimals=4), sorted=True)
+        torch.unique(torch.round(swout2, decimals=4), sorted=True),
     )
     assert torch.allclose(
         torch.unique(torch.round(swout, decimals=4), sorted=True),

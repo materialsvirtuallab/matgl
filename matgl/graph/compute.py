@@ -206,8 +206,10 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
     return lg
 
 
-def ensure_directed_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float) -> dgl.DGLGraph:
-    """ Ensure that line graph is compatible with graph.
+def ensure_directed_line_graph_compatibility(
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float
+) -> dgl.DGLGraph:
+    """Ensure that line graph is compatible with graph.
 
     Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
 
@@ -220,11 +222,13 @@ def ensure_directed_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dg
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
     edge_ids = valid_edges.nonzero().squeeze()
     line_graph.ndata["edge_ids"] = edge_ids
-    for key in graph.edata.keys():
+    for key in graph.edata:
         line_graph.edata[key] = graph.edata[key][edge_ids]
     src_indices, dst_indices = graph.edges()
     self_edge_ids = (src_indices[edge_ids] == dst_indices[edge_ids]).nonzero().squeeze()
-    line_graph.ndata["src_bond_sign"] = torch.ones((line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype)
+    line_graph.ndata["src_bond_sign"] = torch.ones(
+        (line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype
+    )
     line_graph.ndata["src_bond_sign"][self_edge_ids] = -line_graph.ndata["src_bond_sign"][self_edge_ids]
 
     return line_graph
