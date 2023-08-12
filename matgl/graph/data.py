@@ -204,7 +204,7 @@ class MEGNetDataset(DGLDataset):
             torch.save(self.state_attr, self.filename_state_attr)
 
     def load(self):
-        """Load dgl graphs and labels"""
+        """Load dgl graphs and labels."""
         self.graphs, label_dicts = load_graphs(self.filename)
         self.labels = torch.stack([label_dicts[key] for key in label_dicts], dim=1)
         self.state_attr = torch.load(self.filename_state_attr)
@@ -285,7 +285,7 @@ class M3GNetDataset(DGLDataset):
         super().__init__(name=name)
 
     def has_cache(self) -> bool:
-        """Check if the dgl_graph.bin exists or not"""
+        """Check if the dgl_graph.bin exists or not."""
         self.load_data = (
             os.path.exists(self.filename)
             and os.path.exists(self.filename_line_graph)
