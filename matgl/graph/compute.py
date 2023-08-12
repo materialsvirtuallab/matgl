@@ -46,7 +46,7 @@ def compute_3body(g: dgl.DGLGraph):
             ```
             """
             r = torch.arange(n)
-            x, y = torch.meshgrid(r, r)
+            x, y = torch.meshgrid(r, r, indexing="ij")
             c = torch.stack([y.ravel(), x.ravel()], dim=1)
             final = c[c[:, 0] != c[:, 1]]
             triple_bond_indices[start : start + (n * (n - 1)), :] = final + cs
