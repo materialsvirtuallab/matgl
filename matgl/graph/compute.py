@@ -21,13 +21,13 @@ def compute_3body(g: dgl.DGLGraph):
     """
     n_atoms = [g.num_nodes()]
     n_atoms_total = np.sum(g.num_nodes())
-    first_col = g.edges()[0].reshape(-1, 1)
-    all_indices = torch.arange(n_atoms_total).reshape(1, -1)
-    n_bond_per_atom = torch.count_nonzero(first_col == all_indices, dim=0)
+    first_col = g.edges()[0].cpu().numpy().reshape(-1, 1)
+    all_indices = np.arange(n_atoms_total).reshape(1, -1)
+    n_bond_per_atom = np.count_nonzero(first_col == all_indices, axis=0)
     n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
-    n_triple = torch.sum(n_triple_i)
-    n_triple_ij = (n_bond_per_atom - 1).repeat_interleave(n_bond_per_atom)
-    triple_bond_indices = torch.empty((n_triple, 2), dtype=torch.int64)  # type: ignore
+    n_triple = np.sum(n_triple_i)
+    n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
+    triple_bond_indices = np.empty((n_triple, 2), dtype=np.int32)  # type: ignore
 
     start = 0
     cs = 0
@@ -43,9 +43,9 @@ def compute_3body(g: dgl.DGLGraph):
                 triple_bond_indices[index] = [start + j, start + k]
             ```
             """
-            r = torch.arange(n)
-            x, y = torch.meshgrid(r, r)
-            c = torch.stack([y.ravel(), x.ravel()], dim=1)
+            r = np.arange(n)
+            x, y = np.meshgrid(r, r)
+            c = np.stack([y.ravel(), x.ravel()], axis=1)
             final = c[c[:, 0] != c[:, 1]]
             triple_bond_indices[start : start + (n * (n - 1)), :] = final + cs
             start += n * (n - 1)
@@ -55,13 +55,18 @@ def compute_3body(g: dgl.DGLGraph):
     i = 0
     for n in n_atoms:
         j = i + n
-        n_triple_s.append(torch.sum(n_triple_i[i:j]))
+        n_triple_s.append(np.sum(n_triple_i[i:j]))
         i = j
 
-    src_id, dst_id = (triple_bond_indices[:, 0], triple_bond_indices[:, 1])
+    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=torch.int64, device=g.device)
+    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=torch.int64, device=g.device)
     l_g = dgl.graph((src_id, dst_id))
-    three_body_id = torch.unique(triple_bond_indices)
-    max_three_body_id = max(torch.cat([three_body_id + 1, torch.tensor([0])]))
+    three_body_id = torch.unique(torch.concatenate(l_g.edges()))
+    n_triple_ij = torch.tensor(n_triple_ij, device=g.device, dtype=torch.int64)
+    if three_body_id.numel() > 0:
+        max_three_body_id = torch.max(three_body_id) + 1
+    else:
+        max_three_body_id = torch.tensor(0, dtype=torch.int64, device=g.device)
     l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
