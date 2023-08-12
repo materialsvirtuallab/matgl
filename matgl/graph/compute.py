@@ -44,7 +44,7 @@ def compute_3body(g: dgl.DGLGraph):
             ```
             """
             r = np.arange(n)
-            x, y = np.meshgrid(r, r)
+            x, y = np.meshgrid(r, r, indexing="ij")
             c = np.stack([y.ravel(), x.ravel()], axis=1)
             final = c[c[:, 0] != c[:, 1]]
             triple_bond_indices[start : start + (n * (n - 1)), :] = final + cs

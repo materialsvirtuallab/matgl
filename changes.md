@@ -6,6 +6,11 @@ nav_order: 3
 
 # Change Log
 
+## 0.8.2
+- Add site-wise predictions for Potential. (@lbluque)
+- Enable CLI tool to be used for multi-fidelity models. (@kenko911)
+- Minor fix for model version for DIRECT model.
+
 ## 0.8.1
 - Fixed bug with loading of models trained with GPUs.
 - Updated default model for relaxations to be the `M3GNet-MP-2021.2.8-DIRECT-PES model`.
