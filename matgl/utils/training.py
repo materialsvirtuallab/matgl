@@ -293,8 +293,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             data_mean = torch.zeros(1)
         if data_std is None:
             data_std = torch.ones(1)
-        self.data_mean = data_mean
-        self.data_std = data_std
+        self.register_buffer("data_mean", data_mean)
+        self.register_buffer("data_std", data_std)
+
         self.energy_weight = energy_weight
         self.force_weight = force_weight
         self.stress_weight = stress_weight
@@ -309,8 +310,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             element_refs=element_refs,
             calc_stresses=calc_stress,
             calc_site_wise=calc_site_wise,
-            data_std=data_std,
-            data_mean=data_mean,
+            data_std=self.data_std,
+            data_mean=self.data_mean,
         )
         if loss == "mse_loss":
             self.loss = F.mse_loss
