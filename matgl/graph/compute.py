@@ -195,7 +195,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
     # we need to store the sign of bond vector when a bond is a src node in the line
     # graph in order to appropriately calculate angles when self edges are involved
-    lg.ndata["src_bond_sign"] = torch.ones((lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype)
+    lg.ndata["src_bond_sign"] = torch.ones((lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device)
     # if we flip self edges then we need to correct computed angles by pi - angle
     # lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
     lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
@@ -223,7 +223,7 @@ def ensure_directed_line_graph_compatibility(
     src_indices, dst_indices = graph.edges()
     ns_edge_ids = (src_indices[edge_ids] != dst_indices[edge_ids]).nonzero().squeeze()
     line_graph.ndata["src_bond_sign"] = torch.ones(
-        (line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype
+        (line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype, device=line_graph.device
     )
     line_graph.ndata["src_bond_sign"][ns_edge_ids] = -line_graph.ndata["src_bond_sign"][ns_edge_ids]
 
