@@ -331,14 +331,14 @@ class CHGNet(nn.Module, IOMixIn):
 
         # readout
         if self.readout_field == "atom_feat":
-            graph.ndata["atomic_properties"] = self.final_layer(atom_features)
-            structure_properties = readout_nodes(graph, "atomic_properties", op=self.readout_operation)
+            graph.ndata["atom_feat"] = self.final_layer(atom_features)
+            structure_properties = readout_nodes(graph, "atom_feat", op=self.readout_operation)
         elif self.readout_field == "bond_feat":
-            graph.edata["bond_properties"] = self.final_layer(bond_features)
-            structure_properties = readout_edges(graph, "bond_properties", op=self.readout_operation)
+            graph.edata["bond_feat"] = self.final_layer(bond_features)
+            structure_properties = readout_edges(graph, "bond_feat", op=self.readout_operation)
         else:  # self.readout_field == "angle_feat":
-            bond_graph.edata["angle_properties"] = self.final_layer(angle_features)
-            structure_properties = readout_edges(bond_graph, "angle_properties", op=self.readout_operation)
+            bond_graph.edata["angle_feat"] = self.final_layer(angle_features)
+            structure_properties = readout_edges(bond_graph, "angle_feat", op=self.readout_operation)
 
         structure_properties = torch.squeeze(structure_properties)
         return structure_properties, site_properties
