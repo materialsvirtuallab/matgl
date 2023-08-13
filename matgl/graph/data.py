@@ -13,6 +13,9 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
+from monty.json import MontyEncoder, MontyDecoder
+
+
 from matgl.graph.compute import compute_pair_vector_and_distance, create_directed_line_graph, create_line_graph
 from matgl.layers import BondExpansion
 
@@ -45,6 +48,19 @@ def collate_fn_efs(batch):
     s = torch.vstack(stresses)
     state_attr = torch.stack(state_attr)
     return g, l_g, state_attr, e, f, s
+
+
+def collate_fn_efsm(batch):
+    """Merge a list of dgl graphs to form a batch."""
+    graphs, line_graphs, state_attr, energies, forces, stresses, site_wise = map(list, zip(*batch))
+    g = dgl.batch(graphs)
+    l_g = dgl.batch(line_graphs)
+    e = torch.tensor(energies, dtype=torch.float32)
+    f = torch.vstack(forces)
+    s = torch.vstack(stresses)
+    m = torch.vstack(site_wise)
+    state_attr = torch.stack(state_attr)
+    return g, l_g, state_attr, e, f, s, m
 
 
 def MGLDataLoader(
@@ -361,7 +377,7 @@ class CHGNetDataset(DGLDataset):
         converter: GraphConverter,
         threebody_cutoff: float,
         structures: list,
-        energies: list,
+        energies: list[float],
         forces: list | None = None,
         stresses: list | None = None,
         magmoms: list | None = None,
@@ -390,7 +406,7 @@ class CHGNetDataset(DGLDataset):
         self.energies = energies
         self.forces = np.zeros(len(self.structures)) if forces is None else forces
         self.stresses = np.zeros(len(self.structures)) if stresses is None else stresses
-        self.magmoms = np.zeros(len(self.structures)) if magmoms is None else magmoms
+        self.magmoms = magmoms
         self.labels = labels
         self.label_name = label_name
         self.graph_labels = graph_labels
@@ -457,8 +473,9 @@ class CHGNetDataset(DGLDataset):
         save_graphs(filename, self.graphs)
         save_graphs(filename_line_graph, self.line_graphs)
         torch.save(self.state_attr, filename_state_attr)
+        # TODO do not save labels as json. Save in save_graphs.
         with open("labels.json", "w") as file:
-            json.dump(labels_with_key, file)
+            json.dump(labels_with_key, file, cls=MontyEncoder)
 
     def load(
         self,
@@ -479,11 +496,12 @@ class CHGNetDataset(DGLDataset):
         self.graphs = load_graphs(filename)
         self.line_graphs = load_graphs(filename_line_graph)
         with open(filename_labels) as file:
-            labels: dict = json.load(file)
+            labels: dict = json.load(file, cls=MontyDecoder)
         if self.labels is None:
             self.energies = labels["energies"]
             self.forces = labels["forces"]
             self.stresses = labels["stresses"]
+            self.magmoms = labels["magmoms"]
             self.state_attr = torch.load("state_attr.pt")
         else:
             self.labels = labels  # type: ignore
@@ -491,15 +509,25 @@ class CHGNetDataset(DGLDataset):
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
         if self.labels is None:
-            return (
-                self.graphs[idx],
-                self.line_graphs[idx],
-                self.state_attr[idx],
-                self.energies[idx],  # type: ignore
-                torch.tensor(self.forces[idx]).float(),  # type: ignore
-                torch.tensor(self.stresses[idx]).float(),  # type: ignore
-                torch.tensor(self.magmoms[idx]).float(),  # type: ignore
-            )
+            if self.magmoms is not None:
+                return (
+                    self.graphs[idx],
+                    self.line_graphs[idx],
+                    self.state_attr[idx],
+                    self.energies[idx],  # type: ignore
+                    torch.tensor(self.forces[idx]).float(),  # type: ignore
+                    torch.tensor(self.stresses[idx]).float(),  # type: ignore
+                    torch.tensor(self.magmoms[idx]).float(),  # type: ignore
+                )
+            else:
+                return (
+                    self.graphs[idx],
+                    self.line_graphs[idx],
+                    self.state_attr[idx],
+                    self.energies[idx],  # type: ignore
+                    torch.tensor(self.forces[idx]).float(),  # type: ignore
+                    torch.tensor(self.stresses[idx]).float(),  # type: ignore
+                )
         return self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx]
 
     def __len__(self):
