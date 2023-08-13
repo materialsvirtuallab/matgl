@@ -106,7 +106,7 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     return angles
 
 
-def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True) -> dict[str, torch.Tensor]:
+def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True, eps=1e-7) -> dict[str, torch.Tensor]:
     """User defined dgl function to calculate bond angles from edges in a graph.
 
     Args:
@@ -115,6 +115,7 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool
         directed: Whether to the line graph was created with create directed line graph.
             In which case bonds (only those that are not self bonds) need to
             have their bond vectors flipped.
+        eps: eps value used to clamp cosine values to avoid acos of values > 1.0
 
     Returns:
         dict[str, torch.Tensor]: Dictionary containing bond angles and distances
@@ -123,8 +124,9 @@ def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool
     vec2 = edges.dst["bond_vec"]
     key = "cos_theta" if cosine else "theta"
     val = torch.sum(vec1 * vec2, dim=1) / (torch.norm(vec1, dim=1) * torch.norm(vec2, dim=1))
+    val = val.clamp_(min=-1 + eps, max=1 - eps)  # stability for floating point numbers > 1.0
     if not cosine:
-        val = torch.acos(val * (1 - 1e-7))  # stability for floating point numbers > 1.0
+        val = torch.acos(val)
     return {key: val, "triple_bond_lengths": edges.dst["bond_dist"]}
 
 
