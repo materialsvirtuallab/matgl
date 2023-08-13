@@ -115,7 +115,7 @@ class MEGNetDataset(DGLDataset):
         filename: str = "dgl_graph.bin",
         filename_state_attr: str = "state_attr.pt",
         structures: list | None = None,
-        labels: list | None = None,
+        labels: list[float] | None = None,
         label_name: str | None = None,
         converter: GraphConverter | None = None,
         initial: float = 0.0,
@@ -123,7 +123,7 @@ class MEGNetDataset(DGLDataset):
         num_centers: int = 100,
         width: float = 0.5,
         name: str = "MEGNETDataset",
-        graph_labels: list | None = None,
+        graph_labels: list[int | float] | None = None,
     ):
         """
         Args:
@@ -167,7 +167,7 @@ class MEGNetDataset(DGLDataset):
     def process(self):
         """Convert Pymatgen structure into dgl graphs."""
         if self.load_data is False:
-            num_graphs = self.labels.shape[0]  # type: ignore
+            num_graphs = self.labels.shape[0]
             graphs = []
             state_attrs = []
             bond_expansion = BondExpansion(
@@ -186,11 +186,11 @@ class MEGNetDataset(DGLDataset):
                 state_attrs.append(state_attr)
             if self.graph_labels is not None:
                 if np.array(self.graph_labels).dtype == "int64":
-                    state_attrs = torch.tensor(self.graph_labels).long()  # type: ignore
+                    state_attrs = torch.tensor(self.graph_labels).long()
                 else:
-                    state_attrs = torch.tensor(self.graph_labels)  # type: ignore
+                    state_attrs = torch.tensor(self.graph_labels)
             else:
-                state_attrs = torch.tensor(state_attrs)  # type: ignore
+                state_attrs = torch.tensor(state_attrs)
             self.graphs = graphs
             self.state_attr = state_attrs
             return self.graphs, self.state_attr
@@ -232,13 +232,13 @@ class M3GNetDataset(DGLDataset):
         converter: GraphConverter | None = None,
         threebody_cutoff: float | None = None,
         structures: list | None = None,
-        energies: list | None = None,
-        forces: list | None = None,
-        stresses: list | None = None,
-        labels: list | None = None,
+        energies: list[float] | None = None,
+        forces: list[list[float]] | None = None,
+        stresses: list[list[float]] | None = None,
+        labels: list[float] | None = None,
         name="M3GNETDataset",
         label_name: str | None = None,
-        graph_labels: list | None = None,
+        graph_labels: list[int | float] | None = None,
     ):
         """
         Args:
@@ -313,9 +313,9 @@ class M3GNetDataset(DGLDataset):
                     line_graph.ndata.pop(name)
                 line_graphs.append(line_graph)
             if self.graph_labels is not None:
-                state_attrs = torch.tensor(self.graph_labels).long()  # type: ignore
+                state_attrs = torch.tensor(self.graph_labels).long()
             else:
-                state_attrs = torch.tensor(state_attrs)  # type: ignore
+                state_attrs = torch.tensor(state_attrs)
 
             self.graphs = graphs
             self.line_graphs = line_graphs
@@ -337,7 +337,7 @@ class M3GNetDataset(DGLDataset):
                 with open(self.filename_stresses, "w") as f:
                     json.dump(labels_with_key["stresses"], f)
             else:
-                labels_with_key = {self.label_name: torch.tensor(self.labels)}  # type: ignore
+                labels_with_key = {self.label_name: torch.tensor(self.labels)}
                 save_graphs(self.filename, self.graphs, labels_with_key)
             save_graphs(self.filename_line_graph, self.line_graphs)
             torch.save(self.state_attr, self.filename_state_attr)
@@ -365,8 +365,8 @@ class M3GNetDataset(DGLDataset):
                 self.graphs[idx],
                 self.line_graphs[idx],
                 self.state_attr[idx],
-                self.energies[idx],  # type: ignore
-                torch.tensor(self.forces[idx]).float(),  # type: ignore
+                self.energies[idx],
+                torch.tensor(self.forces[idx]).float(),
                 torch.tensor(self.stresses[idx]).float(),  # type: ignore
             )
         return (self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx])
