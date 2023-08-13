@@ -204,7 +204,6 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             Model prediction.
         """
-        self.model = self.model.to(g.device)
         if isinstance(self.model, M3GNet):
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
 
@@ -225,9 +224,6 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         else:
             g, labels, state_attr = batch
             preds = self(g=g, state_attr=state_attr)
-        preds = preds.to(g.device)
-        self.data_mean = self.data_mean.to(g.device)
-        self.data_std = self.data_std.to(g.device)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size
@@ -301,8 +297,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
-        self.data_mean = torch.tensor(data_mean)
-        self.data_std = torch.tensor(data_std)
+        self.register_buffer("data_mean", torch.tensor(data_mean))
+        self.register_buffer("data_std", torch.tensor(data_std))
+
         self.energy_weight = energy_weight
         self.force_weight = force_weight
         self.stress_weight = stress_weight
@@ -317,8 +314,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             element_refs=element_refs,
             calc_stresses=calc_stress,
             calc_site_wise=calc_site_wise,
-            data_std=data_std,
-            data_mean=data_mean,
+            data_std=self.data_std,
+            data_mean=self.data_mean,
         )
         if loss == "mse_loss":
             self.loss = F.mse_loss
@@ -338,7 +335,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             energy, force, stress, h
         """
-        self.model = self.model.to(g.device)
         if self.model.calc_site_wise:
             e, f, s, h, m = self.model(g=g, l_g=l_g, state_attr=state_attr)
             return e, f.float(), s, h, m
