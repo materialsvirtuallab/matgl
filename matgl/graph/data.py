@@ -13,7 +13,7 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
-from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph, create_directed_line_graph
+from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph#, create_directed_line_graph
 from matgl.layers import BondExpansion
 
 if TYPE_CHECKING:
@@ -443,7 +443,7 @@ class CHGNetDataset(DGLDataset):
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["bond_vec"] = bond_vec
             graph.edata["bond_dist"] = bond_dist
-            line_graph = create_directed_line_graph(graph, self.threebody_cutoff)
+            line_graph = create_line_graph(graph, self.threebody_cutoff)
             line_graphs.append(line_graph)
 
         if self.graph_labels is not None:
@@ -497,8 +497,8 @@ class CHGNetDataset(DGLDataset):
             filename_line_graph: Name of file storing dgl line graphs
             filename_state_attr: Name of file storing state attrs.
         """
-        self.graphs = load_graphs(filename)
-        self.line_graphs = load_graphs(filename_line_graph)
+        self.graphs, _ = load_graphs(filename)
+        self.line_graphs, _ = load_graphs(filename_line_graph)
         with open("labels.json") as file:
             labels: dict = json.load(file)
         if self.labels is None:
