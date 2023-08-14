@@ -13,14 +13,12 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
-from monty.json import MontyEncoder, MontyDecoder
-
-
 from matgl.graph.compute import compute_pair_vector_and_distance, create_directed_line_graph, create_line_graph
 from matgl.layers import BondExpansion
 
 if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
+    from numpy.typing import ArrayLike
 
 
 def collate_fn(batch, include_line_graph: bool = False):
@@ -397,17 +395,23 @@ class CHGNetDataset(DGLDataset):
 
     def __init__(
         self,
-        converter: GraphConverter,
-        threebody_cutoff: float,
-        structures: list,
-        energies: list[float],
-        forces: list | None = None,
-        stresses: list | None = None,
-        magmoms: list | None = None,
+        converter: GraphConverter | None = None,
+        threebody_cutoff: float | None = None,
+        structures: list | None = None,
+        energies: list[float] | None = None,
+        forces: list[ArrayLike[float]] | None = None,
+        stresses: list[ArrayLike[float]] | None = None,
+        magmoms: list[ArrayLike[float]] | None = None,
         labels: list | None = None,
         label_name: str | None = None,
-        graph_labels: list | None = None,
-        name: str = "CHGNETDataset",
+        graph_labels: list[int | float] | None = None,
+        name="CHGNETDataset",
+        raw_dir: str | None = None,
+        save_dir: str | None = None,
+        filename_graphs: str = "dgl_graph.bin",
+        filename_line_graphs: str = "dgl_line_graph.bin",
+        filename_labels: str = "labels.json",
+        filename_state_attr: str = "state_attr.pt",
     ):
         """
         Args:
@@ -419,32 +423,44 @@ class CHGNetDataset(DGLDataset):
             stresses: Target stresses
             magmoms: Target magmoms
             labels: target properties
-            name: name of dataset
             label_name: name of target properties
             graph_labels: state attributes.
+            name: name of dataset
+            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
+                stores the input data. Default: ~/.dgl/
+            save_dir : directory to save the processed dataset. Default: same as raw_dir
+            filename_graphs: filename of dgl graphs
+            filename_line_graphs: filename of dgl line graphs
+            filename_labels: filename of target labels file
+            filename_state_attr: filename of state attributes
         """
         self.converter = converter
         self.threebody_cutoff = threebody_cutoff
         self.structures = structures
         self.energies = energies
-        self.forces = np.zeros(len(self.structures)) if forces is None else forces
-        self.stresses = np.zeros(len(self.structures)) if stresses is None else stresses
-        self.magmoms = magmoms
-        self.labels = labels
+        self.energies = energies.tolist() if isinstance(energies, np.ndarray) else energies
+        self.forces = forces.tolist() if isinstance(forces, np.ndarray) else forces
+        self.stresses = stresses.tolist() if isinstance(stresses, np.ndarray) else stresses
+        self.magmoms = magmoms.tolist() if isinstance(magmoms, np.ndarray) else magmoms
+        self.labels = labels.tolist() if isinstance(labels, np.ndarray) else labels
         self.label_name = label_name
         self.graph_labels = graph_labels
         self.graphs = None
         self.line_graphs = None
         self.state_attr = None
-        super().__init__(name=name)
+        self.filename_graphs = filename_graphs
+        self.filename_line_graphs = filename_line_graphs
+        self.filename_state_attr = filename_state_attr
+        self.filename_labels = filename_labels
+        super().__init__(name=name, raw_dir=raw_dir, save_dir=save_dir)
 
-    def has_cache(self, filename: str = "dgl_graph.bin") -> bool:
+    def has_cache(self) -> bool:
         """Check if the dgl_graph.bin exists or not
         Args:
             :filename: Name of file storing dgl graphs
         Returns: True if file exists.
         """
-        return os.path.exists(filename)
+        return os.path.exists(os.path.join(self.save_path, self.filename_graphs))
 
     def process(self) -> tuple:
         """Convert Pymatgen structure into dgl graphs."""
@@ -473,17 +489,17 @@ class CHGNetDataset(DGLDataset):
 
         return self.graphs, self.line_graphs, self.state_attr
 
-    def save(
-        self,
-        filename: str = "dgl_graph.bin",
-        filename_line_graph: str = "dgl_line_graph.bin",
-        filename_state_attr: str = "state_attr.pt",
-    ):
-        """Save dgl graphs
-        Args:
-        :filename: Name of file storing dgl graphs
-        :filename_state_attr: Name of file storing graph attrs.
+    def save(self):
+        """Save dgl graphs and labels.
         """
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
+
+        filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
+        filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
+        filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
+        filepath_labels = os.path.join(self.save_path, self.filename_labels)
+
         if self.labels is None:
             labels_with_key = {
                 "energies": self.energies,
@@ -491,22 +507,19 @@ class CHGNetDataset(DGLDataset):
                 "stresses": self.stresses,
                 "magmoms": self.magmoms,
             }
+            # save labels separately since save_graphs only supports tensors
+            # and force/stress/magmom labels are of different shapes depending on the graph
+            with open(filepath_labels, "w") as file:
+                json.dump(labels_with_key, file)
+            save_graphs(filepath_graphs, self.graphs)
         else:
-            labels_with_key = {self.label_name: self.labels}  # type: ignore
-        save_graphs(filename, self.graphs)
-        save_graphs(filename_line_graph, self.line_graphs)
-        torch.save(self.state_attr, filename_state_attr)
-        # TODO do not save labels as json. Save in save_graphs.
-        with open("labels.json", "w") as file:
-            json.dump(labels_with_key, file, cls=MontyEncoder)
+            labels_with_key = {self.label_name: torch.tensor(self.labels)}  # type: ignore
+            save_graphs(filepath_graphs, self.graphs, labels_with_key)
 
-    def load(
-        self,
-        filename: str = "dgl_graph.bin",
-        filename_line_graph: str = "dgl_line_graph.bin",
-        filename_state_attr: str = "state_attr.pt",
-        filename_labels: str = "labels.json",
-    ):
+        save_graphs(filepath_line_graphs, self.line_graphs)
+        torch.save(self.state_attr, filepath_state_attr)
+
+    def load(self):
         """
         Load dgl graphs from files.
 
@@ -514,43 +527,39 @@ class CHGNetDataset(DGLDataset):
             filename: Name of file storing dgl graphs
             filename_line_graph: Name of file storing dgl line graphs
             filename_state_attr: Name of file storing state attrs.
-            filename_labels: Name of file storing labels.
         """
-        self.graphs = load_graphs(filename)
-        self.line_graphs = load_graphs(filename_line_graph)
-        with open(filename_labels) as file:
-            labels: dict = json.load(file, cls=MontyDecoder)
-        if self.labels is None:
+        filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
+        filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
+        filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
+        filepath_labels = os.path.join(self.save_path, self.filename_labels)
+
+
+        self.graphs, labels = load_graphs(filepath_graphs)
+        self.line_graphs, _ = load_graphs(filepath_line_graphs)
+        self.state_attr = torch.load(filepath_state_attr)
+
+        if len(labels) == 0:
+            with open(filepath_labels, "r") as file:
+                labels = json.load(file)
             self.energies = labels["energies"]
             self.forces = labels["forces"]
             self.stresses = labels["stresses"]
             self.magmoms = labels["magmoms"]
-            self.state_attr = torch.load("state_attr.pt")
         else:
-            self.labels = labels  # type: ignore
+            self.labels = torch.stack([labels[key] for key in label_dicts], dim=1)  # type: ignore
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
         if self.labels is None:
-            if self.magmoms is not None:
-                return (
-                    self.graphs[idx],
-                    self.line_graphs[idx],
-                    self.state_attr[idx],
-                    self.energies[idx],  # type: ignore
-                    torch.tensor(self.forces[idx]).float(),  # type: ignore
-                    torch.tensor(self.stresses[idx]).float(),  # type: ignore
-                    torch.tensor(self.magmoms[idx]).float(),  # type: ignore
-                )
-            else:
-                return (
-                    self.graphs[idx],
-                    self.line_graphs[idx],
-                    self.state_attr[idx],
-                    self.energies[idx],  # type: ignore
-                    torch.tensor(self.forces[idx]).float(),  # type: ignore
-                    torch.tensor(self.stresses[idx]).float(),  # type: ignore
-                )
+            return (
+                self.graphs[idx],
+                self.line_graphs[idx],
+                self.state_attr[idx],
+                self.energies[idx],  # type: ignore
+                torch.tensor(self.forces[idx]).float(),  # type: ignore
+                torch.tensor(self.stresses[idx]).float(),  # type: ignore
+                torch.tensor(self.magmoms[idx]).float(),  # type: ignore
+            )
         return self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx]
 
     def __len__(self):

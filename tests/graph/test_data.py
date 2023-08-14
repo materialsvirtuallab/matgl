@@ -13,6 +13,7 @@ from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.data import (
     M3GNetDataset,
     MEGNetDataset,
+    CHGNetDataset,
     MGLDataLoader,
     collate_fn,
 )
@@ -88,8 +89,8 @@ class TestDataset:
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
-        assert np.shape(forces_g1)[0], 28
-        assert np.shape(forces_g2)[0], 10
+        assert np.shape(forces_g1)[0] == 28
+        assert np.shape(forces_g2)[0] == 10
 
     def test_load_m3gnet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
@@ -106,8 +107,8 @@ class TestDataset:
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
-        assert np.shape(forces_g1)[0], 28
-        assert np.shape(forces_g2)[0], 10
+        assert np.shape(forces_g1)[0] == 28
+        assert np.shape(forces_g2)[0] == 10
         os.remove("dgl_graph.bin")
         os.remove("dgl_line_graph.bin")
         os.remove("state_attr.pt")
@@ -294,3 +295,89 @@ class TestDataset:
                 os.remove(fn)
             except FileNotFoundError:
                 pass
+
+
+def test_chgnet_dataset(LiFePO4, BaNiO3, tmpdir):
+    structures = [LiFePO4, BaNiO3]
+    energies = [-1.0, 2.0]
+    forces = [np.zeros((28, 3)).tolist(), np.zeros((10, 3)).tolist()]
+    stresses = [np.zeros((3, 3)).tolist(), np.zeros((3, 3)).tolist()]
+    magmoms = [np.zeros((28, 1)).tolist(), np.zeros((10, 1)).tolist()]
+    element_types = get_element_list(structures)
+    cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+    dataset = CHGNetDataset(
+        structures=structures,
+        converter=cry_graph,
+        threebody_cutoff=4.0,
+        energies=energies,
+        forces=forces,
+        stresses=stresses,
+        magmoms=magmoms,
+        save_dir=tmpdir,
+    )
+    g1, l_g1, state1, energies_g1, forces_g1, stresses_g1, magmoms_g1 = dataset[0]
+    g2, l_g2, state2, energies_g2, forces_g2, stresses_g2, magmoms_g2 = dataset[1]
+    assert energies_g1 == energies[0]
+    assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
+    assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
+    assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
+    assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+    assert np.shape(forces_g1)[0] == 28
+    assert np.shape(forces_g2)[0] == 10
+    assert np.shape(magmoms_g1)[0] == 28
+    assert np.shape(magmoms_g2)[0] == 10
+
+    loaded_dataset = CHGNetDataset(save_dir=tmpdir)
+    g1, l_g1, state1, energies_g1, forces_g1, stresses_g1, magmoms_g1 = loaded_dataset[0]
+    g2, l_g2, state2, energies_g2, forces_g2, stresses_g2, magmoms_g2 = loaded_dataset[1]
+    assert energies_g1 == energies[0]
+    assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
+    assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
+    assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
+    assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+    assert np.shape(forces_g1)[0] == 28
+    assert np.shape(forces_g2)[0] == 10
+    assert np.shape(magmoms_g1)[0] == 28
+    assert np.shape(magmoms_g2)[0] == 10
+
+
+def test_chgnet_dataloader(LiFePO4, BaNiO3, tmpdir):
+    structures = [LiFePO4, BaNiO3] * 10
+    energies = np.zeros(20).tolist()
+    f1 = np.zeros((28, 3)).tolist()
+    f2 = np.zeros((10, 3)).tolist()
+    s = np.zeros((3, 3)).tolist()
+    m = [np.zeros((28, 1)).tolist(), np.zeros((10, 1)).tolist()]
+    forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
+    stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
+    magmoms = 10 * m
+    element_types = get_element_list([LiFePO4, BaNiO3])
+    cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+    print(structures)
+    dataset = CHGNetDataset(
+        structures=structures,
+        converter=cry_graph,
+        threebody_cutoff=4.0,
+        energies=energies,
+        forces=forces,
+        stresses=stresses,
+        magmoms=magmoms,
+        save_dir=tmpdir
+    )
+    train_data, val_data, test_data = split_dataset(
+        dataset,
+        frac_list=[0.8, 0.1, 0.1],
+        shuffle=True,
+        random_state=42,
+    )
+    train_loader, val_loader, test_loader = MGLDataLoader(
+        train_data=train_data,
+        val_data=val_data,
+        test_data=test_data,
+        collate_fn=collate_fn,
+        batch_size=2,
+        num_workers=1,
+    )
+    assert len(train_loader) == 8
+    assert len(val_loader) == 1
+    assert len(test_loader) == 1
