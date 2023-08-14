@@ -119,7 +119,6 @@ class TestModelTrainer:
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-        model = model.to(torch.device(device))
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
@@ -167,7 +166,6 @@ class TestModelTrainer:
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-        model = model.to(torch.device(device))
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
