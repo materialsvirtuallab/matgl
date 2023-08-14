@@ -52,6 +52,9 @@ def test_prediction_validity(structure, request):
     out1, swout1 = model(g1)
     out2, swout2 = model(g2)
 
+    assert not torch.allclose(out, out1)
+    assert not torch.allclose(out, out2)
+
     assert torch.allclose(out / g.num_nodes(), out1 / g1.num_nodes())
     assert torch.allclose(out / g.num_nodes(), out2 / g2.num_nodes())
 
