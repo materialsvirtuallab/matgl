@@ -425,10 +425,11 @@ class CHGNetDataset(DGLDataset):
         self.threebody_cutoff = threebody_cutoff
         self.structures = structures
         self.energies = energies
-        self.forces = np.zeros(len(self.structures)) if forces is None else forces
-        self.stresses = np.zeros(len(self.structures)) if stresses is None else stresses
-        self.magmoms = np.zeros(len(self.structures)) if magmoms is None else magmoms
-        self.labels = labels
+        self.energies = energies.tolist() if isinstance(energies, np.ndarray) else energies
+        self.forces = forces.tolist() if isinstance(forces, np.ndarray) else forces
+        self.stresses = stresses.tolist() if isinstance(stresses, np.ndarray) else stresses
+        self.magmoms = magmoms.tolist() if isinstance(magmoms, np.ndarray) else magmoms
+        self.labels = labels.tolist() if isinstance(labels, np.ndarray) else labels
         self.label_name = label_name
         self.graph_labels = graph_labels
         self.graphs = None
@@ -530,6 +531,7 @@ class CHGNetDataset(DGLDataset):
             self.energies = labels["energies"]
             self.forces = labels["forces"]
             self.stresses = labels["stresses"]
+            self.magmoms = labels["magmoms"]
         else:
             self.labels = torch.stack([labels[key] for key in label_dicts], dim=1)  # type: ignore
 
