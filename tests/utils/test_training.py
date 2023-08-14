@@ -77,6 +77,8 @@ class TestModelTrainer:
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
+        os.remove("dgl_graph.bin")
+        os.remove("state_attr.pt")
 
     def test_m3gnet_training(self, LiFePO4, BaNiO3):
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
@@ -124,6 +126,9 @@ class TestModelTrainer:
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
+        os.remove("dgl_graph.bin")
+        os.remove("dgl_line_graph.bin")
+        os.remove("state_attr.pt")
 
     def test_m3gnet_property_training(self, LiFePO4, BaNiO3):
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
@@ -173,10 +178,20 @@ class TestModelTrainer:
         results = trainer.predict(model=lit_model, dataloaders=test_loader)
 
         assert "MAE" in results[0][0]
+        os.remove("dgl_graph.bin")
+        os.remove("dgl_line_graph.bin")
+        os.remove("state_attr.pt")
 
     @classmethod
     def teardown_class(cls):
-        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
+        for fn in (
+            "dgl_graph.bin",
+            "dgl_line_graph.bin",
+            "state_attr.pt",
+            "energies.json",
+            "forces.json",
+            "stresses.json",
+        ):
             try:
                 os.remove(fn)
             except FileNotFoundError:

@@ -65,6 +65,8 @@ ignore = [
   "D105",    # Missing docstring in magic method
   "D205",    # 1 blank line required between summary line and description
   "D212",    # Multi-line docstring summary should start at the first line
+  "PD901",   # df-bad-var-name
+  "PERF203", # try-except-in-loop
   "PLR",     # pylint refactor
   "PLW0603", # Using the global statement to update variables is discouraged
   "PLW2901", # redefined-loop-name
@@ -96,7 +98,7 @@ module = ["requests.*", "tabulate.*"]
 ignore_missing_imports = true
 
 [tool.codespell]
-ignore-words-list = "mater,te,nd"
+ignore-words-list = "mater,te,nd,bu"
 check-filenames = true
 
 [tool.coverage.run]
@@ -106,16 +108,16 @@ relative_files = true
 exclude_lines = [
   "@deprecated",
   "def __repr__",
+  "except PackageNotFoundError:",
   "if 0:",
+  "if TYPE_CHECKING:",
   "if __name__ == .__main__.:",
   "if self.debug:",
   "if settings.DEBUG",
+  "input",
+  "logging.basicConfig",
   "pragma: no cover",
   "raise AssertionError",
   "raise NotImplementedError",
-  "input",
-  "if TYPE_CHECKING:",
-  "except PackageNotFoundError:",
   "raise RuntimeError",
-  "logging.basicConfig"
 ]

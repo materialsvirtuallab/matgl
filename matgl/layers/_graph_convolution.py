@@ -92,46 +92,46 @@ class MEGNetGraphConv(Module):
         graph.ndata["v"] = self.node_func(inputs)
         return graph.ndata["v"]
 
-    def state_update_(self, graph: dgl.DGLGraph, state_attrs: Tensor) -> Tensor:
+    def state_update_(self, graph: dgl.DGLGraph, state_feat: Tensor) -> Tensor:
         """Perform attribute (global state) update.
 
         :param graph: Input graph
-        :param state_attrs: Input attributes
+        :param state_feat: Input attributes
         :return: Output tensor for attributes
         """
         u_edge = dgl.readout_edges(graph, feat="e", op="mean")
         u_vertex = dgl.readout_nodes(graph, feat="v", op="mean")
         u_edge = torch.squeeze(u_edge)
         u_vertex = torch.squeeze(u_vertex)
-        inputs = torch.hstack([state_attrs.squeeze(), u_edge, u_vertex])
-        state_attr = self.state_func(inputs)
-        return state_attr
+        inputs = torch.hstack([state_feat.squeeze(), u_edge, u_vertex])
+        state_feat = self.state_func(inputs)
+        return state_feat
 
     def forward(
         self,
         graph: dgl.DGLGraph,
         edge_feat: Tensor,
         node_feat: Tensor,
-        state_attr: Tensor,
+        state_feat: Tensor,
     ) -> tuple[Tensor, Tensor, Tensor]:
         """Perform sequence of edge->node->attribute updates.
 
         :param graph: Input graph
         :param edge_feat: Edge features
         :param node_feat: Node features
-        :param state_attr: Graph attributes (global state)
+        :param state_feat: Graph attributes (global state)
         :return: (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
-            graph.ndata["u"] = dgl.broadcast_nodes(graph, state_attr)
+            graph.ndata["u"] = dgl.broadcast_nodes(graph, state_feat)
 
             edge_feat = self.edge_update_(graph)
             node_feat = self.node_update_(graph)
-            state_attr = self.state_update_(graph, state_attr)
+            state_feat = self.state_update_(graph, state_feat)
 
-        return edge_feat, node_feat, state_attr
+        return edge_feat, node_feat, state_feat
 
 
 class MEGNetBlock(Module):
@@ -187,7 +187,7 @@ class MEGNetBlock(Module):
         graph: dgl.DGLGraph,
         edge_feat: Tensor,
         node_feat: Tensor,
-        state_attr: Tensor,
+        state_feat: Tensor,
     ) -> tuple[Tensor, Tensor, Tensor]:
         """MEGNetBlock forward pass.
 
@@ -195,30 +195,30 @@ class MEGNetBlock(Module):
             graph (dgl.DGLGraph): A DGLGraph.
             edge_feat (Tensor): Edge features.
             node_feat (Tensor): Node features.
-            state_attr (Tensor): Graph attributes (global state).
+            state_feat (Tensor): Graph attributes (global state).
 
         Returns:
             tuple[Tensor, Tensor, Tensor]: Updated (edge features,
                 node features, graph attributes)
         """
-        inputs = (edge_feat, node_feat, state_attr)
+        inputs = (edge_feat, node_feat, state_feat)
         edge_feat = self.edge_func(edge_feat)
         node_feat = self.node_func(node_feat)
-        state_attr = self.state_func(state_attr)
+        state_feat = self.state_func(state_feat)
 
-        edge_feat, node_feat, state_attr = self.conv(graph, edge_feat, node_feat, state_attr)
+        edge_feat, node_feat, state_feat = self.conv(graph, edge_feat, node_feat, state_feat)
 
         if self.dropout:
             edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102
             node_feat = self.dropout(node_feat)  # pylint: disable=E1102
-            state_attr = self.dropout(state_attr)  # pylint: disable=E1102
+            state_feat = self.dropout(state_feat)  # pylint: disable=E1102
 
         if self.skip:
             edge_feat = edge_feat + inputs[0]
             node_feat = node_feat + inputs[1]
-            state_attr = state_attr + inputs[2]
+            state_feat = state_feat + inputs[2]
 
-        return edge_feat, node_feat, state_attr
+        return edge_feat, node_feat, state_feat
 
 
 class M3GNetGraphConv(Module):
@@ -314,12 +314,12 @@ class M3GNetGraphConv(Module):
         edge_update = graph.edata.pop("mij")
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, state_attr: Tensor) -> Tensor:
+    def node_update_(self, graph: dgl.DGLGraph, state_feat: Tensor) -> Tensor:
         """Perform node update.
 
         Args:
             graph: DGL graph
-            state_attr: State attributes
+            state_feat: State attributes
 
         Returns:
             node_update: node features update
@@ -332,7 +332,7 @@ class M3GNetGraphConv(Module):
         rbf = graph.edata["rbf"]
         rbf = rbf.float()
         if self.include_states:
-            u = dgl.broadcast_edges(graph, state_attr)
+            u = dgl.broadcast_edges(graph, state_feat)
             inputs = torch.hstack([vi, vj, eij, u])
         else:
             inputs = torch.hstack([vi, vj, eij])
@@ -341,51 +341,51 @@ class M3GNetGraphConv(Module):
         node_update = graph.ndata.pop("ve")
         return node_update
 
-    def state_update_(self, graph: dgl.DGLGraph, state_attrs: Tensor) -> Tensor:
+    def state_update_(self, graph: dgl.DGLGraph, state_feat: Tensor) -> Tensor:
         """Perform attribute (global state) update.
 
         Args:
             graph: DGL graph
-            state_attrs: graph features
+            state_feat: graph features
 
         Returns:
         state_update: state_features update
         """
-        u = state_attrs
+        u = state_feat
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
         inputs = torch.hstack([u, uv])
-        state_attr = self.state_update_func(inputs)  # type: ignore
-        return state_attr
+        state_feat = self.state_update_func(inputs)  # type: ignore
+        return state_feat
 
     def forward(
         self,
         graph: dgl.DGLGraph,
         edge_feat: Tensor,
         node_feat: Tensor,
-        state_attr: Tensor,
+        state_feat: Tensor,
     ) -> tuple[Tensor, Tensor, Tensor]:
         """Perform sequence of edge->node->states updates.
 
         :param graph: Input graph
         :param edge_feat: Edge features
         :param node_feat: Node features
-        :param state_attr: Graph attributes (global state)
+        :param state_feat: Graph attributes (global state)
         :return: (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
             if self.include_states:
-                graph.ndata["u"] = dgl.broadcast_nodes(graph, state_attr)
+                graph.ndata["u"] = dgl.broadcast_nodes(graph, state_feat)
 
             edge_update = self.edge_update_(graph)
             graph.edata["e"] = edge_feat + edge_update
-            node_update = self.node_update_(graph, state_attr)
+            node_update = self.node_update_(graph, state_feat)
             graph.ndata["v"] = node_feat + node_update
             if self.include_states:
-                state_attr = self.state_update_(graph, state_attr)
+                state_feat = self.state_update_(graph, state_feat)
 
-        return edge_feat + edge_update, node_feat + node_update, state_attr
+        return edge_feat + edge_update, node_feat + node_update, state_feat
 
 
 class M3GNetBlock(Module):
@@ -403,6 +403,8 @@ class M3GNetBlock(Module):
         dropout: float | None = None,
     ) -> None:
         """:param degree: Dimension of radial basis functions
+        :param degree: Number of radial basis functions
+        :param activation: activation
         :param num_node_feats: Number of node features
         :param num_edge_feats: Number of edge features
         :param num_state_feats: Number of state features
@@ -452,7 +454,7 @@ class M3GNetBlock(Module):
         """:param graph: DGL graph
         :param edge_feat: Edge features
         :param node_feat: Node features
-        :param state_attr: State features
+        :param state_feat: State features
         :return: A tuple of updated features
         """
         edge_feat, node_feat, state_feat = self.conv(graph, edge_feat, node_feat, state_feat)

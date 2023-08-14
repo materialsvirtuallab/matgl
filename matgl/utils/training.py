@@ -40,6 +40,7 @@ class MatglLightningModuleMixin:
             on_epoch=True,
             on_step=False,
             prog_bar=True,
+            sync_dist=self.sync_dist,  # type: ignore
         )
 
         return results["Total_Loss"]
@@ -63,6 +64,7 @@ class MatglLightningModuleMixin:
             on_epoch=True,
             on_step=False,
             prog_bar=True,
+            sync_dist=self.sync_dist,  # type: ignore
         )
         return results["Total_Loss"]
 
@@ -81,6 +83,7 @@ class MatglLightningModuleMixin:
             on_epoch=True,
             on_step=False,
             prog_bar=True,
+            sync_dist=self.sync_dist,  # type: ignore
         )
         return results
 
@@ -149,6 +152,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        sync_dist: bool = False,
         **kwargs,
     ):
         """
@@ -164,6 +168,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
+            sync_dist: whether sync logging across all GPU workers or not
             **kwargs: Passthrough to parent init.
         """
         super().__init__(**kwargs)
@@ -187,6 +192,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             self.loss = F.l1_loss
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.sync_dist = sync_dist
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
@@ -253,8 +259,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         force_weight: float = 1.0,
         stress_weight: float | None = None,
         site_wise_weight: float | None = None,
-        data_mean=None,
-        data_std=None,
+        data_mean: float = 0.0,
+        data_std: float = 1.0,
         calc_stress: bool = False,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
@@ -262,6 +268,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        sync_dist: bool = False,
         **kwargs,
     ):
         """
@@ -283,18 +290,15 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
+            sync_dist: whether sync logging across all GPU workers or not
             **kwargs: Passthrough to parent init.
         """
         super().__init__(**kwargs)
 
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
-        if data_mean is None:
-            data_mean = torch.zeros(1)
-        if data_std is None:
-            data_std = torch.ones(1)
-        self.register_buffer("data_mean", data_mean)
-        self.register_buffer("data_std", data_std)
+        self.register_buffer("data_mean", torch.tensor(data_mean))
+        self.register_buffer("data_std", torch.tensor(data_std))
 
         self.energy_weight = energy_weight
         self.force_weight = force_weight
@@ -319,6 +323,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             self.loss = F.l1_loss
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.sync_dist = sync_dist
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):

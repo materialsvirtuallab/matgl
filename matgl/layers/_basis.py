@@ -56,7 +56,7 @@ class GaussianExpansion(nn.Module):
         return torch.exp(-self.width * (diff**2))
 
 
-class SphericalBesselFunction:
+class SphericalBesselFunction(nn.Module):
     """Calculate the spherical Bessel function based on sympy + pytorch implementations."""
 
     def __init__(self, max_l: int, max_n: int = 5, cutoff: float = 5.0, smooth: bool = False):
@@ -66,6 +66,7 @@ class SphericalBesselFunction:
         cutoff: float, cutoff radius
         smooth: Whether to smooth the function.
         """
+        super().__init__()
         self.max_l = max_l
         self.max_n = max_n
         self.cutoff = torch.tensor(cutoff)
@@ -91,7 +92,7 @@ class SphericalBesselFunction:
     def _calculate_smooth_symbolic_funcs(self) -> list:
         return _get_lambda_func(max_n=self.max_n, cutoff=self.cutoff)
 
-    def __call__(self, r: torch.Tensor) -> torch.Tensor:
+    def forward(self, r: torch.Tensor) -> torch.Tensor:
         """Args:
             r: torch.Tensor, distance tensor, 1D.
 
@@ -108,13 +109,14 @@ class SphericalBesselFunction:
 
     def _call_sbf(self, r):
         r_c = r.clone()
-        r_c[r_c > self.cutoff] = self.cutoff
-        roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n]
+        self.cutoff = self.cutoff.to(r_c.device)
+        r_c[r_c > self.cutoff] = self.cutoff.to(r_c.device)
+        roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n].to(r_c.device)
 
         results = []
         factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
         for i in range(self.max_l):
-            root = roots[i].clone().detach()
+            root = torch.tensor(roots[i].to(r_c.device))
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
