@@ -40,6 +40,7 @@ class MatglLightningModuleMixin:
             on_epoch=True,
             on_step=False,
             prog_bar=True,
+            sync_dist=self.sync_dist,  # type: ignore
         )
 
         return results["Total_Loss"]
@@ -63,6 +64,7 @@ class MatglLightningModuleMixin:
             on_epoch=True,
             on_step=False,
             prog_bar=True,
+            sync_dist=self.sync_dist,  # type: ignore
         )
         return results["Total_Loss"]
 
@@ -81,6 +83,7 @@ class MatglLightningModuleMixin:
             on_epoch=True,
             on_step=False,
             prog_bar=True,
+            sync_dist=self.sync_dist,  # type: ignore
         )
         return results
 
@@ -149,6 +152,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        sync_dist: bool = False,
         **kwargs,
     ):
         """
@@ -164,6 +168,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
+            sync_dist: whether sync logging across all GPU workers or not
             **kwargs: Passthrough to parent init.
         """
         super().__init__(**kwargs)
@@ -187,6 +192,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             self.loss = F.l1_loss
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.sync_dist = sync_dist
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
@@ -198,6 +204,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             Model prediction.
         """
+        self.model = self.model.to(g.device)
         if isinstance(self.model, M3GNet):
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
 
@@ -218,6 +225,9 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         else:
             g, labels, state_attr = batch
             preds = self(g=g, state_attr=state_attr)
+        preds = preds.to(g.device)
+        self.data_mean = self.data_mean.to(g.device)
+        self.data_std = self.data_std.to(g.device)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size
@@ -253,8 +263,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         force_weight: float = 1.0,
         stress_weight: float | None = None,
         site_wise_weight: float | None = None,
-        data_mean=None,
-        data_std=None,
+        data_mean: float = 0.0,
+        data_std: float = 1.0,
         calc_stress: bool = False,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
@@ -262,6 +272,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
+        sync_dist: bool = False,
         **kwargs,
     ):
         """
@@ -283,18 +294,15 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
+            sync_dist: whether sync logging across all GPU workers or not
             **kwargs: Passthrough to parent init.
         """
         super().__init__(**kwargs)
 
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
-        if data_mean is None:
-            data_mean = torch.zeros(1)
-        if data_std is None:
-            data_std = torch.ones(1)
-        self.data_mean = data_mean
-        self.data_std = data_std
+        self.data_mean = torch.tensor(data_mean)
+        self.data_std = torch.tensor(data_std)
         self.energy_weight = energy_weight
         self.force_weight = force_weight
         self.stress_weight = stress_weight
@@ -318,6 +326,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             self.loss = F.l1_loss
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.sync_dist = sync_dist
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
@@ -329,6 +338,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             energy, force, stress, h
         """
+        self.model = self.model.to(g.device)
         if self.model.calc_site_wise:
             e, f, s, h, m = self.model(g=g, l_g=l_g, state_attr=state_attr)
             return e, f.float(), s, h, m

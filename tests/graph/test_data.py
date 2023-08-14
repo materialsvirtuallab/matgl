@@ -35,6 +35,19 @@ class TestDataset:
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
 
+    def test_load_megenet_dataset(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3]
+        label = [-1.0, 2.0]
+        element_types = get_element_list(structures)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+        dataset = MEGNetDataset()
+        g1, state1, label1 = dataset[0]
+        assert label1.numpy() == label[0]
+        assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
+        assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
+        os.remove("dgl_graph.bin")
+        os.remove("state_attr.pt")
+
     def test_megnet_dataset_for_mol(self, CH4):
         element_types = get_element_list([CH4])
         mol_graph = Molecule2Graph(element_types=element_types, cutoff=1.5)
@@ -50,6 +63,8 @@ class TestDataset:
         assert g1.num_nodes() == mol_graph.get_graph(CH4)[0].num_nodes()
         assert g2.num_edges() == mol_graph.get_graph(CH4)[0].num_edges()
         assert g2.num_nodes() == mol_graph.get_graph(CH4)[0].num_nodes()
+        os.remove("dgl_graph.bin")
+        os.remove("state_attr.pt")
 
     def test_m3gnet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
@@ -76,6 +91,64 @@ class TestDataset:
         assert np.shape(forces_g1)[0], 28
         assert np.shape(forces_g2)[0], 10
 
+    def test_load_m3gnet_dataset(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3]
+        energies = [-1.0, 2.0]
+        [np.zeros((28, 3)).tolist(), np.zeros((10, 3)).tolist()]
+        [np.zeros((3, 3)).tolist(), np.zeros((3, 3)).tolist()]
+        element_types = get_element_list(structures)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+        dataset = M3GNetDataset()
+        g1, l_g1, state1, energies_g1, forces_g1, stresses_g1 = dataset[0]
+        g2, l_g2, state2, energies_g2, forces_g2, stresses_g2 = dataset[1]
+        assert energies_g1 == energies[0]
+        assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
+        assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
+        assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
+        assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+        assert np.shape(forces_g1)[0], 28
+        assert np.shape(forces_g2)[0], 10
+        os.remove("dgl_graph.bin")
+        os.remove("dgl_line_graph.bin")
+        os.remove("state_attr.pt")
+
+    def test_m3gnet_property_dataset(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3]
+        labels = [1.0, -2.0]
+        element_types = get_element_list(structures)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+        dataset = M3GNetDataset(
+            structures=structures,
+            converter=cry_graph,
+            threebody_cutoff=4.0,
+            label_name="Eform_per_atom",
+            labels=labels,
+        )
+        g1, l_g1, state1, label1 = dataset[0]
+        g2, l_g2, state2, label2 = dataset[1]
+        assert label1 == labels[0]
+        assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
+        assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
+        assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
+        assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+
+    def test_load_m3gnet_property_dataset(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3]
+        labels = [1.0, -2.0]
+        element_types = get_element_list(structures)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+        dataset = M3GNetDataset(label_name="Eform_per_atom")
+        g1, l_g1, state1, label1 = dataset[0]
+        g2, l_g2, state2, label2 = dataset[1]
+        assert label1 == labels[0]
+        assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
+        assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
+        assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
+        assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+        os.remove("dgl_graph.bin")
+        os.remove("dgl_line_graph.bin")
+        os.remove("state_attr.pt")
+
     def test_megnet_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4] * 10 + [BaNiO3] * 10
         label = np.zeros(20)
@@ -99,6 +172,8 @@ class TestDataset:
         assert len(train_loader) == 8
         assert len(val_loader) == 1
         assert len(test_loader) == 1
+        os.remove("dgl_graph.bin")
+        os.remove("state_attr.pt")
 
     def test_megnet_dataloader_for_mol(self):
         coords = [
@@ -131,10 +206,12 @@ class TestDataset:
         assert len(train_loader) == 3
         assert len(val_loader) == 1
         assert len(test_loader) == 1
+        os.remove("dgl_graph.bin")
+        os.remove("state_attr.pt")
 
     def test_m3gnet_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
-        energies = np.zeros(20)
+        energies = np.zeros(20).tolist()
         f1 = np.zeros((28, 3)).tolist()
         f2 = np.zeros((10, 3)).tolist()
         s = np.zeros((3, 3)).tolist()
@@ -167,6 +244,9 @@ class TestDataset:
         assert len(train_loader) == 8
         assert len(val_loader) == 1
         assert len(test_loader) == 1
+        os.remove("dgl_graph.bin")
+        os.remove("dgl_line_graph.bin")
+        os.remove("state_attr.pt")
 
     def test_m3gnet_property_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
@@ -202,7 +282,14 @@ class TestDataset:
 
     @classmethod
     def teardown_class(cls):
-        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
+        for fn in (
+            "dgl_graph.bin",
+            "dgl_line_graph.bin",
+            "state_attr.pt",
+            "energies.json",
+            "forces.json",
+            "stresses.json",
+        ):
             try:
                 os.remove(fn)
             except FileNotFoundError:
