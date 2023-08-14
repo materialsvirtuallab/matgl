@@ -417,13 +417,13 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         total_loss = self.energy_weight * e_loss + self.force_weight * f_loss
 
-        if self.stress_weight:
+        if self.model.calc_stresses:
             s_loss = loss(labels[2], preds[2])
             s_mae = self.mae(labels[2], preds[2])
             s_rmse = self.rmse(labels[2], preds[2])
             total_loss = total_loss + self.stress_weight * s_loss
 
-        if self.site_wise_weight:
+        if self.model.calc_site_wise:
             m_loss = loss(labels[3], preds[3])
             m_mae = self.mae(labels[3], preds[3])
             m_rmse = self.rmse(labels[3], preds[3])

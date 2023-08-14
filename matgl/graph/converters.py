@@ -47,9 +47,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
 
         """
         u, v = tensor(src_id), tensor(dst_id)
-        g = dgl.graph((u, v))
-        n_missing_node = len(structure) - g.num_nodes()  # isolated atoms without bonds
-        g.add_nodes(n_missing_node)
+        g = dgl.graph((u, v), num_nodes=len(structure))
         g.edata["pbc_offset"] = torch.tensor(images)
         g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], tensor(lattice_matrix[0]))
         g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
