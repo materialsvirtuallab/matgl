@@ -56,10 +56,8 @@ class Potential(nn.Module, IOMixIn):
         else:
             self.element_refs = None
 
-        data_mean = torch.tensor(data_mean) if data_mean is not None else torch.zeros(1)
-        data_std = torch.tensor(data_std) if data_std is not None else torch.ones(1)
-        self.register_buffer("data_mean", data_mean)
-        self.register_buffer("data_std", data_std)
+        self.data_mean = torch.tensor(data_mean) if data_mean is not None else torch.zeros(1)
+        self.data_std = torch.tensor(data_std) if data_std is not None else torch.ones(1)
 
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None

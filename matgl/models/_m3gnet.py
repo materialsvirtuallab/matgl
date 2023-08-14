@@ -231,8 +231,8 @@ class M3GNet(nn.Module, IOMixIn):
         """
         node_types = g.ndata["node_type"]
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
-        g.edata["bond_vec"] = bond_vec.to(g.device)
-        g.edata["bond_dist"] = bond_dist.to(g.device)
+        g.edata["bond_vec"] = bond_vec
+        g.edata["bond_dist"] = bond_dist
 
         expanded_dists = self.bond_expansion(g.edata["bond_dist"])
         if l_g is None:

@@ -109,14 +109,13 @@ class SphericalBesselFunction(nn.Module):
 
     def _call_sbf(self, r):
         r_c = r.clone()
-        self.cutoff = self.cutoff.to(r_c.device)
-        r_c[r_c > self.cutoff] = self.cutoff.to(r_c.device)
-        roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n].to(r_c.device)
+        r_c[r_c > self.cutoff] = self.cutoff
+        roots = SPHERICAL_BESSEL_ROOTS[: self.max_l, : self.max_n]
 
         results = []
         factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
         for i in range(self.max_l):
-            root = torch.tensor(roots[i].to(r_c.device))
+            root = roots[i]
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
