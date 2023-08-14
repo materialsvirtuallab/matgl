@@ -144,8 +144,8 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
     def __init__(
         self,
         model,
-        data_mean=None,
-        data_std=None,
+        data_mean: float = 0.0,
+        data_std: float = 1.0,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
         scheduler=None,
@@ -177,10 +177,6 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
-        if data_mean is None:
-            data_mean = torch.zeros(1)
-        if data_std is None:
-            data_std = torch.ones(1)
         self.data_mean = data_mean
         self.data_std = data_std
         self.lr = lr
