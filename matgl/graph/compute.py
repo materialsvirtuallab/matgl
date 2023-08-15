@@ -60,15 +60,12 @@ def compute_3body(g: dgl.DGLGraph):
         n_triple_s.append(np.sum(n_triple_i[i:j]))
         i = j
 
-    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=torch.int64, device=g.device)
-    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=torch.int64, device=g.device)
+    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=torch.int64)
+    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=torch.int64)
     l_g = dgl.graph((src_id, dst_id))
     three_body_id = torch.unique(torch.concatenate(l_g.edges()))
-    n_triple_ij = torch.tensor(n_triple_ij, device=g.device, dtype=torch.int64)
-    if three_body_id.numel() > 0:
-        max_three_body_id = torch.max(three_body_id) + 1
-    else:
-        max_three_body_id = torch.tensor(0, dtype=torch.int64, device=g.device)
+    n_triple_ij = torch.tensor(n_triple_ij, dtype=torch.int64)
+    max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
     l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]

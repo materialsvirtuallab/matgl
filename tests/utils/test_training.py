@@ -113,13 +113,12 @@ class TestModelTrainer:
             generator=torch.Generator(device=device),
         )
         model = M3GNet(element_types=element_types, is_intensive=False)
-        lit_model = PotentialLightningModule(model=model)
+        lit_model = PotentialLightningModule(model=model, stress_weight=0.0001)
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=5, accelerator=device)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-        model = model.to(torch.device(device))
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
@@ -167,7 +166,6 @@ class TestModelTrainer:
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
-        model = model.to(torch.device(device))
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
