@@ -56,8 +56,8 @@ class Potential(nn.Module, IOMixIn):
         else:
             self.element_refs = None
 
-        self.data_mean = data_mean if data_mean is not None else torch.zeros(1)
-        self.data_std = data_std if data_std is not None else torch.ones(1)
+        self.data_mean = torch.tensor(data_mean) if data_mean is not None else torch.zeros(1)
+        self.data_std = torch.tensor(data_std) if data_std is not None else torch.ones(1)
 
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None
@@ -79,7 +79,6 @@ class Potential(nn.Module, IOMixIn):
         else:
             total_energies = predictions
             site_wise = None
-
         total_energies = self.data_std * total_energies + self.data_mean
         if self.element_refs is not None:
             property_offset = torch.squeeze(self.element_refs(g))

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import namedtuple
+from typing import NamedTuple
 
 import dgl
 import torch
@@ -20,7 +20,10 @@ from matgl.layers._graph_convolution import (
 )
 from matgl.utils.cutoff import polynomial_cutoff
 
-Graph = namedtuple("Graph", "graph, state_attr")
+
+class Graph(NamedTuple):
+    graph: dgl.DGLGraph
+    state_attr: torch.Tensor
 
 
 def build_graph(N, E, NDIM=5, EDIM=3, GDIM=10):

@@ -231,21 +231,21 @@ class M3GNet(nn.Module, IOMixIn):
         """
         node_types = g.ndata["node_type"]
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
-        g.edata["bond_vec"] = bond_vec.to(g.device)
-        g.edata["bond_dist"] = bond_dist.to(g.device)
+        g.edata["bond_vec"] = bond_vec
+        g.edata["bond_dist"] = bond_dist
 
         expanded_dists = self.bond_expansion(g.edata["bond_dist"])
         if l_g is None:
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
-            if l_g.num_nodes() == g.num_edges():
-                valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
+            valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
+            if l_g.num_nodes() == g.edata["bond_vec"][valid_three_body].shape[0]:
                 l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
                 l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
                 l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
             else:
                 three_body_id = torch.unique(torch.concatenate(l_g.edges()))
-                max_three_body_id = max(torch.cat([three_body_id + 1, torch.tensor([0])]))
+                max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
                 l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
                 l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
                 l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
