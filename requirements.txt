@@ -3,3 +3,4 @@ torch==2.0.1
 pytorch_lightning==2.0.6
 pymatgen==2023.8.10
 ase==3.22.1
+boto3
