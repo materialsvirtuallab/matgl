@@ -113,7 +113,7 @@ class TestModelTrainer:
             generator=torch.Generator(device=device),
         )
         model = M3GNet(element_types=element_types, is_intensive=False)
-        lit_model = PotentialLightningModule(model=model)
+        lit_model = PotentialLightningModule(model=model, stress_weight=0.0001)
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=5, accelerator=device)
 
