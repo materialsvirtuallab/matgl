@@ -257,7 +257,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         site_wise_weight: float = 0.0,
         data_mean: float = 0.0,
         data_std: float = 1.0,
-        calc_stress: bool = False,
         loss: str = "mse_loss",
         optimizer: Optimizer | None = None,
         scheduler=None,
@@ -279,7 +278,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             site_wise_weight: relative importance of additional site-wise predictions.
             data_mean: average of training data
             data_std: standard deviation of training data
-            calc_stress: whether stress calculation is required
             loss: loss function used for training
             optimizer: optimizer for training
             scheduler: scheduler for training
@@ -304,12 +302,11 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.decay_steps = decay_steps
         self.decay_alpha = decay_alpha
 
-        calc_site_wise = site_wise_weight != 0
         self.model = Potential(
             model=model,
             element_refs=element_refs,
-            calc_stresses=calc_stress,
-            calc_site_wise=calc_site_wise,
+            calc_stresses=stress_weight != 0,
+            calc_site_wise=site_wise_weight != 0,
             data_std=self.data_std,
             data_mean=self.data_mean,
         )
