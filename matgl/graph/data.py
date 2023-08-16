@@ -487,8 +487,6 @@ class CHGNetDataset(DGLDataset):
         self.line_graphs = line_graphs
         self.state_attr = state_attrs
 
-        return self.graphs, self.line_graphs, self.state_attr
-
     def save(self):
         """Save dgl graphs and labels.
         """
@@ -550,6 +548,7 @@ class CHGNetDataset(DGLDataset):
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
+        magmoms = self.magmoms[idx] if self.magmoms[idx] is not None else torch.nan
         if self.labels is None:
             return (
                 self.graphs[idx],
@@ -558,7 +557,7 @@ class CHGNetDataset(DGLDataset):
                 self.energies[idx],  # type: ignore
                 torch.tensor(self.forces[idx]).float(),  # type: ignore
                 torch.tensor(self.stresses[idx]).float(),  # type: ignore
-                torch.tensor(self.magmoms[idx]).float(),  # type: ignore
+                torch.tensor(magmoms).float(),  # type: ignore
             )
         return self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx]
 
