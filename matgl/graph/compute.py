@@ -174,8 +174,8 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
     n = 0
     # create line graph edges for bonds that are self edges in atom graph
-    edge_inds_s = is_self_edge.nonzero().squeeze()
     if is_self_edge.any():
+        edge_inds_s = is_self_edge.nonzero().squeeze()
         lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
         lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1]
         lg_src_s = lg_src_s[lg_src_s != lg_dst_s]
@@ -199,7 +199,9 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
     # we need to store the sign of bond vector when a bond is a src node in the line
     # graph in order to appropriately calculate angles when self edges are involved
-    lg.ndata["src_bond_sign"] = torch.ones((lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device)
+    lg.ndata["src_bond_sign"] = torch.ones(
+        (lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
+    )
     # if we flip self edges then we need to correct computed angles by pi - angle
     # lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
     lg.ndata["src_bond_sign"][edge_inds_ns] = -lg.ndata["src_bond_sign"][edge_inds_ns]
