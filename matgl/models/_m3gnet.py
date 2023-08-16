@@ -17,7 +17,7 @@ import dgl
 import torch
 from torch import nn
 
-from matgl.config import DEFAULT_ELEMENT_TYPES
+from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
@@ -52,7 +52,7 @@ class M3GNet(nn.Module, IOMixIn):
 
     def __init__(
         self,
-        element_types: tuple[str],
+        element_types: tuple[str, ...] = DEFAULT_ELEMENTS,
         dim_node_embedding: int = 64,
         dim_edge_embedding: int = 64,
         dim_state_embedding: int | None = None,
@@ -80,7 +80,7 @@ class M3GNet(nn.Module, IOMixIn):
     ):
         """
         Args:
-            element_types (tuple): list of elements appearing in the dataset
+            element_types (tuple): list of elements appearing in the dataset. Default to DEFAULT_ELEMENT_TYPES.
             dim_node_embedding (int): number of embedded atomic features
             dim_edge_embedding (int): number of edge features
             dim_state_embedding (int): number of hidden neurons in state embedding
@@ -119,10 +119,7 @@ class M3GNet(nn.Module, IOMixIn):
                 f"Invalid activation type, please try using one of {[af.name for af in ActivationFunction]}"
             ) from None
 
-        if element_types is None:
-            self.element_types = DEFAULT_ELEMENT_TYPES
-        else:
-            self.element_types = element_types  # type: ignore
+        self.element_types = element_types or DEFAULT_ELEMENTS
 
         self.bond_expansion = BondExpansion(max_l, max_n, cutoff, rbf_type=rbf_type, smooth=use_smooth)
 

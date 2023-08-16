@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 # Default set of elements supported by universal matgl models.
-DEFAULT_ELEMENT_TYPES = (
+DEFAULT_ELEMENTS = (
     "H",
     "He",
     "Li",
