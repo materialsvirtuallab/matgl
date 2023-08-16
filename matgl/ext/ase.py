@@ -209,8 +209,8 @@ class Relaxer:
         fmax: float = 0.1,
         steps: int = 500,
         traj_file: str | None = None,
-        interval: int =1,
-        verbose: bool =False,
+        interval: int = 1,
+        verbose: bool = False,
         **kwargs,
     ):
         """
