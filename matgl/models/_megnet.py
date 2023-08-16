@@ -15,7 +15,7 @@ import torch
 from dgl.nn import Set2Set
 from torch import nn
 
-from matgl.config import DEFAULT_ELEMENT_TYPES
+from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers import MLP, ActivationFunction, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock
 from matgl.utils.io import IOMixIn
@@ -48,8 +48,8 @@ class MEGNet(nn.Module, IOMixIn):
         activation_type: str = "softplus2",
         is_classification: bool = False,
         include_state: bool = True,
-        dropout: float | None = None,
-        element_types: tuple[str, ...] = DEFAULT_ELEMENT_TYPES,
+        dropout: float = 0.0,
+        element_types: tuple[str, ...] = DEFAULT_ELEMENTS,
         bond_expansion: BondExpansion | None = None,
         cutoff: float = 4.0,
         gauss_width: float = 0.5,
@@ -75,7 +75,7 @@ class MEGNet(nn.Module, IOMixIn):
             layer_state_embedding: Architecture of embedding layer for state attributes
             include_state: Whether the state embedding is included
             dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according to
-                a Bernoulli distribution
+                a Bernoulli distribution. Defaults to 0, i.e., no dropout.
             element_types: Elements included in the training set
             bond_expansion: Gaussian expansion for edge attributes
             cutoff: cutoff for forming bonds
@@ -86,7 +86,7 @@ class MEGNet(nn.Module, IOMixIn):
 
         self.save_args(locals(), kwargs)
 
-        self.element_types = element_types or DEFAULT_ELEMENT_TYPES
+        self.element_types = element_types or DEFAULT_ELEMENTS
         self.cutoff = cutoff
         self.bond_expansion = bond_expansion or BondExpansion(
             rbf_type="Gaussian", initial=0.0, final=cutoff + 1.0, num_centers=dim_edge_embedding, width=gauss_width
