@@ -287,6 +287,11 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             sync_dist: whether sync logging across all GPU workers or not
             **kwargs: Passthrough to parent init.
         """
+        assert energy_weight >= 0, f"energy_weight has to be >=0. Got {energy_weight}!"
+        assert force_weight >= 0, f"force_weight has to be >=0. Got {force_weight}!"
+        assert stress_weight >= 0, f"stress_weight has to be >=0. Got {stress_weight}!"
+        assert site_wise_weight >= 0, f"site_wise_weight has to be >=0. Got {site_wise_weight}!"
+
         super().__init__(**kwargs)
 
         self.mae = torchmetrics.MeanAbsoluteError()
