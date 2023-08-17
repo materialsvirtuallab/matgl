@@ -52,6 +52,7 @@ class TestMEGNet:
             niters_set2set=3,
             hidden_layer_sizes_output=(32, 16),
             is_classification=True,
+            dropout=0.1,
         )
 
         output = model.predict_structure(structure)
