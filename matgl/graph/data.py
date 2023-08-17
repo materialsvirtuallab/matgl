@@ -267,9 +267,9 @@ class M3GNetDataset(DGLDataset):
         self.filename_stresses = filename_stresses
         self.converter = converter
         self.structures = structures
-        self.energies = energies.tolist() if type(energies) is np.ndarray else energies
-        self.forces = forces.tolist() if type(forces) is np.ndarray else forces
-        self.labels = labels.tolist() if type(labels) is np.ndarray else labels
+        self.energies = energies.tolist() if isinstance(energies, np.ndarray) else energies
+        self.forces = forces.tolist() if isinstance(forces, np.ndarray) else forces
+        self.labels = labels.tolist() if isinstance(labels, np.ndarray) else labels
         self.label_name = label_name
         self.threebody_cutoff = threebody_cutoff
         # it only happens when loading the data
