@@ -279,7 +279,7 @@ class M3GNetDataset(DGLDataset):
 
     def has_cache(self) -> bool:
         """Check if the dgl_graph.bin exists or not."""
-        return all(os.path.exists(f) for f in (self.filenamem, self.filename_line_graph, self.filename_state_attr))
+        return all(os.path.exists(f) for f in (self.filename, self.filename_line_graph, self.filename_state_attr))
 
     def process(self):
         """Convert Pymatgen structure into dgl graphs."""
