@@ -22,6 +22,7 @@ from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
     import dgl
+    import numpy as np
 
     from matgl.graph.converters import GraphConverter
 
@@ -199,7 +200,7 @@ class MEGNet(nn.Module, IOMixIn):
         structure,
         state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
-    ):
+    ) -> np.ndarray:
         """Convenience method to directly predict property from structure.
 
         Args:
@@ -208,7 +209,7 @@ class MEGNet(nn.Module, IOMixIn):
             graph_converter: Object that implements a get_graph_from_structure.
 
         Returns:
-            output (torch.tensor): output property
+            output (np.ndarray): output property
         """
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
@@ -219,4 +220,4 @@ class MEGNet(nn.Module, IOMixIn):
             state_feats = torch.tensor(state_feats_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()
+        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).numpy()
