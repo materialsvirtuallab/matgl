@@ -29,10 +29,10 @@ class TestModelTrainer:
     def test_megnet_training(self, LiFePO4, BaNiO3):
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
         structures = [LiFePO4] * 5 + [BaNiO3] * 5 + [isolated_atom]
-        label = [-2] * 5 + [-3] * 5 + [-1]  # Artificial dataset.
+        label = torch.tensor([-2] * 5 + [-3] * 5 + [-1])  # Artificial dataset.
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels=label, label_name="label")
+        dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels={"label": label})
         train_data, val_data, test_data = split_dataset(
             dataset,
             frac_list=[0.8, 0.1, 0.1],
@@ -93,9 +93,7 @@ class TestModelTrainer:
             threebody_cutoff=4.0,
             structures=structures,
             converter=converter,
-            energies=energies,
-            forces=forces,
-            stresses=stresses,
+            labels={"energies": energies, "forces": forces, "stresses": stresses},
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -136,7 +134,7 @@ class TestModelTrainer:
         element_types = get_element_list([LiFePO4, BaNiO3])
         converter = Structure2Graph(element_types=element_types, cutoff=5.0)
         dataset = M3GNetDataset(
-            threebody_cutoff=4.0, structures=structures, converter=converter, labels=label, label_name="eform"
+            threebody_cutoff=4.0, structures=structures, converter=converter, labels={"eform": label}
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -182,14 +180,7 @@ class TestModelTrainer:
 
     @classmethod
     def teardown_class(cls):
-        for fn in (
-            "dgl_graph.bin",
-            "dgl_line_graph.bin",
-            "state_attr.pt",
-            "energies.json",
-            "forces.json",
-            "stresses.json",
-        ):
+        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
             try:
                 os.remove(fn)
             except FileNotFoundError:

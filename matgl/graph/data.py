@@ -27,7 +27,7 @@ def collate_fn(batch, include_line_graph: bool = False):
     else:
         graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
-    labels = torch.tensor(labels, dtype=torch.float32)
+    labels = torch.tensor([next(iter(d.values())) for d in labels], dtype=torch.float32)  # type: ignore
     state_attr = torch.stack(state_attr)
     if include_line_graph:
         l_g = dgl.batch(line_graphs)
@@ -37,12 +37,12 @@ def collate_fn(batch, include_line_graph: bool = False):
 
 def collate_fn_efs(batch):
     """Merge a list of dgl graphs to form a batch."""
-    graphs, line_graphs, state_attr, energies, forces, stresses = map(list, zip(*batch))
+    graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
-    e = torch.tensor(energies, dtype=torch.float32)
-    f = torch.vstack(forces)
-    s = torch.vstack(stresses)
+    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float32)
+    f = torch.vstack([d["forces"] for d in labels])
+    s = torch.vstack([d["stresses"] for d in labels])
     state_attr = torch.stack(state_attr)
     return g, l_g, state_attr, e, f, s
 
@@ -115,8 +115,7 @@ class MEGNetDataset(DGLDataset):
         filename: str = "dgl_graph.bin",
         filename_state_attr: str = "state_attr.pt",
         structures: list | None = None,
-        labels: list[float] | None = None,
-        label_name: str | None = None,
+        labels: dict[str, list] | None = None,
         converter: GraphConverter | None = None,
         initial: float = 0.0,
         final: float = 5.0,
@@ -131,7 +130,6 @@ class MEGNetDataset(DGLDataset):
             filename_state_attr: file name for storing state attributes
             structures: Pymatgen structure
             labels: property values
-            label_name: label name
             converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
             initial: initial distance for Gaussian expansions
             final: final distance for Gaussian expansions
@@ -143,9 +141,8 @@ class MEGNetDataset(DGLDataset):
         self.filename = filename
         self.filename_state_attr = filename_state_attr
         self.converter = converter
-        self.structures = structures
-        self.labels = None if labels is None else torch.FloatTensor(labels)
-        self.label_name = label_name
+        self.structures = structures or []
+        self.labels = labels or {}
         self.initial = initial
         self.final = final
         self.num_centers = num_centers
@@ -163,7 +160,7 @@ class MEGNetDataset(DGLDataset):
 
     def process(self):
         """Convert Pymatgen structure into dgl graphs."""
-        num_graphs = self.labels.shape[0]
+        num_graphs = len(self.structures)
         graphs = []
         state_attrs = []
         bond_expansion = BondExpansion(
@@ -193,19 +190,21 @@ class MEGNetDataset(DGLDataset):
 
     def save(self):
         """Save dgl graphs and labels."""
-        labels_with_key = {self.label_name: torch.tensor(self.labels)}
-        save_graphs(self.filename, self.graphs, labels_with_key)
+        save_graphs(self.filename, self.graphs, self.labels)
         torch.save(self.state_attr, self.filename_state_attr)
 
     def load(self):
         """Load dgl graphs and labels."""
-        self.graphs, label_dicts = load_graphs(self.filename)
-        self.labels = torch.stack([label_dicts[key] for key in label_dicts], dim=1)
+        self.graphs, self.labels = load_graphs(self.filename)
         self.state_attr = torch.load(self.filename_state_attr)
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
-        return self.graphs[idx], self.state_attr[idx], self.labels[idx]  # type: ignore
+        return (
+            self.graphs[idx],
+            self.state_attr[idx],
+            {k: torch.tensor(v[idx]) for k, v in self.labels.items()},
+        )  # type: ignore
 
     def __len__(self):
         """Get size of dataset."""
@@ -220,34 +219,23 @@ class M3GNetDataset(DGLDataset):
         filename: str = "dgl_graph.bin",
         filename_line_graph: str = "dgl_line_graph.bin",
         filename_state_attr: str = "state_attr.pt",
-        filename_energies: str = "energies.json",
-        filename_forces: str = "forces.json",
-        filename_stresses: str = "stresses.json",
+        filename_labels: str = "labels.json",
         converter: GraphConverter | None = None,
         threebody_cutoff: float | None = None,
         structures: list | None = None,
-        energies: list[float] | None = None,
-        forces: list[list[float]] | None = None,
-        stresses: list[list[float]] | None = None,
-        labels: list[float] | None = None,
-        name="M3GNETDataset",
-        label_name: str | None = None,
+        labels: dict[str, list] | None = None,
+        name="M3GNetDataset",
         graph_labels: list[int | float] | None = None,
     ):
         """
         Args:
-            filename: file name for storaging dgl graphs
-            filename_line_graph: file name for storaging dgl line graphs
-            filename_state_attr: file name for storaging state attributes
-            filename_energies: file name for storaging energies
-            filename_forces: file name for storaging forces
-            filename_stresses: file name for storagning stresses
+            filename: file name for storging dgl graphs
+            filename_line_graph: file name for storging dgl line graphs
+            filename_state_attr: file name for storging state attributes
+            filename_labels: file name for storging labels.
             converter: dgl graph converter
             threebody_cutoff: cutoff for three body
             structures: Pymatgen structure
-            energies: Target energies
-            forces: Target forces
-            stresses: Target stresses
             labels: target properties
             name: name of dataset
             label_name: name of target properties
@@ -256,30 +244,22 @@ class M3GNetDataset(DGLDataset):
         self.filename = filename
         self.filename_line_graph = filename_line_graph
         self.filename_state_attr = filename_state_attr
-        self.filename_energies = filename_energies
-        self.filename_forces = filename_forces
-        self.filename_stresses = filename_stresses
+        self.filename_labels = filename_labels
         self.converter = converter
-        self.structures = structures
-        self.energies = energies.tolist() if isinstance(energies, np.ndarray) else energies
-        self.forces = forces.tolist() if isinstance(forces, np.ndarray) else forces
-        self.labels = labels.tolist() if isinstance(labels, np.ndarray) else labels
-        self.label_name = label_name
+        self.structures = structures or []
+        self.labels = labels or {}
+        for k, v in self.labels.items():
+            self.labels[k] = v.tolist() if isinstance(v, np.ndarray) else v
         self.threebody_cutoff = threebody_cutoff
-        # it only happens when loading the data
-        if self.energies is None and self.labels is None:
-            self.stresses = None
-        else:
-            if stresses is None:
-                self.stresses = np.zeros(len(self.structures)).tolist()  # type: ignore
-            else:
-                self.stresses = stresses.tolist() if type(stresses) is np.ndarray else stresses
         self.graph_labels = graph_labels
         super().__init__(name=name)
 
     def has_cache(self) -> bool:
         """Check if the dgl_graph.bin exists or not."""
-        return all(os.path.exists(f) for f in (self.filename, self.filename_line_graph, self.filename_state_attr))
+        return all(
+            os.path.exists(f)
+            for f in (self.filename, self.filename_line_graph, self.filename_state_attr, self.filename_labels)
+        )
 
     def process(self):
         """Convert Pymatgen structure into dgl graphs."""
@@ -312,49 +292,32 @@ class M3GNetDataset(DGLDataset):
 
     def save(self):
         """Save dgl graphs."""
-        if self.labels is None:
-            labels_with_key = {"energies": self.energies, "forces": self.forces, "stresses": self.stresses}
-            save_graphs(self.filename, self.graphs)
-            with open(self.filename_energies, "w") as f:
-                json.dump(labels_with_key["energies"], f)
-            with open(self.filename_forces, "w") as f:
-                json.dump(labels_with_key["forces"], f)
-            with open(self.filename_stresses, "w") as f:
-                json.dump(labels_with_key["stresses"], f)
-        else:
-            labels_with_key = {self.label_name: torch.tensor(self.labels)}
-            save_graphs(self.filename, self.graphs, labels_with_key)
+        if self.labels:
+            with open(self.filename_labels, "w") as f:
+                json.dump(self.labels, f)
+        save_graphs(self.filename, self.graphs)
         save_graphs(self.filename_line_graph, self.line_graphs)
         torch.save(self.state_attr, self.filename_state_attr)
 
     def load(self):
         """Load dgl graphs from files."""
+        self.graphs, _ = load_graphs(self.filename)
         self.line_graphs, _ = load_graphs(self.filename_line_graph)
         self.state_attr = torch.load(self.filename_state_attr)
-        if self.label_name is None:
-            self.graphs, _ = load_graphs(self.filename)
-            with open(self.filename_energies) as f:
-                self.energies = json.load(f)
-            with open(self.filename_forces) as f:
-                self.forces = json.load(f)
-            with open(self.filename_stresses) as f:
-                self.stresses = json.load(f)
+        if os.path.exists(self.filename_labels):
+            with open(self.filename_labels) as f:
+                self.labels = json.load(f)
         else:
-            self.graphs, label_dicts = load_graphs(self.filename)
-            self.labels = torch.stack([label_dicts[key] for key in label_dicts], dim=1)  # type: ignore
+            self.labels = {}
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
-        if self.label_name is None:
-            return (
-                self.graphs[idx],
-                self.line_graphs[idx],
-                self.state_attr[idx],
-                self.energies[idx],
-                torch.tensor(self.forces[idx]).float(),
-                torch.tensor(self.stresses[idx]).float(),  # type: ignore
-            )
-        return self.graphs[idx], self.line_graphs[idx], self.state_attr[idx], self.labels[idx]
+        return (
+            self.graphs[idx],
+            self.line_graphs[idx],
+            self.state_attr[idx],
+            {k: torch.tensor(v[idx]) for k, v in self.labels.items()},
+        )
 
     def __len__(self):
         """Get size of dataset."""
