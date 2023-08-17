@@ -409,9 +409,9 @@ class M3GNetBlock(Module):
         degree: int,
         activation: Module,
         conv_hiddens: list[int],
-        num_node_feats: int,
-        num_edge_feats: int,
-        num_state_feats: int = 0,
+        dim_node_feats: int,
+        dim_edge_feats: int,
+        dim_state_feats: int = 0,
         include_state: bool = False,
         dropout: float | None = None,
     ) -> None:
@@ -420,9 +420,9 @@ class M3GNetBlock(Module):
         Args:
             degree: Number of radial basis functions
             activation: activation
-            num_node_feats: Number of node features
-            num_edge_feats: Number of edge features
-            num_state_feats: Number of state features
+            dim_node_feats: Number of node features
+            dim_edge_feats: Number of edge features
+            dim_state_feats: Number of state features
             conv_hiddens: Dimension of hidden layers
             activation: Activation type
             include_state: Including state features or not
@@ -434,25 +434,25 @@ class M3GNetBlock(Module):
 
         # compute input sizes
         if include_state:
-            edge_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
-            node_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
-            attr_in = num_node_feats + num_state_feats  # type: ignore
+            edge_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
+            node_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
+            attr_in = dim_node_feats + dim_state_feats  # type: ignore
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_state,
-                edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
-                node_dims=[node_in, *conv_hiddens, num_node_feats],
-                state_dims=[attr_in, *conv_hiddens, num_state_feats],  # type: ignore
+                edge_dims=[edge_in, *conv_hiddens, dim_edge_feats],
+                node_dims=[node_in, *conv_hiddens, dim_node_feats],
+                state_dims=[attr_in, *conv_hiddens, dim_state_feats],  # type: ignore
                 activation=self.activation,
             )
         else:
-            edge_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
-            node_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
+            edge_in = 2 * dim_node_feats + dim_edge_feats  # 2*NDIM+EDIM
+            node_in = 2 * dim_node_feats + dim_edge_feats  # 2*NDIM+EDIM
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_state,
-                edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
-                node_dims=[node_in, *conv_hiddens, num_node_feats],
+                edge_dims=[edge_in, *conv_hiddens, dim_edge_feats],
+                node_dims=[node_in, *conv_hiddens, dim_node_feats],
                 state_dims=None,  # type: ignore
                 activation=self.activation,
             )

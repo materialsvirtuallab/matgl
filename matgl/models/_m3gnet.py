@@ -55,16 +55,16 @@ class M3GNet(nn.Module, IOMixIn):
         element_types: tuple[str, ...] = DEFAULT_ELEMENTS,
         dim_node_embedding: int = 64,
         dim_edge_embedding: int = 64,
-        dim_state_embedding: int | None = None,
+        dim_state_embedding: int = 0,
         ntypes_state: int | None = None,
         dim_state_feats: int | None = None,
         max_n: int = 3,
         max_l: int = 3,
         nblocks: int = 3,
-        rbf_type="SphericalBessel",
+        rbf_type: Literal["Gaussian", "SphericalBessel"] = "SphericalBessel",
         is_intensive: bool = True,
-        readout_type: str = "weighted_atom",
-        task_type: str = "regression",
+        readout_type: Literal["set2set", "weighted_atom", "reduce_atom"] = "weighted_atom",
+        task_type: Literal["classification", "regression"] = "regression",
         cutoff: float = 5.0,
         threebody_cutoff: float = 4.0,
         units: int = 64,
@@ -75,37 +75,35 @@ class M3GNet(nn.Module, IOMixIn):
         nlayers_set2set: int = 3,
         field: Literal["node_feat", "edge_feat"] = "node_feat",
         include_state: bool = False,
-        activation_type: str = "swish",
+        activation_type: Literal["swish", "tanh", "sigmoid", "softplus2", "softexp"] = "swish",
         **kwargs,
     ):
         """
         Args:
-            element_types (tuple): list of elements appearing in the dataset. Default to DEFAULT_ELEMENT_TYPES.
-            dim_node_embedding (int): number of embedded atomic features
-            dim_edge_embedding (int): number of edge features
-            dim_state_embedding (int): number of hidden neurons in state embedding
-            dim_state_feats (int): number of state features after linear layer
-            ntypes_state (int): number of state labels
-            max_n (int): number of radial basis expansion
-            max_l (int): number of angular expansion
-            nblocks (int): number of convolution blocks
-            rbf_type (str): radial basis function. choose from 'Gaussian' or 'SphericalBessel'
-            is_intensive (bool): whether the prediction is intensive
-            readout_type (str): the readout function type. choose from `set2set`,
-            `weighted_atom` and `reduce_atom`, default to `weighted_atom`
-            task_type (str): `classification` or `regression`, default to
-            `regression`
-            cutoff (float): cutoff radius of the graph
-            threebody_cutoff (float): cutoff radius for 3 body interaction
-            units (int): number of neurons in each MLP layer
-            ntargets (int): number of target properties
-            use_smooth (bool): whether using smooth Bessel functions
-            use_phi (bool): whether using phi angle
-            field (str): using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
-            niters_set2set (int): number of set2set iterations
-            nlayers_set2set (int): number of set2set layers
-            include_state (bool): whether to include states features
-            activation_type (str): activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
+            element_types (tuple): List of elements appearing in the dataset. Default to DEFAULT_ELEMENTS.
+            dim_node_embedding (int): Number of embedded atomic features
+            dim_edge_embedding (int): Number of edge features
+            dim_state_embedding (int): Number of hidden neurons in state embedding
+            dim_state_feats (int): Number of state features after linear layer
+            ntypes_state (int): Number of state labels
+            max_n (int): Number of radial basis expansion
+            max_l (int): Number of angular expansion
+            nblocks (int): Number of convolution blocks
+            rbf_type (str): Radial basis function. choose from 'Gaussian' or 'SphericalBessel'
+            is_intensive (bool): Whether the prediction is intensive
+            readout_type (str): Readout function type, `set2set`, `weighted_atom` (default) or `reduce_atom`.
+            task_type (str): `classification` or `regression` (default).
+            cutoff (float): Cutoff radius of the graph
+            threebody_cutoff (float): Cutoff radius for 3 body interaction
+            units (int): Number of neurons in each MLP layer
+            ntargets (int): Number of target properties
+            use_smooth (bool): Whether using smooth Bessel functions
+            use_phi (bool): Whether using phi angle
+            field (str): Using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
+            niters_set2set (int): Number of set2set iterations
+            nlayers_set2set (int): Number of set2set layers
+            include_state (bool): Whether to include states features
+            activation_type (str): Activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
             **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
@@ -160,8 +158,7 @@ class M3GNet(nn.Module, IOMixIn):
             }
         )
 
-        if dim_state_feats is None:
-            dim_state_feats = dim_state_embedding
+        dim_state_feats = dim_state_embedding
 
         self.graph_layers = nn.ModuleList(
             {
@@ -169,9 +166,9 @@ class M3GNet(nn.Module, IOMixIn):
                     degree=degree_rbf,
                     activation=activation,
                     conv_hiddens=[units, units],
-                    num_node_feats=dim_node_embedding,
-                    num_edge_feats=dim_edge_embedding,
-                    num_state_feats=dim_state_feats,
+                    dim_node_feats=dim_node_embedding,
+                    dim_edge_feats=dim_edge_embedding,
+                    dim_state_feats=dim_state_feats,
                     include_state=include_state,
                 )
                 for _ in range(nblocks)
