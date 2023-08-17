@@ -164,14 +164,14 @@ class M3GNetCalculator(Calculator):
         else:
             energies, forces, stresses, hessians = self.potential(graph, state_attr_default)
         self.results.update(
-            energy=energies.numpy(),
-            free_energy=energies.numpy(),
-            forces=forces.numpy(),
+            energy=energies.detach().numpy(),
+            free_energy=energies.detach().numpy(),
+            forces=forces.detach().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=stresses.numpy() * self.stress_weight)
+            self.results.update(stress=stresses.detach().numpy() * self.stress_weight)
         if self.compute_hessian:
-            self.results.update(hessian=hessians.numpy())
+            self.results.update(hessian=hessians.detach().numpy())
 
 
 class Relaxer:

@@ -40,8 +40,6 @@ from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__file__)
@@ -281,7 +279,7 @@ class M3GNet(nn.Module, IOMixIn):
         structure,
         state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
-    ) -> np.ndarray:
+    ):
         """Convenience method to directly predict property from structure.
 
         Args:
@@ -290,7 +288,7 @@ class M3GNet(nn.Module, IOMixIn):
             graph_converter: Object that implements a get_graph_from_structure.
 
         Returns:
-            output (np.ndarray): output property
+            output (torch.tensor): output property
         """
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
@@ -299,4 +297,4 @@ class M3GNet(nn.Module, IOMixIn):
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        return self(g=g, state_attr=state_feats).numpy()
+        return self(g=g, state_attr=state_feats).detach()
