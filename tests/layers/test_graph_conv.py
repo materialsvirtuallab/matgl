@@ -175,7 +175,7 @@ class TestGraphConv:
 
         # without state features, with and without dropout.
         for dropout in (0.5, None):
-            state_feat = None
+            node_feat, edge_feat, state_feat = embedding(node_attr, edge_attr, state_attr)
             graph_conv = M3GNetBlock(
                 degree=3 * 3,
                 num_node_feats=num_node_feats,
@@ -183,7 +183,7 @@ class TestGraphConv:
                 num_state_feats=num_state_feats,
                 conv_hiddens=[32, 16],
                 activation=nn.SiLU(),
-                include_state=False,
+                include_state=True,
                 dropout=dropout,
             )
             edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
