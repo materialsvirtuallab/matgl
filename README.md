@@ -99,8 +99,8 @@ The basic instructions are given below, but it is recommended that you consult t
 
 ```shell
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install  dgl -f https://data.dgl.ai/wheels/cu118/repo.html
-pip install  dglgo -f https://data.dgl.ai/wheels-test/repo.html
+pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html
+pip install dglgo -f https://data.dgl.ai/wheels-test/repo.html
 ```
 
 
