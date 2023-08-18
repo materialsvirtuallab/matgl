@@ -95,7 +95,7 @@ pip install -e .
 
 If you intend to use CUDA (GPU) to speed up training, it is important to install the appropriate versions of Pytorch.
 The basic instructions are given below, but it is recommended that you consult the
-[Pytorch official docs](https://pytorch.org/get-started/locally/) if you run into any problems.
+[PyTorch official docs](https://pytorch.org/get-started/locally/) if you run into any problems.
 
 ```shell
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
