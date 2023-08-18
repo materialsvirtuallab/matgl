@@ -159,56 +159,57 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         line_graph: DGL graph line graph of pruned graph to three body cutoff
     """
 
-    pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
-    src_indices, dst_indices = pg.edges()
-    images = pg.edata["pbc_offset"]
-    all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
-    num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
-    num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
-    lg_src = torch.empty(num_edges_per_bond.sum(), dtype=torch.long, device=graph.device)
-    lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=torch.long, device=graph.device)
+    with torch.no_grad():
+        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
+        src_indices, dst_indices = pg.edges()
+        images = pg.edata["pbc_offset"]
+        all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
+        num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
+        num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
+        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=torch.long, device=graph.device)
+        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=torch.long, device=graph.device)
 
-    incoming_edges = src_indices.unsqueeze(1) == dst_indices
-    is_self_edge = src_indices == dst_indices
-    not_self_edge = ~is_self_edge
+        incoming_edges = src_indices.unsqueeze(1) == dst_indices
+        is_self_edge = src_indices == dst_indices
+        not_self_edge = ~is_self_edge
 
-    n = 0
-    # create line graph edges for bonds that are self edges in atom graph
-    if is_self_edge.any():
-        edge_inds_s = is_self_edge.nonzero()
-        lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
-        lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1].squeeze()
-        lg_src_s = lg_src_s[lg_src_s != lg_dst_s]
-        lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
-        n = len(lg_dst_s)
-        lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
+        n = 0
+        # create line graph edges for bonds that are self edges in atom graph
+        if is_self_edge.any():
+            edge_inds_s = is_self_edge.nonzero()
+            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
+            lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1].squeeze()
+            lg_src_s = lg_src_s[lg_src_s != lg_dst_s]
+            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
+            n = len(lg_dst_s)
+            lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
 
-    # create line graph edges for bonds that are not self edges in atom graph
-    shared_src = src_indices.unsqueeze(1) == src_indices
-    back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
-    incoming = incoming_edges & (shared_src | ~back_tracking)
+        # create line graph edges for bonds that are not self edges in atom graph
+        shared_src = src_indices.unsqueeze(1) == src_indices
+        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
+        incoming = incoming_edges & (shared_src | ~back_tracking)
 
-    edge_inds_ns = not_self_edge.nonzero().squeeze()
-    lg_src_ns = incoming[not_self_edge].nonzero()[:, 1]
-    lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
-    lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
+        edge_inds_ns = not_self_edge.nonzero().squeeze()
+        lg_src_ns = incoming[not_self_edge].nonzero()[:, 1]
+        lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
+        lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
 
-    lg = dgl.graph((lg_src, lg_dst))
-    lg_nodes = torch.unique(torch.cat((lg_src, lg_dst)))
-    for key in pg.edata:
-        lg.ndata[key] = pg.edata[key][lg_nodes]
+        lg = dgl.graph((lg_src, lg_dst))
+        lg_nodes = torch.unique(torch.cat((lg_src, lg_dst)))
+        for key in pg.edata:
+            lg.ndata[key] = pg.edata[key][lg_nodes]
 
-    # we need to store the sign of bond vector when a bond is a src node in the line
-    # graph in order to appropriately calculate angles when self edges are involved
-    lg.ndata["src_bond_sign"] = torch.ones(
-        (lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
-    )
-    # if we flip self edges then we need to correct computed angles by pi - angle
-    # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
-    # find the intersection for the rare cases where not all edges end up as nodes in the line graph
-    all_ns, counts = torch.cat([lg_nodes, edge_inds_ns]).unique(return_counts=True)
-    lg_inds_ns = all_ns[torch.where(counts > 1)]
-    lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+        # we need to store the sign of bond vector when a bond is a src node in the line
+        # graph in order to appropriately calculate angles when self edges are involved
+        lg.ndata["src_bond_sign"] = torch.ones(
+            (lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
+        )
+        # if we flip self edges then we need to correct computed angles by pi - angle
+        # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
+        # find the intersection for the rare cases where not all edges end up as nodes in the line graph
+        all_ns, counts = torch.cat([lg_nodes, edge_inds_ns]).unique(return_counts=True)
+        lg_inds_ns = all_ns[torch.where(counts > 1)]
+        lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
     return lg
 
