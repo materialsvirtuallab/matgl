@@ -16,7 +16,7 @@ import torch
 from dgl import readout_edges, readout_nodes
 from torch import nn
 
-from matgl.config import DEFAULT_ELEMENT_TYPES
+from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta,
@@ -88,7 +88,7 @@ class CHGNet(nn.Module, IOMixIn):
     ):
         """
         Args:
-            element_types: List of element types to consider in the model. If None, defaults to DEFAULT_ELEMENT_TYPES.
+            element_types: List of element types to consider in the model. If None, defaults to DEFAULT_ELEMENTS.
             dim_atom_embedding: Dimension of the atom embedding.
             dim_bond_embedding: Dimension of the bond embedding.
             dim_angle_embedding: Dimension of the angle embedding.
@@ -140,7 +140,7 @@ class CHGNet(nn.Module, IOMixIn):
                 f"Invalid activation type, please try using one of {[af.name for af in ActivationFunction]}"
             ) from None
 
-        element_types = element_types or DEFAULT_ELEMENT_TYPES
+        element_types = element_types or DEFAULT_ELEMENTS
 
         # basis expansions for bond lengths, triple interaction bond lengths and angles
         self.bond_expansion = RadialBesselFunction(max_n=max_n, cutoff=cutoff, learnable=learn_basis)
