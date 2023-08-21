@@ -202,8 +202,8 @@ def test_directed_line_graph(graph_data, cutoff, request):
     line_graph = create_directed_line_graph(g1, cutoff)
     line_graph.apply_edges(compute_theta)
 
-    # this test might be lax with just 3 decimal places
-    np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])), decimal=3)
+    # this test might be lax with just 4 decimal places
+    np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])), decimal=4)
 
 
 def test_ensure_directed_line_graph_compat(graph_MoSH):
