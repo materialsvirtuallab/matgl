@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 import torch
 from torch import nn
 
@@ -112,3 +113,6 @@ class TestReadOut:
         )
         output2 = read_out2(g1)
         assert [output2.size(dim=0), output2.size(dim=1)] == [1, 64]
+
+        with pytest.raises(ValueError, match="Field must be node_feat or edge_feat"):
+            Set2SetReadOut(1, 2, 3, field="nonsense")

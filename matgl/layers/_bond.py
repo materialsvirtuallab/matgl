@@ -1,6 +1,8 @@
 """Generate bond features based on spherical bessel functions or gaussian expansion."""
 from __future__ import annotations
 
+from typing import Literal
+
 import torch
 from torch import nn
 
@@ -15,7 +17,7 @@ class BondExpansion(nn.Module):
         max_l: int = 3,
         max_n: int = 3,
         cutoff: float = 5.0,
-        rbf_type: str = "SphericalBessel",
+        rbf_type: Literal["SphericalBessel", "Gaussian"] = "SphericalBessel",
         smooth: bool = False,
         initial: float = 0.0,
         final: float = 5.0,
@@ -46,12 +48,12 @@ class BondExpansion(nn.Module):
         self.final = final
         self.rbf_type = rbf_type
 
-        if rbf_type == "SphericalBessel":
+        if rbf_type.lower() == "sphericalbessel":
             self.rbf = SphericalBesselFunction(max_l, max_n, cutoff, smooth)  # type: ignore
-        elif rbf_type == "Gaussian":
+        elif rbf_type.lower() == "gaussian":
             self.rbf = GaussianExpansion(initial, final, num_centers, width)  # type: ignore
         else:
-            raise Exception("undefined rbf_type, please use SphericalBessel or Gaussian instead.")
+            raise ValueError("Undefined rbf_type, please use SphericalBessel or Gaussian instead.")
 
     def forward(self, bond_dist: torch.Tensor):
         """Forward.

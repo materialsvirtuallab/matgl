@@ -91,6 +91,19 @@ For the latest dev version, please clone this repo and install using:
 pip install -e .
 ```
 
+### CUDA (GPU) installation
+
+If you intend to use CUDA (GPU) to speed up training, it is important to install the appropriate versions of PyTorch
+and DGL. The basic instructions are given below, but it is recommended that you consult the
+[PyTorch docs](https://pytorch.org/get-started/locally/) and [DGL docs](https://www.dgl.ai/pages/start.html) if you
+run into any problems.
+
+```shell
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html
+pip install dglgo -f https://data.dgl.ai/wheels-test/repo.html
+```
+
 ## Usage
 
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
