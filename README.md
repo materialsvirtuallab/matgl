@@ -1,7 +1,7 @@
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE)
 [![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
 [![Testing](https://github.com/materialsvirtuallab/matgl/actions/workflows/testing.yml/badge.svg)](https://github.com/materialsvirtuallab/matgl/actions/workflows/testing.yml)
-[![Downloads](https://pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
+[![Downloads](https://static.pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 [![codecov](https://codecov.io/gh/materialsvirtuallab/matgl/branch/main/graph/badge.svg?token=3V3O79GODQ)](https://codecov.io/gh/materialsvirtuallab/matgl)
 
 # Materials Graph Library <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
@@ -89,6 +89,19 @@ For the latest dev version, please clone this repo and install using:
 
 ```bash
 pip install -e .
+```
+
+### CUDA (GPU) installation
+
+If you intend to use CUDA (GPU) to speed up training, it is important to install the appropriate versions of PyTorch
+and DGL. The basic instructions are given below, but it is recommended that you consult the
+[PyTorch docs](https://pytorch.org/get-started/locally/) and [DGL docs](https://www.dgl.ai/pages/start.html) if you
+run into any problems.
+
+```shell
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html
+pip install dglgo -f https://data.dgl.ai/wheels-test/repo.html
 ```
 
 ## Usage

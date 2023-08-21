@@ -12,7 +12,7 @@ class TestM3GNet:
     def test_model(self, graph_MoS):
         structure, graph, state = graph_MoS
         for act in ["swish", "tanh", "sigmoid", "softplus2", "softexp"]:
-            model = M3GNet(element_types=["Mo", "S"], is_intensive=False, activation_type=act)
+            model = M3GNet(is_intensive=False, activation_type=act)
             output = model(g=graph)
             assert torch.numel(output) == 1
         model.save(".")

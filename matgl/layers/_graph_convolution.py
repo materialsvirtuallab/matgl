@@ -20,9 +20,11 @@ class MEGNetGraphConv(Module):
         node_func: Module,
         state_func: Module,
     ) -> None:
-        """:param edge_func: Edge update function.
-        :param node_func: Node update function.
-        :param state_func: Global state update function.
+        """
+        Args:
+            edge_func: Edge update function.
+            node_func: Node update function.
+            state_func: Global state update function.
         """
         super().__init__()
         self.edge_func = edge_func
@@ -66,8 +68,11 @@ class MEGNetGraphConv(Module):
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
         """Perform edge update.
 
-        :param graph: Input graph
-        :return: Output tensor for edges.
+        Args:
+            graph: Input graph
+
+        Returns:
+            Output tensor for edges.
         """
         graph.apply_edges(self._edge_udf)
         graph.edata["e"] = graph.edata.pop("mij")
@@ -76,8 +81,11 @@ class MEGNetGraphConv(Module):
     def node_update_(self, graph: dgl.DGLGraph) -> Tensor:
         """Perform node update.
 
-        :param graph: Input graph
-        :return: Output tensor for nodes.
+        Args:
+            graph: Input graph
+
+        Returns:
+            Output tensor for nodes.
         """
         graph.update_all(fn.copy_e("e", "e"), fn.mean("e", "ve"))
         ve = graph.ndata.pop("ve")
@@ -90,9 +98,12 @@ class MEGNetGraphConv(Module):
     def state_update_(self, graph: dgl.DGLGraph, state_feat: Tensor) -> Tensor:
         """Perform attribute (global state) update.
 
-        :param graph: Input graph
-        :param state_feat: Input attributes
-        :return: Output tensor for attributes
+        Args:
+            graph: Input graph
+            state_feat: Input attributes
+
+        Returns:
+            Output tensor for attributes
         """
         u_edge = dgl.readout_edges(graph, feat="e", op="mean")
         u_vertex = dgl.readout_nodes(graph, feat="v", op="mean")
@@ -111,11 +122,14 @@ class MEGNetGraphConv(Module):
     ) -> tuple[Tensor, Tensor, Tensor]:
         """Perform sequence of edge->node->attribute updates.
 
-        :param graph: Input graph
-        :param edge_feat: Edge features
-        :param node_feat: Node features
-        :param state_feat: Graph attributes (global state)
-        :return: (edge features, node features, graph attributes)
+        Args:
+            graph: Input graph
+            edge_feat: Edge features
+            node_feat: Node features
+            state_feat: Graph attributes (global state)
+
+        Returns:
+            (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
@@ -359,13 +373,17 @@ class M3GNetGraphConv(Module):
         node_feat: Tensor,
         state_feat: Tensor,
     ) -> tuple[Tensor, Tensor, Tensor]:
-        """Perform sequence of edge->node->states updates.
+        """
+        Perform sequence of edge->node->states updates.
 
-        :param graph: Input graph
-        :param edge_feat: Edge features
-        :param node_feat: Node features
-        :param state_feat: Graph attributes (global state)
-        :return: (edge features, node features, graph attributes)
+        Args:
+            graph: Input graph
+            edge_feat: Edge features
+            node_feat: Node features
+            state_feat: Graph attributes (global state).
+
+        Returns:
+            (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
@@ -391,22 +409,24 @@ class M3GNetBlock(Module):
         degree: int,
         activation: Module,
         conv_hiddens: list[int],
-        num_node_feats: int,
-        num_edge_feats: int,
-        num_state_feats: int | None = None,
+        dim_node_feats: int,
+        dim_edge_feats: int,
+        dim_state_feats: int = 0,
         include_state: bool = False,
         dropout: float | None = None,
     ) -> None:
-        """:param degree: Dimension of radial basis functions
-        :param degree: Number of radial basis functions
-        :param activation: activation
-        :param num_node_feats: Number of node features
-        :param num_edge_feats: Number of edge features
-        :param num_state_feats: Number of state features
-        :param conv_hiddens: Dimension of hidden layers
-        :param activation: Activation type
-        :param include_state: Including state features or not
-        :param dropout: Probability of an element to be zero in dropout layer
+        """
+
+        Args:
+            degree: Number of radial basis functions
+            activation: activation
+            dim_node_feats: Number of node features
+            dim_edge_feats: Number of edge features
+            dim_state_feats: Number of state features
+            conv_hiddens: Dimension of hidden layers
+            activation: Activation type
+            include_state: Including state features or not
+            dropout: Probability of an element to be zero in dropout layer.
         """
         super().__init__()
 
@@ -414,25 +434,25 @@ class M3GNetBlock(Module):
 
         # compute input sizes
         if include_state:
-            edge_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
-            node_in = 2 * num_node_feats + num_edge_feats + num_state_feats  # type: ignore
-            attr_in = num_node_feats + num_state_feats  # type: ignore
+            edge_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
+            node_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
+            attr_in = dim_node_feats + dim_state_feats  # type: ignore
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_state,
-                edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
-                node_dims=[node_in, *conv_hiddens, num_node_feats],
-                state_dims=[attr_in, *conv_hiddens, num_state_feats],  # type: ignore
+                edge_dims=[edge_in, *conv_hiddens, dim_edge_feats],
+                node_dims=[node_in, *conv_hiddens, dim_node_feats],
+                state_dims=[attr_in, *conv_hiddens, dim_state_feats],  # type: ignore
                 activation=self.activation,
             )
         else:
-            edge_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
-            node_in = 2 * num_node_feats + num_edge_feats  # 2*NDIM+EDIM
+            edge_in = 2 * dim_node_feats + dim_edge_feats  # 2*NDIM+EDIM
+            node_in = 2 * dim_node_feats + dim_edge_feats  # 2*NDIM+EDIM
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_state,
-                edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
-                node_dims=[node_in, *conv_hiddens, num_node_feats],
+                edge_dims=[edge_in, *conv_hiddens, dim_edge_feats],
+                node_dims=[node_in, *conv_hiddens, dim_node_feats],
                 state_dims=None,  # type: ignore
                 activation=self.activation,
             )
@@ -446,11 +466,15 @@ class M3GNetBlock(Module):
         node_feat: Tensor,
         state_feat: Tensor,
     ) -> tuple:
-        """:param graph: DGL graph
-        :param edge_feat: Edge features
-        :param node_feat: Node features
-        :param state_feat: State features
-        :return: A tuple of updated features
+        """
+        Args:
+            graph: DGL graph
+            edge_feat: Edge features
+            node_feat: Node features
+            state_feat: State features.
+
+        Returns:
+            A tuple of updated features
         """
         edge_feat, node_feat, state_feat = self.conv(graph, edge_feat, node_feat, state_feat)
 

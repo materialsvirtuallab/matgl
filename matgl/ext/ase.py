@@ -164,14 +164,14 @@ class M3GNetCalculator(Calculator):
         else:
             energies, forces, stresses, hessians = self.potential(graph, state_attr_default)
         self.results.update(
-            energy=energies.detach().cpu().numpy(),
-            free_energy=energies.detach().cpu().numpy(),
-            forces=forces.detach().cpu().numpy(),
+            energy=energies.detach().numpy(),
+            free_energy=energies.detach().numpy(),
+            forces=forces.detach().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=stresses.detach().cpu().numpy() * self.stress_weight)
+            self.results.update(stress=stresses.detach().numpy() * self.stress_weight)
         if self.compute_hessian:
-            self.results.update(hessian=hessians.detach().cpu().numpy())
+            self.results.update(hessian=hessians.detach().numpy())
 
 
 class Relaxer:
@@ -205,19 +205,19 @@ class Relaxer:
 
     def relax(
         self,
-        atoms: Atoms,
+        atoms: Atoms | Structure | Molecule,
         fmax: float = 0.1,
         steps: int = 500,
         traj_file: str | None = None,
-        interval=1,
-        verbose=False,
+        interval: int = 1,
+        verbose: bool = False,
         **kwargs,
     ):
         """
         Relax an input Atoms.
 
         Args:
-            atoms (Atoms): the atoms for relaxation
+            atoms (Atoms | Structure | Molecule): the atoms for relaxation
             fmax (float): total force tolerance for relaxation convergence.
             Here fmax is a sum of force and stress forces
             steps (int): max number of steps for relaxation

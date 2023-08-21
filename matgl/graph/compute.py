@@ -21,7 +21,7 @@ def compute_3body(g: dgl.DGLGraph):
     """
     n_atoms = [g.num_nodes()]
     n_atoms_total = np.sum(g.num_nodes())
-    first_col = g.edges()[0].cpu().numpy().reshape(-1, 1)
+    first_col = g.edges()[0].numpy().reshape(-1, 1)
     all_indices = np.arange(n_atoms_total).reshape(1, -1)
     n_bond_per_atom = np.count_nonzero(first_col == all_indices, axis=0)
     n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)

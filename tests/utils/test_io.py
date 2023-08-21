@@ -80,3 +80,17 @@ def test_load_model():
 
     with pytest.raises(ValueError, match="No valid model found in pre-trained_models"):
         load_model("badbadmodelname")
+
+    try:
+        os.makedirs("bad_serialized_model")
+        with open("bad_serialized_model/model.json", "w") as f:
+            f.write("hello")
+        with open("bad_serialized_model/model.pt", "w") as f:
+            f.write("hello")
+        with open("bad_serialized_model/state.pt", "w") as f:
+            f.write("hello")
+
+        with pytest.raises(ValueError, match="Bad serialized model"):
+            load_model("bad_serialized_model")
+    finally:
+        shutil.rmtree("bad_serialized_model")

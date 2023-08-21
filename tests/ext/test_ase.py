@@ -3,6 +3,7 @@ from __future__ import annotations
 import os.path
 
 import numpy as np
+import pytest
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from matgl import load_model
@@ -61,3 +62,8 @@ def test_molecular_dynamics(LiFePO4):
         md.run(10)
         assert md.dyn is not None
         md.set_atoms(LiFePO4)
+    md = MolecularDynamics(LiFePO4, potential=pot, ensemble=ensemble, taut=None, taup=None, compressibility_au=10)
+    md.run(10)
+    assert md.dyn is not None
+    with pytest.raises(ValueError, match="Ensemble not supported"):
+        MolecularDynamics(LiFePO4, potential=pot, ensemble="notanensemble")

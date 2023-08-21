@@ -210,10 +210,6 @@ def load_model(path: Path, **kwargs):
             cls_ = getattr(mod, classname)
             return cls_.load(fpaths, **kwargs)
     except BaseException:
-        import sys
-        import traceback
-
-        traceback.print_exc(file=sys.stdout)
         raise ValueError(
             "Bad serialized model or bad model name. It is possible that you have an older model cached. Please "
             'clear your cache by running `python -c "import matgl; matgl.clear_cache()"`'

@@ -34,7 +34,7 @@ class AtomRef(nn.Module):
         n = len(graphs)
         features = np.zeros(shape=(n, self.max_z))
         for i, s in enumerate(graphs):
-            atomic_numbers = s.ndata["node_type"].cpu().numpy().tolist()
+            atomic_numbers = s.ndata["node_type"].numpy().tolist()
             features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
