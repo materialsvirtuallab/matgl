@@ -15,6 +15,7 @@ build
 .settings
 .externalToolBuilders
 .idea
+.vscode
 setuptools*
 .ipynb_checkpoints
 .cache
