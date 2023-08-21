@@ -196,8 +196,9 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
         lg = dgl.graph((lg_src, lg_dst))
         lg_nodes = torch.unique(torch.cat((lg_src, lg_dst)))
+        num_lg_nodes = torch.max(lg_nodes) + 1 if len(lg_nodes) > 0 else 0
         for key in pg.edata:
-            lg.ndata[key] = pg.edata[key][lg_nodes]
+            lg.ndata[key] = pg.edata[key][:num_lg_nodes]
 
         # we need to store the sign of bond vector when a bond is a src node in the line
         # graph in order to appropriately calculate angles when self edges are involved
