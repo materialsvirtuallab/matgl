@@ -3,6 +3,7 @@ from __future__ import annotations
 import os.path
 
 import numpy as np
+from ase.build import molecule
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from matgl import load_model
@@ -21,6 +22,16 @@ def test_M3GNetCalculator(MoS):
     assert [s_ase.get_potential_energy().size] == [1]
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
+
+
+def test_M3GNetCalculator_mol():
+    mol = molecule("CH4")
+    model = M3GNet(element_types=["H", "C"], is_intensive=False)
+    ff = Potential(model=model, calc_stresses=False)
+    calc = M3GNetCalculator(potential=ff)
+    mol.set_calculator(calc)
+    assert [mol.get_potential_energy().size] == [1]
+    assert list(mol.get_forces().shape) == [5, 3]
 
 
 def test_Relaxer(MoS):
@@ -54,10 +65,10 @@ def test_get_graph_from_atoms(LiFePO4):
     assert np.allclose(state, [0.0, 0.0])
 
 
-def test_molecular_dynamics(LiFePO4):
+def test_molecular_dynamics(MoS):
     pot = load_model("M3GNet-MP-2021.2.8-PES")
-    for ensemble in ["nvt", "npt", "npt_berendsen"]:
-        md = MolecularDynamics(LiFePO4, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
+    for ensemble in ["nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"]:
+        md = MolecularDynamics(MoS, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
         md.run(10)
         assert md.dyn is not None
-        md.set_atoms(LiFePO4)
+        md.set_atoms(MoS)
