@@ -84,3 +84,16 @@ class TestCoreAndEmbedding:
             node_attr, edge_attr, torch.tensor([0.0, 0.0])
         )  # this will be default value
         assert state_feat is None
+
+        # No ntypes_node.
+        embed5 = EmbeddingBlock(
+            degree_rbf=9,
+            dim_node_embedding=16,
+            dim_edge_embedding=16,
+            dim_state_feats=16,
+            include_state=True,
+            ntypes_node=None,
+            activation=nn.SiLU(),
+        )
+        node_feat, edge_feat, state_feat = embed5(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 16]

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os.path
 
 import numpy as np
+import pytest
 from ase.build import molecule
 from pymatgen.io.ase import AseAtomsAdaptor
 
@@ -72,3 +73,7 @@ def test_molecular_dynamics(MoS):
         md.run(10)
         assert md.dyn is not None
         md.set_atoms(MoS)
+    md = MolecularDynamics(MoS, potential=pot, ensemble=ensemble, taut=None, taup=None, compressibility_au=10)
+    md.run(10)
+    with pytest.raises(ValueError, match="Ensemble not supported"):
+        MolecularDynamics(MoS, potential=pot, ensemble="notanensemble")

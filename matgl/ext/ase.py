@@ -177,14 +177,14 @@ class M3GNetCalculator(Calculator):
         else:
             energies, forces, stresses, hessians = self.potential(graph, state_attr_default)
         self.results.update(
-            energy=energies.detach().cpu().numpy(),
-            free_energy=energies.detach().cpu().numpy(),
-            forces=forces.detach().cpu().numpy(),
+            energy=energies.detach().numpy(),
+            free_energy=energies.detach().numpy(),
+            forces=forces.detach().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=stresses.detach().cpu().numpy() * self.stress_weight)
+            self.results.update(stress=stresses.detach().numpy() * self.stress_weight)
         if self.compute_hessian:
-            self.results.update(hessian=hessians.detach().cpu().numpy())
+            self.results.update(hessian=hessians.detach().numpy())
 
 
 class Relaxer:
@@ -218,19 +218,19 @@ class Relaxer:
 
     def relax(
         self,
-        atoms: Atoms,
+        atoms: Atoms | Structure | Molecule,
         fmax: float = 0.1,
         steps: int = 500,
         traj_file: str | None = None,
-        interval=1,
-        verbose=False,
+        interval: int = 1,
+        verbose: bool = False,
         **kwargs,
     ):
         """
         Relax an input Atoms.
 
         Args:
-            atoms (Atoms): the atoms for relaxation
+            atoms (Atoms | Structure | Molecule): the atoms for relaxation
             fmax (float): total force tolerance for relaxation convergence.
             Here fmax is a sum of force and stress forces
             steps (int): max number of steps for relaxation
@@ -341,8 +341,8 @@ class MolecularDynamics:
         taup: float | None = None,
         friction: float = 1.0e-3,
         andersen_prob: float = 1.0e-2,
-        ttime: float | None = None,
-        pfactor: float | None = None,
+        ttime: float = 25.0,
+        pfactor: float = 75.0**2.0,
         external_stress: float | np.ndarray | None = None,
         compressibility_au: float | None = None,
         trajectory: str | Trajectory | None = None,
@@ -389,10 +389,6 @@ class MolecularDynamics:
             taut = 100 * timestep * units.fs
         if taup is None:
             taup = 1000 * timestep * units.fs
-        if ttime is None:
-            ttime = 25.0
-        if pfactor is None:
-            pfactor = 75.0**2.0
         if mask is None:
             mask = np.array([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
         if external_stress is None:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from matgl.layers import BondExpansion
 
 
@@ -33,3 +35,7 @@ class TestBondExpansion:
 
         bond_basis = bond_expansion(g2.edata["bond_dist"])
         assert bond_basis.shape == (2, 9)
+
+    def test_exception(self):
+        with pytest.raises(ValueError, match="Undefined rbf_type"):
+            BondExpansion(rbf_type="nonsense")
