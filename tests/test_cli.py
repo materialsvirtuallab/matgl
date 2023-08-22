@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from pymatgen.core import SETTINGS
+
 
 def test_entrypoint(Mo):
     Mo.to(filename="Mo.cif")
@@ -18,8 +20,8 @@ def test_entrypoint(Mo):
     exit_status = os.system("mgl predict -i Mo.cif -m MEGNet-MP-2018.6.1-Eform")
     assert exit_status == 0
 
-    exit_status = os.system("mgl predict -p mp-19017 -m MEGNet-MP-2018.6.1-Eform")
-    if os.environ.get("PMG_MAPI_KEY", None) is not None:
+    if "PMG_MAPI_KEY" in SETTINGS:
+        exit_status = os.system("mgl predict -p mp-19017 -m MEGNet-MP-2018.6.1-Eform")
         assert exit_status == 0
     exit_status = os.system("mgl clear --yes")
     assert exit_status == 0
