@@ -206,15 +206,16 @@ def test_directed_line_graph(graph_data, cutoff, request):
     np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])), decimal=4)
 
 
-def test_ensure_directed_line_graph_compat(graph_MoSH):
-    s, g, state = graph_MoSH
+@pytest.mark.parametrize("graph_data", ["graph_X", "graph_Mo", "graph_CH4",  "graph_LiFePO4", "graph_MoSH"])
+def test_ensure_directed_line_graph_compat(graph_data, request):
+    s, g, state = request.getfixturevalue(graph_data)
     bv, bd = compute_pair_vector_and_distance(g)
     g.edata["bond_vec"] = bv
     g.edata["bond_dist"] = bd
     line_graph = create_directed_line_graph(g, 3.0)
     edge_ids = line_graph.ndata["edge_ids"].clone()
     src_bond_sign = line_graph.ndata["src_bond_sign"].clone()
-    line_graph.ndata["edge_ids"] = torch.arange(line_graph.num_nodes())
+    line_graph.ndata["edge_ids"] = torch.zeros(line_graph.num_nodes(), dtype=torch.long)
     line_graph.ndata["src_bond_sign"] = torch.zeros(line_graph.num_nodes())
 
     assert not torch.allclose(line_graph.ndata["edge_ids"], edge_ids)
@@ -226,4 +227,4 @@ def test_ensure_directed_line_graph_compat(graph_MoSH):
     tt.assert_allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
 
     with pytest.raises(AssertionError):
-        ensure_directed_line_graph_compatibility(g, line_graph, 2.0)
+        ensure_directed_line_graph_compatibility(g, line_graph, 1.0)

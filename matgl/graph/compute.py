@@ -228,11 +228,16 @@ def ensure_directed_line_graph_compatibility(
         threebody_cutoff: cutoff for three-body interactions
     """
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
-    assert line_graph.number_of_nodes() == sum(valid_edges), "line graph and graph are not compatible"
-    edge_ids = valid_edges.nonzero().squeeze()
+    assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
+    lg_nodes = torch.unique(torch.cat(line_graph.edges()))
+    num_lg_nodes = torch.max(lg_nodes) + 1 if len(lg_nodes) > 0 else 0
+
+    edge_ids = valid_edges.nonzero().squeeze()[:num_lg_nodes]
     line_graph.ndata["edge_ids"] = edge_ids
+
     for key in graph.edata:
         line_graph.ndata[key] = graph.edata[key][edge_ids]
+
     src_indices, dst_indices = graph.edges()
     ns_edge_ids = (src_indices[edge_ids] != dst_indices[edge_ids]).nonzero().squeeze()
     line_graph.ndata["src_bond_sign"] = torch.ones(
