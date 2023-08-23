@@ -6,7 +6,7 @@ import abc
 import dgl
 import numpy as np
 import torch
-from dgl.backend import tensor
+from torch import tensor
 
 
 class GraphConverter(metaclass=abc.ABCMeta):
