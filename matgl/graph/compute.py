@@ -143,7 +143,7 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     return l_g
 
 
-def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float, cutoff_tol: float = 2e-7) -> dgl.DGLGraph:
+def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> dgl.DGLGraph:
     """Creates a line graph from a graph, considers periodic boundary conditions.
 
     Args:
@@ -156,7 +156,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float, cut
 
     with torch.no_grad():
         pg = prune_edges_by_features(
-            graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff + cutoff_tol
+            graph, feat_name="bond_dist", condition=lambda x: torch.gt(x, threebody_cutoff)
         )
         src_indices, dst_indices = pg.edges()
         images = pg.edata["pbc_offset"]
