@@ -81,11 +81,9 @@ class Atoms2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        lattice_matrix = (
-            np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float) if atoms.pbc.all() else np.zeros((1, 3, 3))
-        )
+        lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.zeros((1, 3, 3))
         volume = atoms.get_volume() if atoms.pbc.all() else 0.0
-        cart_coords = np.ascontiguousarray(np.array(atoms.get_positions()), dtype=float)
+        cart_coords = atoms.get_positions()
         if atoms.pbc.all():
             src_id, dst_id, images, bond_dist = find_points_in_spheres(
                 cart_coords,
