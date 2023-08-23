@@ -190,7 +190,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         incoming = incoming_edges & (shared_src | ~back_tracking)
 
         edge_inds_ns = not_self_edge.nonzero().squeeze()
-        lg_src_ns = incoming[not_self_edge].nonzero()[:, 1]
+        lg_src_ns = incoming[not_self_edge].nonzero()[:, 1].squeeze()
         lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
         lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
 

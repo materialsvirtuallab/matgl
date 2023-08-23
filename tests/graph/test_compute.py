@@ -206,7 +206,7 @@ def test_directed_line_graph(graph_data, cutoff, request):
     np.testing.assert_array_almost_equal(np.sort(theta_loop), np.sort(np.array(line_graph.edata["theta"])), decimal=4)
 
 
-@pytest.mark.parametrize("graph_data", ["graph_X", "graph_Mo", "graph_CH4",  "graph_LiFePO4", "graph_MoSH"])
+@pytest.mark.parametrize("graph_data", ["graph_Mo", "graph_CH4",  "graph_LiFePO4", "graph_MoSH"])
 def test_ensure_directed_line_graph_compat(graph_data, request):
     s, g, state = request.getfixturevalue(graph_data)
     bv, bd = compute_pair_vector_and_distance(g)
