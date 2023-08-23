@@ -143,7 +143,7 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     return l_g
 
 
-def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float, cutoff_tol: float = 1e-6) -> dgl.DGLGraph:
+def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float, cutoff_tol: float = 2e-7) -> dgl.DGLGraph:
     """Creates a line graph from a graph, considers periodic boundary conditions.
 
     Args:
