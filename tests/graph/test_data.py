@@ -289,36 +289,32 @@ def test_chgnet_dataset(LiFePO4, BaNiO3, tmpdir):
         structures=structures,
         converter=cry_graph,
         threebody_cutoff=4.0,
-        energies=energies,
-        forces=forces,
-        stresses=stresses,
-        magmoms=magmoms,
+        labels={"energies": energies, "forces": forces, "stresses": stresses, "magmoms": magmoms},
         save_dir=tmpdir,
     )
-    g1, l_g1, state1, energies_g1, forces_g1, stresses_g1, magmoms_g1 = dataset[0]
-    g2, l_g2, state2, energies_g2, forces_g2, stresses_g2, magmoms_g2 = dataset[1]
-    assert energies_g1 == energies[0]
+    g1, l_g1, state1, labels1 = dataset[0]
+    g2, l_g2, state2, labels2 = dataset[1]
+    assert labels1["energies"] == energies[0]
     assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
     assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
     assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
     assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
-    assert np.shape(forces_g1)[0] == 28
-    assert np.shape(forces_g2)[0] == 10
-    assert np.shape(magmoms_g1)[0] == 28
-    assert np.shape(magmoms_g2)[0] == 10
+    assert np.shape(labels1["forces"])[0] == 28
+    assert np.shape(labels2["forces"])[0] == 10
+    assert np.shape(labels1["magmoms"])[0] == 28
+    assert np.shape(labels2["magmoms"])[0] == 10
 
-    loaded_dataset = CHGNetDataset(save_dir=tmpdir)
-    g1, l_g1, state1, energies_g1, forces_g1, stresses_g1, magmoms_g1 = loaded_dataset[0]
-    g2, l_g2, state2, energies_g2, forces_g2, stresses_g2, magmoms_g2 = loaded_dataset[1]
-    assert energies_g1 == energies[0]
+    g1, l_g1, state1, labels1 = dataset[0]
+    g2, l_g2, state2, labels2 = dataset[1]
+    assert labels1["energies"] == energies[0]
     assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
     assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
     assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
     assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
-    assert np.shape(forces_g1)[0] == 28
-    assert np.shape(forces_g2)[0] == 10
-    assert np.shape(magmoms_g1)[0] == 28
-    assert np.shape(magmoms_g2)[0] == 10
+    assert np.shape(labels1["forces"])[0] == 28
+    assert np.shape(labels2["forces"])[0] == 10
+    assert np.shape(labels1["magmoms"])[0] == 28
+    assert np.shape(labels2["magmoms"])[0] == 10
 
 
 def test_chgnet_dataloader(LiFePO4, BaNiO3, tmpdir):
@@ -333,15 +329,11 @@ def test_chgnet_dataloader(LiFePO4, BaNiO3, tmpdir):
     magmoms = 10 * m
     element_types = get_element_list([LiFePO4, BaNiO3])
     cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-    print(structures)
     dataset = CHGNetDataset(
         structures=structures,
         converter=cry_graph,
         threebody_cutoff=4.0,
-        energies=energies,
-        forces=forces,
-        stresses=stresses,
-        magmoms=magmoms,
+        labels={"energies": energies, "forces": forces, "stresses": stresses, "magmoms": magmoms},
         save_dir=tmpdir
     )
     train_data, val_data, test_data = split_dataset(

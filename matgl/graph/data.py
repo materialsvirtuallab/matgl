@@ -50,13 +50,13 @@ def collate_fn_efs(batch):
 
 def collate_fn_efsm(batch):
     """Merge a list of dgl graphs to form a batch."""
-    graphs, line_graphs, state_attr, energies, forces, stresses, site_wise = map(list, zip(*batch))
+    graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
-    e = torch.tensor(energies, dtype=torch.float32)
-    f = torch.vstack(forces)
-    s = torch.vstack(stresses)
-    m = torch.vstack(site_wise)
+    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float32)
+    f = torch.vstack([d["forces"] for d in labels])
+    s = torch.vstack([d["stresses"] for d in labels])
+    m = torch.vstack([d["magmoms"] for d in labels])
     state_attr = torch.stack(state_attr)
     return g, l_g, state_attr, e, f, s, m
 
@@ -346,7 +346,7 @@ class CHGNetDataset(DGLDataset):
         converter: GraphConverter | None = None,
         threebody_cutoff: float | None = None,
         structures: list | None = None,
-        labels: list | None = None,
+        labels: dict[str, list] | None = None,
         graph_labels: list[int | float] | None = None,
         filename_graphs: str = "dgl_graph.bin",
         filename_line_graphs: str = "dgl_line_graph.bin",
