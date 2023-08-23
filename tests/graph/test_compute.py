@@ -50,8 +50,8 @@ def _calculate_cos_loop(graph, threebody_cutoff=4.0):
             for j in range(n_site):
                 if i == j:
                     continue
-                vi = graph.edata["bond_vec"][i + start_index].numpy()
-                vj = graph.edata["bond_vec"][j + start_index].numpy()
+                vi = graph.edata["bond_vec"][i + start_index].detach().numpy()
+                vj = graph.edata["bond_vec"][j + start_index].detach().numpy()
                 di = np.linalg.norm(vi)
                 dj = np.linalg.norm(vj)
                 if (di <= threebody_cutoff) and (dj <= threebody_cutoff):
