@@ -104,9 +104,9 @@ class Structure2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        lattice_matrix = np.ascontiguousarray(np.array(structure.lattice.matrix), dtype=float)
+        lattice_matrix = structure.lattice.matrix
         volume = structure.volume
-        cart_coords = np.ascontiguousarray(np.array(structure.cart_coords), dtype=float)
+        cart_coords = structure.cart_coords
         src_id, dst_id, images, bond_dist = find_points_in_spheres(
             cart_coords,
             cart_coords,

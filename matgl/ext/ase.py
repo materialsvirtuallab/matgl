@@ -13,10 +13,14 @@ from typing import TYPE_CHECKING, Literal
 import ase.optimize as opt
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
+from ase.md import Langevin
+from ase.md.andersen import Andersen
+from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from pymatgen.core.structure import Molecule, Structure
@@ -77,30 +81,37 @@ class Atoms2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        lattice_matrix = np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float)
-        volume = atoms.get_volume()
-        cart_coords = np.ascontiguousarray(np.array(atoms.get_positions()), dtype=float)
-        src_id, dst_id, images, bond_dist = find_points_in_spheres(
-            cart_coords,
-            cart_coords,
-            r=self.cutoff,
-            pbc=pbc,
-            lattice=lattice_matrix,
-            tol=numerical_tol,
-        )
-        exclude_self = (src_id != dst_id) | (bond_dist > numerical_tol)
-        src_id, dst_id, images, bond_dist = (
-            src_id[exclude_self],
-            dst_id[exclude_self],
-            images[exclude_self],
-            bond_dist[exclude_self],
-        )
+        lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.zeros((1, 3, 3))
+        volume = atoms.get_volume() if atoms.pbc.all() else 0.0
+        cart_coords = atoms.get_positions()
+        if atoms.pbc.all():
+            src_id, dst_id, images, bond_dist = find_points_in_spheres(
+                cart_coords,
+                cart_coords,
+                r=self.cutoff,
+                pbc=pbc,
+                lattice=lattice_matrix,
+                tol=numerical_tol,
+            )
+            exclude_self = (src_id != dst_id) | (bond_dist > numerical_tol)
+            src_id, dst_id, images, bond_dist = (
+                src_id[exclude_self],
+                dst_id[exclude_self],
+                images[exclude_self],
+                bond_dist[exclude_self],
+            )
+        else:
+            dist = np.linalg.norm(cart_coords[:, None, :] - cart_coords[None, :, :], axis=-1)
+            adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(len(atoms.get_positions()), dtype=np.bool_)
+            adj = adj.tocoo()
+            src_id = adj.row
+            dst_id = adj.col
         g, state_attr = super().get_graph_from_processed_structure(
-            AseAtomsAdaptor().get_structure(atoms),
+            AseAtomsAdaptor().get_structure(atoms) if atoms.pbc.all() else AseAtomsAdaptor().get_molecule(atoms),
             src_id,
             dst_id,
-            images,
-            [lattice_matrix],
+            images if atoms.pbc.all() else np.zeros((len(adj.row), 3)),
+            [lattice_matrix] if atoms.pbc.all() else lattice_matrix,
             element_types,
             cart_coords,
         )
@@ -320,17 +331,23 @@ class MolecularDynamics:
         atoms: Atoms,
         potential: Potential,
         state_attr: torch.Tensor | None = None,
-        ensemble: Literal["nvt", "npt", "npt_berendsen"] = "nvt",
+        ensemble: Literal["nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
         pressure: float = 1.01325 * units.bar,
         taut: float | None = None,
         taup: float | None = None,
+        friction: float = 1.0e-3,
+        andersen_prob: float = 1.0e-2,
+        ttime: float = 25.0,
+        pfactor: float = 75.0**2.0,
+        external_stress: float | np.ndarray | None = None,
         compressibility_au: float | None = None,
         trajectory: str | Trajectory | None = None,
         logfile: str | None = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
+        mask: tuple | np.ndarray | None = None,
     ):
         """
         Init the MD simulation.
@@ -347,11 +364,19 @@ class MolecularDynamics:
             pressure (float): pressure in eV/A^3
             taut (float): time constant for Berendsen temperature coupling
             taup (float): time constant for pressure coupling
+            friction (float): friction coefficient for nvt_langevin, typically set to 1e-4 to 1e-2
+            andersen_prob (float): random collision probility for nvt_andersen, typically set to 1e-4 to 1e-1
+            ttime (float): Characteristic timescale of the thermostat, in ASE internal units
+            pfactor (float): A constant in the barostat differential equation.
+            external_stress (float): The external stress in eV/A^3.
+                                     Either 3x3 tensor,6-vector or a scalar representing pressure
             compressibility_au (float): compressibility of the material in A^3/eV
             trajectory (str or Trajectory): Attach trajectory object
             logfile (str): open this file for recording MD outputs
             loginterval (int): write to log file every interval steps
             append_trajectory (bool): Whether to append to prev trajectory.
+            mask (np.array): either a tuple of 3 numbers (0 or 1) or a symmetric 3x3 array indicating,
+                             which strain values may change for NPT simulations.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
@@ -362,6 +387,10 @@ class MolecularDynamics:
             taut = 100 * timestep * units.fs
         if taup is None:
             taup = 1000 * timestep * units.fs
+        if mask is None:
+            mask = np.array([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
+        if external_stress is None:
+            external_stress = 0.0
 
         if ensemble.lower() == "nvt":
             self.dyn = NVTBerendsen(
@@ -369,6 +398,30 @@ class MolecularDynamics:
                 timestep * units.fs,
                 temperature_K=temperature,
                 taut=taut,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+            )
+
+        elif ensemble.lower() == "nvt_langevin":
+            self.dyn = Langevin(
+                self.atoms,
+                timestep * units.fs,
+                temperature_K=temperature,
+                friction=friction,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+            )
+
+        elif ensemble.lower() == "nvt_andersen":
+            self.dyn = Andersen(
+                self.atoms,
+                timestep * units.fs,
+                temperature_K=temperature,
+                andersen_prob=andersen_prob,
                 trajectory=trajectory,
                 logfile=logfile,
                 loginterval=loginterval,
@@ -419,6 +472,21 @@ class MolecularDynamics:
                 logfile=logfile,
                 loginterval=loginterval,
                 append_trajectory=append_trajectory,
+            )
+
+        elif ensemble.lower() == "npt_nose_hoover":
+            self.dyn = NPT(
+                self.atoms,
+                timestep * units.fs,
+                temperature_K=temperature,
+                externalstress=external_stress,
+                ttime=ttime * units.fs,
+                pfactor=pfactor * units.fs,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+                mask=mask,
             )
 
         else:

@@ -42,6 +42,11 @@ structures = [e.structure for e in entries]
 energies = [e.energy for e in entries]
 forces = [np.zeros((len(s), 3)).tolist() for s in structures]
 stresses = [np.zeros((3, 3)).tolist() for s in structures]
+labels = {
+    "energies": energies,
+    "forces": forces,
+    "stresses": stresses,
+}
 
 print(f"{len(structures)} downloaded from MP.")
 ```
@@ -63,9 +68,7 @@ dataset = M3GNetDataset(
     threebody_cutoff=4.0,
     structures=structures,
     converter=converter,
-    energies=energies,
-    forces=forces,
-    stresses=stresses,
+    labels=labels,
 )
 train_data, val_data, test_data = split_dataset(
     dataset,
