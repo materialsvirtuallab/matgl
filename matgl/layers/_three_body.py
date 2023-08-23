@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
 import torch
 from torch import nn
 
@@ -98,9 +97,9 @@ def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
         block_size = [1] * max_l
     else:
         # [1, 1, 1, ..., 1, 3, 3, 3, ..., 3, ...]
-        repeats_sbf = torch.tensor(np.repeat(2 * np.arange(max_l) + 1, repeats=max_n))
+        repeats_sbf = torch.repeat(2 * torch.arange(max_l) + 1, repeats=max_n)
         # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
-        block_size = 2 * np.arange(max_l) + 1  # type: ignore
+        block_size = 2 * torch.arange(max_l) + 1  # type: ignore
         # 2 * tf.range(max_l) + 1
     expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
     expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
