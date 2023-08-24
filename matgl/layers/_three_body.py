@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 
+import matgl
 from matgl.utils.maths import _block_repeat, get_segment_indices_from_n, scatter_sum
 
 if TYPE_CHECKING:
@@ -59,7 +60,7 @@ class ThreeBodyInteractions(nn.Module):
         weights = torch.prod(weights, axis=-1)  # type: ignore
         basis = basis * weights[:, None]
         new_bonds = scatter_sum(
-            basis.to(torch.float32),
+            basis.to(matgl.float_th),
             segment_ids=get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),
             num_segments=graph.num_edges(),
             dim=0,
@@ -102,7 +103,7 @@ def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
         # tf.repeat(2 * tf.range(max_l) + 1, repeats=max_n)
         block_size = 2 * torch.arange(max_l) + 1  # type: ignore
         # 2 * tf.range(max_l) + 1
-    expanded_sbf = np.repeat_interleave(sbf, repeats_sbf, 1)
+    expanded_sbf = torch.repeat_interleave(sbf, repeats_sbf, 1)
     expanded_shf = _block_repeat(shf, block_size=block_size, repeats=[max_n] * max_l)
     shape = max_n * max_l
     if use_phi:

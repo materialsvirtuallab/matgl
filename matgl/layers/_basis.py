@@ -7,6 +7,7 @@ import sympy
 import torch
 from torch import nn
 
+import matgl
 from matgl.layers._three_body import combine_sbf_shf
 from matgl.utils.maths import SPHERICAL_BESSEL_ROOTS, _get_lambda_func
 
@@ -136,7 +137,7 @@ class SphericalBesselFunction(nn.Module):
         Returns:
             basis function expansion using first spherical Bessel function
         """
-        n = (torch.arange(1, max_n + 1)).type(dtype=torch.float32)[None, :]
+        n = (torch.arange(1, max_n + 1)).type(dtype=matgl.float_th)[None, :]
         r = r[:, None]
         return sqrt(2.0 / cutoff) * torch.sin(n * pi / cutoff * r) / r
 
@@ -167,13 +168,13 @@ class RadialBesselFunction(nn.Module):
 
         if learnable:
             self.frequencies = torch.nn.Parameter(
-                data=torch.Tensor(pi * torch.arange(1, self.max_n + 1, dtype=torch.float32)),
+                data=torch.tensor(pi * torch.arange(1, self.max_n + 1)),
                 requires_grad=True,
             )
         else:
             self.register_buffer(
                 "frequencies",
-                pi * torch.arange(1, self.max_n + 1, dtype=torch.float32),
+                pi * torch.arange(1, self.max_n + 1),
             )
 
     def forward(self, r: torch.Tensor) -> torch.Tensor:
