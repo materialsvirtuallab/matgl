@@ -19,10 +19,9 @@ def compute_3body(g: dgl.DGLGraph):
         n_triple_i (np.ndarray): number of three-body angles each atom
         n_triple_s (np.ndarray): number of three-body angles for each structure
     """
-    n_atoms = [g.num_nodes()]
-    n_atoms_total = np.sum(g.num_nodes())
+    n_atoms = g.num_nodes()
     first_col = g.edges()[0].numpy().reshape(-1, 1)
-    all_indices = np.arange(n_atoms_total).reshape(1, -1)
+    all_indices = np.arange(n_atoms).reshape(1, -1)
     n_bond_per_atom = np.count_nonzero(first_col == all_indices, axis=0)
     n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
     n_triple = np.sum(n_triple_i)
@@ -51,24 +50,18 @@ def compute_3body(g: dgl.DGLGraph):
             start += n * (n - 1)
             cs += n
 
-    n_triple_s = []
-    i = 0
-    for n in n_atoms:
-        j = i + n
-        n_triple_s.append(np.sum(n_triple_i[i:j]))
-        i = j
-
-    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=torch.int64)
-    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=torch.int64)
+    n_triple_s = [np.sum(n_triple_i[0:n_atoms])]
+    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=torch.int32)
+    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=torch.int32)
     l_g = dgl.graph((src_id, dst_id))
     three_body_id = torch.unique(torch.concatenate(l_g.edges()))
-    n_triple_ij = torch.tensor(n_triple_ij, dtype=torch.int64)
+    n_triple_ij = torch.tensor(n_triple_ij, dtype=torch.int32)
     max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
     l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
     l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
-    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int64)  # type: ignore
+    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int32)  # type: ignore
     return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
 
 

@@ -27,6 +27,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
+from matgl.config import DataType
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
@@ -81,11 +82,9 @@ class Atoms2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        lattice_matrix = (
-            np.ascontiguousarray(np.array(atoms.get_cell()), dtype=float) if atoms.pbc.all() else np.zeros((1, 3, 3))
-        )
-        volume = atoms.get_volume() if atoms.pbc.all() else 0.0
-        cart_coords = np.ascontiguousarray(np.array(atoms.get_positions()), dtype=float)
+        lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.zeros((1, 3, 3))
+        volume = DataType.np_float(atoms.get_volume()) if atoms.pbc.all() else DataType.np_float(0.0)
+        cart_coords = atoms.get_positions()
         if atoms.pbc.all():
             src_id, dst_id, images, bond_dist = find_points_in_spheres(
                 cart_coords,
@@ -110,12 +109,14 @@ class Atoms2Graph(GraphConverter):
             dst_id = adj.col
         g, state_attr = super().get_graph_from_processed_structure(
             AseAtomsAdaptor().get_structure(atoms) if atoms.pbc.all() else AseAtomsAdaptor().get_molecule(atoms),
-            src_id,
-            dst_id,
-            images if atoms.pbc.all() else np.zeros((len(adj.row), 3)),
-            [lattice_matrix] if atoms.pbc.all() else lattice_matrix,
+            src_id.astype(DataType.np_int),
+            dst_id.astype(DataType.np_int),
+            images.astype(DataType.np_float)
+            if atoms.pbc.all()
+            else np.zeros((len(adj.row), 3)).astype(DataType.np_float),
+            [lattice_matrix.astype(DataType.np_float)] if atoms.pbc.all() else lattice_matrix.astype(DataType.np_float),
             element_types,
-            cart_coords,
+            cart_coords.astype(DataType.np_float),
         )
         g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
         return g, state_attr

@@ -6,6 +6,11 @@ nav_order: 3
 
 # Change Log
 
+## 0.8.3
+- Extend the functionality of ASE-interface for molecular systems and include more different ensembles. (@kenko911)
+- Improve the dgl graph construction and fix the if statements for stress and atomwise training. (@kenko911)
+- Refactored MEGNetDataset and M3GNetDataset classes with optimizations.
+
 ## 0.8.2
 - Add site-wise predictions for Potential. (@lbluque)
 - Enable CLI tool to be used for multi-fidelity models. (@kenko911)
