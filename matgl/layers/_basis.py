@@ -168,13 +168,13 @@ class RadialBesselFunction(nn.Module):
 
         if learnable:
             self.frequencies = torch.nn.Parameter(
-                data=torch.tensor(pi * torch.arange(1, self.max_n + 1)),
+                data=torch.Tensor(pi * torch.arange(1, self.max_n + 1, dtype=matgl.float_th)),
                 requires_grad=True,
             )
         else:
             self.register_buffer(
                 "frequencies",
-                pi * torch.arange(1, self.max_n + 1),
+                pi * torch.arange(1, self.max_n + 1, dtype=matgl.float_th),
             )
 
     def forward(self, r: torch.Tensor) -> torch.Tensor:
@@ -203,11 +203,11 @@ class FourierExpansion(nn.Module):
         # Initialize frequencies at canonical
         if learnable:
             self.frequencies = torch.nn.Parameter(
-                data=torch.arange(0, max_f + 1, dtype=torch.float32),
+                data=torch.arange(0, max_f + 1, dtype=matgl.float_th),
                 requires_grad=True,
             )
         else:
-            self.register_buffer("frequencies", torch.arange(0, max_f + 1, dtype=torch.float32))
+            self.register_buffer("frequencies", torch.arange(0, max_f + 1, dtype=matgl.float_th))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Expand x into cos and sin functions."""
@@ -296,7 +296,7 @@ def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
     Returns: expanded spherical harmonics with derivatives smooth at boundary
 
     """
-    n = torch.arange(max_n).type(dtype=torch.float32)[None, :]
+    n = torch.arange(max_n).type(dtype=matgl.float_th)[None, :]
     r = r[:, None]
     fnr = (
         (-1) ** n

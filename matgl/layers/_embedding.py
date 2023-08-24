@@ -4,6 +4,7 @@ from __future__ import annotations
 import torch
 from torch import nn
 
+import matgl
 from matgl.layers._core import MLP
 
 
@@ -68,9 +69,9 @@ class EmbeddingBlock(nn.Module):
             node_feat = self.layer_node_embedding(node_attr)
         else:
             node_embed = MLP([node_attr.shape[-1], self.dim_node_embedding], activation=self.activation)
-            node_feat = node_embed(node_attr.to(torch.float32))
+            node_feat = node_embed(node_attr.to(matgl.float_th))
         if self.dim_edge_embedding is not None:
-            edge_feat = self.layer_edge_embedding(edge_attr.to(torch.float32))
+            edge_feat = self.layer_edge_embedding(edge_attr.to(matgl.float_th))
         else:
             edge_feat = edge_attr
         if self.include_state is True:
@@ -79,7 +80,7 @@ class EmbeddingBlock(nn.Module):
             elif self.dim_state_feats is not None:
                 state_attr = torch.unsqueeze(state_attr, 0)
                 state_embed = MLP([state_attr.shape[-1], self.dim_state_feats], activation=self.activation)
-                state_feat = state_embed(state_attr.to(torch.float32))
+                state_feat = state_embed(state_attr.to(matgl.float_th))
             else:
                 state_feat = state_attr
         else:
