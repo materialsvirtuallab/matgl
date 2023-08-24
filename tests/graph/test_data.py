@@ -12,9 +12,9 @@ from pymatgen.core import Molecule
 
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.data import (
+    CHGNetDataset,
     M3GNetDataset,
     MEGNetDataset,
-    CHGNetDataset,
     MGLDataLoader,
     collate_fn,
 )
@@ -91,7 +91,6 @@ class TestDataset:
 
     def test_load_m3gnet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
-        energies = [-1.0, 2.0]
         [np.zeros((28, 3)).tolist(), np.zeros((10, 3)).tolist()]
         [np.zeros((3, 3)).tolist(), np.zeros((3, 3)).tolist()]
         element_types = get_element_list(structures)
@@ -334,7 +333,7 @@ def test_chgnet_dataloader(LiFePO4, BaNiO3, tmpdir):
         converter=cry_graph,
         threebody_cutoff=4.0,
         labels={"energies": energies, "forces": forces, "stresses": stresses, "magmoms": magmoms},
-        save_dir=tmpdir
+        save_dir=tmpdir,
     )
     train_data, val_data, test_data = split_dataset(
         dataset,
