@@ -26,7 +26,7 @@ int_th = torch.int32
 
 def set_default_dtype(type_: str = "float", size: int = 32):
     """
-    Set the default float dtype size (32 or 64) used throughout matgl.
+    Set the default dtype size (16, 32 or 64) for int or float used throughout matgl.
 
     Args:
         type_: "float" or "int"
