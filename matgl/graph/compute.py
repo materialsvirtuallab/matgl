@@ -7,6 +7,8 @@ import dgl
 import numpy as np
 import torch
 
+import matgl
+
 
 def compute_3body(g: dgl.DGLGraph):
     """Calculate the three body indices from pair atom indices.
@@ -28,7 +30,7 @@ def compute_3body(g: dgl.DGLGraph):
     n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
     n_triple = np.sum(n_triple_i)
     n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
-    triple_bond_indices = np.empty((n_triple, 2), dtype=np.int32)  # type: ignore
+    triple_bond_indices = np.empty((n_triple, 2), dtype=matgl.int_np)  # type: ignore
 
     start = 0
     cs = 0
@@ -53,17 +55,17 @@ def compute_3body(g: dgl.DGLGraph):
             cs += n
 
     n_triple_s = [np.sum(n_triple_i[0:n_atoms])]
-    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=torch.int32)
-    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=torch.int32)
+    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=matgl.int_th)
+    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=matgl.int_th)
     l_g = dgl.graph((src_id, dst_id))
     three_body_id = torch.unique(torch.concatenate(l_g.edges()))
-    n_triple_ij = torch.tensor(n_triple_ij, dtype=torch.int32)
+    n_triple_ij = torch.tensor(n_triple_ij, dtype=matgl.int_th)
     max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
     l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
     l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
     l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
     l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
-    n_triple_s = torch.tensor(n_triple_s, dtype=torch.int32)  # type: ignore
+    n_triple_s = torch.tensor(n_triple_s, dtype=matgl.int_th)  # type: ignore
     return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
 
 

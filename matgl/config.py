@@ -98,6 +98,7 @@ DEFAULT_ELEMENTS = (
     "Pu",
 )
 
+
 # Default location of the cache for matgl, e.g., for storing downloaded models.
 MATGL_CACHE = Path(os.path.expanduser("~")) / ".cache/matgl"
 os.makedirs(MATGL_CACHE, exist_ok=True)

@@ -13,12 +13,12 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
+import matgl
 from matgl.graph.compute import compute_pair_vector_and_distance, create_directed_line_graph, create_line_graph
 from matgl.layers import BondExpansion
 
 if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
-    from numpy.typing import ArrayLike
 
 
 def collate_fn(batch, include_line_graph: bool = False):
@@ -28,7 +28,7 @@ def collate_fn(batch, include_line_graph: bool = False):
     else:
         graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
-    labels = torch.tensor([next(iter(d.values())) for d in labels], dtype=torch.float32)  # type: ignore
+    labels = torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)  # type: ignore
     state_attr = torch.stack(state_attr)
     if include_line_graph:
         l_g = dgl.batch(line_graphs)
@@ -41,7 +41,7 @@ def collate_fn_efs(batch):
     graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
-    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float32)
+    e = torch.tensor([d["energies"] for d in labels])
     f = torch.vstack([d["forces"] for d in labels])
     s = torch.vstack([d["stresses"] for d in labels])
     state_attr = torch.stack(state_attr)

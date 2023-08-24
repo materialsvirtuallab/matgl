@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from torch import nn
 
+import matgl
 from matgl.utils.maths import _block_repeat, get_segment_indices_from_n, scatter_sum
 
 if TYPE_CHECKING:
@@ -59,7 +60,7 @@ class ThreeBodyInteractions(nn.Module):
         weights = torch.prod(weights, axis=-1)  # type: ignore
         basis = basis * weights[:, None]
         new_bonds = scatter_sum(
-            basis.to(torch.float32),
+            basis.to(matgl.float_th),
             segment_ids=get_segment_indices_from_n(line_graph.ndata["n_triple_ij"]),
             num_segments=graph.num_edges(),
             dim=0,
