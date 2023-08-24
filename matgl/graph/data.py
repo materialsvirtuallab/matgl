@@ -487,7 +487,6 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         filename_labels: str = "labels_part%.json",
         num_chunks: int = 10,
         chunks_indices: list[int] | None = None,
-        chunk_sizes: int | list[int] = 1000,
         name="ChunkedCHGNETDataset",
         raw_dir: str | None = None,
         save_dir: str | None = None,
@@ -506,12 +505,8 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         elif len(chunks_indices) != num_chunks:
             raise ValueError("Length of chunks_indices must be equal to num_chunks")
 
-        if isinstance(chunk_sizes, int):
-            chunk_sizes = [chunk_sizes, ] * num_chunks
-        elif len(chunk_sizes) != num_chunks:
-            raise ValueError("Length of chunk_sizes must be equal to num_chunks")
         self.chunks_indices = chunks_indices
-        self.chunk_sizes = chunk_sizes
+        self.chunk_sizes = None
 
         super().__init__(
             filename_graphs=filename_graphs,
@@ -551,6 +546,8 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         Load only CHGNet dataset labels.
         """
         self.labels = defaultdict(list)
+        self.chunk_sizes = []
+
         for ind in self.chunks_indices:
             filepath_labels = os.path.join(self.save_path, self.filename_labels.replace("%", str(ind)))
 
@@ -559,6 +556,8 @@ class ChunkedCHGNetDataset(CHGNetDataset):
 
             for k, v in labels.items():
                 self.labels[k].extend(v)
+
+            self.chunk_sizes.append(len(labels[k]))
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
