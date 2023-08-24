@@ -548,7 +548,8 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         self.labels = defaultdict(list)
         self.chunk_sizes = []
 
-        for ind in self.chunks_indices:
+        for i in trange(self.num_chunks, desc="Loading labels"):
+            ind = self.chunks_indices[i]
             filepath_labels = os.path.join(self.save_path, self.filename_labels.replace("%", str(ind)))
 
             with open(filepath_labels, "r") as f:
