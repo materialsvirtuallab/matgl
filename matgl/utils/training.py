@@ -430,10 +430,17 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             total_loss = total_loss + self.stress_weight * s_loss
 
         if self.model.calc_site_wise:
-            print(labels[3].shape, preds[3].shape)
-            m_loss = loss(labels[3], preds[3])
-            m_mae = self.mae(labels[3], preds[3])
-            m_rmse = self.rmse(labels[3], preds[3])
+            if self.allow_missing_labels:
+                valid_values = ~torch.isnan(labels[3])
+                labels_3 = labels[3][valid_values]
+                preds_3 = preds[3][valid_values]
+            else:
+                labels_3 = labels[3]
+                preds_3 = preds[3]
+
+            m_loss = loss(labels_3, preds_3)
+            m_mae = self.mae(labels_3, preds_3)
+            m_rmse = self.rmse(labels_3, preds_3)
             total_loss = total_loss + self.site_wise_weight * m_loss
 
         return {
