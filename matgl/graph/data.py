@@ -532,8 +532,9 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         for ind in self.chunks_indices:
             if not all(
                 map(lambda x: os.path.exists(os.path.join(self.save_path, x.replace("%", str(ind)))),
-                    [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels])
+                    [self.filename_graphs, self.filename_line_graphs, self.filename_labels])
             ):
+                print()
                 return False
         return True
 
