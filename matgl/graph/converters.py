@@ -8,6 +8,8 @@ import numpy as np
 import torch
 from dgl.backend import tensor
 
+from matgl.config import DataType
+
 
 class GraphConverter(metaclass=abc.ABCMeta):
     """Abstract base class for converters from input crystals/molecules to graphs."""
@@ -51,7 +53,10 @@ class GraphConverter(metaclass=abc.ABCMeta):
         g.edata["pbc_offset"] = torch.tensor(images)
         g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], tensor(lattice_matrix[0]))
         g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
+        g.ndata["node_type"] = tensor(
+            np.hstack([[element_types.index(site.specie.symbol)] for site in structure]).astype(DataType.np_int)
+        )
         g.ndata["pos"] = tensor(cart_coords)
-        state_attr = [0.0, 0.0]
+        state_attr = np.array([0.0, 0.0]).astype(DataType.np_float)
+
         return g, state_attr

@@ -9,6 +9,7 @@ import torch
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
+from matgl.config import DataType
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
@@ -65,14 +66,14 @@ class Molecule2Graph(GraphConverter):
         adj = adj.tocoo()
         g, _ = super().get_graph_from_processed_structure(
             structure=mol,
-            src_id=adj.row,
-            dst_id=adj.col,
-            images=np.zeros((len(adj.row), 3)),
-            lattice_matrix=np.zeros((1, 3, 3)),
+            src_id=adj.row.astype(DataType.np_int),
+            dst_id=adj.col.astype(DataType.np_int),
+            images=np.zeros((len(adj.row), 3)).astype(DataType.np_float),
+            lattice_matrix=np.zeros((1, 3, 3)).astype(DataType.np_float),
             element_types=element_types,
-            cart_coords=R,
+            cart_coords=R.astype(DataType.np_float),
         )
-        state_attr = [weight, nbonds]
+        state_attr = np.array([weight, nbonds]).astype(DataType.np_float)
         return g, state_attr
 
 
@@ -124,12 +125,12 @@ class Structure2Graph(GraphConverter):
         )
         g, state_attr = super().get_graph_from_processed_structure(
             structure,
-            src_id,
-            dst_id,
-            images,
-            [lattice_matrix],
+            src_id.astype(DataType.np_int),
+            dst_id.astype(DataType.np_int),
+            images.astype(DataType.np_float),
+            [lattice_matrix.astype(DataType.np_float)],
             element_types,
-            cart_coords,
+            cart_coords.astype(DataType.np_float),
         )
         g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
         return g, state_attr

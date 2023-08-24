@@ -5,6 +5,9 @@ import os
 import shutil
 from pathlib import Path
 
+import numpy as np
+import torch
+
 # Default set of elements supported by universal matgl models.
 DEFAULT_ELEMENTS = (
     "H",
@@ -120,3 +123,52 @@ def clear_cache(confirm: bool = True):
             shutil.rmtree(MATGL_CACHE)
         except FileNotFoundError:
             print(f"matgl cache dir {MATGL_CACHE!r} not found")
+
+
+DTYPES = {
+    "float32": {"numpy": np.float32, "pt": torch.float32},
+    "float16": {"numpy": np.float16, "pt": torch.float16},
+    "int32": {"numpy": np.int32, "pt": torch.int32},
+    "int16": {"numpy": np.int16, "pt": torch.int16},
+}
+
+
+class DataType:
+    """Tensorflow and numpy data types. Used to choose between float16 and float32."""
+
+    np_float = np.float32
+    np_int = "int32"
+    pt_float = torch.float32
+    pt_int = "int32"
+
+    @classmethod
+    def set_dtype(cls, data_type: str) -> None:
+        """
+        Class method to set the data types
+        Args:
+            data_type (str): '16' or '32'.
+        """
+        if data_type.endswith("32"):
+            float_key = "float32"
+            int_key = "int32"
+        elif data_type.endswith("16"):
+            float_key = "float16"
+            int_key = "int16"
+        else:
+            raise ValueError("Data type not known, choose '16' or '32'")
+
+        cls.np_float = DTYPES[float_key]["numpy"]
+        cls.pt_float = DTYPES[float_key]["pt"]
+        cls.np_int = DTYPES[int_key]["numpy"]
+        cls.pt_int = DTYPES[int_key]["pt"]
+
+
+def set_global_dtypes(data_type) -> None:
+    """Function to set the data types.
+
+    Args:
+        data_type (str): '16' or '32'
+    Returns:
+
+    """
+    DataType.set_dtype(data_type)

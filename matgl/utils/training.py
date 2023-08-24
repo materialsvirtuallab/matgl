@@ -189,7 +189,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
@@ -322,7 +322,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
@@ -335,10 +335,10 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         """
         if self.model.calc_site_wise:
             e, f, s, h, m = self.model(g=g, l_g=l_g, state_attr=state_attr)
-            return e, f.float(), s, h, m
+            return e, f, s, h, m
 
         e, f, s, h = self.model(g=g, l_g=l_g, state_attr=state_attr)
-        return e, f.float(), s, h
+        return e, f, s, h
 
     def step(self, batch: tuple):
         """Args:

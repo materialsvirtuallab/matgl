@@ -13,6 +13,7 @@ from dgl.data.utils import load_graphs, save_graphs
 from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
+from matgl.config import DataType
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
 from matgl.layers import BondExpansion
 
@@ -40,7 +41,7 @@ def collate_fn_efs(batch):
     graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
-    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float32)
+    e = torch.tensor([d["energies"] for d in labels])
     f = torch.vstack([d["forces"] for d in labels])
     s = torch.vstack([d["stresses"] for d in labels])
     state_attr = torch.stack(state_attr)
@@ -179,9 +180,9 @@ class MEGNetDataset(DGLDataset):
             state_attrs.append(state_attr)
         if self.graph_labels is not None:
             if np.array(self.graph_labels).dtype == "int64":
-                state_attrs = torch.tensor(self.graph_labels).long()
+                state_attrs = torch.tensor(np.array(self.graph_labels).astype(DataType.np_int))
             else:
-                state_attrs = torch.tensor(self.graph_labels)
+                state_attrs = torch.tensor(np.array(self.graph_labels).astype(DataType.np_float))
         else:
             state_attrs = torch.tensor(state_attrs)
         self.graphs = graphs
@@ -280,7 +281,10 @@ class M3GNetDataset(DGLDataset):
                 line_graph.ndata.pop(name)
             line_graphs.append(line_graph)
         if self.graph_labels is not None:
-            state_attrs = torch.tensor(self.graph_labels).long()
+            if np.array(self.graph_labels).dtype == "int64":
+                state_attrs = torch.tensor(np.array(self.graph_labels).astype(DataType.np_int))
+            else:
+                state_attrs = torch.tensor(np.array(self.graph_labels).astype(DataType.np_float))
         else:
             state_attrs = torch.tensor(state_attrs)
 
