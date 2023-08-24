@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+from collections import defaultdict
 from typing import TYPE_CHECKING, Callable
 
 import dgl
@@ -476,3 +477,108 @@ class CHGNetDataset(DGLDataset):
     def __len__(self):
         """Get size of dataset."""
         return len(self.graphs)
+
+
+class ChunkedCHGNetDataset(CHGNetDataset):
+    def __init__(
+        self,
+        filename_graphs: str = "graphs_part%.bin",
+        filename_line_graphs: str = "linegraphs_part%.bin",
+        filename_labels: str = "labels_part%.json",
+        num_chunks: int = 10,
+        chunks_indices: list[int] | None = None,
+        chunk_sizes: int | list[int] = 1000,
+        name="ChunkedCHGNETDataset",
+        raw_dir: str | None = None,
+        save_dir: str | None = None,
+    ):
+        """
+        Args:
+            filename_graphs: filename of dgl graphs
+            filename_line_graphs: filename of dgl line graphs
+            filename_labels: filename of target labels file
+            filename_state_attr: filename of state attributes
+            num_chunks: number of chunks
+            chunks_indices: indices of chunks to load
+        """
+        if chunks_indices is None:
+            chunks_indices = list(range(num_chunks))
+        elif len(chunks_indices) != num_chunks:
+            raise ValueError("Length of chunks_indices must be equal to num_chunks")
+
+        if isinstance(chunk_sizes, int):
+            chunk_sizes = [chunk_sizes, ] * num_chunks
+        elif len(chunk_sizes) != num_chunks:
+            raise ValueError("Length of chunk_sizes must be equal to num_chunks")
+        self.chunks_indices = chunks_indices
+        self.chunk_sizes = chunk_sizes
+
+        super().__init__(
+            filename_graphs=filename_graphs,
+            filename_line_graphs=filename_line_graphs,
+            filename_labels=filename_labels,
+            name=name, raw_dir=raw_dir, save_dir=save_dir
+        )
+
+    @property
+    def num_chunks(self):
+        return len(self.chunks_indices)
+
+    def has_cache(self) -> bool:
+        """Check if the dgl_graph.bin exists or not
+
+        Returns: True if file exists.
+        """
+        for ind in self.chunks_indices:
+            if not all(
+                map(lambda x: os.path.exists(os.path.join(self.save_path, x.replace("%", str(ind)))),
+                    [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels])
+            ):
+                return False
+        return True
+
+    def process(self) -> tuple:
+        raise NotImplementedError("ChunkedCHGNetDataset does not support processing data.")
+
+    def save(self):
+        """Save dgl graphs and labels.
+        """
+        pass
+
+    def load(self):
+        """
+        Load only CHGNet dataset labels.
+        """
+        self.labels = defaultdict(list)
+        for ind in self.chunks_indices:
+            filepath_labels = os.path.join(self.save_path, self.filename_labels.replace("%", str(ind)))
+
+            with open(filepath_labels, "r") as f:
+                labels = json.load(f)
+
+            for k, v in labels.items():
+                self.labels[k].extend(v)
+
+    def __getitem__(self, idx: int):
+        """Get graph and label with idx."""
+        idx_ = idx
+        for chunk_idx, chunk_size in zip(self.chunks_indices, self.chunk_sizes):
+            if idx_ < chunk_size:
+                break
+            idx_ -= chunk_size
+
+        filepath_graphs = os.path.join(self.save_path, self.filename_graphs.replace("%", str(chunk_idx)))
+        filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs.replace("%", str(chunk_idx)))
+
+        graphs, _ = load_graphs(filepath_graphs, [idx_])
+        line_graphs, _ = load_graphs(filepath_line_graphs, [idx_])
+
+        graph = graphs[0]
+        line_graph = line_graphs[0]
+        labels = {k: torch.tensor(v[idx]) if v[idx] is not None else torch.nan for k, v in self.labels.items()}
+
+        return graph, line_graph, torch.tensor([0, 0]), labels
+
+    def __len__(self):
+        """Get size of dataset."""
+        return sum(self.chunk_sizes)
