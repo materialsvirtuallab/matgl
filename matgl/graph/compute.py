@@ -161,8 +161,8 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
         num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
         num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
-        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=torch.long, device=graph.device)
-        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=torch.long, device=graph.device)
+        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
+        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
 
         incoming_edges = src_indices.unsqueeze(1) == dst_indices
         is_self_edge = src_indices == dst_indices
