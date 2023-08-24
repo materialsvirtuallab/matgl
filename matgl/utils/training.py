@@ -264,6 +264,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
         sync_dist: bool = False,
+        allow_missing_labels: bool = False,
         **kwargs,
     ):
         """
@@ -285,6 +286,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
             sync_dist: whether sync logging across all GPU workers or not
+            allow_missing_labels: Whether to allow missing labels or not.
+                These should be present in the dataset as torch.nans and will be skipped in computing the loss.
             **kwargs: Passthrough to parent init.
         """
         assert energy_weight >= 0, f"energy_weight has to be >=0. Got {energy_weight}!"
@@ -322,6 +325,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
+        self.allow_missing_labels = allow_missing_labels
         self.save_hyperparameters()
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
@@ -426,6 +430,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             total_loss = total_loss + self.stress_weight * s_loss
 
         if self.model.calc_site_wise:
+            print(labels[3].shape, preds[3].shape)
             m_loss = loss(labels[3], preds[3])
             m_mae = self.mae(labels[3], preds[3])
             m_rmse = self.rmse(labels[3], preds[3])
