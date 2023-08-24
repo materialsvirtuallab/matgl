@@ -103,7 +103,9 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     return angles
 
 
-def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True, eps=1e-7) -> dict[str, torch.Tensor]:
+def compute_theta(
+    edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True, eps=1e-7
+) -> dict[str, torch.Tensor]:
     """User defined dgl function to calculate bond angles from edges in a graph.
 
     Args:
@@ -153,11 +155,8 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
     Returns:
         line_graph: DGL graph line graph of pruned graph to three body cutoff
     """
-
     with torch.no_grad():
-        pg = prune_edges_by_features(
-            graph, feat_name="bond_dist", condition=lambda x: torch.gt(x, threebody_cutoff)
-        )
+        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: torch.gt(x, threebody_cutoff))
         src_indices, dst_indices = pg.edges()
         images = pg.edata["pbc_offset"]
         all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
@@ -286,7 +285,7 @@ def prune_edges_by_features(
 
     Returns: dgl.Graph with removed edges.
     """
-    if feat_name not in graph.edata.keys():
+    if feat_name not in graph.edata:
         raise ValueError(f"Edge field {feat_name} not an edge feature in given graph.")
 
     valid_edges = torch.logical_not(condition(graph.edata[feat_name], *args, **kwargs))

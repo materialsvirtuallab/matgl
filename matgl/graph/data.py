@@ -371,7 +371,7 @@ class CHGNetDataset(DGLDataset):
             filename_graphs: filename of dgl graphs
             filename_line_graphs: filename of dgl line graphs
             filename_labels: filename of target labels file
-            filename_state_attr: filename of state attributes
+            filename_state_attr: filename of state attributes.
         """
         self.converter = converter
         self.threebody_cutoff = threebody_cutoff
@@ -398,8 +398,8 @@ class CHGNetDataset(DGLDataset):
         Returns: True if file exists.
         """
         return all(
-            map(lambda x: os.path.exists(os.path.join(self.save_path, x)),
-                [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels])
+            os.path.exists(os.path.join(self.save_path, x))
+            for x in [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels]
         )
 
     def process(self) -> tuple:
@@ -428,8 +428,7 @@ class CHGNetDataset(DGLDataset):
         self.state_attr = state_attrs
 
     def save(self):
-        """Save dgl graphs and labels.
-        """
+        """Save dgl graphs and labels."""
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
@@ -447,9 +446,7 @@ class CHGNetDataset(DGLDataset):
         torch.save(self.state_attr, filepath_state_attr)
 
     def load(self):
-        """
-        Load CHGNet dataset from files.
-        """
+        """Load CHGNet dataset from files."""
         filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
         filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
         filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
@@ -459,7 +456,7 @@ class CHGNetDataset(DGLDataset):
         self.line_graphs, _ = load_graphs(filepath_line_graphs)
         self.state_attr = torch.load(filepath_state_attr)
 
-        with open(filepath_labels, "r") as f:
+        with open(filepath_labels) as f:
             self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
@@ -498,7 +495,7 @@ class ChunkedCHGNetDataset(CHGNetDataset):
             filename_labels: filename of target labels file
             filename_state_attr: filename of state attributes
             num_chunks: number of chunks
-            chunks_indices: indices of chunks to load
+            chunks_indices: indices of chunks to load.
         """
         if chunks_indices is None:
             chunks_indices = list(range(num_chunks))
@@ -512,7 +509,9 @@ class ChunkedCHGNetDataset(CHGNetDataset):
             filename_graphs=filename_graphs,
             filename_line_graphs=filename_line_graphs,
             filename_labels=filename_labels,
-            name=name, raw_dir=raw_dir, save_dir=save_dir
+            name=name,
+            raw_dir=raw_dir,
+            save_dir=save_dir,
         )
 
     @property
@@ -520,14 +519,14 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         return len(self.chunks_indices)
 
     def has_cache(self) -> bool:
-        """Check if the dgl_graph.bin exists or not
+        """Check if the dgl_graph.bin exists or not.
 
         Returns: True if file exists.
         """
         for ind in self.chunks_indices:
             if not all(
-                map(lambda x: os.path.exists(os.path.join(self.save_path, x.replace("%", str(ind)))),
-                    [self.filename_graphs, self.filename_line_graphs, self.filename_labels])
+                os.path.exists(os.path.join(self.save_path, x.replace("%", str(ind))))
+                for x in [self.filename_graphs, self.filename_line_graphs, self.filename_labels]
             ):
                 print()
                 return False
@@ -537,14 +536,10 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         raise NotImplementedError("ChunkedCHGNetDataset does not support processing data.")
 
     def save(self):
-        """Save dgl graphs and labels.
-        """
-        pass
+        """Save dgl graphs and labels."""
 
     def load(self):
-        """
-        Load only CHGNet dataset labels.
-        """
+        """Load only CHGNet dataset labels."""
         self.labels = defaultdict(list)
         self.chunk_sizes = []
 
@@ -552,7 +547,7 @@ class ChunkedCHGNetDataset(CHGNetDataset):
             ind = self.chunks_indices[i]
             filepath_labels = os.path.join(self.save_path, self.filename_labels.replace("%", str(ind)))
 
-            with open(filepath_labels, "r") as f:
+            with open(filepath_labels) as f:
                 labels = json.load(f)
 
             for k, v in labels.items():
