@@ -469,7 +469,7 @@ class CHGNetDataset(DGLDataset):
             self.state_attr[idx],
             {
                 k: torch.tensor(v[idx]) if v[idx] is not None else
-                torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)
+                torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
                 for k, v in self.labels.items()},
         )
 
