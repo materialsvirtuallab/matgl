@@ -566,6 +566,7 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         filepath_graphs = os.path.join(self.save_path, self.filename_graphs.replace("%", str(chunk_idx)))
         filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs.replace("%", str(chunk_idx)))
 
+        idx_ = int(idx_)
         graphs, _ = load_graphs(filepath_graphs, [idx_])
         line_graphs, _ = load_graphs(filepath_line_graphs, [idx_])
 
