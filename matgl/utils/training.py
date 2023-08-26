@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytorch_lightning as pl
 import torch
+from torch.nn.init import xavier_normal_
 import torch.nn.functional as F
 import torchmetrics
 from torch import nn
@@ -472,3 +473,11 @@ def xavier_init(model: nn.Module) -> None:
             else:
                 bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[1])
                 param.data.uniform_(-bound, bound)
+
+
+def xavier_normal_init(model: nn.Module, gain: float = 1.0) -> None:
+    for name, param in model.named_parameters():
+        if name.endswith(".bias"):
+            param.data.fill_(0)
+        else:
+            xavier_normal_(param.data, gain=gain)

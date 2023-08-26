@@ -572,8 +572,9 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         graph = graphs[0]
         line_graph = line_graphs[0]
         labels = {
-            k: torch.tensor(self.labels[k][idx]) if self.labels[k][idx] is not None else torch.nan
-            for k in ("energy", "force", "stress", "magmom")
+            k: torch.tensor(v[idx]) if v[idx] is not None else
+            torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in ("energy", "force", "stress", "magmom")
         }
 
         return graph, line_graph, torch.tensor([0, 0]), labels
