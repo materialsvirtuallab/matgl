@@ -6,7 +6,8 @@ import abc
 import dgl
 import numpy as np
 import torch
-from torch import tensor
+
+import matgl
 
 
 class GraphConverter(metaclass=abc.ABCMeta):
@@ -46,12 +47,15 @@ class GraphConverter(metaclass=abc.ABCMeta):
             DGLGraph object, state_attr
 
         """
-        u, v = tensor(src_id), tensor(dst_id)
+        u, v = torch.tensor(src_id), torch.tensor(dst_id)
         g = dgl.graph((u, v), num_nodes=len(structure))
-        g.edata["pbc_offset"] = torch.tensor(images)
-        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], tensor(lattice_matrix[0]))
-        g.edata["lattice"] = tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0))
-        g.ndata["node_type"] = tensor(np.hstack([[element_types.index(site.specie.symbol)] for site in structure]))
-        g.ndata["pos"] = tensor(cart_coords)
+        pbc_offset = torch.tensor(images)
+        g.edata["pbc_offset"] = pbc_offset.to(matgl.int_th)
+        g.edata["pbc_offshift"] = torch.matmul(pbc_offset, torch.tensor(lattice_matrix[0]))
+        g.edata["lattice"] = torch.tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0), dtype=matgl.float_th)
+        g.ndata["node_type"] = torch.tensor(
+            np.hstack([[element_types.index(site.specie.symbol)] for site in structure]), dtype=matgl.int_th
+        )
+        g.ndata["pos"] = torch.tensor(cart_coords)
         state_attr = [0.0, 0.0]
         return g, state_attr
