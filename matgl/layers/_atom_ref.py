@@ -1,4 +1,3 @@
-"""Atomic energy offset. Used for predicting extensive properties."""
 from __future__ import annotations
 
 import dgl
@@ -65,7 +64,7 @@ class AtomRef(nn.Module):
         one_hot = torch.eye(num_elements)[g.ndata["node_type"]]
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []
-            for i in range(0, self.property_offset.size(dim=0)):
+            for i in range(self.property_offset.size(dim=0)):
                 property_offset_batched = self.property_offset[i].repeat(g.num_nodes(), 1)
                 offset = property_offset_batched * one_hot
                 g.ndata["atomic_offset"] = torch.sum(offset, 1)

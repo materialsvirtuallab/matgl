@@ -218,7 +218,7 @@ def broadcast(input_tensor: torch.Tensor, target_tensor: torch.Tensor, dim: int)
         resulting input tensor after broadcasting
     """
     if input_tensor.dim() == 1:
-        for _ in range(0, dim):
+        for _ in range(dim):
             input_tensor = input_tensor.unsqueeze(0)
     for _ in range(input_tensor.dim(), target_tensor.dim()):
         input_tensor = input_tensor.unsqueeze(-1)
