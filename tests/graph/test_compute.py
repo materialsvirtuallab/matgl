@@ -149,3 +149,12 @@ class TestCompute:
         np.testing.assert_array_almost_equal(
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
+
+    def test_compute_three_body(self, graph_AcAla3NHMe):
+        mol1, g1, _ = graph_AcAla3NHMe
+        bv, bd = compute_pair_vector_and_distance(g1)
+        g1.edata["bond_vec"] = bv
+        g1.edata["bond_dist"] = bd
+        line_graph = create_line_graph(g1, 5.0)
+        line_graph.apply_edges(compute_theta_and_phi)
+        np.testing.assert_allclose(line_graph.edata["triple_bond_lengths"].detach().numpy()[0], 1.777829)

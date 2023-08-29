@@ -25,14 +25,15 @@ def test_M3GNetCalculator(MoS):
     assert list(s_ase.get_stress().shape) == [6]
 
 
-def test_M3GNetCalculator_mol():
-    mol = molecule("CH4")
-    model = M3GNet(element_types=["H", "C"], is_intensive=False)
-    ff = Potential(model=model, calc_stresses=False)
+def test_M3GNetCalculator_mol(AcAla3NHMe):
+    adaptor = AseAtomsAdaptor()
+    mol = adaptor.get_atoms(AcAla3NHMe)
+    ff = load_model("M3GNet-MP-2021.2.8-PES")
     calc = M3GNetCalculator(potential=ff)
     mol.set_calculator(calc)
     assert [mol.get_potential_energy().size] == [1]
-    assert list(mol.get_forces().shape) == [5, 3]
+    assert list(mol.get_forces().shape) == [42, 3]
+    np.testing.assert_allclose(mol.get_potential_energy(), -242.77213)
 
 
 def test_Relaxer(MoS):
@@ -62,6 +63,22 @@ def test_get_graph_from_atoms(LiFePO4):
     assert np.allclose(graph.ndata["node_type"].detach().numpy()[4], 1)
     # check the number of bonds
     assert np.allclose(graph.num_edges(), 704)
+    # check the state features
+    assert np.allclose(state, [0.0, 0.0])
+
+
+def test_get_graph_from_atoms_mol():
+    mol = molecule("CH4")
+    a2g = Atoms2Graph(element_types=["H", "C"], cutoff=4.0)
+    graph, state = a2g.get_graph(mol)
+    # check the number of nodes
+    assert np.allclose(graph.num_nodes(), len(mol.get_atomic_numbers()))
+    # check the atomic feature of atom 0
+    assert np.allclose(graph.ndata["node_type"].detach().numpy()[0], 1)
+    # check the atomic feature of atom 4
+    assert np.allclose(graph.ndata["node_type"].detach().numpy()[1], 0)
+    # check the number of bonds
+    assert np.allclose(graph.num_edges(), 20)
     # check the state features
     assert np.allclose(state, [0.0, 0.0])
 

@@ -31,6 +31,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         lattice_matrix,
         element_types,
         cart_coords,
+        is_atoms: bool = False,
     ) -> tuple[dgl.DGLGraph, list]:
         """Construct a dgl graph from processed structure and bond information.
 
@@ -42,6 +43,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
             lattice_matrix: lattice information of the structure.
             element_types: Element symbols of all atoms in the structure.
             cart_coords: Cartisian coordinates of all atoms in the structure.
+            is_atoms: whether the input structure object is ASE atoms object or not.
 
         Returns:
             DGLGraph object, state_attr
@@ -51,11 +53,15 @@ class GraphConverter(metaclass=abc.ABCMeta):
         g = dgl.graph((u, v), num_nodes=len(structure))
         pbc_offset = torch.tensor(images)
         g.edata["pbc_offset"] = pbc_offset.to(matgl.int_th)
-        g.edata["pbc_offshift"] = torch.matmul(pbc_offset, torch.tensor(lattice_matrix[0]))
+        g.edata["pbc_offshift"] = torch.matmul(pbc_offset, torch.tensor(lattice_matrix[0])).to(matgl.float_th)
         g.edata["lattice"] = torch.tensor(np.repeat(lattice_matrix, g.num_edges(), axis=0), dtype=matgl.float_th)
-        g.ndata["node_type"] = torch.tensor(
-            np.hstack([[element_types.index(site.specie.symbol)] for site in structure]), dtype=matgl.int_th
+        element_to_index = {elem: idx for idx, elem in enumerate(element_types)}
+        node_type = (
+            np.array([element_types.index(site.specie.symbol) for site in structure])
+            if is_atoms is False
+            else np.array([element_to_index[elem] for elem in structure.get_chemical_symbols()])
         )
-        g.ndata["pos"] = torch.tensor(cart_coords)
-        state_attr = [0.0, 0.0]
+        g.ndata["node_type"] = torch.tensor(node_type, dtype=matgl.int_th)
+        g.ndata["pos"] = torch.tensor(cart_coords, dtype=matgl.float_th)
+        state_attr = np.array([0.0, 0.0]).astype(matgl.float_np)
         return g, state_attr

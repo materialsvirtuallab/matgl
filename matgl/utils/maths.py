@@ -12,11 +12,13 @@ import torch
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
 
+import matgl
+
 CWD = os.path.dirname(os.path.abspath(__file__))
 
 # Precomputed Spherical Bessel function roots in a 2D array with dimension [128, 128]. The n-th (0-based index) root of
 # order l Spherical Bessel function is the `[l, n]` entry.
-SPHERICAL_BESSEL_ROOTS = torch.tensor(np.load(os.path.join(CWD, "sb_roots.npy")))
+SPHERICAL_BESSEL_ROOTS = torch.tensor(np.load(os.path.join(CWD, "sb_roots.npy")), dtype=matgl.float_th)
 
 
 @lru_cache(maxsize=128)
