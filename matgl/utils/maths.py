@@ -9,10 +9,10 @@ from math import pi, sqrt
 import numpy as np
 import sympy
 import torch
-import matgl
-
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
+
+import matgl
 
 CWD = os.path.dirname(os.path.abspath(__file__))
 

@@ -44,6 +44,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
             element_types: Element symbols of all atoms in the structure.
             cart_coords: Cartisian coordinates of all atoms in the structure.
             is_atoms: whether the input structure object is ASE atoms object or not.
+
         Returns:
             DGLGraph object, state_attr
 

@@ -15,8 +15,6 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 import torch
-import matgl
-
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
@@ -29,6 +27,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
+import matgl
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:

@@ -25,14 +25,15 @@ def test_M3GNetCalculator(MoS):
     assert list(s_ase.get_stress().shape) == [6]
 
 
-def test_M3GNetCalculator_mol():
-    mol = molecule("CH4")
-    model = M3GNet(element_types=["H", "C"], is_intensive=False)
-    ff = Potential(model=model, calc_stresses=False)
+def test_M3GNetCalculator_mol(AcAla3NHMe):
+    adaptor = AseAtomsAdaptor()
+    mol = adaptor.get_atoms(AcAla3NHMe)
+    ff = load_model("M3GNet-MP-2021.2.8-PES")
     calc = M3GNetCalculator(potential=ff)
     mol.set_calculator(calc)
     assert [mol.get_potential_energy().size] == [1]
-    assert list(mol.get_forces().shape) == [5, 3]
+    assert list(mol.get_forces().shape) == [42, 3]
+    np.testing.assert_allclose(mol.get_potential_energy(), -242.77213)
 
 
 def test_Relaxer(MoS):
@@ -65,6 +66,7 @@ def test_get_graph_from_atoms(LiFePO4):
     # check the state features
     assert np.allclose(state, [0.0, 0.0])
 
+
 def test_get_graph_from_atoms_mol():
     mol = molecule("CH4")
     a2g = Atoms2Graph(element_types=["H", "C"], cutoff=4.0)
@@ -79,6 +81,7 @@ def test_get_graph_from_atoms_mol():
     assert np.allclose(graph.num_edges(), 20)
     # check the state features
     assert np.allclose(state, [0.0, 0.0])
+
 
 def test_molecular_dynamics(MoS):
     pot = load_model("M3GNet-MP-2021.2.8-PES")
