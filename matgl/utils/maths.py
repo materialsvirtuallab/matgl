@@ -101,13 +101,11 @@ def get_segment_indices_from_n(ns):
         ns: torch.Tensor, the number of atoms/bonds array
 
     Returns:
-        object:
-
-    Returns: segment indices tensor
+        torch.Tensor: segment indices tensor
     """
-    B = ns
-    A = torch.arange(B.size(dim=0))
-    return A.repeat_interleave(B, dim=0)
+    segments = torch.zeros(ns.sum(), dtype=matgl.int_th)
+    segments[ns.cumsum(0)[:-1]] = 1
+    return segments.cumsum(0)
 
 
 def get_range_indices_from_n(ns):
