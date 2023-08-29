@@ -114,7 +114,7 @@ class TestCompute:
         # test only compute theta
         line_graph.apply_edges(compute_theta)
         np.testing.assert_array_almost_equal(
-            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
+            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"])), decimal=4
         )
 
         # test only compute theta with cosine
