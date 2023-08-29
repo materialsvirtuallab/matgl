@@ -65,6 +65,20 @@ def test_get_graph_from_atoms(LiFePO4):
     # check the state features
     assert np.allclose(state, [0.0, 0.0])
 
+def test_get_graph_from_atoms_mol():
+    mol = molecule("CH4")
+    a2g = Atoms2Graph(element_types=["H", "C"], cutoff=4.0)
+    graph, state = a2g.get_graph(mol)
+    # check the number of nodes
+    assert np.allclose(graph.num_nodes(), len(mol.get_atomic_numbers()))
+    # check the atomic feature of atom 0
+    assert np.allclose(graph.ndata["node_type"].detach().numpy()[0], 1)
+    # check the atomic feature of atom 4
+    assert np.allclose(graph.ndata["node_type"].detach().numpy()[1], 0)
+    # check the number of bonds
+    assert np.allclose(graph.num_edges(), 20)
+    # check the state features
+    assert np.allclose(state, [0.0, 0.0])
 
 def test_molecular_dynamics(MoS):
     pot = load_model("M3GNet-MP-2021.2.8-PES")
