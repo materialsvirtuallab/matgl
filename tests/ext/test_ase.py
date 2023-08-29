@@ -8,21 +8,19 @@ from ase.build import molecule
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from matgl import load_model
-from matgl.apps.pes import Potential
 from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, Relaxer
-from matgl.models import M3GNet
 
 
 def test_M3GNetCalculator(MoS):
     adaptor = AseAtomsAdaptor()
     s_ase = adaptor.get_atoms(MoS)  # type: ignore
-    model = M3GNet(element_types=["Mo", "S"], is_intensive=False)
-    ff = Potential(model=model)
+    ff = load_model("M3GNet-MP-2021.2.8-PES")
     calc = M3GNetCalculator(potential=ff)
     s_ase.set_calculator(calc)
     assert [s_ase.get_potential_energy().size] == [1]
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.312888)
 
 
 def test_M3GNetCalculator_mol(AcAla3NHMe):
