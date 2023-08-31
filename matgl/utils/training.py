@@ -259,6 +259,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         data_mean: float = 0.0,
         data_std: float = 1.0,
         loss: str = "mse_loss",
+        loss_params: dict | None = None,
         optimizer: Optimizer | None = None,
         scheduler=None,
         lr: float = 0.001,
@@ -321,8 +322,11 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         )
         if loss == "mse_loss":
             self.loss = F.mse_loss
+        elif loss == "huber_loss":
+            self.loss = F.huber_loss
         else:
             self.loss = F.l1_loss
+        self.loss_params = loss_params if loss_params is not None else {}
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
@@ -407,8 +411,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         """
         # labels and preds are (energy, force, stress, (optional) site_wise)
-        e_loss = self.loss(labels[0] / num_atoms, preds[0] / num_atoms)
-        f_loss = self.loss(labels[1], preds[1])
+        e_loss = self.loss(labels[0] / num_atoms, preds[0] / num_atoms, **self.loss_params)
+        f_loss = self.loss(labels[1], preds[1], **self.loss_params)
 
         e_mae = self.mae(labels[0] / num_atoms, preds[0] / num_atoms)
         f_mae = self.mae(labels[1], preds[1])
@@ -425,7 +429,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         total_loss = self.energy_weight * e_loss + self.force_weight * f_loss
 
         if self.model.calc_stresses:
-            s_loss = loss(labels[2], preds[2])
+            s_loss = loss(labels[2], preds[2], **self.loss_params)
             s_mae = self.mae(labels[2], preds[2])
             s_rmse = self.rmse(labels[2], preds[2])
             total_loss = total_loss + self.stress_weight * s_loss
@@ -439,7 +443,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                 labels_3 = labels[3]
                 preds_3 = preds[3]
 
-            m_loss = loss(labels_3, preds_3)
+            m_loss = loss(labels_3, preds_3, **self.loss_params)
             m_mae = self.mae(labels_3, preds_3)
             m_rmse = self.rmse(labels_3, preds_3)
             total_loss = total_loss + self.site_wise_weight * m_loss
