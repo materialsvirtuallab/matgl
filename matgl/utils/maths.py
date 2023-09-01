@@ -12,11 +12,13 @@ import torch
 from scipy.optimize import brentq
 from scipy.special import spherical_jn
 
+import matgl
+
 CWD = os.path.dirname(os.path.abspath(__file__))
 
 # Precomputed Spherical Bessel function roots in a 2D array with dimension [128, 128]. The n-th (0-based index) root of
 # order l Spherical Bessel function is the `[l, n]` entry.
-SPHERICAL_BESSEL_ROOTS = torch.tensor(np.load(os.path.join(CWD, "sb_roots.npy")))
+SPHERICAL_BESSEL_ROOTS = torch.tensor(np.load(os.path.join(CWD, "sb_roots.npy")), dtype=matgl.float_th)
 
 
 @lru_cache(maxsize=128)
@@ -99,13 +101,11 @@ def get_segment_indices_from_n(ns):
         ns: torch.Tensor, the number of atoms/bonds array
 
     Returns:
-        object:
-
-    Returns: segment indices tensor
+        torch.Tensor: segment indices tensor
     """
-    B = ns
-    A = torch.arange(B.size(dim=0))
-    return A.repeat_interleave(B, dim=0)
+    segments = torch.zeros(ns.sum(), dtype=matgl.int_th)
+    segments[ns.cumsum(0)[:-1]] = 1
+    return segments.cumsum(0)
 
 
 def get_range_indices_from_n(ns):
@@ -218,7 +218,7 @@ def broadcast(input_tensor: torch.Tensor, target_tensor: torch.Tensor, dim: int)
         resulting input tensor after broadcasting
     """
     if input_tensor.dim() == 1:
-        for _ in range(0, dim):
+        for _ in range(dim):
             input_tensor = input_tensor.unsqueeze(0)
     for _ in range(input_tensor.dim(), target_tensor.dim()):
         input_tensor = input_tensor.unsqueeze(-1)

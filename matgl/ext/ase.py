@@ -27,6 +27,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
+import matgl
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
@@ -107,15 +108,16 @@ class Atoms2Graph(GraphConverter):
             src_id = adj.row
             dst_id = adj.col
         g, state_attr = super().get_graph_from_processed_structure(
-            AseAtomsAdaptor().get_structure(atoms) if atoms.pbc.all() else AseAtomsAdaptor().get_molecule(atoms),
+            atoms,
             src_id,
             dst_id,
             images if atoms.pbc.all() else np.zeros((len(adj.row), 3)),
             [lattice_matrix] if atoms.pbc.all() else lattice_matrix,
             element_types,
             cart_coords,
+            is_atoms=True,
         )
-        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
+        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes(), dtype=matgl.float_th)
         return g, state_attr
 
 
@@ -175,14 +177,14 @@ class M3GNetCalculator(Calculator):
         else:
             energies, forces, stresses, hessians = self.potential(graph, state_attr_default)
         self.results.update(
-            energy=energies.detach().numpy(),
-            free_energy=energies.detach().numpy(),
-            forces=forces.detach().numpy(),
+            energy=energies.detach().cpu().numpy(),
+            free_energy=energies.detach().cpu().numpy(),
+            forces=forces.detach().cpu().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=stresses.detach().numpy() * self.stress_weight)
+            self.results.update(stress=stresses.detach().cpu().numpy() * self.stress_weight)
         if self.compute_hessian:
-            self.results.update(hessian=hessians.detach().numpy())
+            self.results.update(hessian=hessians.detach().cpu().numpy())
 
 
 class Relaxer:
