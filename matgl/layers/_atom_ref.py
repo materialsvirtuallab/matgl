@@ -28,8 +28,8 @@ class AtomRef(nn.Module):
             max_z = property_offset.shape[-1]
 
         self.property_offset = property_offset
-        self.onehot = torch.eye(max_z)
         self.max_z = max_z
+        self.register_buffer("onehot", torch.eye(max_z))
 
     def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> torch.Tensor:
         """Get the number of atoms for different elements in the structure.
