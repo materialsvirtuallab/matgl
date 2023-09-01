@@ -25,7 +25,6 @@ class AtomRef(nn.Module):
         if property_offset is None:
             property_offset = torch.zeros(max_z, dtype=matgl.float_th)
         else:
-            property_offset = torch.tensor(property_offset)
             max_z = property_offset.shape[-1]
 
         self.property_offset = property_offset
@@ -67,9 +66,6 @@ class AtomRef(nn.Module):
         Returns:
             offset_per_graph
         """
-        num_elements = (
-            self.property_offset.size(dim=1) if self.property_offset.ndim > 1 else self.property_offset.size(dim=0)
-        )
         one_hot = self.onehot[g.ndata["node_type"]]
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []
