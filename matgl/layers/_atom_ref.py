@@ -54,7 +54,7 @@ class AtomRef(nn.Module):
             properties (torch.Tensor): tensor of extensive properties
         """
         features = self.get_feature_matrix(graphs)
-        self.property_offset = (torch.pinverse(features.T @ features) @ features.T) @ properties
+        self.property_offset = torch.linalg.lstsq(features, properties).solution
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None):
         """Get the total property offset for a system.
