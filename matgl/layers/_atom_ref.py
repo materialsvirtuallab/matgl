@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import dgl
 import torch
 from torch import nn
@@ -20,10 +21,10 @@ class AtomRef(nn.Module):
         super().__init__()
         if property_offset is None:
             property_offset = torch.zeros(max_z, dtype=matgl.float_th)
-        else:
-            max_z = property_offset.shape[-1]
+        elif isinstance(property_offset, np.ndarray | list):  # for backward compatibility of saved models
+            property_offset = torch.tensor(property_offset, dtype=matgl.float_th)
 
-        self.max_z = max_z
+        self.max_z = property_offset.shape[-1]
         self.register_buffer("property_offset", property_offset)
         self.register_buffer("onehot", torch.eye(max_z))
 
