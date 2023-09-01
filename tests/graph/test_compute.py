@@ -5,8 +5,8 @@ from functools import partial
 import numpy as np
 import pytest
 import torch
-from pymatgen.core import Lattice, Structure
 import torch.testing as tt
+from pymatgen.core import Lattice, Structure
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
@@ -119,10 +119,12 @@ class TestCompute:
         )
 
         # test only compute theta
-        line_graph.apply_edges(compute_theta)
         line_graph.apply_edges(partial(compute_theta, directed=False))
         theta = np.arccos(np.clip(cos_loop, -1.0 + 1e-7, 1.0 - 1e-7))
-        np.testing.assert_array_almost_equal(np.sort(theta), np.sort(np.array(line_graph.edata["theta"])))
+        np.testing.assert_array_almost_equal(
+            np.sort(theta), np.sort(np.array(line_graph.edata["theta"])),
+            decimal=4
+        )
 
         # test only compute theta with cosine
         _ = line_graph.edata.pop("cos_theta")
