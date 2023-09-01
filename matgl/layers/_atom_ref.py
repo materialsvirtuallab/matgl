@@ -26,9 +26,10 @@ class AtomRef(nn.Module):
             property_offset = torch.zeros(max_z, dtype=matgl.float_th)
         else:
             property_offset = torch.tensor(property_offset)
-            max_z = property_offset.size(dim=0)
+            max_z = property_offset.shape[-1]
 
         self.property_offset = property_offset
+        self.onehot = torch.eye(max_z)
         self.max_z = max_z
 
     def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> torch.Tensor:
@@ -69,7 +70,7 @@ class AtomRef(nn.Module):
         num_elements = (
             self.property_offset.size(dim=1) if self.property_offset.ndim > 1 else self.property_offset.size(dim=0)
         )
-        one_hot = torch.eye(num_elements)[g.ndata["node_type"]]
+        one_hot = self.onehot[g.ndata["node_type"]]
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []
             for i in range(self.property_offset.size(dim=0)):
