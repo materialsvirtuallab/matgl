@@ -12,14 +12,14 @@ class AtomRef(nn.Module):
 
     def __init__(
         self,
-        max_z: int = 89,
         property_offset: torch.Tensor | None = None,
+        max_z: int = 89
     ) -> None:
         """
         Args:
-            max_z (int): maximum atomic number
             property_offset (Tensor): a tensor containing the property offset for each element
                 if given max_z is ignored, and the size of the tensor is used instead
+            max_z (int): maximum atomic number
         """
         super().__init__()
         if property_offset is None:
