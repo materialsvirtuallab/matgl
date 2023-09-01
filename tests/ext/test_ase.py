@@ -15,11 +15,13 @@ def test_M3GNetCalculator(MoS):
     adaptor = AseAtomsAdaptor()
     s_ase = adaptor.get_atoms(MoS)  # type: ignore
     ff = load_model("M3GNet-MP-2021.2.8-PES")
+    ff.calc_hessian = True
     calc = M3GNetCalculator(potential=ff)
     s_ase.set_calculator(calc)
     assert [s_ase.get_potential_energy().size] == [1]
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
+    assert list(calc.results["hessian"].shape) == [6, 6]
     np.testing.assert_allclose(s_ase.get_potential_energy(), -10.312888)
 
 
