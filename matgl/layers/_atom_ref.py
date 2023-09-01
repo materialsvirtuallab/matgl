@@ -27,8 +27,8 @@ class AtomRef(nn.Module):
         else:
             max_z = property_offset.shape[-1]
 
-        self.property_offset = property_offset
         self.max_z = max_z
+        self.register_buffer("property_offset", property_offset)
         self.register_buffer("onehot", torch.eye(max_z))
 
     def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> torch.Tensor:
