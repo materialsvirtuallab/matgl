@@ -3,22 +3,19 @@ from __future__ import annotations
 import dgl
 import torch
 from torch import nn
+
 import matgl
 
 
 class AtomRef(nn.Module):
     """Get total property offset for a system."""
 
-    def __init__(
-        self,
-        property_offset: torch.Tensor | None = None,
-        max_z: int = 89
-    ) -> None:
+    def __init__(self, property_offset: torch.Tensor | None = None, max_z: int = 89) -> None:
         """
         Args:
             property_offset (Tensor): a tensor containing the property offset for each element
                 if given max_z is ignored, and the size of the tensor is used instead
-            max_z (int): maximum atomic number
+            max_z (int): maximum atomic number.
         """
         super().__init__()
         if property_offset is None:
