@@ -528,7 +528,6 @@ class ChunkedCHGNetDataset(CHGNetDataset):
                 os.path.exists(os.path.join(self.save_path, x.replace("%", str(ind))))
                 for x in [self.filename_graphs, self.filename_line_graphs, self.filename_labels]
             ):
-                print()
                 return False
         return True
 
