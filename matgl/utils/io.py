@@ -209,11 +209,11 @@ def load_model(path: Path, **kwargs):
             mod = __import__(modname, globals(), locals(), [classname], 0)
             cls_ = getattr(mod, classname)
             return cls_.load(fpaths, **kwargs)
-    except BaseException:
+    except BaseException as err:
         raise ValueError(
             "Bad serialized model or bad model name. It is possible that you have an older model cached. Please "
             'clear your cache by running `python -c "import matgl; matgl.clear_cache()"`'
-        )
+        ) from err
 
 
 def _get_file_paths(path: Path, **kwargs):
