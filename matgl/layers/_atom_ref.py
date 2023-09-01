@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dgl
-import numpy as np
 import torch
 from torch import nn
 
