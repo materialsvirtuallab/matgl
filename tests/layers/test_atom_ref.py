@@ -21,7 +21,7 @@ class TestAtomRef:
         properties = torch.tensor([2.0, 2.0])
         bg = dgl.batch([g1, g1])
         element_ref.fit([g1, g1], properties)
-        print(element_ref.property_offset)
+
         atom_ref = element_ref(bg)
         assert list(np.round(atom_ref.numpy())) == [2.0, 2.0]
 

@@ -4,32 +4,29 @@ import dgl
 import numpy as np
 import torch
 from torch import nn
+
 import matgl
 
 
 class AtomRef(nn.Module):
     """Get total property offset for a system."""
 
-    def __init__(
-        self,
-        property_offset: torch.Tensor | None = None,
-        max_z: int = 89
-    ) -> None:
+    def __init__(self, property_offset: torch.Tensor | None = None, max_z: int = 89) -> None:
         """
         Args:
             property_offset (Tensor): a tensor containing the property offset for each element
                 if given max_z is ignored, and the size of the tensor is used instead
-            max_z (int): maximum atomic number
+            max_z (int): maximum atomic number.
         """
         super().__init__()
         if property_offset is None:
             property_offset = torch.zeros(max_z, dtype=matgl.float_th)
-        else:
-            max_z = property_offset.shape[-1]
+        elif isinstance(property_offset, np.ndarray | list):  # for backward compatibility of saved models
+            property_offset = torch.tensor(property_offset, dtype=matgl.float_th)
 
-        self.max_z = max_z
+        self.max_z = property_offset.shape[-1]
         self.register_buffer("property_offset", property_offset)
-        self.register_buffer("onehot", torch.eye(max_z))
+        self.register_buffer("onehot", torch.eye(self.max_z))
 
     def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> torch.Tensor:
         """Get the number of atoms for different elements in the structure.
