@@ -11,6 +11,7 @@ This notebook is written to demonstrate the use of M3GNet as a structure relaxer
 If you are running this notebook from Google Colab, uncomment the next code box to install matgl first.
 
 
+
 ```python
 # !pip install matgl
 ```
@@ -37,13 +38,18 @@ warnings.filterwarnings("ignore")
 The next cell just compiles data from Wikipedia.
 
 
+
 ```python
 data = pd.read_html("http://en.wikipedia.org/wiki/Lattice_constant")[0]
-data = data[
-    ~data["Crystal structure"].isin(
-        ["Hexagonal", "Wurtzite", "Wurtzite (HCP)", "Orthorhombic", "Tetragonal perovskite", "Orthorhombic perovskite"]
-    )
+struct_types = [
+    "Hexagonal",
+    "Wurtzite",
+    "Wurtzite (HCP)",
+    "Orthorhombic",
+    "Tetragonal perovskite",
+    "Orthorhombic perovskite",
 ]
+data = data[~data["Crystal structure"].isin(struct_types)]
 data = data.rename(columns={"Lattice constant (Å)": "a (Å)"})
 data = data.drop(columns=["Ref."])
 data["a (Å)"] = data["a (Å)"].map(float)
@@ -111,6 +117,7 @@ print(data)
 In the next cell, we generate an initial structure for all the phases. The cubic constant is set to an arbitrary value of 5 angstroms for all structures. It does not matter too much what you set it to, but it cannot be too large or it will result in isolated atoms due to the cutoffs used in m3gnet to determine bonds. We then call the Relaxer, which is the M3GNet universal IAP pre-trained on the Materials Project.
 
 
+
 ```python
 predicted = []
 mp = []
@@ -147,7 +154,9 @@ for formula, v in data.iterrows():
     elif "BCC" in cs:
         s = Structure(Lattice.cubic(4.5), [els[0]] * 2, [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
     elif "FCC" in cs:
-        s = Structure(Lattice.cubic(4.5), [els[0]] * 4, [[0.0, 0.0, 0.0], [0.5, 0.5, 0], [0.0, 0.5, 0.5], [0.5, 0, 0.5]])
+        s = Structure(
+            Lattice.cubic(4.5), [els[0]] * 4, [[0.0, 0.0, 0.0], [0.5, 0.5, 0], [0.0, 0.5, 0.5], [0.5, 0, 0.5]]
+        )
     else:
         predicted.append(0)
         mp.append(0)

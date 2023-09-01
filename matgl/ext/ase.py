@@ -27,6 +27,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
+import matgl
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
@@ -107,15 +108,16 @@ class Atoms2Graph(GraphConverter):
             src_id = adj.row
             dst_id = adj.col
         g, state_attr = super().get_graph_from_processed_structure(
-            AseAtomsAdaptor().get_structure(atoms) if atoms.pbc.all() else AseAtomsAdaptor().get_molecule(atoms),
+            atoms,
             src_id,
             dst_id,
             images if atoms.pbc.all() else np.zeros((len(adj.row), 3)),
             [lattice_matrix] if atoms.pbc.all() else lattice_matrix,
             element_types,
             cart_coords,
+            is_atoms=True,
         )
-        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
+        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes(), dtype=matgl.float_th)
         return g, state_attr
 
 

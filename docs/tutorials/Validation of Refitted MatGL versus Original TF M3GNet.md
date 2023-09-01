@@ -9,6 +9,7 @@ nav_exclude: true
 In this notebook, we validate the refitted MatGL implementation of the M3GNet universal potential against the original TF version using cubic crystals. This is purely for convenience and demonstration purposes. The test can be carried out on any crystal. If you are running this in Google Colab, please uncomment the following lines.
 
 
+
 ```python
 # !pip install m3gnet
 # !pip install matgl
@@ -41,11 +42,15 @@ warnings.filterwarnings("ignore")
 
 ```python
 data = pd.read_html("http://en.wikipedia.org/wiki/Lattice_constant")[0]
-data = data[
-    ~data["Crystal structure"].isin(
-        ["Hexagonal", "Wurtzite", "Wurtzite (HCP)", "Orthorhombic", "Tetragonal perovskite", "Orthorhombic perovskite"]
-    )
+struct_types = [
+    "Hexagonal",
+    "Wurtzite",
+    "Wurtzite (HCP)",
+    "Orthorhombic",
+    "Tetragonal perovskite",
+    "Orthorhombic perovskite",
 ]
+data = data[~data["Crystal structure"].isin(struct_types)]
 data = data.rename(columns={"Lattice constant (Å)": "a (Å)"})
 data = data.drop(columns=["Ref."])
 data["a (Å)"] = data["a (Å)"].map(float)
@@ -113,6 +118,7 @@ print(data)
 Let's load the old and new M3GNet models.
 
 
+
 ```python
 # MatGL M3Gnet
 potential_matgl = matgl.load_model("M3GNet-MP-2021.2.8-PES")
@@ -148,14 +154,17 @@ for formula, v in data.iterrows():
     elif "Caesium chloride" in cs:
         s = Structure.from_spacegroup("Pm-3m", Lattice.cubic(5), [els[0], els[1]], [[0, 0, 0], [0.5, 0.5, 0.5]])
     elif "Cubic perovskite" in cs:
-        s = Structure(Lattice.cubic(5), [els[0], els[1], els[2], els[2], els[2]],
-                      [[0., 0., 0.], [0.5, 0.5, 0.5], [0.5, 0.5, 0], [0., 0.5, 0.5], [0.5, 0, 0.5]])
+        s = Structure(
+            Lattice.cubic(5),
+            [els[0], els[1], els[2], els[2], els[2]],
+            [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5], [0.5, 0.5, 0], [0.0, 0.5, 0.5], [0.5, 0, 0.5]],
+        )
     elif "Diamond" in cs:
         s = Structure.from_spacegroup("Fd-3m", Lattice.cubic(5), [els[0]], [[0.25, 0.75, 0.25]])
     elif "BCC" in cs:
-        s = Structure(Lattice.cubic(5), [els[0]] * 2, [[0., 0., 0.], [0.5, 0.5, 0.5]])
+        s = Structure(Lattice.cubic(5), [els[0]] * 2, [[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
     elif "FCC" in cs:
-        s = Structure(Lattice.cubic(5), [els[0]] * 4, [[0., 0., 0.], [0.5, 0.5, 0], [0., 0.5, 0.5], [0.5, 0, 0.5]])
+        s = Structure(Lattice.cubic(5), [els[0]] * 4, [[0.0, 0.0, 0.0], [0.5, 0.5, 0], [0.0, 0.5, 0.5], [0.5, 0, 0.5]])
     else:
         continue
     try:
@@ -172,7 +181,13 @@ for formula, v in data.iterrows():
                     atoms_matgl = adapter.get_atoms(conv)
                     atoms_tf.calc = calc_tf
                     atoms_matgl.calc = calc_matgl
-                    results.append([s.composition.reduced_formula, atoms_tf.get_potential_energy() / len(s), float(atoms_matgl.get_potential_energy() / len(s))])
+                    results.append(
+                        [
+                            s.composition.reduced_formula,
+                            atoms_tf.get_potential_energy() / len(s),
+                            float(atoms_matgl.get_potential_energy() / len(s)),
+                        ]
+                    )
                     break
             except Exception:
                 pass

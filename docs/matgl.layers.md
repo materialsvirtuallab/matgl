@@ -8,7 +8,6 @@ nav_exclude: true
 
 This package implements the layers for M\*GNet.
 
-
 ## matgl.layers._activations module
 
 Custom activation functions.
@@ -19,17 +18,17 @@ Bases: `Enum`
 
 Enumeration of optional activation functions.
 
-#### sigmoid *= <class 'torch.nn.modules.activation.Sigmoid'>*
+#### sigmoid *= <class ‘torch.nn.modules.activation.Sigmoid’>*
 
-#### softexp *= <class 'matgl.layers._activations.SoftExponential'>*
+#### softexp *= <class ‘matgl.layers._activations.SoftExponential’>*
 
-#### softplus *= <class 'torch.nn.modules.activation.Softplus'>*
+#### softplus *= <class ‘torch.nn.modules.activation.Softplus’>*
 
-#### softplus2 *= <class 'matgl.layers._activations.SoftPlus2'>*
+#### softplus2 *= <class ‘matgl.layers._activations.SoftPlus2’>*
 
-#### swish *= <class 'torch.nn.modules.activation.SiLU'>*
+#### swish *= <class ‘torch.nn.modules.activation.SiLU’>*
 
-#### tanh *= <class 'torch.nn.modules.activation.Tanh'>*
+#### tanh *= <class ‘torch.nn.modules.activation.Tanh’>*
 
 ### *class* matgl.layers._activations.SoftExponential(alpha: float | None = None)
 
@@ -44,19 +43,25 @@ References: [https://arxiv.org/pdf/1602.01321.pdf](https://arxiv.org/pdf/1602.01
 
 Init SoftExponential with alpha value.
 
+
 * **Parameters:**
-  **alpha** (*float*) – adjustable Torch parameter during the training.
+**alpha** (*float*) – adjustable Torch parameter during the training.
 
 #### forward(x: Tensor)
 
 Evaluate activation function given the input tensor x.
 
+
 * **Parameters:**
-  **x** (*torch.tensor*) – Input tensor
+**x** (*torch.tensor*) – Input tensor
+
+
 * **Returns:**
-  Output tensor
+Output tensor
+
+
 * **Return type:**
-  out (torch.tensor)
+out (torch.tensor)
 
 ### *class* matgl.layers._activations.SoftPlus2
 
@@ -72,12 +77,17 @@ Initializes the SoftPlus2 class.
 
 Evaluate activation function given the input tensor x.
 
+
 * **Parameters:**
-  **x** (*torch.tensor*) – Input tensor
+**x** (*torch.tensor*) – Input tensor
+
+
 * **Returns:**
-  Output tensor
+Output tensor
+
+
 * **Return type:**
-  out (torch.tensor)
+out (torch.tensor)
 
 ## matgl.layers._atom_ref module
 
@@ -89,37 +99,53 @@ Bases: `Module`
 
 Get total property offset for a system.
 
+
 * **Parameters:**
-  **property_offset** (*np.array*) – a array of elemental property offset.
+**property_offset** (*np.array*) – a array of elemental property offset.
 
 #### fit(graphs: list, properties: np.typing.NDArray)
 
 Fit the elemental reference values for the properties.
 
+
 * **Parameters:**
-  * **graphs** – dgl graphs
-  * **properties** (*np.ndarray*) – array of extensive properties
+
+    * **graphs** – dgl graphs
+
+
+    * **properties** (*np.ndarray*) – array of extensive properties
 
 #### forward(g: DGLGraph, state_attr: Tensor | None = None)
 
 Get the total property offset for a system.
 
+
 * **Parameters:**
-  * **g** – a batch of dgl graphs
-  * **state_attr** – state attributes
+
+    * **g** – a batch of dgl graphs
+
+
+    * **state_attr** – state attributes
+
+
 * **Returns:**
-  offset_per_graph
+offset_per_graph
 
 #### get_feature_matrix(graphs: list)
 
 Get the number of atoms for different elements in the structure.
 
+
 * **Parameters:**
-  **graphs** (*list*) – a list of dgl graph
+**graphs** (*list*) – a list of dgl graph
+
+
 * **Returns:**
-  a matrix (num_structures, num_elements)
+a matrix (num_structures, num_elements)
+
+
 * **Return type:**
-  features (np.array)
+features (np.array)
 
 ## matgl.layers._basis module
 
@@ -133,12 +159,12 @@ Args:
 max_f (int): the maximum frequency of the Fourier expansion.
 
 > Default = 5
-interval (float): the interval of the Fourier expansion, such that functions
-: are orthonormal over [-interval, interval]. Default = pi
+> interval (float): the interval of the Fourier expansion, such that functions
+> : are orthonormal over [-interval, interval]. Default = pi
 
 scale_factor (float): pre-factor to scale all values.
 : learnable (bool): whether to set the frequencies as learnable parameters
-  Default = False.
+Default = False.
 
 #### forward(x: Tensor)
 
@@ -152,20 +178,31 @@ Gaussian Radial Expansion.
 
 The bond distance is expanded to a vector of shape [m], where m is the number of Gaussian basis centers.
 
+
 * **Parameters:**
-  * **initial** – Location of initial Gaussian basis center.
-  * **final** – Location of final Gaussian basis center
-  * **num_centers** – Number of Gaussian Basis functions
-  * **width** – Width of Gaussian Basis functions.
+
+    * **initial** – Location of initial Gaussian basis center.
+
+
+    * **final** – Location of final Gaussian basis center
+
+
+    * **num_centers** – Number of Gaussian Basis functions
+
+
+    * **width** – Width of Gaussian Basis functions.
 
 #### forward(bond_dists)
 
 Expand distances.
 
+
 * **Parameters:**
-  **bond_dists** – Bond (edge) distances between two atoms (nodes)
+**bond_dists** – Bond (edge) distances between two atoms (nodes)
+
+
 * **Returns:**
-  A vector of expanded distance with shape [num_centers]
+A vector of expanded distance with shape [num_centers]
 
 #### reset_parameters()
 
@@ -185,10 +222,16 @@ Details are given in: [https://arxiv.org/abs/2003.03123](https://arxiv.org/abs/2
 This is equivalent to SphericalBesselFunction class with max_l=1, i.e. only l=0 bessel functions), but with
 optional learnable frequencies.
 
+
 * **Parameters:**
-  * **max_n** – int, max number of roots (including max_n)
-  * **cutoff** – float, cutoff radius
-  * **learnable** – bool, whether to learn the location of roots.
+
+    * **max_n** – int, max number of roots (including max_n)
+
+
+    * **cutoff** – float, cutoff radius
+
+
+    * **learnable** – bool, whether to learn the location of roots.
 
 #### forward(r: Tensor)
 
@@ -197,6 +240,7 @@ Defines the computation performed at every call.
 Should be overridden by all subclasses.
 
 #### NOTE
+
 Although the recipe for forward pass needs to be defined within
 this function, one should call the `Module` instance afterwards
 instead of this since the former takes care of running the
@@ -219,12 +263,20 @@ smooth: Whether to smooth the function.
 Spherical Bessel function of order 0, ensuring the function value
 vanishes at cutoff.
 
+
 * **Parameters:**
-  * **r** – torch.Tensor pytorch tensors
-  * **cutoff** – float, the cutoff radius
-  * **max_n** – int max number of basis
+
+    * **r** – torch.Tensor pytorch tensors
+
+
+    * **cutoff** – float, the cutoff radius
+
+
+    * **max_n** – int max number of basis
+
+
 * **Returns:**
-  basis function expansion using first spherical Bessel function
+basis function expansion using first spherical Bessel function
 
 ### *class* matgl.layers._basis.SphericalBesselWithHarmonics(max_n: int, max_l: int, cutoff: float, use_smooth: bool, use_phi: bool)
 
@@ -234,12 +286,22 @@ Expansion of basis using Spherical Bessel and Harmonics.
 
 Init SphericalBesselWithHarmonics.
 
+
 * **Parameters:**
-  * **max_n** – Degree of radial basis functions.
-  * **max_l** – Degree of angular basis functions.
-  * **cutoff** – Cutoff sphere.
-  * **use_smooth** – Whether using smooth version of SBFs or not.
-  * **use_phi** – Using phi as angular basis functions.
+
+    * **max_n** – Degree of radial basis functions.
+
+
+    * **max_l** – Degree of angular basis functions.
+
+
+    * **cutoff** – Cutoff sphere.
+
+
+    * **use_smooth** – Whether using smooth version of SBFs or not.
+
+
+    * **use_phi** – Using phi as angular basis functions.
 
 #### forward(line_graph)
 
@@ -248,6 +310,7 @@ Defines the computation performed at every call.
 Should be overridden by all subclasses.
 
 #### NOTE
+
 Although the recipe for forward pass needs to be defined within
 this function, one should call the `Module` instance afterwards
 instead of this since the former takes care of running the
@@ -259,10 +322,16 @@ Bases: `object`
 
 Spherical Harmonics function.
 
+
 * **Parameters:**
-  * **max_l** – int, max l (excluding l)
-  * **use_phi** – bool, whether to use the polar angle. If not,
-  * **Y_l^0.** (*the function will compute*) –
+
+    * **max_l** – int, max l (excluding l)
+
+
+    * **use_phi** – bool, whether to use the polar angle. If not,
+
+
+    * **Y_l^0.** (*the function will compute*) –
 
 ### matgl.layers._basis.spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10)
 
@@ -274,10 +343,16 @@ function, and was expanded by the different zero roots.
 Ref:
 : [https://arxiv.org/pdf/1907.02374.pdf](https://arxiv.org/pdf/1907.02374.pdf)
 
+
 * **Parameters:**
-  * **r** – torch.Tensor distance tensor
-  * **cutoff** – float, cutoff radius
-  * **max_n** – int, max number of basis, expanded by the zero roots
+
+    * **r** – torch.Tensor distance tensor
+
+
+    * **cutoff** – float, cutoff radius
+
+
+    * **max_n** – int, max number of basis, expanded by the zero roots
 
 Returns: expanded spherical harmonics with derivatives smooth at boundary
 
@@ -285,22 +360,40 @@ Returns: expanded spherical harmonics with derivatives smooth at boundary
 
 Generate bond features based on spherical bessel functions or gaussian expansion.
 
-### *class* matgl.layers._bond.BondExpansion(max_l: int = 3, max_n: int = 3, cutoff: float = 5.0, rbf_type: str = 'SphericalBessel', smooth: bool = False, initial: float = 0.0, final: float = 5.0, num_centers: int = 100, width: float = 0.5)
+### *class* matgl.layers._bond.BondExpansion(max_l: int = 3, max_n: int = 3, cutoff: float = 5.0, rbf_type: str = ‘SphericalBessel’, smooth: bool = False, initial: float = 0.0, final: float = 5.0, num_centers: int = 100, width: float = 0.5)
 
 Bases: `Module`
 
 Expand pair distances into a set of spherical bessel or gaussian functions.
 
+
 * **Parameters:**
-  * **max_l** (*int*) – order of angular part
-  * **max_n** (*int*) – order of radial part
-  * **cutoff** (*float*) – cutoff radius
-  * **rbf_type** (*str*) – type of radial basis function .i.e. either “SphericalBessel” or ‘Gaussian’
-  * **smooth** (*bool*) – whether apply the smooth version of spherical bessel functions or not
-  * **initial** (*float*) – initial point for gaussian expansion
-  * **final** (*float*) – final point for gaussian expansion
-  * **num_centers** (*int*) – Number of centers for gaussian expansion.
-  * **width** (*float*) – width of gaussian function.
+
+    * **max_l** (*int*) – order of angular part
+
+
+    * **max_n** (*int*) – order of radial part
+
+
+    * **cutoff** (*float*) – cutoff radius
+
+
+    * **rbf_type** (*str*) – type of radial basis function .i.e. either “SphericalBessel” or ‘Gaussian’
+
+
+    * **smooth** (*bool*) – whether apply the smooth version of spherical bessel functions or not
+
+
+    * **initial** (*float*) – initial point for gaussian expansion
+
+
+    * **final** (*float*) – final point for gaussian expansion
+
+
+    * **num_centers** (*int*) – Number of centers for gaussian expansion.
+
+
+    * **width** (*float*) – width of gaussian function.
 
 #### forward(bond_dist: Tensor)
 
@@ -322,20 +415,32 @@ Bases: `Module`
 
 Implementation of Set2Set.
 
+
 * **Parameters:**
-  * **input_dim** – The size of each input sample.
-  * **n_iters** – The number of iterations.
-  * **n_layers** – The number of recurrent layers.
+
+    * **input_dim** – The size of each input sample.
+
+
+    * **n_iters** – The number of iterations.
+
+
+    * **n_layers** – The number of recurrent layers.
 
 #### forward(g: DGLGraph, feat: Tensor)
 
 Defines the computation performed at every call.
 
+
 * **Parameters:**
-  * **g** – Input graph
-  * **feat** – Input features.
+
+    * **g** – Input graph
+
+
+    * **feat** – Input features.
+
+
 * **Returns:**
-  One hot vector
+One hot vector
 
 #### reset_parameters()
 
@@ -347,11 +452,19 @@ Bases: `Module`
 
 An implementation of a Gated multi-layer perceptron.
 
+
 * **Parameters:**
-  * **in_feats** – Dimension of input features.
-  * **dims** – Architecture of neural networks.
-  * **activate_last** – Whether applying activation to last layer or not.
-  * **bias_last** – Whether applying bias to last layer or not.
+
+    * **in_feats** – Dimension of input features.
+
+
+    * **dims** – Architecture of neural networks.
+
+
+    * **activate_last** – Whether applying activation to last layer or not.
+
+
+    * **bias_last** – Whether applying bias to last layer or not.
 
 #### forward(inputs: Tensor)
 
@@ -360,6 +473,7 @@ Defines the computation performed at every call.
 Should be overridden by all subclasses.
 
 #### NOTE
+
 Although the recipe for forward pass needs to be defined within
 this function, one should call the `Module` instance afterwards
 instead of this since the former takes care of running the
@@ -371,13 +485,21 @@ Bases: `Module`
 
 An implementation of a multi-layer perceptron.
 
-* **Parameters:**
-  * **dims** – Dimensions of each layer of MLP.
-  * **activation** – Activation function.
-  * **activate_last** – Whether to apply activation to last layer.
-  * **bias_last** – Whether to apply bias to last layer.
 
-#### *property* depth*: int*
+* **Parameters:**
+
+    * **dims** – Dimensions of each layer of MLP.
+
+
+    * **activation** – Activation function.
+
+
+    * **activate_last** – Whether to apply activation to last layer.
+
+
+    * **bias_last** – Whether to apply bias to last layer.
+
+#### *property* depth\*: int\*
 
 Returns depth of MLP.
 
@@ -385,23 +507,27 @@ Returns depth of MLP.
 
 Applies all layers in turn.
 
-* **Parameters:**
-  **inputs** – Input tensor
-* **Returns:**
-  Output tensor
 
-#### *property* in_features*: int*
+* **Parameters:**
+**inputs** – Input tensor
+
+
+* **Returns:**
+Output tensor
+
+#### *property* in_features\*: int\*
 
 Return input features of MLP.
 
-#### *property* last_linear*: Linear | None*
+#### *property* last_linear\*: Linear | None\*
 
 The last linear layer.
 
-* **Type:**
-  return
 
-#### *property* out_features*: int*
+* **Type:**
+return
+
+#### *property* out_features\*: int\*
 
 Returns output features of MLP.
 
@@ -415,31 +541,59 @@ Bases: `Module`
 
 Embedding block for generating node, bond and state features.
 
+
 * **Parameters:**
-  * **degree_rbf** (*int*) – number of rbf
-  * **activation** (*nn.Module*) – activation type
-  * **dim_node_embedding** (*int*) – dimensionality of node features
-  * **dim_edge_embedding** (*int*) – dimensionality of edge features
-  * **dim_state_feats** – dimensionality of state features
-  * **ntypes_node** – number of node labels
-  * **include_state** – Whether to include state embedding
-  * **ntypes_state** – number of state labels
-  * **dim_state_embedding** – dimensionality of state embedding.
+
+    * **degree_rbf** (*int*) – number of rbf
+
+
+    * **activation** (*nn.Module*) – activation type
+
+
+    * **dim_node_embedding** (*int*) – dimensionality of node features
+
+
+    * **dim_edge_embedding** (*int*) – dimensionality of edge features
+
+
+    * **dim_state_feats** – dimensionality of state features
+
+
+    * **ntypes_node** – number of node labels
+
+
+    * **include_state** – Whether to include state embedding
+
+
+    * **ntypes_state** – number of state labels
+
+
+    * **dim_state_embedding** – dimensionality of state embedding.
 
 #### forward(node_attr, edge_attr, state_attr)
 
 Output embedded features.
 
+
 * **Parameters:**
-  * **node_attr** – node attribute
-  * **edge_attr** – edge attribute
-  * **state_attr** – state attribute
+
+    * **node_attr** – node attribute
+
+
+    * **edge_attr** – edge attribute
+
+
+    * **state_attr** – state attribute
+
+
 * **Returns:**
-  embedded node features
-  edge_feat: embedded edge features
-  state_feat: embedded state features
+embedded node features
+edge_feat: embedded edge features
+state_feat: embedded state features
+
+
 * **Return type:**
-  node_feat
+node_feat
 
 ## matgl.layers._graph_convolution module
 
@@ -451,25 +605,51 @@ Bases: `Module`
 
 A M3GNet block comprising a sequence of update operations.
 
+
 * **Parameters:**
-  * **degree** – Dimension of radial basis functions
-  * **num_node_feats** – Number of node features
-  * **num_edge_feats** – Number of edge features
-  * **num_state_feats** – Number of state features
-  * **conv_hiddens** – Dimension of hidden layers
-  * **activation** – Activation type
-  * **include_state** – Including state features or not
-  * **dropout** – Probability of an element to be zero in dropout layer
+
+    * **degree** – Dimension of radial basis functions
+
+
+    * **num_node_feats** – Number of node features
+
+
+    * **num_edge_feats** – Number of edge features
+
+
+    * **num_state_feats** – Number of state features
+
+
+    * **conv_hiddens** – Dimension of hidden layers
+
+
+    * **activation** – Activation type
+
+
+    * **include_state** – Including state features or not
+
+
+    * **dropout** – Probability of an element to be zero in dropout layer
 
 #### forward(graph: DGLGraph, edge_feat: Tensor, node_feat: Tensor, state_feat: Tensor)
 
+
 * **Parameters:**
-  * **graph** – DGL graph
-  * **edge_feat** – Edge features
-  * **node_feat** – Node features
-  * **state_attr** – State features
+
+    * **graph** – DGL graph
+
+
+    * **edge_feat** – Edge features
+
+
+    * **node_feat** – Node features
+
+
+    * **state_attr** – State features
+
+
 * **Returns:**
-  A tuple of updated features
+A tuple of updated features
 
 ### *class* matgl.layers._graph_convolution.M3GNetGraphConv(include_states: bool, edge_update_func: Module, edge_weight_func: Module, node_update_func: Module, node_weight_func: Module, state_update_func: Module | None)
 
@@ -499,25 +679,47 @@ edge_update: edge features update
 
 Perform sequence of edge->node->states updates.
 
+
 * **Parameters:**
-  * **graph** – Input graph
-  * **edge_feat** – Edge features
-  * **node_feat** – Node features
-  * **state_attr** – Graph attributes (global state)
+
+    * **graph** – Input graph
+
+
+    * **edge_feat** – Edge features
+
+
+    * **node_feat** – Node features
+
+
+    * **state_attr** – Graph attributes (global state)
+
+
 * **Returns:**
-  (edge features, node features, graph attributes)
+(edge features, node features, graph attributes)
 
 #### *static* from_dims(degree, include_states, edge_dims: list[int], node_dims: list[int], state_dims: list[int] | None, activation: Module)
 
 M3GNetGraphConv initialization.
 
+
 * **Parameters:**
-  * **degree** (*int*) – max_n\*max_l
-  * **include_states** (*bool*) – whether including state or not
-  * **edge_dims** (*list*) – NN architecture for edge update function
-  * **node_dims** (*list*) – NN architecture for node update function
-  * **state_dims** (*list*) – NN architecture for state update function
-  * **activation** (*nn.Nodule*) – activation function
+
+    * **degree** (*int*) – max_n\*max_l
+
+
+    * **include_states** (*bool*) – whether including state or not
+
+
+    * **edge_dims** (*list*) – NN architecture for edge update function
+
+
+    * **node_dims** (*list*) – NN architecture for node update function
+
+
+    * **state_dims** (*list*) – NN architecture for state update function
+
+
+    * **activation** (*nn.Nodule*) – activation function
 
 Returns:
 M3GNetGraphConv (class)
@@ -526,21 +728,33 @@ M3GNetGraphConv (class)
 
 Perform node update.
 
+
 * **Parameters:**
-  * **graph** – DGL graph
-  * **state_attr** – State attributes
+
+    * **graph** – DGL graph
+
+
+    * **state_attr** – State attributes
+
+
 * **Returns:**
-  node features update
+node features update
+
+
 * **Return type:**
-  node_update
+node_update
 
 #### state_update_(graph: DGLGraph, state_attrs: Tensor)
 
 Perform attribute (global state) update.
 
+
 * **Parameters:**
-  * **graph** – DGL graph
-  * **state_attrs** – graph features
+
+    * **graph** – DGL graph
+
+
+    * **state_attrs** – graph features
 
 Returns:
 state_update: state_features update
@@ -553,28 +767,50 @@ A MEGNet block comprising a sequence of update operations.
 
 Init the MEGNet block with key parameters.
 
+
 * **Parameters:**
-  * **dims** – Dimension of dense layers before graph convolution.
-  * **conv_hiddens** – Architecture of hidden layers of graph convolution.
-  * **act** – Activation type.
-  * **dropout** – Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
-    to a Bernoulli distribution.
-  * **skip** – Residual block.
+
+    * **dims** – Dimension of dense layers before graph convolution.
+
+
+    * **conv_hiddens** – Architecture of hidden layers of graph convolution.
+
+
+    * **act** – Activation type.
+
+
+    * **dropout** – Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
+to a Bernoulli distribution.
+
+
+    * **skip** – Residual block.
 
 #### forward(graph: DGLGraph, edge_feat: Tensor, node_feat: Tensor, state_attr: Tensor)
 
 MEGNetBlock forward pass.
 
+
 * **Parameters:**
-  * **graph** (*dgl.DGLGraph*) – A DGLGraph.
-  * **edge_feat** (*Tensor*) – Edge features.
-  * **node_feat** (*Tensor*) – Node features.
-  * **state_attr** (*Tensor*) – Graph attributes (global state).
+
+    * **graph** (*dgl.DGLGraph*) – A DGLGraph.
+
+
+    * **edge_feat** (*Tensor*) – Edge features.
+
+
+    * **node_feat** (*Tensor*) – Node features.
+
+
+    * **state_attr** (*Tensor*) – Graph attributes (global state).
+
+
 * **Returns:**
-  Updated (edge features,
-  : node features, graph attributes)
+Updated (edge features,
+: node features, graph attributes)
+
+
 * **Return type:**
-  tuple[Tensor, Tensor, Tensor]
+tuple[Tensor, Tensor, Tensor]
 
 ### *class* matgl.layers._graph_convolution.MEGNetGraphConv(edge_func: Module, node_func: Module, state_func: Module)
 
@@ -582,98 +818,153 @@ Bases: `Module`
 
 A MEGNet graph convolution layer in DGL.
 
+
 * **Parameters:**
-  * **edge_func** – Edge update function.
-  * **node_func** – Node update function.
-  * **state_func** – Global state update function.
+
+    * **edge_func** – Edge update function.
+
+
+    * **node_func** – Node update function.
+
+
+    * **state_func** – Global state update function.
 
 #### edge_update_(graph: DGLGraph)
 
 Perform edge update.
 
+
 * **Parameters:**
-  **graph** – Input graph
+**graph** – Input graph
+
+
 * **Returns:**
-  Output tensor for edges.
+Output tensor for edges.
 
 #### forward(graph: DGLGraph, edge_feat: Tensor, node_feat: Tensor, state_attr: Tensor)
 
 Perform sequence of edge->node->attribute updates.
 
+
 * **Parameters:**
-  * **graph** – Input graph
-  * **edge_feat** – Edge features
-  * **node_feat** – Node features
-  * **state_attr** – Graph attributes (global state)
+
+    * **graph** – Input graph
+
+
+    * **edge_feat** – Edge features
+
+
+    * **node_feat** – Node features
+
+
+    * **state_attr** – Graph attributes (global state)
+
+
 * **Returns:**
-  (edge features, node features, graph attributes)
+(edge features, node features, graph attributes)
 
 #### *static* from_dims(edge_dims: list[int], node_dims: list[int], state_dims: list[int], activation: Module)
 
 Create a MEGNet graph convolution layer from dimensions.
 
+
 * **Parameters:**
-  * **edge_dims** (*list**[**int**]*) – Edge dimensions.
-  * **node_dims** (*list**[**int**]*) – Node dimensions.
-  * **state_dims** (*list**[**int**]*) – State dimensions.
-  * **activation** (*Module*) – Activation function.
+
+    * **edge_dims** (*list*\*[**int**]\*) – Edge dimensions.
+
+
+    * **node_dims** (*list*\*[**int**]\*) – Node dimensions.
+
+
+    * **state_dims** (*list*\*[**int**]\*) – State dimensions.
+
+
+    * **activation** (*Module*) – Activation function.
+
+
 * **Returns:**
-  MEGNet graph convolution layer.
+MEGNet graph convolution layer.
+
+
 * **Return type:**
-  [MEGNetGraphConv](#matgl.layers._graph_convolution.MEGNetGraphConv)
+MEGNetGraphConv
 
 #### node_update_(graph: DGLGraph)
 
 Perform node update.
 
+
 * **Parameters:**
-  **graph** – Input graph
+**graph** – Input graph
+
+
 * **Returns:**
-  Output tensor for nodes.
+Output tensor for nodes.
 
 #### state_update_(graph: DGLGraph, state_attrs: Tensor)
 
 Perform attribute (global state) update.
 
+
 * **Parameters:**
-  * **graph** – Input graph
-  * **state_attrs** – Input attributes
+
+    * **graph** – Input graph
+
+
+    * **state_attrs** – Input attributes
+
+
 * **Returns:**
-  Output tensor for attributes
+Output tensor for attributes
 
 ## matgl.layers._readout module
 
 Readout layer for M3GNet.
 
-### *class* matgl.layers._readout.ReduceReadOut(op: str = 'mean', field: Literal['node_feat', 'edge_feat'] = 'node_feat')
+### *class* matgl.layers._readout.ReduceReadOut(op: str = ‘mean’, field: Literal[‘node_feat’, ‘edge_feat’] = ‘node_feat’)
 
 Bases: `Module`
 
 Reduce atom or bond attributes into lower dimensional tensors as readout.
 This could be summing up the atoms or bonds, or taking the mean, etc.
 
+
 * **Parameters:**
-  * **op** (*str*) – op for the reduction
-  * **field** (*str*) – Field of graph to perform the reduction.
+
+    * **op** (*str*) – op for the reduction
+
+
+    * **field** (*str*) – Field of graph to perform the reduction.
 
 #### forward(g: DGLGraph)
 
-* **Parameters:**
-  **g** – DGL graph.
-* **Returns:**
-  torch.tensor.
 
-### *class* matgl.layers._readout.Set2SetReadOut(in_feats: int, n_iters: int, n_layers: int, field: Literal['node_feat', 'edge_feat'])
+* **Parameters:**
+**g** – DGL graph.
+
+
+* **Returns:**
+torch.tensor.
+
+### *class* matgl.layers._readout.Set2SetReadOut(in_feats: int, n_iters: int, n_layers: int, field: Literal[‘node_feat’, ‘edge_feat’])
 
 Bases: `Module`
 
 The Set2Set readout function.
 
+
 * **Parameters:**
-  * **in_feats** (*int*) – length of input feature vector
-  * **n_iters** (*int*) – Number of LSTM steps
-  * **n_layers** (*int*) – Number of layers.
-  * **field** (*str*) – Field of graph to perform the readout.
+
+    * **in_feats** (*int*) – length of input feature vector
+
+
+    * **n_iters** (*int*) – Number of LSTM steps
+
+
+    * **n_layers** (*int*) – Number of layers.
+
+
+    * **field** (*str*) – Field of graph to perform the readout.
 
 #### forward(g: DGLGraph)
 
@@ -682,6 +973,7 @@ Defines the computation performed at every call.
 Should be overridden by all subclasses.
 
 #### NOTE
+
 Although the recipe for forward pass needs to be defined within
 this function, one should call the `Module` instance afterwards
 instead of this since the former takes care of running the
@@ -693,19 +985,30 @@ Bases: `Module`
 
 Feed node features into Gated MLP as readout.
 
+
 * **Parameters:**
-  * **in_feats** – input features (nodes)
-  * **dims** – NN architecture for Gated MLP
-  * **num_targets** – number of target properties.
+
+    * **in_feats** – input features (nodes)
+
+
+    * **dims** – NN architecture for Gated MLP
+
+
+    * **num_targets** – number of target properties.
 
 #### forward(g: DGLGraph)
 
+
 * **Parameters:**
-  **g** – DGL graph.
+**g** – DGL graph.
+
+
 * **Returns:**
-  torch.Tensor.
+torch.Tensor.
+
+
 * **Return type:**
-  atomic_properties
+atomic_properties
 
 ### *class* matgl.layers._readout.WeightedReadOutPair(in_feats, dims, num_targets, activation=None)
 
@@ -722,6 +1025,7 @@ Defines the computation performed at every call.
 Should be overridden by all subclasses.
 
 #### NOTE
+
 Although the recipe for forward pass needs to be defined within
 this function, one should call the `Module` instance afterwards
 instead of this since the former takes care of running the
@@ -739,22 +1043,40 @@ Include 3D interactions to the bond update.
 
 Init ThreeBodyInteractions.
 
+
 * **Parameters:**
-  * **update_network_atom** – MLP for node features in Eq.2
-  * **update_network_bond** – Gated-MLP for edge features in Eq.3
-  * **\*\*kwargs** – Kwargs pass-through to nn.Module._\_init_\_().
+
+    * **update_network_atom** – MLP for node features in Eq.2
+
+
+    * **update_network_bond** – Gated-MLP for edge features in Eq.3
+
+
+    * **\*\*kwargs** – Kwargs pass-through to nn.Module.*_init*_().
 
 #### forward(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, three_basis: torch.Tensor, three_cutoff: float, node_feat: torch.Tensor, edge_feat: torch.Tensor)
 
 Forward function for ThreeBodyInteractions.
 
+
 * **Parameters:**
-  * **graph** – dgl graph
-  * **line_graph** – line graph.
-  * **three_basis** – three body basis expansion
-  * **three_cutoff** – cutoff radius
-  * **node_feat** – node features
-  * **edge_feat** – edge features.
+
+    * **graph** – dgl graph
+
+
+    * **line_graph** – line graph.
+
+
+    * **three_basis** – three body basis expansion
+
+
+    * **three_cutoff** – cutoff radius
+
+
+    * **node_feat** – node features
+
+
+    * **edge_feat** – edge features.
 
 ### matgl.layers._three_body.combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool)
 
@@ -765,15 +1087,25 @@ For the spherical Bessel function, the column is ordered by
 
 For the spherical Harmonics function, the column is ordered by
 : [m=[0], m=[-1, 0, 1], m=[-2, -1, 0, 1, 2], …] max_l blocks, and each
-  block has 2\*l + 1
-  if use_phi is False, then the columns become
-  [m=[0], m=[0], …] max_l columns
+block has 2\*l + 1
+if use_phi is False, then the columns become
+[m=[0], m=[0], …] max_l columns
+
 
 * **Parameters:**
-  * **sbf** – torch.Tensor spherical bessel function results
-  * **shf** – torch.Tensor spherical harmonics function results
-  * **max_n** – int, max number of n
-  * **max_l** – int, max number of l
-  * **use_phi** – whether to use phi
+
+    * **sbf** – torch.Tensor spherical bessel function results
+
+
+    * **shf** – torch.Tensor spherical harmonics function results
+
+
+    * **max_n** – int, max number of n
+
+
+    * **max_l** – int, max number of l
+
+
+    * **use_phi** – whether to use phi
 
 Returns:

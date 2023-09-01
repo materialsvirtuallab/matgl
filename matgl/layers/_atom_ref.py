@@ -1,10 +1,10 @@
-"""Atomic energy offset. Used for predicting extensive properties."""
 from __future__ import annotations
 
 import dgl
 import numpy as np
 import torch
 from torch import nn
+import matgl
 
 
 class AtomRef(nn.Module):
@@ -12,42 +12,50 @@ class AtomRef(nn.Module):
 
     def __init__(
         self,
-        property_offset: np.array,  # type: ignore
+        max_z: int = 89,
+        property_offset: torch.Tensor | None = None,
     ) -> None:
         """
         Args:
-            property_offset (np.array): a array of elemental property offset.
+            max_z (int): maximum atomic number
+            property_offset (Tensor): a tensor containing the property offset for each element
+                if given max_z is ignored, and the size of the tensor is used instead
         """
         super().__init__()
-        self.property_offset = torch.tensor(property_offset)
-        self.max_z = self.property_offset.size(dim=0)
+        if property_offset is None:
+            property_offset = torch.zeros(max_z, dtype=matgl.float_th)
+        else:
+            property_offset = torch.tensor(property_offset)
+            max_z = property_offset.shape[-1]
 
-    def get_feature_matrix(self, graphs: list) -> np.typing.NDArray:
+        self.property_offset = property_offset
+        self.onehot = torch.eye(max_z)
+        self.max_z = max_z
+
+    def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> torch.Tensor:
         """Get the number of atoms for different elements in the structure.
 
         Args:
             graphs (list): a list of dgl graph
 
         Returns:
-            features (np.array): a matrix (num_structures, num_elements)
+            features (torch.Tensor): a matrix (num_structures, num_elements)
         """
-        n = len(graphs)
-        features = np.zeros(shape=(n, self.max_z))
-        for i, s in enumerate(graphs):
-            atomic_numbers = s.ndata["node_type"].numpy().tolist()
-            features[i] = np.bincount(atomic_numbers, minlength=self.max_z)
+        features = torch.zeros(len(graphs), self.max_z, dtype=matgl.float_th)
+        for i, graph in enumerate(graphs):
+            atomic_numbers = graph.ndata["node_type"]
+            features[i] = torch.bincount(atomic_numbers, minlength=self.max_z)
         return features
 
-    def fit(self, graphs: list, properties: np.typing.NDArray) -> None:
+    def fit(self, graphs: list[dgl.DGLGraph], properties: torch.Tensor) -> None:
         """Fit the elemental reference values for the properties.
 
         Args:
             graphs: dgl graphs
-            properties (np.ndarray): array of extensive properties
+            properties (torch.Tensor): tensor of extensive properties
         """
         features = self.get_feature_matrix(graphs)
-        self.property_offset = np.linalg.pinv(features.T.dot(features)).dot(features.T.dot(properties))
-        self.property_offset = torch.tensor(self.property_offset)
+        self.property_offset = (torch.pinverse(features.T @ features) @ features.T) @ properties
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None):
         """Get the total property offset for a system.
@@ -62,10 +70,10 @@ class AtomRef(nn.Module):
         num_elements = (
             self.property_offset.size(dim=1) if self.property_offset.ndim > 1 else self.property_offset.size(dim=0)
         )
-        one_hot = torch.eye(num_elements)[g.ndata["node_type"]]
+        one_hot = self.onehot[g.ndata["node_type"]]
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []
-            for i in range(0, self.property_offset.size(dim=0)):
+            for i in range(self.property_offset.size(dim=0)):
                 property_offset_batched = self.property_offset[i].repeat(g.num_nodes(), 1)
                 offset = property_offset_batched * one_hot
                 g.ndata["atomic_offset"] = torch.sum(offset, 1)
