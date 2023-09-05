@@ -56,7 +56,7 @@ def compute_3body(g: dgl.DGLGraph):
     src_id = torch.tensor(triple_bond_indices[:, 0], dtype=matgl.int_th)
     dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=matgl.int_th)
     l_g = dgl.graph((src_id, dst_id))
-    three_body_id = torch.unique(torch.concatenate(l_g.edges()))
+    three_body_id = torch.concatenate(l_g.edges())
     n_triple_ij = torch.tensor(n_triple_ij, dtype=matgl.int_th)
     max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
     l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
