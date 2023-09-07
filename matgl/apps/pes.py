@@ -55,6 +55,8 @@ class Potential(nn.Module, IOMixIn):
             self.element_refs = AtomRef(property_offset=element_refs)
         else:
             self.element_refs = None
+        data_mean = data_mean or 0
+        data_std = data_std or 1
 
         self.data_mean = data_mean.clone().detach() if isinstance(data_mean, torch.Tensor) else torch.tensor(data_mean)
         self.data_std = data_std.clone().detach() if isinstance(data_std, torch.Tensor) else torch.tensor(data_std)
