@@ -23,8 +23,8 @@ class Potential(nn.Module, IOMixIn):
     def __init__(
         self,
         model: nn.Module,
-        data_mean: torch.Tensor | None = None,
-        data_std: torch.Tensor | None = None,
+        data_mean: torch.Tensor | float = 0.0,
+        data_std: torch.Tensor | float = 1.0,
         element_refs: np.ndarray | None = None,
         calc_forces: bool = True,
         calc_stresses: bool = True,
@@ -56,8 +56,8 @@ class Potential(nn.Module, IOMixIn):
         else:
             self.element_refs = None
 
-        self.data_mean = torch.tensor(data_mean) if data_mean is not None else torch.zeros(1)
-        self.data_std = torch.tensor(data_std) if data_std is not None else torch.ones(1)
+        self.data_mean = data_mean.clone().detach() if isinstance(data_mean, torch.Tensor) else torch.tensor(data_mean)
+        self.data_std = data_std.clone().detach() if isinstance(data_std, torch.Tensor) else torch.tensor(data_std)
 
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None
