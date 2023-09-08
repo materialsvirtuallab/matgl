@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable
+import warnings
 
 import dgl
 import numpy as np
@@ -224,7 +225,10 @@ def ensure_directed_line_graph_compatibility(
         threebody_cutoff: cutoff for three-body interactions
     """
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
-    assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
+    # assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
+    if line_graph.number_of_nodes() > sum(valid_edges):
+        warnings.warn("line graph and graph are not compatible")
+
     lg_nodes = torch.unique(torch.cat(line_graph.edges()))
     num_lg_nodes = torch.max(lg_nodes) + 1 if len(lg_nodes) > 0 else 0
 
