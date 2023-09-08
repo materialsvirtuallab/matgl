@@ -23,8 +23,8 @@ class Potential(nn.Module, IOMixIn):
     def __init__(
         self,
         model: nn.Module,
-        data_mean: torch.Tensor | None = None,
-        data_std: torch.Tensor | None = None,
+        data_mean: torch.Tensor | float = 0.0,
+        data_std: torch.Tensor | float = 1.0,
         element_refs: np.ndarray | None = None,
         calc_forces: bool = True,
         calc_stresses: bool = True,
@@ -55,11 +55,11 @@ class Potential(nn.Module, IOMixIn):
             self.element_refs = AtomRef(property_offset=element_refs)
         else:
             self.element_refs = None
+        data_mean = data_mean or 0
+        data_std = data_std or 1
 
-        data_mean = data_mean if data_mean is not None else torch.zeros(1)
-        data_std = data_std if data_std is not None else torch.ones(1)
-        self.register_buffer("data_mean", data_mean)
-        self.register_buffer("data_std", data_std)
+        self.data_mean = data_mean.clone().detach() if isinstance(data_mean, torch.Tensor) else torch.tensor(data_mean)
+        self.data_std = data_std.clone().detach() if isinstance(data_std, torch.Tensor) else torch.tensor(data_std)
 
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None
@@ -81,7 +81,6 @@ class Potential(nn.Module, IOMixIn):
         else:
             total_energies = predictions
             site_wise = None
-
         total_energies = self.data_std * total_energies + self.data_mean
         if self.element_refs is not None:
             property_offset = torch.squeeze(self.element_refs(g))

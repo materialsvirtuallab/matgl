@@ -28,7 +28,10 @@ class TestDataset:
         label = torch.tensor([-1.0, 2.0])
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels={"label": label})
+        dataset = MEGNetDataset(
+            structures=structures, converter=cry_graph, labels={"label": label}, clear_processed=True
+        )
+
         g1, state1, label1 = dataset[0]
         g2, state2, label2 = dataset[1]
         assert label1["label"] == label[0]
@@ -36,6 +39,8 @@ class TestDataset:
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+        # Check that structures are indeed cleared.
+        assert len(dataset.structures) == 0
 
     def test_load_megenet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
@@ -78,6 +83,7 @@ class TestDataset:
             converter=cry_graph,
             threebody_cutoff=4.0,
             labels={"energies": energies, "forces": forces, "stresses": stresses},
+            clear_processed=True,
         )
         g1, l_g1, state1, pes1 = dataset[0]
         g2, l_g2, state2, pes2 = dataset[1]
@@ -88,6 +94,8 @@ class TestDataset:
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
         assert np.shape(pes1["forces"])[0], 28
         assert np.shape(pes2["forces"])[0], 10
+        # Check that structures are indeed cleared.
+        assert len(dataset.structures) == 0
 
     def test_load_m3gnet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
