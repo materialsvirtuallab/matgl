@@ -137,6 +137,7 @@ class MEGNetDataset(DGLDataset):
         width: float = 0.5,
         name: str = "MEGNETDataset",
         graph_labels: list[int | float] | None = None,
+        clear_processed: bool = False,
     ):
         """
         Args:
@@ -151,6 +152,9 @@ class MEGNetDataset(DGLDataset):
             width: width of Gaussian functions
             name: Name of dataset
             graph_labels: graph attributes either integers and floating point numbers.
+            clear_processed: Whether to clear the stored structures after processing into graphs. Structures
+                are not really needed after the conversion to DGL graphs and can take a significant amount of memory.
+                Setting this to True will delete the structures from memory.
         """
         self.filename = filename
         self.filename_state_attr = filename_state_attr
@@ -162,6 +166,7 @@ class MEGNetDataset(DGLDataset):
         self.num_centers = num_centers
         self.width = width
         self.graph_labels = graph_labels
+        self.clear_processed = clear_processed
 
         super().__init__(name=name)
 
@@ -198,6 +203,9 @@ class MEGNetDataset(DGLDataset):
                 state_attrs = torch.tensor(self.graph_labels)
         else:
             state_attrs = torch.tensor(state_attrs)
+        if self.clear_processed:
+            del self.structures
+            self.structures = []
         self.graphs = graphs
         self.state_attr = state_attrs
         return self.graphs, self.state_attr
@@ -240,6 +248,7 @@ class M3GNetDataset(DGLDataset):
         labels: dict[str, list] | None = None,
         name="M3GNetDataset",
         graph_labels: list[int | float] | None = None,
+        clear_processed: bool = False,
     ):
         """
         Args:
@@ -254,6 +263,9 @@ class M3GNetDataset(DGLDataset):
             name: name of dataset
             label_name: name of target properties
             graph_labels: state attributes.
+            clear_processed: Whether to clear the stored structures after processing into graphs. Structures
+                are not really needed after the conversion to DGL graphs and can take a significant amount of memory.
+                Setting this to True will delete the structures from memory.
         """
         self.filename = filename
         self.filename_line_graph = filename_line_graph
@@ -266,6 +278,7 @@ class M3GNetDataset(DGLDataset):
             self.labels[k] = v.tolist() if isinstance(v, np.ndarray) else v
         self.threebody_cutoff = threebody_cutoff
         self.graph_labels = graph_labels
+        self.clear_processed = clear_processed
         super().__init__(name=name)
 
     def has_cache(self) -> bool:
@@ -297,6 +310,10 @@ class M3GNetDataset(DGLDataset):
             state_attrs = torch.tensor(self.graph_labels).long()
         else:
             state_attrs = torch.tensor(state_attrs)
+
+        if self.clear_processed:
+            del self.structures
+            self.structures = []
 
         self.graphs = graphs
         self.line_graphs = line_graphs

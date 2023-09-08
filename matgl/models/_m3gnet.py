@@ -238,7 +238,7 @@ class M3GNet(nn.Module, IOMixIn):
                 l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
                 l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
             else:
-                three_body_id = torch.unique(torch.concatenate(l_g.edges()))
+                three_body_id = torch.concatenate(l_g.edges())
                 max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
                 l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
                 l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
