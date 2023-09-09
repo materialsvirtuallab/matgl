@@ -6,11 +6,7 @@ import dgl
 import torch
 from torch import nn
 
-from matgl.graph.compute import (
-    compute_theta_and_phi,
-    create_line_graph,
-)
-from matgl.layers import BondExpansion, EmbeddingBlock, SphericalBesselWithHarmonics
+from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._graph_convolution import (
     MLP,
     M3GNetBlock,
@@ -88,10 +84,6 @@ class TestGraphConv:
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
         bond_basis = bond_expansion(bond_dist)
         g1.edata["rbf"] = bond_basis
-        sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
-        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
-        l_g1.apply_edges(compute_theta_and_phi)
-        sb_and_sh(l_g1)
         max_n = 3
         max_l = 3
         num_node_feats = 16
@@ -137,10 +129,6 @@ class TestGraphConv:
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         g1.edata["rbf"] = bond_basis
-        sb_and_sh = SphericalBesselWithHarmonics(max_n=3, max_l=3, cutoff=5.0, use_smooth=False, use_phi=False)
-        l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
-        l_g1.apply_edges(compute_theta_and_phi)
-        sb_and_sh(l_g1)
         num_node_feats = 16
         num_edge_feats = 32
         num_state_feats = 64

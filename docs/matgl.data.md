@@ -8,14 +8,13 @@ nav_exclude: true
 
 This package implements data manipulation tools.
 
-
 ## matgl.data.transformer module
 
 Module implementing various data transformers for PyTorch.
 
 ### *class* matgl.data.transformer.LogTransformer
 
-Bases: [`Transformer`](#matgl.data.transformer.Transformer)
+Bases: `Transformer`
 
 Performs a natural log of the data.
 
@@ -23,56 +22,75 @@ Performs a natural log of the data.
 
 Invert the log (exp).
 
+
 * **Parameters:**
-  **data** – Input data
+**data** – Input data
+
+
 * **Returns:**
-  exp(data)
+exp(data)
 
 #### transform(data)
 
 Take the log of the data.
 
+
 * **Parameters:**
-  **data** – Input data
+**data** – Input data
+
+
 * **Returns:**
-  Scaled data
+Scaled data
 
 ### *class* matgl.data.transformer.Normalizer(mean: float, std: float)
 
-Bases: [`Transformer`](#matgl.data.transformer.Transformer)
+Bases: `Transformer`
 
 Performs a scaling of the data by centering to the mean and dividing by the standard deviation.
 
+
 * **Parameters:**
-  * **mean** – Mean of the data
-  * **std** – Standard deviation of the data.
+
+    * **mean** – Mean of the data
+
+
+    * **std** – Standard deviation of the data.
 
 #### *classmethod* from_data(data)
 
 Create Normalizer from data.
 
+
 * **Parameters:**
-  **data** – Input data.
+**data** – Input data.
+
+
 * **Returns:**
-  Normalizer
+Normalizer
 
 #### inverse_transform(data)
 
 Invert the scaling.
 
+
 * **Parameters:**
-  **data** – Scaled data
+**data** – Scaled data
+
+
 * **Returns:**
-  Unscaled data
+Unscaled data
 
 #### transform(data)
 
 z-score the data by subtracting the mean and dividing by the standard deviation.
 
+
 * **Parameters:**
-  **data** – Input data
+**data** – Input data
+
+
 * **Returns:**
-  Scaled data
+Scaled data
 
 ### *class* matgl.data.transformer.Transformer
 
@@ -84,16 +102,22 @@ Abstract base class defining a data transformer.
 
 Inverse transformation to be performed on data.
 
+
 * **Parameters:**
-  **data** – Input data
+**data** – Input data
+
+
 * **Returns:**
-  Inverse-transformed data.
+Inverse-transformed data.
 
 #### *abstract* transform(data: Tensor)
 
 Transformation to be performed on data.
 
+
 * **Parameters:**
-  **data** – Input data
+**data** – Input data
+
+
 * **Returns:**
-  Transformed data.
+Transformed data.

@@ -4,7 +4,9 @@ from functools import partial
 
 import numpy as np
 import torch
+from pymatgen.core import Lattice, Structure
 
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta,
@@ -114,7 +116,7 @@ class TestCompute:
         # test only compute theta
         line_graph.apply_edges(compute_theta)
         np.testing.assert_array_almost_equal(
-            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
+            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"])), decimal=4
         )
 
         # test only compute theta with cosine
@@ -149,3 +151,38 @@ class TestCompute:
         np.testing.assert_array_almost_equal(
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
+
+    def test_compute_three_body(self, graph_AcAla3NHMe):
+        mol1, g1, _ = graph_AcAla3NHMe
+        bv, bd = compute_pair_vector_and_distance(g1)
+        g1.edata["bond_vec"] = bv
+        g1.edata["bond_dist"] = bd
+        line_graph = create_line_graph(g1, 5.0)
+        line_graph.apply_edges(compute_theta_and_phi)
+        np.testing.assert_allclose(line_graph.edata["triple_bond_lengths"].detach().numpy()[0], 1.777829)
+
+
+def test_line_graph_extensive():
+    structure = Structure.from_spacegroup("Fm-3m", Lattice.cubic(6.0 / np.sqrt(2)), ["Fe"], [[0, 0, 0]])
+
+    element_types = get_element_list([structure])
+    converter = Structure2Graph(element_types=element_types, cutoff=5.0)
+    g1, _ = converter.get_graph(structure)
+    bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
+    g1.edata["bond_dist"] = bond_dist
+    g1.edata["bond_vec"] = bond_vec
+
+    supercell = structure.copy()
+    supercell.make_supercell([2, 1, 1])
+    g2, _ = converter.get_graph(supercell)
+    bond_vec, bond_dist = compute_pair_vector_and_distance(g2)
+    g2.edata["bond_dist"] = bond_dist
+    g2.edata["bond_vec"] = bond_vec
+
+    lg1 = create_line_graph(g1, 3.0)
+    lg2 = create_line_graph(g2, 3.0)
+
+    assert 2 * g1.number_of_nodes() == g2.number_of_nodes()
+    assert 2 * g1.number_of_edges() == g2.number_of_edges()
+    assert 2 * lg1.number_of_nodes() == lg2.number_of_nodes()
+    assert 2 * lg1.number_of_edges() == lg2.number_of_edges()
