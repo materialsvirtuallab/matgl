@@ -443,10 +443,14 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                 labels_3 = labels[3]
                 preds_3 = preds[3]
 
-            m_loss = loss(labels_3, preds_3, **self.loss_params)
-            m_mae = self.mae(labels_3, preds_3)
-            m_rmse = self.rmse(labels_3, preds_3)
-            total_loss = total_loss + self.site_wise_weight * m_loss
+            if len(labels_3) > 0:
+                m_loss = loss(labels_3, preds_3, **self.loss_params)
+                m_mae = self.mae(labels_3, preds_3)
+                m_rmse = self.rmse(labels_3, preds_3)
+                total_loss = total_loss + self.site_wise_weight * m_loss
+            else:
+                m_mae = torch.zeros(1)
+                m_rmse = torch.zeros(1)
 
         return {
             "Total_Loss": total_loss,
