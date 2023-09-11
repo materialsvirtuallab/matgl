@@ -48,7 +48,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   release:
-    if: github.event.name == "release"
+    if: github.event.name == 'release'
     needs: test
     runs-on: ubuntu-latest
     permissions:
