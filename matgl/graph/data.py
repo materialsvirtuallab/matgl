@@ -369,6 +369,7 @@ class CHGNetDataset(DGLDataset):
         filename_line_graphs: str = "dgl_line_graph.bin",
         filename_labels: str = "labels.json",
         filename_state_attr: str = "state_attr.pt",
+        skip_label_keys: list[str] | None = None,
         name="CHGNETDataset",
         raw_dir: str | None = None,
         save_dir: str | None = None,
@@ -401,6 +402,7 @@ class CHGNetDataset(DGLDataset):
         self.graphs = None
         self.line_graphs = None
         self.state_attr = None
+        self.skip_label_keys = skip_label_keys or []
         self.filename_graphs = filename_graphs
         self.filename_line_graphs = filename_line_graphs
         self.filename_state_attr = filename_state_attr
@@ -487,7 +489,7 @@ class CHGNetDataset(DGLDataset):
             {
                 k: torch.tensor(v[idx]) if v[idx] is not None else
                 torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
-                for k, v in self.labels.items()},
+                for k, v in self.labels.items() if k not in self.skip_label_keys},
         )
 
     def __len__(self):
