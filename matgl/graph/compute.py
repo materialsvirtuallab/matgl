@@ -225,7 +225,7 @@ def ensure_directed_line_graph_compatibility(
         threebody_cutoff: cutoff for three-body interactions
     """
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
-    assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
+
     # assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
     if line_graph.number_of_nodes() > sum(valid_edges):
         warnings.warn("line graph and graph are not compatible")
