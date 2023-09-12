@@ -190,12 +190,10 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         lg_src_ns = incoming[not_self_edge].nonzero()[:, 1].squeeze()
         lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
         lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
-
         lg = dgl.graph((lg_src, lg_dst))
-        lg_nodes = torch.unique(torch.cat((lg_src, lg_dst)))
-        num_lg_nodes = torch.max(lg_nodes) + 1 if len(lg_nodes) > 0 else 0
+
         for key in pg.edata:
-            lg.ndata[key] = pg.edata[key][:num_lg_nodes]
+            lg.ndata[key] = pg.edata[key][:lg.number_of_nodes()]
 
         # we need to store the sign of bond vector when a bond is a src node in the line
         # graph in order to appropriately calculate angles when self edges are involved
@@ -205,7 +203,9 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         # if we flip self edges then we need to correct computed angles by pi - angle
         # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
         # find the intersection for the rare cases where not all edges end up as nodes in the line graph
-        all_ns, counts = torch.cat([lg_nodes, edge_inds_ns]).unique(return_counts=True)
+        all_ns, counts = torch.cat(
+            [torch.arange(lg.number_of_nodes(), device=graph.device), edge_inds_ns]
+        ).unique(return_counts=True)
         lg_inds_ns = all_ns[torch.where(counts > 1)]
         lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
@@ -225,14 +225,12 @@ def ensure_directed_line_graph_compatibility(
         threebody_cutoff: cutoff for three-body interactions
     """
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
+    assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
     # assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
     if line_graph.number_of_nodes() > sum(valid_edges):
         warnings.warn("line graph and graph are not compatible")
 
-    lg_nodes = torch.unique(torch.cat(line_graph.edges()))
-    num_lg_nodes = torch.max(lg_nodes) + 1 if len(lg_nodes) > 0 else 0
-
-    edge_ids = valid_edges.nonzero().squeeze()[:num_lg_nodes]
+    edge_ids = valid_edges.nonzero().squeeze()[:line_graph.number_of_nodes()]
     line_graph.ndata["edge_ids"] = edge_ids
 
     for key in graph.edata:
@@ -289,7 +287,7 @@ def prune_edges_by_features(
 
     Returns: dgl.Graph with removed edges.
     """
-    if feat_name not in graph.edata:
+    if feat_name not in graph.edata.keys():
         raise ValueError(f"Edge field {feat_name} not an edge feature in given graph.")
 
     valid_edges = torch.logical_not(condition(graph.edata[feat_name], *args, **kwargs))
