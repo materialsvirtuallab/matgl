@@ -213,7 +213,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
 
 def ensure_directed_line_graph_compatibility(
-    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, tol: float = 1e-7
 ) -> dgl.DGLGraph:
     """Ensure that line graph is compatible with graph.
 
@@ -227,8 +227,10 @@ def ensure_directed_line_graph_compatibility(
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
 
     # assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
+    # this means there probably is a bond that is just at the cutoff
     if line_graph.number_of_nodes() > sum(valid_edges):
-        warnings.warn("line graph and graph are not compatible")
+        valid_edges = graph.edata["bond_dist"] <= threebody_cutoff + tol
+        warnings.warn("line graph included a bond that was within numerical tolerance of the cutoff")
 
     edge_ids = valid_edges.nonzero().squeeze()[:line_graph.number_of_nodes()]
     line_graph.ndata["edge_ids"] = edge_ids
