@@ -37,15 +37,21 @@ class Molecule2Graph(GraphConverter):
         self,
         element_types: tuple[str, ...],
         cutoff: float = 5.0,
+        allow_other_atoms: bool = False,
     ):
         """Parameters
         ----------
         element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
             constructed with the same dimensionality of features.
         cutoff: Cutoff radius for graph representation
+        allow_other_atoms: if an atom found in a provided structure is not found
+            in the element_types list, it will be provided the index len(element_types),
+            a "catch all" bin for all other elements
         """
+
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
+        self.allow_other_atoms = allow_other_atoms
 
     def get_graph(self, mol: Molecule) -> tuple[dgl.DGLGraph, list]:
         """Get a DGL graph from an input molecule.
@@ -71,6 +77,7 @@ class Molecule2Graph(GraphConverter):
             lattice_matrix=np.zeros((1, 3, 3)),
             element_types=element_types,
             cart_coords=R,
+            allow_other_atoms=self.allow_other_atoms,
         )
         state_attr = [weight, nbonds]
         return g, state_attr
@@ -83,15 +90,21 @@ class Structure2Graph(GraphConverter):
         self,
         element_types: tuple[str, ...],
         cutoff: float = 5.0,
+        allow_other_atoms: bool = False,
     ):
         """Parameters
         ----------
         element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
             constructed with the same dimensionality of features.
         cutoff: Cutoff radius for graph representation
+        allow_other_atoms: if an atom found in a provided structure is not found
+            in the element_types list, it will be provided the index len(element_types),
+            a "catch all" bin for all other elements
         """
+
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
+        self.allow_other_atoms = allow_other_atoms
 
     def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, list]:
         """Get a DGL graph from an input Structure.
@@ -130,6 +143,7 @@ class Structure2Graph(GraphConverter):
             [lattice_matrix],
             element_types,
             cart_coords,
+            allow_other_atoms=self.allow_other_atoms,
         )
         g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
         return g, state_attr
