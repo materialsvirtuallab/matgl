@@ -29,7 +29,6 @@ class GraphConverter(metaclass=abc.ABCMeta):
         in the provided list, len(element_types) will be returned (this is an
         extra "catch all" index for any element not found in the list).
         """
-
         try:
             return element_types.index(site.specie.symbol)
         except ValueError:
@@ -39,14 +38,13 @@ class GraphConverter(metaclass=abc.ABCMeta):
                 "allow_other_atoms is False and atom type "
                 f"{site.specie.symbol} was not found in the element types "
                 f"list {element_types}"
-            )
+            ) from None
 
     @staticmethod
     def _index_ase(element_to_index, elem, allow_other_atoms):
         """See _index above (this does the same thing, basically, except it
         deals with a dictionary instead of a list).
         """
-
         try:
             return element_to_index[elem]
         except KeyError:
@@ -56,7 +54,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
                 "allow_other_atoms is False and atom type "
                 f"{elem} was not found in the element types "
                 f"list {element_to_index}"
-            )
+            ) from None
 
     def get_graph_from_processed_structure(
         self,

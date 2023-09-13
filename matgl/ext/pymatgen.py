@@ -48,7 +48,6 @@ class Molecule2Graph(GraphConverter):
             in the element_types list, it will be provided the index len(element_types),
             a "catch all" bin for all other elements
         """
-
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
         self.allow_other_atoms = allow_other_atoms
@@ -101,7 +100,6 @@ class Structure2Graph(GraphConverter):
             in the element_types list, it will be provided the index len(element_types),
             a "catch all" bin for all other elements
         """
-
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
         self.allow_other_atoms = allow_other_atoms
