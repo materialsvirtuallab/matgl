@@ -67,6 +67,40 @@ class TestPmg2Graph:
         # check the volume
         assert np.allclose(graph.ndata["volume"][0], [65.939264])
 
+    def test_get_graph_from_structure_allow_other_atoms(self, LiFePO4):
+        # Control
+        element_types = ["Li", "Fe", "P", "O"]
+        s2g = Structure2Graph(element_types=element_types, cutoff=4.0, allow_other_atoms=True)
+        graph, _ = s2g.get_graph(LiFePO4)
+
+        # Check that the feature length is correct
+        assert len(np.unique(graph.ndata["node_type"].detach().numpy())) == 4
+
+        # Check that they match up properly
+        assert all(
+            [
+                element_types.index(s.specie.symbol) == xx
+                for s, xx in zip(LiFePO4, graph.ndata["node_type"].detach().numpy())
+            ]
+        )
+
+        element_types = ["Li", "Fe"]
+        s2g = Structure2Graph(element_types=element_types, cutoff=4.0, allow_other_atoms=True)
+        graph, _ = s2g.get_graph(LiFePO4)
+
+        # Check that the feature length is correct
+        features = graph.ndata["node_type"].detach().numpy()
+        assert len(np.unique(features)) == 3
+
+        # Check that they match up properly
+        for s, xx in zip(LiFePO4, features):
+            if s.specie.symbol == "Li":
+                assert xx == 0
+            elif s.specie.symbol == "Fe":
+                assert xx == 1
+            else:
+                assert xx == 2
+
     def test_get_element_list(self):
         cscl = Structure.from_spacegroup("Pm-3m", Lattice.cubic(3), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
         naf = Structure.from_spacegroup("Pm-3m", Lattice.cubic(3), ["Na", "F"], [[0, 0, 0], [0.5, 0.5, 0.5]])
