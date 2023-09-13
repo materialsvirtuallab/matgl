@@ -47,10 +47,13 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  build:
+  release:
+    if: github.event.name == 'release'
     needs: test
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
     runs-on: ubuntu-latest
+    permissions:
+      # For pypi trusted publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -58,34 +61,11 @@ jobs:
         with:
           python-version: "3.10"
       - run: |
-          rm -rf dist/*.*
           python -m pip install build
           pip install -e .
+          pip wheel -w dist .
       - name: Build sdist
-        run: |
-          python -m build --sdist
-          python -m build --wheel
-      - uses: actions/upload-artifact@v3
-        with:
-          path: dist/*.*
-
-  release:
-    needs: build
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.task == 'release')
-    runs-on: ubuntu-latest
-    permissions:
-      # For pypi trusted publishing
-      id-token: write
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-      - name: Get build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: artifact
-          path: dist
+        run: python -m build --sdist
       - name: Publish to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
