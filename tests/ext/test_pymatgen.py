@@ -78,10 +78,8 @@ class TestPmg2Graph:
 
         # Check that they match up properly
         assert all(
-            [
-                element_types.index(s.specie.symbol) == xx
-                for s, xx in zip(LiFePO4, graph.ndata["node_type"].detach().numpy())
-            ]
+            element_types.index(s.specie.symbol) == xx
+            for s, xx in zip(LiFePO4, graph.ndata["node_type"].detach().numpy())
         )
 
         element_types = ["Li", "Fe"]
