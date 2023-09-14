@@ -31,7 +31,6 @@ class TestDataset:
         dataset = MEGNetDataset(
             structures=structures, converter=cry_graph, labels={"label": label}, clear_processed=True
         )
-
         g1, state1, label1 = dataset[0]
         g2, state2, label2 = dataset[1]
         assert label1["label"] == label[0]

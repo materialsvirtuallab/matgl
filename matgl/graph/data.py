@@ -72,7 +72,7 @@ def MGLDataLoader(
     test_data: dgl.data.utils.Subset | None = None,
     generator: torch.Generator | None = None,
 ) -> tuple[GraphDataLoader, ...]:
-    """Dataloader for MEGNet training.
+    """Dataloader for MatGL training.
 
     Args:
         train_data (dgl.data.utils.Subset): Training dataset.
