@@ -76,6 +76,7 @@ class M3GNet(nn.Module, IOMixIn):
         field: Literal["node_feat", "edge_feat"] = "node_feat",
         include_state: bool = False,
         activation_type: Literal["swish", "tanh", "sigmoid", "softplus2", "softexp"] = "swish",
+        allow_other_atoms: bool = False,
         **kwargs,
     ):
         """
@@ -104,6 +105,9 @@ class M3GNet(nn.Module, IOMixIn):
             nlayers_set2set (int): Number of set2set layers
             include_state (bool): Whether to include states features
             activation_type (str): Activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
+            allow_other_atoms (bool): if an atom found in a provided structure is not found
+                in the element_types list, it will be provided the index len(element_types),
+                a "catch all" bin for all other elements
             **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
@@ -125,11 +129,12 @@ class M3GNet(nn.Module, IOMixIn):
 
         degree_rbf = max_n if use_smooth else max_n * max_l
 
+        ntypes_node = len(element_types) if not allow_other_atoms else len(element_types) + 1
         self.embedding = EmbeddingBlock(
             degree_rbf=degree_rbf,
             dim_node_embedding=dim_node_embedding,
             dim_edge_embedding=dim_edge_embedding,
-            ntypes_node=len(element_types),
+            ntypes_node=ntypes_node,
             ntypes_state=ntypes_state,
             dim_state_feats=dim_state_feats,
             include_state=include_state,
@@ -206,6 +211,7 @@ class M3GNet(nn.Module, IOMixIn):
         self.include_states = include_state
         self.task_type = task_type
         self.is_intensive = is_intensive
+        self.allow_other_atoms = allow_other_atoms
 
     def forward(
         self,
@@ -290,7 +296,9 @@ class M3GNet(nn.Module, IOMixIn):
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
 
-            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+            graph_converter = Structure2Graph(
+                element_types=self.element_types, cutoff=self.cutoff, allow_other_atoms=self.allow_other_atoms
+            )  # type: ignore
         g, state_feats_default = graph_converter.get_graph(structure)
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
