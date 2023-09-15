@@ -482,14 +482,18 @@ class CHGNetDataset(DGLDataset):
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
+        labels = {
+                k: torch.tensor(v[idx]) if v[idx] is not None else
+                torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+                for k, v in self.labels.items() if k not in self.skip_label_keys
+        }
+        if "magmom" in labels:
+            labels["magmom"] = labels["magmom"][:, None]
         return (
             self.graphs[idx],
             self.line_graphs[idx],
             self.state_attr[idx],
-            {
-                k: torch.tensor(v[idx]) if v[idx] is not None else
-                torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
-                for k, v in self.labels.items() if k not in self.skip_label_keys},
+            labels,
         )
 
     def __len__(self):
