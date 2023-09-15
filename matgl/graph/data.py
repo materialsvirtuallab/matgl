@@ -487,7 +487,8 @@ class CHGNetDataset(DGLDataset):
             {
                 k: torch.tensor(v[idx]) if v[idx] is not None else
                 torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
-                for k, v in self.labels.items() if k not in self.skip_label_keys},
+                for k, v in self.labels.items() if k not in self.skip_label_keys
+            },
         )
 
     def __len__(self):
@@ -591,9 +592,9 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         graph = graphs[0]
         line_graph = line_graphs[0]
         labels = {
-            k: torch.tensor(self.labels[k][idx]) if self.labels[k][idx] is not None else
-            torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)
-            for k in ("energy", "force", "stress", "magmom")
+            k: torch.tensor(v[idx]) if v[idx] is not None else
+            torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in self.labels.items() if k not in self.skip_label_keys
         }
         labels["magmom"] = labels["magmom"][:, None]
 
