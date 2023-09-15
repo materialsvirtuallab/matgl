@@ -369,7 +369,7 @@ class CHGNetDataset(DGLDataset):
         filename_line_graphs: str = "dgl_line_graph.bin",
         filename_labels: str = "labels.json",
         filename_state_attr: str = "state_attr.pt",
-        skip_label_keys: list[str] | None = None,
+        skip_label_keys: tuple[str] | None = None,
         name="CHGNETDataset",
         raw_dir: str | None = None,
         save_dir: str | None = None,
