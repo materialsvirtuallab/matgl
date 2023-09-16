@@ -17,19 +17,19 @@ class GraphNorm(nn.Module):
         https://proceedings.mlr.press/v139/cai21e.html
     """
 
-    def __init__(self, hidden_dim: int = 300, eps: float = 1e-5):
+    def __init__(self, input_dim: int, eps: float = 1e-5):
         """
         Init GraphNorm layer.
 
         Args:
-            hidden_dim: dimension of learnable normalization parameters
+            input_dim: dimension of input features
             eps: value added to denominator for numerical stability
         """
         super().__init__()
         self.eps = eps
-        self.weight = nn.Parameter(torch.empty(hidden_dim))
-        self.bias = nn.Parameter(torch.empty(hidden_dim))
-        self.mean_scale = nn.Parameter(torch.empty(hidden_dim))
+        self.weight = nn.Parameter(torch.ones(input_dim))
+        self.bias = nn.Parameter(torch.zeros(input_dim))
+        self.mean_scale = nn.Parameter(torch.ones(input_dim))
 
     def forward(self, graph: dgl.DGLGraph, features: torch.Tensor):
         """Forward pass.

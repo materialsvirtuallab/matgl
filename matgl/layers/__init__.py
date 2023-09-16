@@ -10,3 +10,4 @@ from matgl.layers._embedding import EmbeddingBlock
 from matgl.layers._graph_convolution import M3GNetBlock, M3GNetGraphConv, MEGNetBlock, MEGNetGraphConv
 from matgl.layers._readout import ReduceReadOut, Set2SetReadOut, WeightedReadOut, WeightedReadOutPair
 from matgl.layers._three_body import ThreeBodyInteractions
+from matgl.layers._norm import GraphNorm
