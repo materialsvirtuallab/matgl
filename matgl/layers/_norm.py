@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
-
+import dgl
 import torch
 import torch.nn as nn
+
+import matgl
 
 
 class GraphNorm(nn.Module):
@@ -15,40 +17,41 @@ class GraphNorm(nn.Module):
         https://proceedings.mlr.press/v139/cai21e.html
     """
 
-    def __init__(self, hidden_dim=300):
+    def __init__(self, hidden_dim: int = 300, eps: float = 1e-5):
         """
         Init GraphNorm layer.
 
         Args:
             hidden_dim: dimension of learnable normalization parameters
+            eps: value added to denominator for numerical stability
         """
         super().__init__()
-        self.weight = nn.Parameter(torch.ones(hidden_dim))
-        self.bias = nn.Parameter(torch.zeros(hidden_dim))
+        self.eps = eps
+        self.weight = nn.Parameter(torch.empty(hidden_dim))
+        self.bias = nn.Parameter(torch.empty(hidden_dim))
+        self.mean_scale = nn.Parameter(torch.empty(hidden_dim))
 
-    def forward(self, graph, tensor):
+    def forward(self, graph: dgl.DGLGraph, features: torch.Tensor):
         """Forward pass.
 
         Args:
             graph (dgl.DGLGraph): graph
-            tensor:
+            features (torch.Tensor): features
 
         Returns:
-
+            torch.Tensor: normalized features
         """
-        batch_list = graph.batch_num_nodes
-        batch_size = len(batch_list)
-        batch_list = torch.Tensor(batch_list).long().to(tensor.device)
-        batch_index = torch.arange(batch_size).to(tensor.device).repeat_interleave(batch_list)
-        batch_index = batch_index.view((-1,) + (1,) * (tensor.dim() - 1)).expand_as(tensor)
-        mean = torch.zeros(batch_size, *tensor.shape[1:]).to(tensor.device)
-        mean = mean.scatter_add_(0, batch_index, tensor)
+        batch_list = graph.batch_num_nodes().to(matgl.int_th)
+        batch_index = torch.arange(graph.batch_size).repeat_interleave(batch_list)
+        batch_index = batch_index.view((-1,) + (1,) * (features.dim() - 1)).expand_as(features)
+        mean = torch.zeros(graph.batch_size, *features.shape[1:])
+        mean = mean.scatter_add_(0, batch_index, features)
         mean = (mean.T / batch_list).T
         mean = mean.repeat_interleave(batch_list, dim=0)
-        sub = tensor - mean
-        std = torch.zeros(batch_size, *tensor.shape[1:]).to(tensor.device)
-        std = std.scatter_add_(0, batch_index, sub.pow(2))
-        std = ((std.T / batch_list).T + 1e-6).sqrt()
+        out = features - mean * self.mean_scale
+        std = torch.zeros(graph.batch_size, *features.shape[1:])
+        std = std.scatter_add_(0, batch_index, out.pow(2))
+        std = ((std.T / batch_list).T + self.eps).sqrt()
         std = std.repeat_interleave(batch_list, dim=0)
-        # return sub / std
-        return self.weight * sub / std + self.bias
+
+        return self.weight * out / std + self.bias
