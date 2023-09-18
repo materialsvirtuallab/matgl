@@ -509,6 +509,7 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         name="ChunkedCHGNETDataset",
         raw_dir: str | None = None,
         save_dir: str | None = None,
+        skip_label_keys: tuple[str] | None = None,
     ):
         """
         Args:
@@ -534,6 +535,7 @@ class ChunkedCHGNetDataset(CHGNetDataset):
             name=name,
             raw_dir=raw_dir,
             save_dir=save_dir,
+            skip_label_keys=skip_label_keys,
         )
 
     @property
