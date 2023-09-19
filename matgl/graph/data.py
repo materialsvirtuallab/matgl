@@ -400,14 +400,14 @@ class CHGNetDataset(DGLDataset):
             self.labels[k] = v.tolist() if isinstance(v, np.ndarray) else v
 
         self.graph_labels = graph_labels
-        self.graphs = None
-        self.line_graphs = None
-        self.state_attr = None
-        self.skip_label_keys = skip_label_keys or []
+        self.skip_label_keys = skip_label_keys or ()
         self.filename_graphs = filename_graphs
         self.filename_line_graphs = filename_line_graphs
         self.filename_state_attr = filename_state_attr
         self.filename_labels = filename_labels
+        self.graphs: list[dgl.DGLGraph] = []
+        self.line_graphs: list[dgl.DGLGraph] = []
+        self.state_attr: torch.Tensor = torch.tensor([])
         super().__init__(name=name, raw_dir=raw_dir, save_dir=save_dir)
 
     def has_cache(self) -> bool:
@@ -421,7 +421,7 @@ class CHGNetDataset(DGLDataset):
             for x in [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels]
         )
 
-    def process(self) -> tuple:
+    def process(self):
         """Convert Pymatgen structure into dgl graphs."""
         num_graphs = len(self.structures)
         graphs, line_graphs, state_attrs = [], [], []

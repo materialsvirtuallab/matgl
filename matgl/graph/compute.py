@@ -261,7 +261,7 @@ def has_aliased_edges(graph: dgl.DGLGraph) -> bool:
 def prune_edges_by_features(
     graph: dgl.DGLGraph,
     feat_name: str,
-    condition: Callable[[torch.Tensor, Any, ...], torch.Tensor],
+    condition: Callable[[torch.Tensor, Any], torch.Tensor],
     keep_ndata: bool = False,
     keep_edata: bool = True,
     *args,
