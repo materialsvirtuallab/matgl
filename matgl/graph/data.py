@@ -381,14 +381,15 @@ class CHGNetDataset(DGLDataset):
             structures: list of structures
             labels: target properties
             graph_labels: state attributes.
-            name: name of dataset
-            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
-                stores the input data. Default: ~/.dgl/
-            save_dir : directory to save the processed dataset. Default: same as raw_dir
             filename_graphs: filename of dgl graphs
             filename_line_graphs: filename of dgl line graphs
             filename_labels: filename of target labels file
-            filename_state_attr: filename of state attributes
+            filename_state_attr: filename of state attributes.
+            skip_label_keys: keys of labels to skip when getting dataset items.
+            name: name of dataset
+            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
+                stores the input data. Default: ~/.dgl/
+            save_dir : directory to save the processed dataset. Default: same as raw_dir.
         """
         self.converter = converter
         self.threebody_cutoff = threebody_cutoff
@@ -416,8 +417,8 @@ class CHGNetDataset(DGLDataset):
         Returns: True if file exists.
         """
         return all(
-            map(lambda x: os.path.exists(os.path.join(self.save_path, x)),
-                [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels])
+            os.path.exists(os.path.join(self.save_path, x))
+            for x in [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels]
         )
 
     def process(self) -> tuple:
@@ -446,8 +447,7 @@ class CHGNetDataset(DGLDataset):
         self.state_attr = state_attrs
 
     def save(self):
-        """Save dgl graphs and labels.
-        """
+        """Save dgl graphs and labels."""
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
@@ -465,9 +465,7 @@ class CHGNetDataset(DGLDataset):
         torch.save(self.state_attr, filepath_state_attr)
 
     def load(self):
-        """
-        Load CHGNet dataset from files.
-        """
+        """Load CHGNet dataset from files."""
         filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
         filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
         filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
@@ -477,15 +475,17 @@ class CHGNetDataset(DGLDataset):
         self.line_graphs, _ = load_graphs(filepath_line_graphs)
         self.state_attr = torch.load(filepath_state_attr)
 
-        with open(filepath_labels, "r") as f:
+        with open(filepath_labels) as f:
             self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
         labels = {
-                k: torch.tensor(v[idx]) if v[idx] is not None else
-                torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
-                for k, v in self.labels.items() if k not in self.skip_label_keys
+            k: torch.tensor(v[idx])
+            if v[idx] is not None
+            else torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in self.labels.items()
+            if k not in self.skip_label_keys
         }
 
         return (

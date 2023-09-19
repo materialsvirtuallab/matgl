@@ -103,7 +103,9 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     return angles
 
 
-def compute_theta(edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True, eps=1e-7) -> dict[str, torch.Tensor]:
+def compute_theta(
+    edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True, eps=1e-7
+) -> dict[str, torch.Tensor]:
     """User defined dgl function to calculate bond angles from edges in a graph.
 
     Args:
@@ -153,7 +155,6 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
     Returns:
         line_graph: DGL graph line graph of pruned graph to three body cutoff
     """
-
     with torch.no_grad():
         pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
         src_indices, dst_indices = pg.edges()
@@ -191,7 +192,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         lg = dgl.graph((lg_src, lg_dst))
 
         for key in pg.edata:
-            lg.ndata[key] = pg.edata[key][:lg.number_of_nodes()]
+            lg.ndata[key] = pg.edata[key][: lg.number_of_nodes()]
 
         # we need to store the sign of bond vector when a bond is a src node in the line
         # graph in order to appropriately calculate angles when self edges are involved
@@ -201,9 +202,9 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         # if we flip self edges then we need to correct computed angles by pi - angle
         # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
         # find the intersection for the rare cases where not all edges end up as nodes in the line graph
-        all_ns, counts = torch.cat(
-            [torch.arange(lg.number_of_nodes(), device=graph.device), edge_inds_ns]
-        ).unique(return_counts=True)
+        all_ns, counts = torch.cat([torch.arange(lg.number_of_nodes(), device=graph.device), edge_inds_ns]).unique(
+            return_counts=True
+        )
         lg_inds_ns = all_ns[torch.where(counts > 1)]
         lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
@@ -225,7 +226,7 @@ def ensure_directed_line_graph_compatibility(
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
     assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
 
-    edge_ids = valid_edges.nonzero().squeeze()[:line_graph.number_of_nodes()]
+    edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
     line_graph.ndata["edge_ids"] = edge_ids
 
     for key in graph.edata:
@@ -282,7 +283,7 @@ def prune_edges_by_features(
 
     Returns: dgl.Graph with removed edges.
     """
-    if feat_name not in graph.edata.keys():
+    if feat_name not in graph.edata:
         raise ValueError(f"Edge field {feat_name} not an edge feature in given graph.")
 
     valid_edges = torch.logical_not(condition(graph.edata[feat_name], *args, **kwargs))
