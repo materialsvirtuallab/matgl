@@ -13,32 +13,37 @@ class MLP(nn.Module):
     """An implementation of a multi-layer perceptron."""
 
     def __init__(
-        self,
-        dims: list[int],
-        activation: Callable[[torch.Tensor], torch.Tensor] | None = None,
-        activate_last: bool = False,
-        bias_last: bool = True,
+            self,
+            dims: list[int],
+            activation: nn.Module | None = None,
+            normalization: nn.Module | None = None,
+            activate_last: bool = False,
+            bias_last: bool = True,
     ) -> None:
-        """:param dims: Dimensions of each layer of MLP.
-        :param activation: Activation function.
-        :param activate_last: Whether to apply activation to last layer.
-        :param bias_last: Whether to apply bias to last layer.
+        """
+        Args:
+            dims: Dimensions of each layer of MLP.
+            activation: activation: Activation function.
+            normalization: Normalization module. Must take graphs as input in forward.
+            activate_last: Whether to apply activation to last layer.
+            bias_last: Whether to apply bias to last layer.
         """
         super().__init__()
         self._depth = len(dims) - 1
-        self.layers = ModuleList()
+        self.layers = nn.Sequential()
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=True))
-
+                if normalization is not None:
+                    self.layers.append(normalization(out_dim))
                 if activation is not None:
-                    self.layers.append(activation)  # type: ignore
+                    self.layers.append(activation)
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
 
                 if activation is not None and activate_last:
-                    self.layers.append(activation)  # type: ignore
+                    self.layers.append(activation)
 
     def __repr__(self):
         dims = []
@@ -83,11 +88,7 @@ class MLP(nn.Module):
         :param inputs: Input tensor
         :return: Output tensor
         """
-        x = inputs
-        for layer in self.layers:
-            x = layer(x)
-
-        return x
+        return self.layers(inputs)
 
 
 class GatedMLP(nn.Module):
