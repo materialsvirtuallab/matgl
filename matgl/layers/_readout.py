@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Literal
+from collections.abc import Sequence
 
 import dgl
 import torch
@@ -76,7 +77,7 @@ class ReduceReadOut(nn.Module):
 class WeightedReadOut(nn.Module):
     """Feed node features into Gated MLP as readout."""
 
-    def __init__(self, in_feats: int, dims: list[int], num_targets: int):
+    def __init__(self, in_feats: int, dims: Sequence[int], num_targets: int):
         """
         Args:
             in_feats: input features (nodes)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Callable
+from collections.abc import Sequence
 
 import torch
 from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
@@ -14,7 +15,7 @@ class MLP(nn.Module):
 
     def __init__(
         self,
-        dims: list[int],
+        dims: Sequence[int],
         activation: Callable[[torch.Tensor], torch.Tensor] | None = None,
         activate_last: bool = False,
         bias_last: bool = True,
@@ -93,7 +94,7 @@ class MLP(nn.Module):
 class GatedMLP(nn.Module):
     """An implementation of a Gated multi-layer perceptron."""
 
-    def __init__(self, in_feats: int, dims: list[int], activate_last: bool = True, use_bias: bool = True):
+    def __init__(self, in_feats: int, dims: Sequence[int], activate_last: bool = True, use_bias: bool = True):
         """:param in_feats: Dimension of input features.
         :param dims: Architecture of neural networks.
         :param activate_last: Whether applying activation to last layer or not.
