@@ -475,15 +475,17 @@ class CHGNetDataset(DGLDataset):
         self.line_graphs, _ = load_graphs(filepath_line_graphs)
         self.state_attr = torch.load(filepath_state_attr)
 
-        with open(filepath_labels, "r") as f:
+        with open(filepath_labels) as f:
             self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
         labels = {
-                k: torch.tensor(v[idx]) if v[idx] is not None else
-                torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
-                for k, v in self.labels.items() if k not in self.skip_label_keys
+            k: torch.tensor(v[idx])
+            if v[idx] is not None
+            else torch.tensor(self.graphs[idx].num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in self.labels.items()
+            if k not in self.skip_label_keys
         }
 
         return (
@@ -501,19 +503,18 @@ class CHGNetDataset(DGLDataset):
 class OOMCHGNetDataset(CHGNetDataset):
     def load(self):
         """Load CHGNet dataset from files."""
-        filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
-        filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
+        os.path.join(self.save_path, self.filename_graphs)
+        os.path.join(self.save_path, self.filename_line_graphs)
         filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
         filepath_labels = os.path.join(self.save_path, self.filename_labels)
 
         self.state_attr = torch.load(filepath_state_attr)
 
-        with open(filepath_labels, "r") as f:
+        with open(filepath_labels) as f:
             self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
-
         idx = int(idx)
         graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_graphs), [idx])
         line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graphs), [idx])
@@ -522,9 +523,11 @@ class OOMCHGNetDataset(CHGNetDataset):
         line_graph = line_graphs[0]
 
         labels = {
-                k: torch.tensor(v[idx]) if v[idx] is not None else
-                torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
-                for k, v in self.labels.items() if k not in self.skip_label_keys
+            k: torch.tensor(v[idx])
+            if v[idx] is not None
+            else torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in self.labels.items()
+            if k not in self.skip_label_keys
         }
 
         return (
@@ -637,9 +640,11 @@ class ChunkedCHGNetDataset(CHGNetDataset):
         graph = graphs[0]
         line_graph = line_graphs[0]
         labels = {
-            k: torch.tensor(v[idx]) if v[idx] is not None else
-            torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
-            for k, v in self.labels.items() if k not in self.skip_label_keys
+            k: torch.tensor(v[idx])
+            if v[idx] is not None
+            else torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in self.labels.items()
+            if k not in self.skip_label_keys
         }
 
         return graph, line_graph, torch.tensor([0, 0]), labels

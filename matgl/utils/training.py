@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 
 import pytorch_lightning as pl
 import torch
-from torch.nn.init import xavier_normal_
 import torch.nn.functional as F
 import torchmetrics
 from torch import nn
+from torch.nn.init import xavier_normal_
 
 from matgl.apps.pes import Potential
 from matgl.models import M3GNet
