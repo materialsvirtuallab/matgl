@@ -382,14 +382,15 @@ class CHGNetDataset(DGLDataset):
             structures: list of structures
             labels: target properties
             graph_labels: state attributes.
-            name: name of dataset
-            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
-                stores the input data. Default: ~/.dgl/
-            save_dir : directory to save the processed dataset. Default: same as raw_dir
             filename_graphs: filename of dgl graphs
             filename_line_graphs: filename of dgl line graphs
             filename_labels: filename of target labels file
             filename_state_attr: filename of state attributes.
+            skip_label_keys: keys of labels to skip when getting dataset items.
+            name: name of dataset
+            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
+                stores the input data. Default: ~/.dgl/
+            save_dir : directory to save the processed dataset. Default: same as raw_dir.
         """
         self.converter = converter
         self.threebody_cutoff = threebody_cutoff
