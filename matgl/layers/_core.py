@@ -1,13 +1,15 @@
 """Implementations of multi-layer perceptron (MLP) and other helper classes."""
 from __future__ import annotations
 
-from typing import Callable
-from collections.abc import Sequence
+from typing import TYPE_CHECKING, Callable
 
 import torch
 from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
 from torch import nn
 from torch.nn import LSTM, Linear, Module, ModuleList
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class MLP(nn.Module):

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
-from collections.abc import Sequence
+from typing import TYPE_CHECKING, Literal
 
 import dgl
 import torch
@@ -11,6 +10,9 @@ from dgl.nn import Set2Set
 from torch import nn
 
 from ._core import EdgeSet2Set, GatedMLP
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class Set2SetReadOut(nn.Module):
