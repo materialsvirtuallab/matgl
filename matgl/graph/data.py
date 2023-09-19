@@ -498,6 +498,42 @@ class CHGNetDataset(DGLDataset):
         return len(self.graphs)
 
 
+class OOMCHGNetDataset(CHGNetDataset):
+    def load(self):
+        """Load CHGNet dataset from files."""
+        filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
+        filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
+        filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
+        filepath_labels = os.path.join(self.save_path, self.filename_labels)
+
+        self.state_attr = torch.load(filepath_state_attr)
+
+        with open(filepath_labels, "r") as f:
+            self.labels = json.load(f)
+
+    def __getitem__(self, idx: int):
+        """Get graph and label with idx."""
+
+        graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_graphs), [idx])
+        line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graphs), [idx])
+
+        graph = graphs[0]
+        line_graph = line_graphs[0]
+
+        labels = {
+                k: torch.tensor(v[idx]) if v[idx] is not None else
+                torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+                for k, v in self.labels.items() if k not in self.skip_label_keys
+        }
+
+        return (
+            graph,
+            line_graph,
+            self.state_attr[idx],
+            labels,
+        )
+
+
 class ChunkedCHGNetDataset(CHGNetDataset):
     def __init__(
         self,
