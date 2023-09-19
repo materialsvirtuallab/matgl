@@ -495,7 +495,7 @@ class CHGNetDataset(DGLDataset):
 
     def __len__(self):
         """Get size of dataset."""
-        return len(self.graphs)
+        return len(self.state_attr)
 
 
 class OOMCHGNetDataset(CHGNetDataset):
@@ -532,6 +532,10 @@ class OOMCHGNetDataset(CHGNetDataset):
             self.state_attr[idx],
             labels,
         )
+
+    def __len__(self):
+        """Get size of dataset."""
+        return len(self.labels["energy"])
 
 
 class ChunkedCHGNetDataset(CHGNetDataset):
