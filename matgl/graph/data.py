@@ -514,6 +514,7 @@ class OOMCHGNetDataset(CHGNetDataset):
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
 
+        idx = int(idx)
         graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_graphs), [idx])
         line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graphs), [idx])
 
