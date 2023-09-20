@@ -56,7 +56,9 @@ class Potential(nn.Module, IOMixIn):
             self.element_refs = AtomRef(property_offset=torch.tensor(element_refs, dtype=matgl.float_th))
         else:
             self.element_refs = None
-
+        # for backward compatibility
+        if data_mean is None:
+            data_mean = 0.0
         self.register_buffer("data_mean", torch.tensor(data_mean, dtype=matgl.float_th))
         self.register_buffer("data_std", torch.tensor(data_std, dtype=matgl.float_th))
 
