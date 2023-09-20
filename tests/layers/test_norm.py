@@ -1,8 +1,8 @@
-import torch
+from __future__ import annotations
+
 import dgl
-
+import torch
 from torch.testing import assert_close
-
 
 from matgl.layers import GraphNorm
 

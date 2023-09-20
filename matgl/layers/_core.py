@@ -1,30 +1,30 @@
 """Implementations of multi-layer perceptron (MLP) and other helper classes."""
 from __future__ import annotations
 
-from typing import Callable
-
 import torch
 from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
 from torch import nn
-from torch.nn import LSTM, Linear, Module, ModuleList
+from torch.nn import LSTM, Linear, Module
 
 
 class MLP(nn.Module):
     """An implementation of a multi-layer perceptron."""
 
     def __init__(
-            self,
-            dims: list[int],
-            activation: nn.Module | None = None,
-            normalization: nn.Module | None = None,
-            activate_last: bool = False,
-            bias_last: bool = True,
+        self,
+        dims: list[int],
+        activation: nn.Module | None = None,
+        normalization: nn.Module | None = None,
+        use_bias: bool = True,
+        activate_last: bool = False,
+        bias_last: bool = True,
     ) -> None:
         """
         Args:
             dims: Dimensions of each layer of MLP.
             activation: activation: Activation function.
             normalization: Normalization module. Must take graphs as input in forward.
+            use_bias: Whether to use bias in linear layers.
             activate_last: Whether to apply activation to last layer.
             bias_last: Whether to apply bias to last layer.
         """
@@ -34,13 +34,13 @@ class MLP(nn.Module):
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
-                self.layers.append(Linear(in_dim, out_dim, bias=True))
+                self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
                 if normalization is not None:
                     self.layers.append(normalization(out_dim))
                 if activation is not None:
                     self.layers.append(activation)
             else:
-                self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
+                self.layers.append(Linear(in_dim, out_dim, bias=bias_last and use_bias))
 
                 if activation is not None and activate_last:
                     self.layers.append(activation)
@@ -95,10 +95,12 @@ class GatedMLP(nn.Module):
     """An implementation of a Gated multi-layer perceptron."""
 
     def __init__(self, in_feats: int, dims: list[int], activate_last: bool = True, use_bias: bool = True):
-        """:param in_feats: Dimension of input features.
-        :param dims: Architecture of neural networks.
-        :param activate_last: Whether applying activation to last layer or not.
-        :param bias_last: Whether applying bias to last layer or not.
+        """
+        Args:
+            in_feats: Input features.
+            dims: Dimensions of each layer of MLP.
+            activate_last: Whether to apply activation to last layer.
+            use_bias: Whether to use a bias in linear layers.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -120,6 +122,42 @@ class GatedMLP(nn.Module):
                     self.layers.append(nn.SiLU())
                 self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Sigmoid())
+
+    def forward(self, inputs: torch.Tensor):
+        return self.layers(inputs) * self.gates(inputs)
+
+
+class NormGatedMLP(nn.Module):
+    """Gated multi-layer perceptron with normalization."""
+
+    def __init__(
+        self,
+        dims: list[int],
+        activation: nn.Module = nn.SiLU(),
+        gate_activation: nn.Module = nn.SiLU(),
+        normalization: nn.Module | None = None,
+        activate_last: bool = True,
+        use_bias: bool = True,
+    ):
+        """
+        Args:
+            dims: Dimensions of each layer of MLP.
+            activation: activation: Activation function.
+            gate_activation: Activation function for gates.
+            normalization: Normalization module. Must take graphs as input in forward.
+            activate_last: Whether to apply activation to last layer.
+            use_bias: Whether to use bias in linear layers.
+        """
+        super().__init__()
+        self.dims = dims
+        self._depth = len(dims)
+
+        self.use_bias = use_bias
+        self.activate_last = activate_last
+        self.layers = MLP(self.dims, activation, normalization, activate_last=activate_last, use_bias=use_bias)
+        self.gates = nn.Sequential(
+            MLP(self.dims, gate_activation, normalization, activate_last=False, use_bias=use_bias), nn.Sigmoid()
+        )
 
     def forward(self, inputs: torch.Tensor):
         return self.layers(inputs) * self.gates(inputs)

@@ -3,11 +3,15 @@
 
 from __future__ import annotations
 
-import dgl
+from typing import TYPE_CHECKING
+
 import torch
 import torch.nn as nn
 
 import matgl
+
+if TYPE_CHECKING:
+    import dgl
 
 
 class GraphNorm(nn.Module):
