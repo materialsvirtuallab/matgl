@@ -120,7 +120,6 @@ class GatedMLP(nn.Module):
         self.in_feats = in_feats
         self.dims = [in_feats, *dims]
         self._depth = len(dims)
-        self.layers = nn.Sequential()
         self.use_bias = use_bias
         self.activate_last = activate_last
 
