@@ -1,12 +1,12 @@
 """Implementations of multi-layer perceptron (MLP) and other helper classes."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import torch
 from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
 from torch import nn
-from torch.nn import LSTM, Linear, Module, ModuleList
+from torch.nn import LSTM, Linear, Module
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -20,6 +20,7 @@ class MLP(nn.Module):
         dims: Sequence[int],
         activation: nn.Module | None = None,
         activate_last: bool = False,
+        use_bias: bool = True,
         bias_last: bool = True,
     ) -> None:
         """
@@ -27,6 +28,7 @@ class MLP(nn.Module):
             dims: Dimensions of each layer of MLP.
             activation: activation: Activation function.
             activate_last: Whether to apply activation to last layer.
+            use_bias: Whether to use bias.
             bias_last: Whether to apply bias to last layer.
         """
         super().__init__()
@@ -37,9 +39,9 @@ class MLP(nn.Module):
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
-                self.layers.append(Linear(in_dim, out_dim, bias=True))
+                self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
             else:
-                self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
+                self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
 
     def __repr__(self):
         dims = []
@@ -79,7 +81,7 @@ class MLP(nn.Module):
         raise RuntimeError
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        """ Applies all layers in turn.
+        """Applies all layers in turn.
 
         Args:
             inputs: input feature tensor.
@@ -88,10 +90,7 @@ class MLP(nn.Module):
             output feature tensor.
         """
         for i, layer in enumerate(self.layers):
-            if i < self._depth or self.activate_last:
-                inputs = self.activation(layer(inputs))
-            else:
-                inputs = layer(inputs)
+            inputs = self.activation(layer(inputs)) if i < self._depth or self.activate_last else layer(inputs)
 
         return inputs
 
@@ -99,32 +98,39 @@ class MLP(nn.Module):
 class GatedMLP(nn.Module):
     """An implementation of a Gated multi-layer perceptron."""
 
-    def __init__(self, in_feats: int, dims: Sequence[int], activate_last: bool = True, use_bias: bool = True):
-        """:param in_feats: Dimension of input features.
-        :param dims: Architecture of neural networks.
-        :param activate_last: Whether applying activation to last layer or not.
-        :param bias_last: Whether applying bias to last layer or not.
+    def __init__(
+        self,
+        in_feats: int,
+        dims: Sequence[int],
+        activation: nn.Module | None = None,
+        activate_last: bool = True,
+        use_bias: bool = True,
+        bias_last: bool = True,
+    ):
+        """
+        Args:
+            in_feats: Input features.
+            dims: Dimensions of each layer of MLP.
+            activation: nn.Module | None,
+            activate_last: Whether to apply activation to last layer.
+            use_bias: Whether to use a bias in linear layers.
+            bias_last: Whether to apply bias to last layer.
         """
         super().__init__()
         self.in_feats = in_feats
         self.dims = [in_feats, *dims]
         self._depth = len(dims)
         self.layers = nn.Sequential()
-        self.gates = nn.Sequential()
         self.use_bias = use_bias
         self.activate_last = activate_last
-        for i, (in_dim, out_dim) in enumerate(zip(self.dims[:-1], self.dims[1:])):
-            if i < self._depth - 1:
-                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
-                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
-                self.layers.append(nn.SiLU())
-                self.gates.append(nn.SiLU())
-            else:
-                self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
-                if self.activate_last:
-                    self.layers.append(nn.SiLU())
-                self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
-                self.gates.append(nn.Sigmoid())
+
+        activation = activation if activation is not None else nn.SiLU()
+        self.layers = MLP(
+            self.dims, activation=activation, activate_last=activate_last, use_bias=use_bias, bias_last=bias_last
+        )
+        self.gates = nn.Sequential(
+            MLP(self.dims, activation, activate_last=False, use_bias=use_bias, bias_last=bias_last), nn.Sigmoid()
+        )
 
     def forward(self, inputs: torch.Tensor):
         return self.layers(inputs) * self.gates(inputs)
