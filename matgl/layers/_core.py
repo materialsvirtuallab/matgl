@@ -18,7 +18,7 @@ class MLP(nn.Module):
     def __init__(
         self,
         dims: Sequence[int],
-        activation: Callable[[torch.Tensor], torch.Tensor] | None = None,
+        activation: nn.Module | None = None,
         activate_last: bool = False,
         bias_last: bool = True,
     ) -> None:
@@ -31,19 +31,15 @@ class MLP(nn.Module):
         """
         super().__init__()
         self._depth = len(dims) - 1
-        self.layers = nn.Sequential()
+        self.layers = nn.ModuleList()
+        self.activation = activation if activation is not None else nn.Identity()
+        self.activate_last = activate_last
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=True))
-
-                if activation is not None:
-                    self.layers.append(activation)
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=bias_last))
-
-                if activation is not None and activate_last:
-                    self.layers.append(activation)
 
     def __repr__(self):
         dims = []
@@ -82,13 +78,22 @@ class MLP(nn.Module):
                 return layer.out_features
         raise RuntimeError
 
-    def forward(self, inputs):
-        """Applies all layers in turn.
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        """ Applies all layers in turn.
 
-        :param inputs: Input tensor
-        :return: Output tensor
+        Args:
+            inputs: input feature tensor.
+
+        Returns:
+            output feature tensor.
         """
-        return self.layers(inputs)
+        for i, layer in enumerate(self.layers):
+            if i < self._depth or self.activate_last:
+                inputs = self.activation(layer(inputs))
+            else:
+                inputs = layer(inputs)
+
+        return inputs
 
 
 class GatedMLP(nn.Module):
