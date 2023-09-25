@@ -438,10 +438,10 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             if self.allow_missing_labels:
                 valid_values = ~torch.isnan(labels[3])
                 labels_3 = labels[3][valid_values]
-                preds_3 = preds[4][valid_values] # 3 is the Hessian!!!
+                preds_3 = preds[3][valid_values]
             else:
                 labels_3 = labels[3]
-                preds_3 = preds[4]  # 3 is the Hessian!!!
+                preds_3 = preds[3]
 
             if len(labels_3) > 0:
                 m_loss = loss(labels_3, preds_3, **self.loss_params)
