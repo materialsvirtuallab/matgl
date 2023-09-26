@@ -7,6 +7,7 @@ import shutil
 from functools import partial
 
 import numpy as np
+import pytest
 import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
@@ -236,3 +237,19 @@ class TestModelTrainer:
                 pass
 
         shutil.rmtree("lightning_logs")
+
+
+@pytest.mark.parametrize("distribution", ["normal", "uniform", "fake"])
+def test_xavier_init(distribution):
+    model = MEGNet()
+    # get a parameter
+    w = model.output_proj.layers[0].get_parameter("weight").clone()
+
+    if distribution == "fake":
+        with pytest.raises(ValueError, match=r"^Invalid distribution:."):
+            xavier_init(model, distribution=distribution)
+    else:
+        xavier_init(model, distribution=distribution)
+        print(w)
+        assert not torch.allclose(w, model.output_proj.layers[0].get_parameter("weight"))
+        assert torch.allclose(torch.tensor(0.0), model.output_proj.layers[0].get_parameter("bias"))
