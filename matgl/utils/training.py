@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import pytorch_lightning as pl
 import torch
@@ -444,19 +444,29 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         }
 
 
-def xavier_init(model: nn.Module) -> None:
+def xavier_init(model: nn.Module, gain: float = 1.0, distribution: Literal["uniform", "normal"] = "uniform") -> None:
     """Xavier initialization scheme for the model.
 
     Args:
         model (nn.Module): The model to be Xavier-initialized.
+        gain (float): Gain factor. Defaults to 1.0.
+        distribution (Literal["uniform", "normal"], optional): Distribution to use. Defaults to "uniform".
     """
+    if distribution == "uniform":
+        init_fn = nn.init.xavier_uniform_
+    elif distribution == "normal":
+        init_fn = nn.init.xavier_normal_
+    else:
+        raise ValueError(f"Invalid distribution: {distribution}")
+
     for name, param in model.named_parameters():
         if name.endswith(".bias"):
             param.data.fill_(0)
-        else:
-            if param.dim() < 2:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[0])
+        elif param.dim() < 2:  # torch.nn.xavier only supports >= 2 dim tensors
+            bound = gain * math.sqrt(6) / math.sqrt(2 * param.shape[0])
+            if distribution == "uniform":
                 param.data.uniform_(-bound, bound)
             else:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[1])
-                param.data.uniform_(-bound, bound)
+                param.data.normal_(0, bound**2)
+        else:
+            init_fn(param.data, gain=gain)
