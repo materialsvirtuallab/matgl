@@ -7,6 +7,7 @@ import torch
 from torch import nn
 from torch.autograd import grad
 
+import matgl
 from matgl.layers import AtomRef
 from matgl.utils.io import IOMixIn
 
@@ -52,14 +53,14 @@ class Potential(nn.Module, IOMixIn):
         self.calc_site_wise = calc_site_wise
         self.element_refs: AtomRef | None
         if element_refs is not None:
-            self.element_refs = AtomRef(property_offset=element_refs)
+            self.element_refs = AtomRef(property_offset=torch.tensor(element_refs, dtype=matgl.float_th))
         else:
             self.element_refs = None
-        data_mean = data_mean or 0
-        data_std = data_std or 1
-
-        self.data_mean = data_mean.clone().detach() if isinstance(data_mean, torch.Tensor) else torch.tensor(data_mean)
-        self.data_std = data_std.clone().detach() if isinstance(data_std, torch.Tensor) else torch.tensor(data_std)
+        # for backward compatibility
+        if data_mean is None:
+            data_mean = 0.0
+        self.register_buffer("data_mean", torch.tensor(data_mean, dtype=matgl.float_th))
+        self.register_buffer("data_std", torch.tensor(data_std, dtype=matgl.float_th))
 
     def forward(
         self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None

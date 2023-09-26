@@ -36,14 +36,18 @@ def collate_fn(batch, include_line_graph: bool = False):
     return g, labels, state_attr
 
 
-def collate_fn_efs(batch):
+def collate_fn_efs(batch, include_stress: bool = True):
     """Merge a list of dgl graphs to form a batch."""
     graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
-    e = torch.tensor([d["energies"] for d in labels])
-    f = torch.vstack([d["forces"] for d in labels])
-    s = torch.vstack([d["stresses"] for d in labels])
+    e = torch.tensor([d["energies"] for d in labels])  # type: ignore
+    f = torch.vstack([d["forces"] for d in labels])  # type: ignore
+    s = (
+        torch.vstack([d["stresses"] for d in labels])  # type: ignore
+        if include_stress is True
+        else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
+    )
     state_attr = torch.stack(state_attr)
     return g, l_g, state_attr, e, f, s
 
@@ -59,7 +63,7 @@ def MGLDataLoader(
     test_data: dgl.data.utils.Subset | None = None,
     generator: torch.Generator | None = None,
 ) -> tuple[GraphDataLoader, ...]:
-    """Dataloader for MEGNet training.
+    """Dataloader for MatGL training.
 
     Args:
         train_data (dgl.data.utils.Subset): Training dataset.
