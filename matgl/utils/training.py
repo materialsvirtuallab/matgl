@@ -333,6 +333,14 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.allow_missing_labels = allow_missing_labels
         self.save_hyperparameters()
 
+    def on_load_checkpoint(self, checkpoint: dict[str, ...]):
+        """
+        hacky hacky hack to add missing keys to the state dict when changes are mad
+        """
+        for key in self.state_dict().keys():
+            if key not in checkpoint["state_dict"]:
+                checkpoint["state_dict"][key] = self.state_dict()[key]
+
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
             g: dgl Graph
