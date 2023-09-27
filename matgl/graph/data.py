@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import os
-from collections import defaultdict
 from typing import TYPE_CHECKING, Callable
 
 import dgl
@@ -37,14 +36,18 @@ def collate_fn(batch, include_line_graph: bool = False):
     return g, labels, state_attr
 
 
-def collate_fn_efs(batch):
+def collate_fn_efs(batch, include_stress: bool = True):
     """Merge a list of dgl graphs to form a batch."""
     graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
-    e = torch.tensor([d["energies"] for d in labels])
-    f = torch.vstack([d["forces"] for d in labels])
-    s = torch.vstack([d["stresses"] for d in labels])
+    e = torch.tensor([d["energies"] for d in labels])  # type: ignore
+    f = torch.vstack([d["forces"] for d in labels])  # type: ignore
+    s = (
+        torch.vstack([d["stresses"] for d in labels])  # type: ignore
+        if include_stress is True
+        else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
+    )
     state_attr = torch.stack(state_attr)
     return g, l_g, state_attr, e, f, s
 
@@ -382,13 +385,15 @@ class CHGNetDataset(DGLDataset):
             structures: list of structures
             labels: target properties
             graph_labels: state attributes.
-            name: name of dataset
-            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
-                stores the input data. Default: ~/.dgl/
-            save_dir : directory to save the processed dataset. Default: same as raw_dir
             filename_graphs: filename of dgl graphs
             filename_line_graphs: filename of dgl line graphs
             filename_labels: filename of target labels file
+            filename_state_attr: filename of state attributes.
+            skip_label_keys: keys of labels to skip when getting dataset items.
+            name: name of dataset
+            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
+                stores the input data. Default: ~/.dgl/
+            save_dir : directory to save the processed dataset. Default: same as raw_dir.
             filename_state_attr: filename of state attributes.
         """
         self.converter = converter
@@ -403,11 +408,14 @@ class CHGNetDataset(DGLDataset):
         self.graphs = None
         self.line_graphs = None
         self.state_attr = None
-        self.skip_label_keys = skip_label_keys or []
+        self.skip_label_keys = skip_label_keys or ()
         self.filename_graphs = filename_graphs
         self.filename_line_graphs = filename_line_graphs
         self.filename_state_attr = filename_state_attr
         self.filename_labels = filename_labels
+        self.graphs: list[dgl.DGLGraph] = []
+        self.line_graphs: list[dgl.DGLGraph] = []
+        self.state_attr: torch.Tensor = torch.tensor([])
         super().__init__(name=name, raw_dir=raw_dir, save_dir=save_dir)
 
     def has_cache(self) -> bool:
@@ -421,7 +429,7 @@ class CHGNetDataset(DGLDataset):
             for x in [self.filename_graphs, self.filename_line_graphs, self.filename_state_attr, self.filename_labels]
         )
 
-    def process(self) -> tuple:
+    def process(self):
         """Convert Pymatgen structure into dgl graphs."""
         num_graphs = len(self.structures)
         graphs, line_graphs, state_attrs = [], [], []

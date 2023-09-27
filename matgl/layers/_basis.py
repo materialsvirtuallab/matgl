@@ -70,7 +70,7 @@ class SphericalBesselFunction(nn.Module):
         super().__init__()
         self.max_l = max_l
         self.max_n = max_n
-        self.cutoff = torch.tensor(cutoff)
+        self.register_buffer("cutoff", torch.tensor(cutoff))
         self.smooth = smooth
         if smooth:
             self.funcs = self._calculate_smooth_symbolic_funcs()
@@ -116,7 +116,7 @@ class SphericalBesselFunction(nn.Module):
         results = []
         factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
         for i in range(self.max_l):
-            root = roots[i]
+            root = torch.tensor(roots[i])
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(
@@ -218,7 +218,7 @@ class FourierExpansion(nn.Module):
         return result / self.interval * self.scale_factor
 
 
-class SphericalHarmonicsFunction:
+class SphericalHarmonicsFunction(nn.Module):
     """Spherical Harmonics function."""
 
     def __init__(self, max_l: int, use_phi: bool = True):
@@ -228,6 +228,7 @@ class SphericalHarmonicsFunction:
             use_phi: bool, whether to use the polar angle. If not,
             the function will compute `Y_l^0`.
         """
+        super().__init__()
         self.max_l = max_l
         self.use_phi = use_phi
         funcs = []
@@ -244,7 +245,7 @@ class SphericalHarmonicsFunction:
         self.funcs = [sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch]) for i in self.orig_funcs]
         self.funcs[0] = _y00
 
-    def __call__(self, costheta, phi=None):
+    def forward(self, costheta, phi=None):
         """Args:
             costheta: Cosine of the azimuthal angle
             phi: torch.Tensor, the polar angle.

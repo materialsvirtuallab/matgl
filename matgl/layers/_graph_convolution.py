@@ -965,7 +965,7 @@ class CHGNetBondGraphBlock(nn.Module):
         num_bond_feats: int,
         num_angle_feats: int,
         bond_hidden_dims: Sequence[int],
-        angle_hidden_dims: Sequence[int],
+        angle_hidden_dims: Sequence[int] | None,
         rbf_order: int = 0,
         bond_dropout: float = 0.0,
         angle_dropout: float = 0.0,
