@@ -19,7 +19,7 @@ def test_graph_norm(graph_MoS):
     features = torch.randn(g1.num_nodes(), 64)
     out = features - 0.75 * torch.mean(features, dim=0)
     std = (torch.mean(out.pow(2), dim=0) + gn.eps).sqrt()
-    res = gn(g1, features)
+    res = gn(features, g1)
     expected = 2.0 * out / std + 1
 
     assert res.shape == (2, 64)
@@ -35,7 +35,7 @@ def test_graph_norm(graph_MoS):
     out[num_nodes:] = batched_features[num_nodes:] - 0.75 * torch.mean(batched_features[num_nodes:], dim=0)
     std[num_nodes:] = (torch.mean(out[num_nodes:].pow(2), dim=0) + gn.eps).sqrt()
 
-    res = gn(batched_g, batched_features)
+    res = gn(batched_features, batched_g)
     expected = 2.0 * out / std + 1
 
     assert res.shape == (4, 64)

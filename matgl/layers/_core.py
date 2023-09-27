@@ -1,12 +1,15 @@
 """Implementations of multi-layer perceptron (MLP) and other helper classes."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
+import dgl
 import torch
 from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
 from torch import nn
 from torch.nn import LSTM, Linear, Module
+
+from matgl.layers._norm import GraphNorm
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -19,8 +22,9 @@ class MLP(nn.Module):
         self,
         dims: list[int],
         activation: nn.Module | None = None,
-        normalization: nn.Module | None = None,
+        normalization: Literal["graph"] | None = None,
         activate_last: bool = False,
+        normalize_last: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
     ) -> None:
@@ -28,22 +32,29 @@ class MLP(nn.Module):
         Args:
             dims: Dimensions of each layer of MLP.
             activation: activation: Activation function.
-            normalization: Normalization module. Must take graphs as input in forward.
+            normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
+            normalize_last: Whether to normalize output of last layer.
             use_bias: Whether to use bias.
             bias_last: Whether to apply bias to last layer.
         """
         super().__init__()
         self._depth = len(dims) - 1
         self.layers = nn.ModuleList()
+        self.norm_layers = nn.ModuleList() if normalization == "graph" else None
         self.activation = activation if activation is not None else nn.Identity()
         self.activate_last = activate_last
+        self.normalize_last = normalize_last
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
+                if normalization == "graph":
+                    self.norm_layers.append(GraphNorm(out_dim))
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
+                if normalize_last and normalization == "graph":
+                    self.norm_layers.append(GraphNorm(out_dim))
 
     def __repr__(self):
         dims = []
@@ -82,19 +93,29 @@ class MLP(nn.Module):
                 return layer.out_features
         raise RuntimeError
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, inputs: torch.Tensor, graph: dgl.Graph | None = None) -> torch.Tensor:
         """Applies all layers in turn.
 
         Args:
             inputs: input feature tensor.
+            graph: graph of model.
 
         Returns:
             output feature tensor.
         """
-        for i, layer in enumerate(self.layers):
-            inputs = self.activation(layer(inputs)) if i < self._depth or self.activate_last else layer(inputs)
+        x = inputs
+        for i in range(self._depth - 1):
+            x = self.layers[i](x)
+            if self.norm_layers is not None:
+                x = self.norm_layers[i](x, graph)
+            x = self.activation(x)
 
-        return inputs
+        x = self.layers[-1](x)
+        if self.normalize_last:
+            x = self.norm_layers[-1](x, graph)
+        if self.activate_last:
+            x = self.activation(x)
+        return x
 
 
 class GatedMLP(nn.Module):
@@ -105,7 +126,9 @@ class GatedMLP(nn.Module):
         in_feats: int,
         dims: Sequence[int],
         activation: nn.Module | None = None,
+        normalization: Literal["graph"] | None = None,
         activate_last: bool = True,
+        normalize_last: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
     ):
@@ -113,8 +136,10 @@ class GatedMLP(nn.Module):
         Args:
             in_feats: Input features.
             dims: Dimensions of each layer of MLP.
-            activation: nn.Module | None,
+            activation: non-linear activation module.
+            normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
+            normalize_last: Whether to normalize output of last layer.
             use_bias: Whether to use a bias in linear layers.
             bias_last: Whether to apply bias to last layer.
         """
@@ -127,50 +152,27 @@ class GatedMLP(nn.Module):
 
         activation = activation if activation is not None else nn.SiLU()
         self.layers = MLP(
-            self.dims, activation=activation, activate_last=activate_last, use_bias=use_bias, bias_last=bias_last
+            self.dims,
+            activation=activation,
+            normalization=normalization,
+            activate_last=activate_last,
+            normalize_last=normalize_last,
+            use_bias=use_bias,
+            bias_last=bias_last,
         )
-        self.gates = nn.Sequential(
-            MLP(self.dims, activation, activate_last=False, use_bias=use_bias, bias_last=bias_last), nn.Sigmoid()
-        )
+        self.gates = MLP(
+                self.dims,
+                activation,
+                normalization=normalization,
+                activate_last=False,
+                normalize_last=normalize_last,
+                use_bias=use_bias,
+                bias_last=bias_last,
+            )
+        self.sigmoid = nn.Sigmoid()
 
-    def forward(self, inputs: torch.Tensor):
-        return self.layers(inputs) * self.gates(inputs)
-
-
-class NormGatedMLP(nn.Module):
-    """Gated multi-layer perceptron with normalization."""
-
-    def __init__(
-        self,
-        dims: list[int],
-        activation: nn.Module = nn.SiLU(),
-        gate_activation: nn.Module = nn.SiLU(),
-        normalization: nn.Module | None = None,
-        activate_last: bool = True,
-        use_bias: bool = True,
-    ):
-        """
-        Args:
-            dims: Dimensions of each layer of MLP.
-            activation: activation: Activation function.
-            gate_activation: Activation function for gates.
-            normalization: Normalization module. Must take graphs as input in forward.
-            activate_last: Whether to apply activation to last layer.
-            use_bias: Whether to use bias in linear layers.
-        """
-        super().__init__()
-        self.dims = dims
-        self._depth = len(dims)
-
-        self.use_bias = use_bias
-        self.activate_last = activate_last
-        self.layers = MLP(self.dims, activation, normalization, activate_last=activate_last, use_bias=use_bias)
-        self.gates = nn.Sequential(
-            MLP(self.dims, gate_activation, normalization, activate_last=False, use_bias=use_bias), nn.Sigmoid()
-        )
-
-    def forward(self, inputs: torch.Tensor):
-        return self.layers(inputs) * self.gates(inputs)
+    def forward(self, inputs: torch.Tensor, graph: dgl.Graph | None = None) -> torch.Tensor:
+        return self.layers(inputs, graph) * self.sigmoid(self.gates(inputs, graph))
 
 
 class EdgeSet2Set(Module):

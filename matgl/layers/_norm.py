@@ -35,12 +35,12 @@ class GraphNorm(nn.Module):
         self.bias = nn.Parameter(torch.zeros(input_dim))
         self.mean_scale = nn.Parameter(torch.ones(input_dim))
 
-    def forward(self, graph: dgl.DGLGraph, features: torch.Tensor):
+    def forward(self, features: torch.Tensor, graph: dgl.DGLGraph):
         """Forward pass.
 
         Args:
-            graph (dgl.DGLGraph): graph
             features (torch.Tensor): features
+            graph (dgl.DGLGraph): graph
 
         Returns:
             torch.Tensor: normalized features
