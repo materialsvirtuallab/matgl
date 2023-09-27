@@ -264,7 +264,7 @@ class CHGNet(nn.Module, IOMixIn):
         graph.edata["bond_vec"] = bond_vec.to(graph.device)
         graph.edata["bond_dist"] = bond_dist.to(graph.device)
         bond_expansion = self.bond_expansion(bond_dist)
-        smooth_cutoff = polynomial_cutoff(self.bond_expansion(bond_dist), self.cutoff, self.cutoff_exponent)
+        smooth_cutoff = polynomial_cutoff(bond_expansion, self.cutoff, self.cutoff_exponent)
         graph.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
         # create bond graph (line graph) with necessary node and edge data
