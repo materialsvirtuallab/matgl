@@ -14,7 +14,7 @@ from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, Rela
 def test_M3GNetCalculator(MoS):
     adaptor = AseAtomsAdaptor()
     s_ase = adaptor.get_atoms(MoS)  # type: ignore
-    ff = load_model("M3GNet-MP-2021.2.8-PES")
+    ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     ff.calc_hessian = True
     calc = M3GNetCalculator(potential=ff)
     s_ase.set_calculator(calc)
@@ -28,7 +28,7 @@ def test_M3GNetCalculator(MoS):
 def test_M3GNetCalculator_mol(AcAla3NHMe):
     adaptor = AseAtomsAdaptor()
     mol = adaptor.get_atoms(AcAla3NHMe)
-    ff = load_model("M3GNet-MP-2021.2.8-PES")
+    ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     calc = M3GNetCalculator(potential=ff)
     mol.set_calculator(calc)
     assert [mol.get_potential_energy().size] == [1]
@@ -37,7 +37,7 @@ def test_M3GNetCalculator_mol(AcAla3NHMe):
 
 
 def test_Relaxer(MoS):
-    pot = load_model("M3GNet-MP-2021.2.8-PES")
+    pot = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     r = Relaxer(pot)
     results = r.relax(MoS, traj_file="MoS_relax.traj")
     s = results["final_structure"]
@@ -84,7 +84,7 @@ def test_get_graph_from_atoms_mol():
 
 
 def test_molecular_dynamics(MoS):
-    pot = load_model("M3GNet-MP-2021.2.8-PES")
+    pot = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     for ensemble in ["nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"]:
         md = MolecularDynamics(MoS, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
         md.run(10)
