@@ -267,6 +267,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         decay_alpha: float = 0.01,
         sync_dist: bool = False,
         allow_missing_labels: bool = False,
+        site_wise_target: Literal["absolute", "symbreak"] | None = "absolute",
         **kwargs,
     ):
         """
@@ -290,6 +291,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             sync_dist: whether sync logging across all GPU workers or not
             allow_missing_labels: Whether to allow missing labels or not.
                 These should be present in the dataset as torch.nans and will be skipped in computing the loss.
+            site_wise_target: Whether to predict the absolute site-wise value of magmoms or adapt the loss function
+                to predict the signed value breaking symmetry. If None given the loss function will be adapted.
             **kwargs: Passthrough to parent init.
         """
         assert energy_weight >= 0, f"energy_weight has to be >=0. Got {energy_weight}!"
@@ -331,6 +334,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.scheduler = scheduler
         self.sync_dist = sync_dist
         self.allow_missing_labels = allow_missing_labels
+        self.site_wise_target = site_wise_target
         self.save_hyperparameters()
 
     def on_load_checkpoint(self, checkpoint: dict[str, ...]):
@@ -452,9 +456,27 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                 preds_3 = preds[3]
 
             if len(labels_3) > 0:
-                m_loss = loss(labels_3, preds_3, **self.loss_params)
-                m_mae = self.mae(labels_3, preds_3)
-                m_rmse = self.rmse(labels_3, preds_3)
+                if self.site_wise_target == "symbreak":
+                    m_loss = torch.min(
+                        loss(labels_3, preds_3, **self.loss_params),
+                        loss(labels_3, -preds_3, **self.loss_params)
+                    )
+                    m_mae = torch.min(
+                        self.mae(labels_3, preds_3),
+                        self.mae(labels_3, -preds_3)
+                    )
+                    m_rmse = torch.min(
+                        self.rmse(labels_3, preds_3),
+                        self.rmse(labels_3, -preds_3)
+                    )
+                else:
+                    if self.site_wise_target == "absolute":
+                        labels_3 = torch.abs(labels_3)
+
+                    m_loss = loss(labels_3, preds_3, **self.loss_params)
+                    m_mae = self.mae(labels_3, preds_3)
+                    m_rmse = self.rmse(labels_3, preds_3)
+
                 total_loss = total_loss + self.site_wise_weight * m_loss
             else:
                 m_mae = torch.zeros(1)
