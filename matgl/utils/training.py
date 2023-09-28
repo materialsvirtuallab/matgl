@@ -76,7 +76,6 @@ class MatglLightningModuleMixin:
             batch: Data batch.
             batch_idx: Batch index.
         """
-        torch.set_grad_enabled(True)
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
             {f"test_{key}": val for key, val in results.items()},
@@ -121,7 +120,6 @@ class MatglLightningModuleMixin:
             **kwargs: Pass-through.
         """
         super().on_test_model_eval(*args, **kwargs)
-        torch.set_grad_enabled(True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         """
@@ -135,7 +133,6 @@ class MatglLightningModuleMixin:
         Returns:
             Prediction
         """
-        torch.set_grad_enabled(True)
         return self.step(batch)
 
 
@@ -354,6 +351,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             energy, force, stress, h
         """
+        torch.set_grad_enabled(True)
         if self.model.calc_site_wise:
             e, f, s, h, m = self.model(g=g, l_g=l_g, state_attr=state_attr)
             return e, f.float(), s, h, m
@@ -371,7 +369,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         preds: tuple
         labels: tuple
 
-        torch.set_grad_enabled(True)
         if self.model.calc_site_wise:
             g, l_g, state_attr, energies, forces, stresses, site_wise = batch
             e, f, s, _, m = self(g=g, state_attr=state_attr, l_g=l_g)
