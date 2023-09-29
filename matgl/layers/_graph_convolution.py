@@ -796,6 +796,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         if normalization == "graph":
             self.atom_norm = GraphNorm(num_atom_feats)
             self.bond_norm = GraphNorm(num_bond_feats)
+
         self.normalization = normalization
         self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
         self.out_layer = nn.Linear(num_atom_feats, num_atom_feats)
@@ -1068,9 +1069,11 @@ class CHGNetBondGraphBlock(nn.Module):
             normalize_hidden=normalize_hidden,
             node_weight_input_dims=rbf_order,
         )
+
         if normalization == "graph":
             self.bond_norm = GraphNorm(num_atom_feats)
             self.angle_norm = GraphNorm(num_bond_feats)
+
         self.normalization = normalization
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
