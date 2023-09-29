@@ -605,7 +605,6 @@ class CHGNetGraphConv(nn.Module):
             edge_update: edge features update
         """
         graph.apply_edges(self._edge_udf)
-        # TODO this product must happen in edge_udf before aggregation
         edge_update = graph.edata["feat_update"]
         if shared_weights is not None:
             edge_update = edge_update * shared_weights

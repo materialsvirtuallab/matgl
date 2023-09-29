@@ -259,7 +259,7 @@ class CHGNet(nn.Module, IOMixIn):
             torch.Tensor: Model output.
         """
         # TODO should all ops be graph.local_scope? otherwise we are changing the state of the graph implicitly
-        # compute bond vectors and distances and add to graph  # TODO this is better done in the graph converter
+        # compute bond vectors and distances and add to graph, needs to be computed here to register gradients
         bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
         graph.edata["bond_vec"] = bond_vec.to(graph.device)
         graph.edata["bond_dist"] = bond_dist.to(graph.device)
