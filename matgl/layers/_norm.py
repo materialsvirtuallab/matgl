@@ -45,6 +45,7 @@ class GraphNorm(nn.Module):
         Returns:
             torch.Tensor: normalized features
         """
+        print("out", features.shape)
         batch_list = graph.batch_num_nodes().to(matgl.int_th)
         batch_index = torch.arange(graph.batch_size).repeat_interleave(batch_list)
         batch_index = batch_index.view((-1,) + (1,) * (features.dim() - 1)).expand_as(features)

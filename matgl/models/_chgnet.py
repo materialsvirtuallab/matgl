@@ -80,7 +80,8 @@ class CHGNet(nn.Module, IOMixIn):
         pooling_operation: Literal["sum", "mean"] = "sum",
         readout_field: Literal["atom_feat", "bond_feat", "angle_feat"] = "atom_feat",
         activation_type: str = "swish",
-        normalization: Literal["graph"] | None = None,
+        conv_normalization: Literal["graph", "layer"] | None = None,
+        update_normalization: Literal["layer"] | None = None,
         normalize_hidden: bool = False,
         is_intensive: bool = False,
         num_targets: int = 1,
@@ -119,7 +120,8 @@ class CHGNet(nn.Module, IOMixIn):
             pooling_operation: type of readout pooling operation to use.
             readout_field: field to readout from the graph.
             activation_type: activation function to use.
-            normalization: type of normalization to use in the convolution update blocks.
+            conv_normalization: type of normalization to use in the convolution update functions.
+            update_normalization: type of normalization to use in edge update functions.
             normalize_hidden: whether to normalize the hidden layers in convolution update functions.
             is_intensive: whether the target is intensive or extensive.
             num_targets: number of targets to predict.
@@ -189,7 +191,8 @@ class CHGNet(nn.Module, IOMixIn):
                     conv_hidden_dims=atom_conv_hidden_dims,
                     edge_hidden_dims=bond_layer_hidden_dims,
                     activation=activation,
-                    normalization=normalization,
+                    node_normalization=conv_normalization,
+                    edge_normalization=update_normalization,
                     normalize_hidden=normalize_hidden,
                     num_state_feats=dim_state_embedding,
                     dropout=conv_dropout,
@@ -209,7 +212,8 @@ class CHGNet(nn.Module, IOMixIn):
                     bond_hidden_dims=bond_conv_hidden_dims,
                     angle_hidden_dims=angle_layer_hidden_dims,
                     activation=activation,
-                    normalization=normalization,
+                    bond_normalization=conv_normalization,
+                    angle_normalization=update_normalization,
                     normalize_hidden=normalize_hidden,
                     bond_dropout=conv_dropout,
                     angle_dropout=conv_dropout,
