@@ -531,8 +531,7 @@ class CHGNetGraphConv(nn.Module):
         node_dims: Sequence[int],
         edge_dims: Sequence[int] | None = None,
         state_dims: Sequence[int] | None = None,
-        node_normalization: Literal["graph", "layer"] | None = None,
-        edge_normalization: Literal["layer"] | None = None,
+        normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
         rbf_order: int = 0,
     ) -> CHGNetGraphConv:
@@ -543,8 +542,7 @@ class CHGNetGraphConv(nn.Module):
             node_dims: NN architecture for node update function given as a list of dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
             state_dims: NN architecture for state update function given as a list of dimensions of each layer.
-            node_normalization: Normalization type to use in node message functions. If None, no normalization is applied.
-            edge_normalization: Normalization type to use in edge update functions. If None, no normalization is applied.
+            normalization: Normalization type to use in update functions. If None, no normalization is applied.
             normalize_hidden: Whether to normalize hidden features.
             rbf_order: RBF order specifying input dimensions for linear layer specifying message weights.
                 If 0, no layer-wise weights are used.
@@ -552,12 +550,16 @@ class CHGNetGraphConv(nn.Module):
         Returns:
             CHGNetAtomGraphConv
         """
+        if normalization == "graph":
+            norm_kwargs = {"batched_field": "edge"}
+
         node_update_func = GatedMLP(
             in_feats=node_dims[0],
             dims=node_dims[1:],
             activation=activation,
-            normalization=node_normalization,
+            normalization=normalization,
             normalize_hidden=normalize_hidden,
+            norm_kwargs=norm_kwargs,
         )
         node_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
@@ -567,8 +569,9 @@ class CHGNetGraphConv(nn.Module):
                 in_feats=edge_dims[0],
                 dims=edge_dims[1:],
                 activation=activation,
-                normalization=edge_normalization,
+                normalization=normalization,
                 normalize_hidden=normalize_hidden,
+                norm_kwargs=norm_kwargs,
             )
             if edge_dims is not None
             else None
@@ -609,14 +612,13 @@ class CHGNetGraphConv(nn.Module):
         atom_i = edges.src["features"]  # first atom features
         atom_j = edges.dst["features"]  # second atom features
         bond_ij = edges.data["features"]  # bond features
-
         if self.include_state:
             global_state = edges.data["global_state"]
             inputs = torch.hstack([atom_i, bond_ij, atom_j, global_state])
         else:
             inputs = torch.hstack([atom_i, bond_ij, atom_j])
 
-        edge_update = self.edge_update_func(inputs)  # type: ignore
+        edge_update = self.edge_update_func(inputs, edges._graph)  # type: ignore
         if self.edge_weight_func is not None:
             rbf = edges.data["bond_expansion"]
             rbf = rbf.float()
@@ -750,8 +752,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         activation: Module,
         conv_hidden_dims: Sequence[int],
         edge_hidden_dims: Sequence[int] | None = None,
-        node_normalization: Literal["graph", "layer"] | None = None,
-        edge_normalization: Literal["layer"] | None = None,
+        normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
         num_state_feats: int | None = None,
         rbf_order: int = 0,
@@ -764,8 +765,7 @@ class CHGNetAtomGraphBlock(nn.Module):
             activation: activation function
             conv_hidden_dims: dimensions of hidden layers
             edge_hidden_dims: dimensions of hidden layers for node to edge update (ie apply_edges)
-            node_normalization: Normalization type to use in node message functions. If None, no normalization is applied.
-            edge_normalization: Normalization type to use in edge update functions. If None, no normalization is applied.
+            normalization: Normalization type to use update functions. If None, no normalization is applied.
             normalize_hidden: whether to normalize hidden layers
             num_state_feats: number of state features if include_state is True
             rbf_order: whether to include layer-wise node weights
@@ -789,22 +789,19 @@ class CHGNetAtomGraphBlock(nn.Module):
             node_dims=node_dims,
             edge_dims=edge_dims,
             state_dims=state_dims,
-            node_normalization=node_normalization,
-            edge_normalization=edge_normalization,
+            normalization=normalization,
             normalize_hidden=normalize_hidden,
             rbf_order=rbf_order,
         )
 
-        if node_normalization == "graph":
-            self.atom_norm = GraphNorm(num_atom_feats)
-        elif node_normalization == "layer":
+        if normalization == "graph":
+            self.atom_norm = GraphNorm(num_atom_feats, batched_field="node")
+            self.bond_norm = GraphNorm(num_bond_feats, batched_field="edge")
+        elif normalization == "layer":
             self.atom_norm = Identity()
-        else:
-            self.atom_norm = None
-
-        if edge_normalization == "layer":
             self.bond_norm = Identity()
         else:
+            self.atom_norm = None
             self.bond_norm = None
 
         self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
@@ -880,8 +877,7 @@ class CHGNetLineGraphConv(nn.Module):
         node_dims: list[int],
         edge_dims: list[int],
         activation: Module | None = None,
-        node_normalization: Literal["graph", "layer"] | None = None,
-        edge_normalization: Literal["layer"] | None = None,
+        normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
         node_weight_input_dims: int = 0,
     ) -> CHGNetLineGraphConv:
@@ -890,8 +886,7 @@ class CHGNetLineGraphConv(nn.Module):
             node_dims: NN architecture for node update function given as a list of dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
             activation: activation function. If None, SilU is used.
-            node_normalization: Normalization type to use in node message functions. If None, no normalization is applied.
-            edge_normalization: Normalization type to use in edge update functions. If None, no normalization is applied.
+            normalization: Normalization type to use in update functions. If None, no normalization is applied.
             normalize_hidden: Whether to normalize hidden features.
             node_weight_input_dims: input dimensions for linear layer of node weights. (the RBF order)
                 If 0, no layer-wise weights are used.
@@ -899,12 +894,16 @@ class CHGNetLineGraphConv(nn.Module):
         Returns:
             CHGNetBondGraphConv
         """
+        if normalization == "graph":
+            norm_kwargs = {"batched_field": "edge"}
+
         node_update_func = GatedMLP(
             in_feats=node_dims[0],
             dims=node_dims[1:],
             activation=activation,
-            normalization=node_normalization,
+            normalization=normalization,
             normalize_hidden=normalize_hidden,
+            norm_kwargs=norm_kwargs,
         )
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
         edge_update_func = (
@@ -912,8 +911,9 @@ class CHGNetLineGraphConv(nn.Module):
                 in_feats=edge_dims[0],
                 dims=edge_dims[1:],
                 activation=activation,
-                normalization=edge_normalization,
+                normalization=normalization,
                 normalize_hidden=normalize_hidden,
+                norm_kwargs=norm_kwargs,
             )
             if edge_dims is not None
             else None
@@ -939,7 +939,7 @@ class CHGNetLineGraphConv(nn.Module):
         angle_ij = edges.data["features"]
         atom_ij = edges.data["aux_features"]  # center atom features
         inputs = torch.hstack([bonds_i, angle_ij, atom_ij, bonds_j])
-        messages_ij = self.edge_update_func(inputs)  # type: ignore
+        messages_ij = self.edge_update_func(inputs, edges._graph)  # type: ignore
         return {"feat_update": messages_ij}
 
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
@@ -972,7 +972,7 @@ class CHGNetLineGraphConv(nn.Module):
         atom_ij = graph.edata["aux_features"]  # center atom features
         inputs = torch.hstack([bonds_i, angle_ij, atom_ij, bonds_j])
 
-        messages = self.node_update_func(inputs)
+        messages = self.node_update_func(inputs, graph)
 
         # smooth out messages with layer-wise weights
         if self.node_weight_func is not None:
@@ -1046,8 +1046,7 @@ class CHGNetBondGraphBlock(nn.Module):
         activation: Module,
         bond_hidden_dims: Sequence[int],
         angle_hidden_dims: Sequence[int] | None,
-        bond_normalization: Literal["graph", "layer"] | None = None,
-        angle_normalization: Literal["layer"] | None = None,
+        normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
         rbf_order: int = 0,
         bond_dropout: float = 0.0,
@@ -1078,22 +1077,19 @@ class CHGNetBondGraphBlock(nn.Module):
             node_dims=node_dims,
             edge_dims=edge_dims,
             activation=activation,
-            node_normalization=bond_normalization,
-            edge_normalization=angle_normalization,
+            normalization=normalization,
             normalize_hidden=normalize_hidden,
             node_weight_input_dims=rbf_order,
         )
 
-        if bond_normalization == "graph":
-            self.bond_norm = GraphNorm(num_atom_feats)
-        elif bond_normalization == "layer":
+        if normalization == "graph":
+            self.bond_norm = GraphNorm(num_atom_feats, batched_field="node")
+            self.angle_norm = GraphNorm(num_atom_feats, batched_field="edge")
+        elif normalization == "layer":
             self.bond_norm = Identity()
-        else:
-            self.bond_norm = None
-
-        if angle_normalization == "layer":
             self.angle_norm = Identity()
         else:
+            self.bond_norm = None
             self.angle_norm = None
 
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
