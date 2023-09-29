@@ -184,8 +184,8 @@ class CHGNet(nn.Module, IOMixIn):
                     num_bond_feats=dim_bond_embedding,
                     #  this activation only applies to state update MLP, gMLP in core has silu hard-coded
                     activation=activation,
-                    conv_hidden_dims=atom_conv_hidden_dims,
-                    edge_hidden_dims=bond_update_hidden_dims,
+                    atom_hidden_dims=atom_conv_hidden_dims,
+                    bond_hidden_dims=bond_update_hidden_dims,
                     num_state_feats=dim_state_embedding,
                     dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["bond", "both"] else 0,
