@@ -57,10 +57,10 @@ def collate_fn_efsm(batch):
     graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
-    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float32)
-    f = torch.vstack([d["forces"] for d in labels])
-    s = torch.vstack([d["stresses"] for d in labels])
-    m = torch.vstack([d["magmoms"] for d in labels])
+    e = torch.tensor([d["energy"] for d in labels], dtype=torch.float32)
+    f = torch.vstack([d["force"] for d in labels])
+    s = torch.vstack([d["stress"] for d in labels])
+    m = torch.vstack([d["magmom"] for d in labels])
     state_attr = torch.stack(state_attr)
     return g, l_g, state_attr, e, f, s, m
 
@@ -404,6 +404,9 @@ class CHGNetDataset(DGLDataset):
             self.labels[k] = v.tolist() if isinstance(v, np.ndarray) else v
 
         self.graph_labels = graph_labels
+        self.graphs = None
+        self.line_graphs = None
+        self.state_attr = None
         self.skip_label_keys = skip_label_keys or ()
         self.filename_graphs = filename_graphs
         self.filename_line_graphs = filename_line_graphs
@@ -501,4 +504,158 @@ class CHGNetDataset(DGLDataset):
 
     def __len__(self):
         """Get size of dataset."""
-        return len(self.graphs)
+        return len(self.state_attr)
+
+
+class OOMCHGNetDataset(CHGNetDataset):
+    def load(self):
+        """Load CHGNet dataset from files."""
+        os.path.join(self.save_path, self.filename_graphs)
+        os.path.join(self.save_path, self.filename_line_graphs)
+        filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
+        filepath_labels = os.path.join(self.save_path, self.filename_labels)
+
+        self.state_attr = torch.load(filepath_state_attr)
+
+        with open(filepath_labels) as f:
+            self.labels = json.load(f)
+
+    def __getitem__(self, idx: int):
+        """Get graph and label with idx."""
+        idx = int(idx)
+        graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_graphs), [idx])
+        line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graphs), [idx])
+
+        graph = graphs[0]
+        line_graph = line_graphs[0]
+
+        labels = {
+            k: torch.tensor(v[idx])
+            if v[idx] is not None
+            else torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in self.labels.items()
+            if k not in self.skip_label_keys
+        }
+
+        return (
+            graph,
+            line_graph,
+            self.state_attr[idx],
+            labels,
+        )
+
+    def __len__(self):
+        """Get size of dataset."""
+        return len(self.labels["energy"])
+
+
+class ChunkedCHGNetDataset(CHGNetDataset):
+    def __init__(
+        self,
+        filename_graphs: str = "graphs_part%.bin",
+        filename_line_graphs: str = "linegraphs_part%.bin",
+        filename_labels: str = "labels_part%.json",
+        num_chunks: int = 10,
+        chunks_indices: list[int] | None = None,
+        name="ChunkedCHGNETDataset",
+        raw_dir: str | None = None,
+        save_dir: str | None = None,
+        skip_label_keys: tuple[str] | None = None,
+    ):
+        """
+        Args:
+            filename_graphs: filename of dgl graphs
+            filename_line_graphs: filename of dgl line graphs
+            filename_labels: filename of target labels file
+            filename_state_attr: filename of state attributes
+            num_chunks: number of chunks
+            chunks_indices: indices of chunks to load.
+        """
+        if chunks_indices is None:
+            chunks_indices = list(range(num_chunks))
+        elif len(chunks_indices) != num_chunks:
+            raise ValueError("Length of chunks_indices must be equal to num_chunks")
+
+        self.chunks_indices = chunks_indices
+        self.chunk_sizes = None
+
+        super().__init__(
+            filename_graphs=filename_graphs,
+            filename_line_graphs=filename_line_graphs,
+            filename_labels=filename_labels,
+            name=name,
+            raw_dir=raw_dir,
+            save_dir=save_dir,
+            skip_label_keys=skip_label_keys,
+        )
+
+    @property
+    def num_chunks(self):
+        return len(self.chunks_indices)
+
+    def has_cache(self) -> bool:
+        """Check if the dgl_graph.bin exists or not.
+
+        Returns: True if file exists.
+        """
+        for ind in self.chunks_indices:
+            if not all(
+                os.path.exists(os.path.join(self.save_path, x.replace("%", str(ind))))
+                for x in [self.filename_graphs, self.filename_line_graphs, self.filename_labels]
+            ):
+                return False
+        return True
+
+    def process(self) -> tuple:
+        raise NotImplementedError("ChunkedCHGNetDataset does not support processing data.")
+
+    def save(self):
+        """Save dgl graphs and labels."""
+
+    def load(self):
+        """Load only CHGNet dataset labels."""
+        self.labels = defaultdict(list)
+        self.chunk_sizes = []
+
+        for i in trange(self.num_chunks, desc="Loading labels"):
+            ind = self.chunks_indices[i]
+            filepath_labels = os.path.join(self.save_path, self.filename_labels.replace("%", str(ind)))
+
+            with open(filepath_labels) as f:
+                labels = json.load(f)
+
+            for k, v in labels.items():
+                self.labels[k].extend(v)
+
+            self.chunk_sizes.append(len(labels[k]))
+
+    def __getitem__(self, idx: int):
+        """Get graph and label with idx."""
+        idx_ = idx
+        for chunk_idx, chunk_size in zip(self.chunks_indices, self.chunk_sizes):
+            if idx_ < chunk_size:
+                break
+            idx_ -= chunk_size
+
+        filepath_graphs = os.path.join(self.save_path, self.filename_graphs.replace("%", str(chunk_idx)))
+        filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs.replace("%", str(chunk_idx)))
+
+        idx_ = int(idx_)
+        graphs, _ = load_graphs(filepath_graphs, [idx_])
+        line_graphs, _ = load_graphs(filepath_line_graphs, [idx_])
+
+        graph = graphs[0]
+        line_graph = line_graphs[0]
+        labels = {
+            k: torch.tensor(v[idx])
+            if v[idx] is not None
+            else torch.tensor(graph.num_nodes() * [torch.nan], dtype=matgl.float_th)[:, None]
+            for k, v in self.labels.items()
+            if k not in self.skip_label_keys
+        }
+
+        return graph, line_graph, torch.tensor([0, 0]), labels
+
+    def __len__(self):
+        """Get size of dataset."""
+        return sum(self.chunk_sizes)

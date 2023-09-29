@@ -1,6 +1,7 @@
 """Computing various graph based operations."""
 from __future__ import annotations
 
+import warnings
 from typing import Any, Callable
 
 import dgl
@@ -156,7 +157,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
         line_graph: DGL graph line graph of pruned graph to three body cutoff
     """
     with torch.no_grad():
-        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
+        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: torch.gt(x, threebody_cutoff))
         src_indices, dst_indices = pg.edges()
         images = pg.edata["pbc_offset"]
         all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
@@ -212,7 +213,7 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
 
 
 def ensure_directed_line_graph_compatibility(
-    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, tol: float = 5e-7
 ) -> dgl.DGLGraph:
     """Ensure that line graph is compatible with graph.
 
@@ -222,9 +223,15 @@ def ensure_directed_line_graph_compatibility(
         graph: atomistic graph
         line_graph: line graph of atomistic graph
         threebody_cutoff: cutoff for three-body interactions
+        tol: numerical tolerance for cutoff
     """
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
-    assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
+
+    # this means there probably is a bond that is just at the cutoff
+    # this should only really occur when batching graphs
+    if line_graph.number_of_nodes() > sum(valid_edges):
+        valid_edges = graph.edata["bond_dist"] <= threebody_cutoff + tol
+        warnings.warn("line graph included a bond that was within numerical tolerance of the cutoff", stacklevel=2)
 
     edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
     line_graph.ndata["edge_ids"] = edge_ids
