@@ -127,7 +127,7 @@
                 "data_std": "tensor(0.3896)"
             }
         },
-        "data_mean": null,
+        "data_mean": 0.0,
         "data_std": 0.389599794401098,
         "element_refs": [
             -3.47784146,

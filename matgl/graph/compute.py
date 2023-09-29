@@ -228,6 +228,7 @@ def ensure_directed_line_graph_compatibility(
     valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
 
     # this means there probably is a bond that is just at the cutoff
+    # this should only really occur when batching graphs
     if line_graph.number_of_nodes() > sum(valid_edges):
         valid_edges = graph.edata["bond_dist"] <= threebody_cutoff + tol
         warnings.warn("line graph included a bond that was within numerical tolerance of the cutoff", stacklevel=2)
@@ -267,7 +268,7 @@ def has_aliased_edges(graph: dgl.DGLGraph) -> bool:
 def prune_edges_by_features(
     graph: dgl.DGLGraph,
     feat_name: str,
-    condition: Callable[[torch.Tensor, Any, ...], torch.Tensor],
+    condition: Callable[[torch.Tensor, Any], torch.Tensor],
     keep_ndata: bool = False,
     keep_edata: bool = True,
     *args,

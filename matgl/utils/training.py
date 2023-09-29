@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import pytorch_lightning as pl
 import torch
@@ -76,7 +76,6 @@ class MatglLightningModuleMixin:
             batch: Data batch.
             batch_idx: Batch index.
         """
-        torch.set_grad_enabled(True)
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
             {f"test_{key}": val for key, val in results.items()},
@@ -121,7 +120,6 @@ class MatglLightningModuleMixin:
             **kwargs: Pass-through.
         """
         super().on_test_model_eval(*args, **kwargs)
-        torch.set_grad_enabled(True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         """
@@ -135,7 +133,6 @@ class MatglLightningModuleMixin:
         Returns:
             Prediction
         """
-        torch.set_grad_enabled(True)
         return self.step(batch)
 
 
@@ -267,6 +264,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         decay_alpha: float = 0.01,
         sync_dist: bool = False,
         allow_missing_labels: bool = False,
+        site_wise_target: Literal["absolute", "symbreak"] | None = "absolute",
         **kwargs,
     ):
         """
@@ -290,6 +288,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             sync_dist: whether sync logging across all GPU workers or not
             allow_missing_labels: Whether to allow missing labels or not.
                 These should be present in the dataset as torch.nans and will be skipped in computing the loss.
+            site_wise_target: Whether to predict the absolute site-wise value of magmoms or adapt the loss function
+                to predict the signed value breaking symmetry. If None given the loss function will be adapted.
             **kwargs: Passthrough to parent init.
         """
         assert energy_weight >= 0, f"energy_weight has to be >=0. Got {energy_weight}!"
@@ -331,7 +331,16 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.scheduler = scheduler
         self.sync_dist = sync_dist
         self.allow_missing_labels = allow_missing_labels
+        self.site_wise_target = site_wise_target
         self.save_hyperparameters()
+
+    def on_load_checkpoint(self, checkpoint: dict[str, ...]):
+        """
+        hacky hacky hack to add missing keys to the state dict when changes are mad
+        """
+        for key in self.state_dict().keys():
+            if key not in checkpoint["state_dict"]:
+                checkpoint["state_dict"][key] = self.state_dict()[key]
 
     def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
         """Args:
@@ -342,6 +351,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             energy, force, stress, h
         """
+        torch.set_grad_enabled(True)
         if self.model.calc_site_wise:
             e, f, s, h, m = self.model(g=g, l_g=l_g, state_attr=state_attr)
             return e, f.float(), s, h, m
@@ -359,7 +369,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         preds: tuple
         labels: tuple
 
-        torch.set_grad_enabled(True)
         if self.model.calc_site_wise:
             g, l_g, state_attr, energies, forces, stresses, site_wise = batch
             e, f, s, _, m = self(g=g, state_attr=state_attr, l_g=l_g)
@@ -444,9 +453,27 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                 preds_3 = preds[3]
 
             if len(labels_3) > 0:
-                m_loss = loss(labels_3, preds_3, **self.loss_params)
-                m_mae = self.mae(labels_3, preds_3)
-                m_rmse = self.rmse(labels_3, preds_3)
+                if self.site_wise_target == "symbreak":
+                    m_loss = torch.min(
+                        loss(labels_3, preds_3, **self.loss_params),
+                        loss(labels_3, -preds_3, **self.loss_params)
+                    )
+                    m_mae = torch.min(
+                        self.mae(labels_3, preds_3),
+                        self.mae(labels_3, -preds_3)
+                    )
+                    m_rmse = torch.min(
+                        self.rmse(labels_3, preds_3),
+                        self.rmse(labels_3, -preds_3)
+                    )
+                else:
+                    if self.site_wise_target == "absolute":
+                        labels_3 = torch.abs(labels_3)
+
+                    m_loss = loss(labels_3, preds_3, **self.loss_params)
+                    m_mae = self.mae(labels_3, preds_3)
+                    m_rmse = self.rmse(labels_3, preds_3)
+
                 total_loss = total_loss + self.site_wise_weight * m_loss
             else:
                 m_mae = torch.zeros(1)
@@ -465,27 +492,29 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         }
 
 
-def xavier_init(model: nn.Module) -> None:
+def xavier_init(model: nn.Module, gain: float = 1.0, distribution: Literal["uniform", "normal"] = "uniform") -> None:
     """Xavier initialization scheme for the model.
 
     Args:
         model (nn.Module): The model to be Xavier-initialized.
+        gain (float): Gain factor. Defaults to 1.0.
+        distribution (Literal["uniform", "normal"], optional): Distribution to use. Defaults to "uniform".
     """
+    if distribution == "uniform":
+        init_fn = nn.init.xavier_uniform_
+    elif distribution == "normal":
+        init_fn = nn.init.xavier_normal_
+    else:
+        raise ValueError(f"Invalid distribution: {distribution}")
+
     for name, param in model.named_parameters():
         if name.endswith(".bias"):
             param.data.fill_(0)
-        else:
-            if param.dim() < 2:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[0])
+        elif param.dim() < 2:  # torch.nn.xavier only supports >= 2 dim tensors
+            bound = gain * math.sqrt(6) / math.sqrt(2 * param.shape[0])
+            if distribution == "uniform":
                 param.data.uniform_(-bound, bound)
             else:
-                bound = math.sqrt(6) / math.sqrt(param.shape[0] + param.shape[1])
-                param.data.uniform_(-bound, bound)
-
-
-def xavier_normal_init(model: nn.Module, gain: float = 1.0) -> None:
-    for name, param in model.named_parameters():
-        if name.endswith(".bias"):
-            param.data.fill_(0)
+                param.data.normal_(0, bound**2)
         else:
-            xavier_normal_(param.data, gain=gain)
+            init_fn(param.data, gain=gain)

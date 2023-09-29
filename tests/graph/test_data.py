@@ -17,6 +17,7 @@ from matgl.graph.data import (
     MEGNetDataset,
     MGLDataLoader,
     collate_fn,
+    collate_fn_efs
 )
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -98,8 +99,6 @@ class TestDataset:
 
     def test_load_m3gnet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
-        [np.zeros((28, 3)).tolist(), np.zeros((10, 3)).tolist()]
-        [np.zeros((3, 3)).tolist(), np.zeros((3, 3)).tolist()]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = M3GNetDataset()
@@ -236,6 +235,43 @@ class TestDataset:
             val_data=val_data,
             test_data=test_data,
             collate_fn=collate_fn,
+            batch_size=2,
+            num_workers=1,
+        )
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
+        os.remove("dgl_graph.bin")
+        os.remove("dgl_line_graph.bin")
+        os.remove("state_attr.pt")
+
+    def test_m3gnet_dataloader_without_stresses(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3] * 10
+        energies = np.zeros(20).tolist()
+        f1 = np.zeros((28, 3)).tolist()
+        f2 = np.zeros((10, 3)).tolist()
+        np.zeros((3, 3)).tolist()
+        forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
+        dataset = M3GNetDataset(
+            structures=structures,
+            converter=cry_graph,
+            threebody_cutoff=4.0,
+            labels={"energies": energies, "forces": forces},
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        my_collate_fn = partial(collate_fn_efs, include_stress=False)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=my_collate_fn,
             batch_size=2,
             num_workers=1,
         )
