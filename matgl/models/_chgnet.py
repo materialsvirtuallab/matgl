@@ -70,9 +70,9 @@ class CHGNet(nn.Module, IOMixIn):
         shared_bond_weights: Literal["bond", "three_body_bond", "both"] | None = "both",
         layer_bond_weights: Literal["bond", "three_body_bond", "both"] | None = None,
         atom_conv_hidden_dims: Sequence[int] = (64,),
-        bond_layer_hidden_dims: Sequence[int] | None = None,
+        bond_update_hidden_dims: Sequence[int] | None = None,
         bond_conv_hidden_dims: Sequence[int] = (64,),
-        angle_layer_hidden_dims: Sequence[int] | None = (),
+        angle_update_hidden_dims: Sequence[int] | None = (),
         conv_dropout: float = 0.0,
         final_mlp_type: Literal["gated", "mlp"] = "mlp",
         final_hidden_dims: Sequence[int] = (64, 64),
@@ -106,10 +106,10 @@ class CHGNet(nn.Module, IOMixIn):
             shared_bond_weights: whether to share bond weights among layers in the atom and bond graph blocks.
             layer_bond_weights: whether to use independent weights in each convolution layer.
             atom_conv_hidden_dims: hidden dimensions for the atom graph convolution layers.
-            bond_layer_hidden_dims: hidden dimensions for the atom to bond message passing layer in atom graph.
+            bond_update_hidden_dims: hidden dimensions for the atom to bond message passing layer in atom graph.
                 Default is None, which means no atom to bond message passing layer in atom graph.
             bond_conv_hidden_dims: hidden dimensions for the bond graph convolution layers.
-            angle_layer_hidden_dims: hidden dimensions for the angle layer.
+            angle_update_hidden_dims: hidden dimensions for the angle layer.
             conv_dropout: dropout probability for the graph convolution layers.
             final_mlp_type: type of readout block, options are "gated" for a Gated MLP and "mlp".
             final_hidden_dims: hidden dimensions for the readout MLP.
@@ -185,7 +185,7 @@ class CHGNet(nn.Module, IOMixIn):
                     #  this activation only applies to state update MLP, gMLP in core has silu hard-coded
                     activation=activation,
                     conv_hidden_dims=atom_conv_hidden_dims,
-                    edge_hidden_dims=bond_layer_hidden_dims,
+                    edge_hidden_dims=bond_update_hidden_dims,
                     num_state_feats=dim_state_embedding,
                     dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["bond", "both"] else 0,
@@ -202,7 +202,7 @@ class CHGNet(nn.Module, IOMixIn):
                     num_bond_feats=dim_bond_embedding,
                     num_angle_feats=dim_angle_embedding,
                     bond_hidden_dims=bond_conv_hidden_dims,
-                    angle_hidden_dims=angle_layer_hidden_dims,
+                    angle_hidden_dims=angle_update_hidden_dims,
                     bond_dropout=conv_dropout,
                     angle_dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["three_body_bond", "both"] else 0,
