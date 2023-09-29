@@ -1,5 +1,8 @@
 """Computing various graph based operations."""
+
 from __future__ import annotations
+
+from typing import Callable
 
 import dgl
 import numpy as np
@@ -131,12 +134,51 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
     Returns:
         l_g: DGL graph containing three body information from graph
     """
-    valid_three_body = g.edata["bond_dist"] <= threebody_cutoff
-    src_id_with_three_body = g.edges()[0][valid_three_body]
-    dst_id_with_three_body = g.edges()[1][valid_three_body]
-    graph_with_three_body = dgl.graph((src_id_with_three_body, dst_id_with_three_body))
-    graph_with_three_body.edata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-    graph_with_three_body.edata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-    graph_with_three_body.edata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
+    graph_with_three_body = prune_edges_by_features(g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
     l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
     return l_g
+
+
+def prune_edges_by_features(
+    graph: dgl.DGLGraph,
+    feat_name: str,
+    condition: Callable[[torch.Tensor], torch.Tensor],
+    keep_ndata: bool = False,
+    keep_edata: bool = True,
+    *args,
+    **kwargs,
+) -> dgl.DGLGraph:
+    """Removes edges graph that do satisfy given condition based on a specified feature value.
+
+    Returns a new graph with edges removed.
+
+    Args:
+        graph: DGL graph
+        feat_name: edge field name
+        condition: condition function. Must be a function where the first is the value
+            of the edge field data and returns a Tensor of boolean values.
+        keep_ndata: whether to keep node features
+        keep_edata: whether to keep edge features
+        *args: additional arguments to pass to condition function
+        **kwargs: additional keyword arguments to pass to condition function
+
+    Returns: dgl.Graph with removed edges.
+    """
+    if feat_name not in graph.edata:
+        raise ValueError(f"Edge field {feat_name} not an edge feature in given graph.")
+
+    valid_edges = torch.logical_not(condition(graph.edata[feat_name], *args, **kwargs))
+    src, dst = graph.edges()
+    src, dst = src[valid_edges], dst[valid_edges]
+    e_ids = valid_edges.nonzero().squeeze()
+    new_g = dgl.graph((src, dst), device=graph.device)
+    new_g.edata["edge_ids"] = e_ids  # keep track of original edge ids
+
+    if keep_ndata:
+        for key, value in graph.ndata.items():
+            new_g.ndata[key] = value
+    if keep_edata:
+        for key, value in graph.edata.items():
+            new_g.edata[key] = value[valid_edges]
+
+    return new_g
