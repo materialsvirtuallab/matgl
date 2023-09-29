@@ -24,7 +24,6 @@ class MLP(nn.Module):
         activation: nn.Module | None = None,
         normalization: Literal["graph"] | None = None,
         activate_last: bool = False,
-        normalize_last: bool = False,
         normalize_hidden: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
@@ -35,7 +34,6 @@ class MLP(nn.Module):
             activation: activation: Activation function.
             normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
-            normalize_last: Whether to normalize output of last layer.
             normalize_hidden: Whether to normalize output of hidden layers.
             use_bias: Whether to use bias.
             bias_last: Whether to apply bias to last layer.
@@ -46,7 +44,6 @@ class MLP(nn.Module):
         self.norm_layers = nn.ModuleList() if normalization == "graph" else None
         self.activation = activation if activation is not None else nn.Identity()
         self.activate_last = activate_last
-        self.normalize_last = normalize_last
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
@@ -55,7 +52,7 @@ class MLP(nn.Module):
                     self.norm_layers.append(GraphNorm(out_dim))
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
-                if normalize_last and normalization == "graph":
+                if normalization == "graph":
                     self.norm_layers.append(GraphNorm(out_dim))
 
     def __repr__(self):
@@ -130,7 +127,6 @@ class GatedMLP(nn.Module):
         activation: nn.Module | None = None,
         normalization: Literal["graph"] | None = None,
         activate_last: bool = True,
-        normalize_last: bool = False,
         normalize_hidden: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
@@ -160,21 +156,19 @@ class GatedMLP(nn.Module):
             activation=activation,
             normalization=normalization,
             activate_last=True,
-            normalize_last=normalize_last,
             normalize_hidden=normalize_hidden,
             use_bias=use_bias,
             bias_last=bias_last,
         )
         self.gates = MLP(
-            self.dims,
-            activation,
-            normalization=normalization,
-            activate_last=False,
-            normalize_last=normalize_last,
-            normalize_hidden=normalize_hidden,
-            use_bias=use_bias,
-            bias_last=bias_last,
-        )
+                self.dims,
+                activation,
+                normalization=normalization,
+                activate_last=False,
+                normalize_hidden=normalize_hidden,
+                use_bias=use_bias,
+                bias_last=bias_last,
+            )
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, inputs: torch.Tensor, graph: dgl.Graph | None = None) -> torch.Tensor:
