@@ -205,6 +205,37 @@ def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> 
     return lg
 
 
+def ensure_directed_line_graph_compatibility(
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float
+) -> dgl.DGLGraph:
+    """Ensure that line graph is compatible with graph.
+
+    Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
+
+    Args:
+        graph: atomistic graph
+        line_graph: line graph of atomistic graph
+        threebody_cutoff: cutoff for three-body interactions
+    """
+    valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
+    assert line_graph.number_of_nodes() <= sum(valid_edges), "line graph and graph are not compatible"
+
+    edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
+    line_graph.ndata["edge_ids"] = edge_ids
+
+    for key in graph.edata:
+        line_graph.ndata[key] = graph.edata[key][edge_ids]
+
+    src_indices, dst_indices = graph.edges()
+    ns_edge_ids = (src_indices[edge_ids] != dst_indices[edge_ids]).nonzero().squeeze()
+    line_graph.ndata["src_bond_sign"] = torch.ones(
+        (line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype, device=line_graph.device
+    )
+    line_graph.ndata["src_bond_sign"][ns_edge_ids] = -line_graph.ndata["src_bond_sign"][ns_edge_ids]
+
+    return line_graph
+
+
 def prune_edges_by_features(
     graph: dgl.DGLGraph,
     feat_name: str,
