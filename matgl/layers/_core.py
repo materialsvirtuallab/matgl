@@ -9,7 +9,7 @@ from dgl import DGLGraph, broadcast_edges, softmax_edges, sum_edges
 from torch import nn
 from torch.nn import LSTM, Linear, Module
 
-from matgl.layers._norm import GraphNorm
+from matgl.layers._norm import GraphNorm, LayerNorm
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -25,7 +25,7 @@ class MLP(nn.Module):
         activate_last: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
-        normalization: Literal["graph"] | None = None,
+        normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
         norm_kwargs: dict[str, any] | None = None,
     ) -> None:
@@ -52,12 +52,17 @@ class MLP(nn.Module):
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
-                if normalize_hidden and normalization == "graph":
-                    self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
+                if normalize_hidden:
+                    if normalization == "graph":
+                        self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
+                    elif normalization == "layer":
+                        self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
                 if normalization == "graph":
                     self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
+                elif normalization == "layer":
+                    self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
 
     def __repr__(self):
         dims = []
@@ -132,7 +137,7 @@ class GatedMLP(nn.Module):
         activate_last: bool = True,
         use_bias: bool = True,
         bias_last: bool = True,
-        normalization: Literal["graph"] | None = None,
+        normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
         norm_kwargs: dict[str, any] | None = None,
     ):

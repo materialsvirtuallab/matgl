@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Literal
 import torch
 import torch.nn as nn
 
-import matgl
 
 if TYPE_CHECKING:
     import dgl
@@ -61,3 +60,9 @@ class GraphNorm(nn.Module):
         std = std.repeat_interleave(batch_list, dim=0)
 
         return self.weight * out / std + self.bias
+
+
+class LayerNorm(nn.LayerNorm):
+    """Sames as nn.LayerNorm but allows arbitrary arguments to forward."""
+    def forward(self, inputs: torch.Tensor, *args, **kwards) -> torch.Tensor:
+        return super().forward(inputs)
