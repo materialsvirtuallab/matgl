@@ -22,7 +22,7 @@ def test_graph_norm(graph_MoS):
     res = gn(features, g1)
     expected = 2.0 * out / std + 1
 
-    assert res.shape == (2, 64)
+    assert res.shape == (g1.num_nodes(), 64)
     assert_close(res, expected)
 
     num_nodes = g1.num_nodes()
@@ -38,5 +38,26 @@ def test_graph_norm(graph_MoS):
     res = gn(batched_features, batched_g)
     expected = 2.0 * out / std + 1
 
-    assert res.shape == (4, 64)
+    assert res.shape == (batched_g.num_nodes(), 64)
+    assert_close(res, expected)
+
+    gn = GraphNorm(64, batched_field="edge")
+    # set learnable parameters to constant values
+    gn.weight.data = 2.0 * torch.ones_like(gn.weight.data)
+    gn.bias.data = torch.ones_like(gn.bias.data)
+    gn.mean_scale.data = 0.75 * torch.ones_like(gn.mean_scale.data)
+
+    num_edges = g1.num_edges()
+    batched_features = torch.randn(batched_g.num_edges(), 64)
+    out = torch.empty_like(batched_features)
+    std = torch.empty_like(batched_features)
+    out[:num_edges] = batched_features[:num_edges] - 0.75 * torch.mean(batched_features[:num_edges], dim=0)
+    std[:num_edges] = (torch.mean(out[:num_edges].pow(2), dim=0) + gn.eps).sqrt()
+    out[num_edges:] = batched_features[num_edges:] - 0.75 * torch.mean(batched_features[num_edges:], dim=0)
+    std[num_edges:] = (torch.mean(out[num_edges:].pow(2), dim=0) + gn.eps).sqrt()
+
+    res = gn(batched_features, batched_g)
+    expected = 2.0 * out / std + 1
+
+    assert res.shape == (batched_g.num_edges(), 64)
     assert_close(res, expected)

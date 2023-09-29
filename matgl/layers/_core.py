@@ -22,21 +22,23 @@ class MLP(nn.Module):
         self,
         dims: list[int],
         activation: nn.Module | None = None,
-        normalization: Literal["graph"] | None = None,
         activate_last: bool = False,
-        normalize_hidden: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
+        normalization: Literal["graph"] | None = None,
+        normalize_hidden: bool = False,
+        norm_kwargs: dict[str, any] | None = None,
     ) -> None:
         """
         Args:
             dims: Dimensions of each layer of MLP.
             activation: activation: Activation function.
-            normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
-            normalize_hidden: Whether to normalize output of hidden layers.
             use_bias: Whether to use bias.
             bias_last: Whether to apply bias to last layer.
+            normalization: normalization name.
+            normalize_hidden: Whether to normalize output of hidden layers.
+            norm_kwargs: Keyword arguments for normalization layer.
         """
         super().__init__()
         self._depth = len(dims) - 1
@@ -45,16 +47,17 @@ class MLP(nn.Module):
         self.activation = activation if activation is not None else nn.Identity()
         self.activate_last = activate_last
         self.normalize_hidden = normalize_hidden
+        norm_kwargs = norm_kwargs or {}
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
                 if normalize_hidden and normalization == "graph":
-                    self.norm_layers.append(GraphNorm(out_dim))
+                    self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
                 if normalization == "graph":
-                    self.norm_layers.append(GraphNorm(out_dim))
+                    self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
 
     def __repr__(self):
         dims = []
@@ -126,22 +129,24 @@ class GatedMLP(nn.Module):
         in_feats: int,
         dims: Sequence[int],
         activation: nn.Module | None = None,
-        normalization: Literal["graph"] | None = None,
         activate_last: bool = True,
-        normalize_hidden: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
+        normalization: Literal["graph"] | None = None,
+        normalize_hidden: bool = False,
+        norm_kwargs: dict[str, any] | None = None,
     ):
         """
         Args:
             in_feats: Input features.
             dims: Dimensions of each layer of MLP.
             activation: non-linear activation module.
-            normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
-            normalize_hidden: Whether to normalize hidden layers.
             use_bias: Whether to use a bias in linear layers.
             bias_last: Whether to apply bias to last layer.
+            normalization: normalization name.
+            normalize_hidden: Whether to normalize output of hidden layers.
+            norm_kwargs: Keyword arguments for normalization layer.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -154,20 +159,22 @@ class GatedMLP(nn.Module):
         self.layers = MLP(
             self.dims,
             activation=activation,
-            normalization=normalization,
             activate_last=True,
-            normalize_hidden=normalize_hidden,
             use_bias=use_bias,
             bias_last=bias_last,
+            normalization=normalization,
+            normalize_hidden=normalize_hidden,
+            norm_kwargs=norm_kwargs,
         )
         self.gates = MLP(
                 self.dims,
                 activation,
-                normalization=normalization,
                 activate_last=False,
-                normalize_hidden=normalize_hidden,
                 use_bias=use_bias,
                 bias_last=bias_last,
+                normalization=normalization,
+                normalize_hidden=normalize_hidden,
+                norm_kwargs=norm_kwargs,
             )
         self.sigmoid = nn.Sigmoid()
 
