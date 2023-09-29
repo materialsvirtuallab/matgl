@@ -11,7 +11,7 @@ from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
 
 from matgl.layers._core import MLP, GatedMLP
-from matgl.layers._norm import GraphNorm
+from matgl.layers._norm import GraphNorm, LayerNorm
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -552,6 +552,8 @@ class CHGNetGraphConv(nn.Module):
         """
         if normalization == "graph":
             norm_kwargs = {"batched_field": "edge"}
+        else:
+            norm_kwargs = None
 
         node_update_func = GatedMLP(
             in_feats=node_dims[0],
@@ -798,8 +800,8 @@ class CHGNetAtomGraphBlock(nn.Module):
             self.atom_norm = GraphNorm(num_atom_feats, batched_field="node")
             self.bond_norm = GraphNorm(num_bond_feats, batched_field="edge")
         elif normalization == "layer":
-            self.atom_norm = Identity()
-            self.bond_norm = Identity()
+            self.atom_norm = LayerNorm(num_atom_feats)
+            self.bond_norm = LayerNorm(num_bond_feats)
         else:
             self.atom_norm = None
             self.bond_norm = None
@@ -896,6 +898,8 @@ class CHGNetLineGraphConv(nn.Module):
         """
         if normalization == "graph":
             norm_kwargs = {"batched_field": "edge"}
+        else:
+            norm_kwargs = None
 
         node_update_func = GatedMLP(
             in_feats=node_dims[0],
@@ -1083,11 +1087,11 @@ class CHGNetBondGraphBlock(nn.Module):
         )
 
         if normalization == "graph":
-            self.bond_norm = GraphNorm(num_atom_feats, batched_field="node")
-            self.angle_norm = GraphNorm(num_atom_feats, batched_field="edge")
+            self.bond_norm = GraphNorm(num_bond_feats, batched_field="node")
+            self.angle_norm = GraphNorm(num_angle_feats, batched_field="edge")
         elif normalization == "layer":
-            self.bond_norm = Identity()
-            self.angle_norm = Identity()
+            self.bond_norm = LayerNorm(num_bond_feats)
+            self.angle_norm = LayerNorm(num_angle_feats)
         else:
             self.bond_norm = None
             self.angle_norm = None

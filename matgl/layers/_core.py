@@ -43,7 +43,7 @@ class MLP(nn.Module):
         super().__init__()
         self._depth = len(dims) - 1
         self.layers = nn.ModuleList()
-        self.norm_layers = nn.ModuleList() if normalization == "graph" else None
+        self.norm_layers = nn.ModuleList() if normalization in ("graph", "layer") else None
         self.activation = activation if activation is not None else nn.Identity()
         self.activate_last = activate_last
         self.normalize_hidden = normalize_hidden
