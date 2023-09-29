@@ -25,6 +25,7 @@ class MLP(nn.Module):
         normalization: Literal["graph"] | None = None,
         activate_last: bool = False,
         normalize_last: bool = False,
+        normalize_hidden: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
     ) -> None:
@@ -35,6 +36,7 @@ class MLP(nn.Module):
             normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
             normalize_last: Whether to normalize output of last layer.
+            normalize_hidden: Whether to normalize output of hidden layers.
             use_bias: Whether to use bias.
             bias_last: Whether to apply bias to last layer.
         """
@@ -49,7 +51,7 @@ class MLP(nn.Module):
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
-                if normalization == "graph":
+                if normalize_hidden and normalization == "graph":
                     self.norm_layers.append(GraphNorm(out_dim))
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
@@ -129,6 +131,7 @@ class GatedMLP(nn.Module):
         normalization: Literal["graph"] | None = None,
         activate_last: bool = True,
         normalize_last: bool = False,
+        normalize_hidden: bool = False,
         use_bias: bool = True,
         bias_last: bool = True,
     ):
@@ -140,6 +143,7 @@ class GatedMLP(nn.Module):
             normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
             normalize_last: Whether to normalize output of last layer.
+            normalize_hidden: Whether to normalize hidden layers.
             use_bias: Whether to use a bias in linear layers.
             bias_last: Whether to apply bias to last layer.
         """
@@ -155,8 +159,9 @@ class GatedMLP(nn.Module):
             self.dims,
             activation=activation,
             normalization=normalization,
-            activate_last=activate_last,
+            activate_last=True,
             normalize_last=normalize_last,
+            normalize_hidden=normalize_hidden,
             use_bias=use_bias,
             bias_last=bias_last,
         )
@@ -166,6 +171,7 @@ class GatedMLP(nn.Module):
                 normalization=normalization,
                 activate_last=False,
                 normalize_last=normalize_last,
+                normalize_hidden=normalize_hidden,
                 use_bias=use_bias,
                 bias_last=bias_last,
             )
