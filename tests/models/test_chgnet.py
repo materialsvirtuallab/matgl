@@ -19,9 +19,9 @@ def test_model(graph_MoS, activation, angle_dim, bond_dim, learn_basis, dropout)
     model = CHGNet(
         element_types=["Mo", "S"],
         activation_type=activation,
-        bond_layer_hidden_dims=bond_dim,
+        bond_update_hidden_dims=bond_dim,
         learn_basis=learn_basis,
-        angle_layer_hidden_dims=angle_dim,
+        angle_update_hidden_dims=angle_dim,
         conv_dropout=dropout,
     )
     global_out, site_wise_out = model(graph=graph)

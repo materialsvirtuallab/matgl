@@ -752,8 +752,8 @@ class CHGNetAtomGraphBlock(nn.Module):
         num_atom_feats: int,
         num_bond_feats: int,
         activation: Module,
-        conv_hidden_dims: Sequence[int],
-        edge_hidden_dims: Sequence[int] | None = None,
+        atom_hidden_dims: Sequence[int],
+        bond_hidden_dims: Sequence[int] | None = None,
         normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
         num_state_feats: int | None = None,
@@ -765,8 +765,8 @@ class CHGNetAtomGraphBlock(nn.Module):
             num_atom_feats: number of atom features
             num_bond_feats: number of bond features
             activation: activation function
-            conv_hidden_dims: dimensions of hidden layers
-            edge_hidden_dims: dimensions of hidden layers for node to edge update (ie apply_edges)
+            atom_hidden_dims: dimensions of atom convolution hidden layers
+            bond_hidden_dims: dimensions of bond update hidden layers.
             normalization: Normalization type to use update functions. If None, no normalization is applied.
             normalize_hidden: whether to normalize hidden layers
             num_state_feats: number of state features if include_state is True
@@ -780,11 +780,11 @@ class CHGNetAtomGraphBlock(nn.Module):
         node_input_dim = 2 * num_atom_feats + num_bond_feats
         if num_state_feats is not None:
             node_input_dim += num_state_feats
-            state_dims = [num_atom_feats + num_state_feats, *conv_hidden_dims, num_state_feats]
+            state_dims = [num_atom_feats + num_state_feats, *atom_hidden_dims, num_state_feats]
         else:
             state_dims = None
-        node_dims = [node_input_dim, *conv_hidden_dims, num_atom_feats]
-        edge_dims = [node_input_dim, *edge_hidden_dims, num_bond_feats] if edge_hidden_dims is not None else None
+        node_dims = [node_input_dim, *atom_hidden_dims, num_atom_feats]
+        edge_dims = [node_input_dim, *bond_hidden_dims, num_bond_feats] if bond_hidden_dims is not None else None
 
         self.conv_layer = CHGNetGraphConv.from_dims(
             activation=activation,
