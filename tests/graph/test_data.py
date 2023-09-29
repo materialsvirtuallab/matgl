@@ -11,14 +11,7 @@ from dgl.data.utils import split_dataset
 from pymatgen.core import Molecule
 
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
-from matgl.graph.data import (
-    CHGNetDataset,
-    M3GNetDataset,
-    MEGNetDataset,
-    MGLDataLoader,
-    collate_fn,
-    collate_fn_efs
-)
+from matgl.graph.data import CHGNetDataset, M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

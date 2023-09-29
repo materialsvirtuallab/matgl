@@ -166,15 +166,15 @@ class GatedMLP(nn.Module):
             bias_last=bias_last,
         )
         self.gates = MLP(
-                self.dims,
-                activation,
-                normalization=normalization,
-                activate_last=False,
-                normalize_last=normalize_last,
-                normalize_hidden=normalize_hidden,
-                use_bias=use_bias,
-                bias_last=bias_last,
-            )
+            self.dims,
+            activation,
+            normalization=normalization,
+            activate_last=False,
+            normalize_last=normalize_last,
+            normalize_hidden=normalize_hidden,
+            use_bias=use_bias,
+            bias_last=bias_last,
+        )
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, inputs: torch.Tensor, graph: dgl.Graph | None = None) -> torch.Tensor:

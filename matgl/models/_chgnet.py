@@ -80,6 +80,8 @@ class CHGNet(nn.Module, IOMixIn):
         pooling_operation: Literal["sum", "mean"] = "sum",
         readout_field: Literal["atom_feat", "bond_feat", "angle_feat"] = "atom_feat",
         activation_type: str = "swish",
+        conv_norm: Literal["graph"] | None = None,
+        normalize_hidden: bool = False,
         is_intensive: bool = False,
         num_targets: int = 1,
         num_site_targets: int = 1,
@@ -117,6 +119,8 @@ class CHGNet(nn.Module, IOMixIn):
             pooling_operation: type of readout pooling operation to use.
             readout_field: field to readout from the graph.
             activation_type: activation function to use.
+            conv_norm: type of normalization to use in the convolution update blocks.
+            normalize_hidden: whether to normalize the hidden layers in convolution update functions.
             is_intensive: whether the target is intensive or extensive.
             num_targets: number of targets to predict.
             num_site_targets: number of site-wise targets to predict. (ie magnetic moments)
@@ -182,10 +186,11 @@ class CHGNet(nn.Module, IOMixIn):
                 CHGNetAtomGraphBlock(
                     num_atom_feats=dim_atom_embedding,
                     num_bond_feats=dim_bond_embedding,
-                    #  this activation only applies to state update MLP, gMLP in core has silu hard-coded
-                    activation=activation,
                     conv_hidden_dims=atom_conv_hidden_dims,
                     edge_hidden_dims=bond_layer_hidden_dims,
+                    activation=activation,
+                    normalization=conv_norm,
+                    normalize_hidden=normalize_hidden,
                     num_state_feats=dim_state_embedding,
                     dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["bond", "both"] else 0,
@@ -203,6 +208,9 @@ class CHGNet(nn.Module, IOMixIn):
                     num_angle_feats=dim_angle_embedding,
                     bond_hidden_dims=bond_conv_hidden_dims,
                     angle_hidden_dims=angle_layer_hidden_dims,
+                    activation=activation,
+                    normalization=conv_norm,
+                    normalize_hidden=normalize_hidden,
                     bond_dropout=conv_dropout,
                     angle_dropout=conv_dropout,
                     rbf_order=max_n if layer_bond_weights in ["three_body_bond", "both"] else 0,

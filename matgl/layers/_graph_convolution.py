@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import dgl
 import dgl.function as fn
@@ -11,6 +11,7 @@ from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
 
 from matgl.layers._core import MLP, GatedMLP
+from matgl.layers._norm import GraphNorm
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -530,6 +531,8 @@ class CHGNetGraphConv(nn.Module):
         node_dims: Sequence[int],
         edge_dims: Sequence[int] | None = None,
         state_dims: Sequence[int] | None = None,
+        normalization: Literal["graph"] | None = None,
+        normalize_hidden: bool = False,
         rbf_order: int = 0,
     ) -> CHGNetGraphConv:
         """Create a CHGNetAtomGraphConv layer from dimensions.
@@ -539,23 +542,51 @@ class CHGNetGraphConv(nn.Module):
             node_dims: NN architecture for node update function given as a list of dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
             state_dims: NN architecture for state update function given as a list of dimensions of each layer.
+            normalization: Normalization type. If None, no normalization is applied.
+            normalize_hidden: Whether to normalize hidden features.
             rbf_order: RBF order specifying input dimensions for linear layer specifying message weights.
                 If 0, no layer-wise weights are used.
 
         Returns:
             CHGNetAtomGraphConv
         """
-        node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
+        node_update_func = GatedMLP(
+            in_feats=node_dims[0],
+            dims=node_dims[1:],
+            activation=activation,
+            normalization=normalization,
+            normalize_hidden=normalize_hidden,
+        )
         node_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
         )
-        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:]) if edge_dims is not None else None
+        edge_update_func = (
+            GatedMLP(
+                in_feats=edge_dims[0],
+                dims=edge_dims[1:],
+                activation=activation,
+                normalization=normalization,
+                normalize_hidden=normalize_hidden,
+            )
+            if edge_dims is not None
+            else None
+        )
         edge_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=edge_dims[-1], bias=False)
             if rbf_order > 0 and edge_dims is not None
             else None
         )
-        state_update_func = MLP(state_dims, activation, activate_last=True) if state_dims is not None else None
+        state_update_func = (
+            MLP(
+                state_dims,
+                activation,
+                activate_last=True,
+                normalization=normalization,
+                normalize_hidden=normalize_hidden,
+            )
+            if state_dims is not None
+            else None
+        )
 
         return cls(
             node_update_func=node_update_func,
@@ -720,6 +751,8 @@ class CHGNetAtomGraphBlock(nn.Module):
         activation: Module,
         conv_hidden_dims: Sequence[int],
         edge_hidden_dims: Sequence[int] | None = None,
+        normalization: Literal["graph"] | None = None,
+        normalize_hidden: bool = False,
         num_state_feats: int | None = None,
         rbf_order: int = 0,
         dropout: float = 0.0,
@@ -731,6 +764,8 @@ class CHGNetAtomGraphBlock(nn.Module):
             activation: activation function
             conv_hidden_dims: dimensions of hidden layers
             edge_hidden_dims: dimensions of hidden layers for node to edge update (ie apply_edges)
+            normalization: normalization function
+            normalize_hidden: whether to normalize hidden layers
             num_state_feats: number of state features if include_state is True
             rbf_order: whether to include layer-wise node weights
              RBF order specifying input dimensions for linear layer specifying message weights.
@@ -753,8 +788,15 @@ class CHGNetAtomGraphBlock(nn.Module):
             node_dims=node_dims,
             edge_dims=edge_dims,
             state_dims=state_dims,
+            normalization=normalization,
+            normalize_hidden=normalize_hidden,
             rbf_order=rbf_order,
         )
+
+        if normalization == "graph":
+            self.atom_norm = GraphNorm(num_atom_feats)
+            self.bond_norm = GraphNorm(num_bond_feats)
+        self.normalization = normalization
         self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
         self.out_layer = nn.Linear(num_atom_feats, num_atom_feats)
 
@@ -788,6 +830,9 @@ class CHGNetAtomGraphBlock(nn.Module):
         # move skip connections here? dropout before skip connections?
         atom_features = self.out_layer(self.dropout(atom_features))
         bond_features = self.dropout(bond_features)
+        if self.normalization is not None:
+            atom_features = self.atom_norm(atom_features, graph)
+            bond_features = self.bond_norm(bond_features, graph)
         if state_attr is not None:
             state_attr = self.dropout(state_attr)
 
@@ -823,21 +868,43 @@ class CHGNetLineGraphConv(nn.Module):
         cls,
         node_dims: list[int],
         edge_dims: list[int],
+        activation: Module | None = None,
+        normalization: Literal["graph"] | None = None,
+        normalize_hidden: bool = False,
         node_weight_input_dims: int = 0,
     ) -> CHGNetLineGraphConv:
         """
         Args:
             node_dims: NN architecture for node update function given as a list of dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
+            activation: activation function. If None, SilU is used.
+            normalization: Normalization type. If None, no normalization is applied.
+            normalize_hidden: Whether to normalize hidden features.
             node_weight_input_dims: input dimensions for linear layer of node weights. (the RBF order)
                 If 0, no layer-wise weights are used.
 
         Returns:
             CHGNetBondGraphConv
         """
-        node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
+        node_update_func = GatedMLP(
+            in_feats=node_dims[0],
+            dims=node_dims[1:],
+            activation=activation,
+            normalization=normalization,
+            normalize_hidden=normalize_hidden,
+        )
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
-        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:]) if edge_dims is not None else None
+        edge_update_func = (
+            GatedMLP(
+                in_feats=edge_dims[0],
+                dims=edge_dims[1:],
+                activation=activation,
+                normalization=normalization,
+                normalize_hidden=normalize_hidden,
+            )
+            if edge_dims is not None
+            else None
+        )
 
         return cls(
             node_update_func=node_update_func, edge_update_func=edge_update_func, node_weight_func=node_weight_func
@@ -963,8 +1030,11 @@ class CHGNetBondGraphBlock(nn.Module):
         num_atom_feats: int,
         num_bond_feats: int,
         num_angle_feats: int,
+        activation: Module,
         bond_hidden_dims: Sequence[int],
         angle_hidden_dims: Sequence[int] | None,
+        normalization: Literal["graph"] | None = None,
+        normalize_hidden: bool = False,
         rbf_order: int = 0,
         bond_dropout: float = 0.0,
         angle_dropout: float = 0.0,
@@ -974,8 +1044,11 @@ class CHGNetBondGraphBlock(nn.Module):
             num_atom_feats: number of atom features
             num_bond_feats: number of bond features
             num_angle_feats: number of angle features
+            activation: activation function
             bond_hidden_dims: dimensions of hidden layers of bond graph convolution
             angle_hidden_dims: dimensions of hidden layers of angle update function
+            normalization: normalization function
+            normalize_hidden: whether to normalize hidden layers
             rbf_order: dimensions of input to node weight function (num RBF functions)
                 If 0, no layer-wise node weights are used.
             bond_dropout: dropout probability for bond graph convolution.
@@ -990,9 +1063,15 @@ class CHGNetBondGraphBlock(nn.Module):
         self.conv_layer = CHGNetLineGraphConv.from_dims(
             node_dims=node_dims,
             edge_dims=edge_dims,
+            activation=activation,
+            normalization=normalization,
+            normalize_hidden=normalize_hidden,
             node_weight_input_dims=rbf_order,
         )
-
+        if normalization == "graph":
+            self.bond_norm = GraphNorm(num_atom_feats)
+            self.angle_norm = GraphNorm(num_bond_feats)
+        self.normalization = normalization
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
         self.out_layer = nn.Linear(num_bond_feats, num_bond_feats)
@@ -1027,6 +1106,9 @@ class CHGNetBondGraphBlock(nn.Module):
 
         bond_features_ = self.out_layer(self.bond_dropout(bond_features_))
         angle_features = self.angle_dropout(angle_features)
-        bond_features[graph.ndata["bond_index"]] = bond_features_
+        if self.normalization is not None:
+            bond_features_ = self.bond_norm(bond_features_, graph)
+            angle_features = self.angle_norm(angle_features, graph)
 
+        bond_features[graph.ndata["bond_index"]] = bond_features_
         return bond_features, angle_features
