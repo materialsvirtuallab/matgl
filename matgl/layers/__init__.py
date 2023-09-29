@@ -17,5 +17,6 @@ from matgl.layers._graph_convolution import (
     MEGNetBlock,
     MEGNetGraphConv,
 )
+from matgl.layers._norm import GraphNorm
 from matgl.layers._readout import ReduceReadOut, Set2SetReadOut, WeightedReadOut, WeightedReadOutPair
 from matgl.layers._three_body import ThreeBodyInteractions
