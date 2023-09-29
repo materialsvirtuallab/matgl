@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import torch
 import torch.nn as nn
@@ -21,19 +21,21 @@ class GraphNorm(nn.Module):
         https://proceedings.mlr.press/v139/cai21e.html
     """
 
-    def __init__(self, input_dim: int, eps: float = 1e-5):
+    def __init__(self, input_dim: int, eps: float = 1e-5, batched_attr: Literal["node", "edge"] = "node"):
         """
         Init GraphNorm layer.
 
         Args:
             input_dim: dimension of input features
             eps: value added to denominator for numerical stability
+            batched_attr: batched attribute, the attributed from which to determine batches.
         """
         super().__init__()
         self.eps = eps
         self.weight = nn.Parameter(torch.ones(input_dim))
         self.bias = nn.Parameter(torch.zeros(input_dim))
         self.mean_scale = nn.Parameter(torch.ones(input_dim))
+        self.batched_attr = batched_attr
 
     def forward(self, features: torch.Tensor, graph: dgl.DGLGraph):
         """Forward pass.
@@ -45,7 +47,7 @@ class GraphNorm(nn.Module):
         Returns:
             torch.Tensor: normalized features
         """
-        batch_list = graph.batch_num_nodes().to(matgl.int_th)
+        batch_list = graph.batch_num_nodes() if self.batched_attr == "node" else graph.batch_num_edges()
         batch_index = torch.arange(graph.batch_size).repeat_interleave(batch_list)
         batch_index = batch_index.view((-1,) + (1,) * (features.dim() - 1)).expand_as(features)
         mean = torch.zeros(graph.batch_size, *features.shape[1:])
