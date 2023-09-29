@@ -44,6 +44,7 @@ class MLP(nn.Module):
         self.norm_layers = nn.ModuleList() if normalization == "graph" else None
         self.activation = activation if activation is not None else nn.Identity()
         self.activate_last = activate_last
+        self.normalize_hidden = normalize_hidden
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
@@ -105,12 +106,12 @@ class MLP(nn.Module):
         x = inputs
         for i in range(self._depth - 1):
             x = self.layers[i](x)
-            if self.norm_layers is not None:
+            if self.norm_layers is not None and self.normalize_hidden:
                 x = self.norm_layers[i](x, graph)
             x = self.activation(x)
 
         x = self.layers[-1](x)
-        if self.normalize_last:
+        if self.norm_layers is not None:
             x = self.norm_layers[-1](x, graph)
         if self.activate_last:
             x = self.activation(x)
@@ -138,7 +139,6 @@ class GatedMLP(nn.Module):
             activation: non-linear activation module.
             normalization: normalization name.
             activate_last: Whether to apply activation to last layer.
-            normalize_last: Whether to normalize output of last layer.
             normalize_hidden: Whether to normalize hidden layers.
             use_bias: Whether to use a bias in linear layers.
             bias_last: Whether to apply bias to last layer.
