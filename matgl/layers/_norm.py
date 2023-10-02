@@ -47,14 +47,14 @@ class GraphNorm(nn.Module):
             torch.Tensor: normalized features
         """
         batch_list = graph.batch_num_nodes() if self.batched_field == "node" else graph.batch_num_edges()
-        batch_index = torch.arange(graph.batch_size).repeat_interleave(batch_list)
+        batch_index = torch.arange(graph.batch_size, dtype=torch.long, device=graph.device).repeat_interleave(batch_list)
         batch_index = batch_index.view((-1,) + (1,) * (features.dim() - 1)).expand_as(features)
-        mean = torch.zeros(graph.batch_size, *features.shape[1:])
+        mean = torch.zeros(graph.batch_size, *features.shape[1:]).to(features)
         mean = mean.scatter_add_(0, batch_index, features)
         mean = (mean.T / batch_list).T
         mean = mean.repeat_interleave(batch_list, dim=0)
         out = features - mean * self.mean_scale
-        std = torch.zeros(graph.batch_size, *features.shape[1:])
+        std = torch.zeros(graph.batch_size, *features.shape[1:]).to(features)
         std = std.scatter_add_(0, batch_index, out.pow(2))
         std = ((std.T / batch_list).T + self.eps).sqrt()
         std = std.repeat_interleave(batch_list, dim=0)
