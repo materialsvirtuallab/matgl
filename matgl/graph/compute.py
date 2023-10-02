@@ -1,7 +1,6 @@
 """Computing various graph based operations."""
 from __future__ import annotations
 
-import warnings
 from typing import Any, Callable
 
 import dgl
@@ -231,7 +230,10 @@ def ensure_directed_line_graph_compatibility(
     # this should only really occur when batching graphs
     if line_graph.number_of_nodes() > sum(valid_edges):
         valid_edges = graph.edata["bond_dist"] <= threebody_cutoff + tol
-        warnings.warn("line graph included a bond that was within numerical tolerance of the cutoff", stacklevel=2)
+
+    # check again and raise if invalid
+    if line_graph.number_of_nodes() > sum(valid_edges):
+        raise RuntimeError("Line graph is not compatible with graph.")
 
     edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
     line_graph.ndata["edge_ids"] = edge_ids
@@ -268,7 +270,7 @@ def has_aliased_edges(graph: dgl.DGLGraph) -> bool:
 def prune_edges_by_features(
     graph: dgl.DGLGraph,
     feat_name: str,
-    condition: Callable[[torch.Tensor, Any], torch.Tensor],
+    condition: Callable[[torch.Tensor], torch.Tensor],
     keep_ndata: bool = False,
     keep_edata: bool = True,
     *args,
