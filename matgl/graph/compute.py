@@ -10,65 +10,6 @@ import torch
 import matgl
 
 
-def compute_3body(g: dgl.DGLGraph):
-    """Calculate the three body indices from pair atom indices.
-
-    Args:
-        g: DGL graph
-
-    Returns:
-        l_g: DGL graph containing three body information from graph
-        triple_bond_indices (np.ndarray): bond indices that form three-body
-        n_triple_ij (np.ndarray): number of three-body angles for each bond
-        n_triple_i (np.ndarray): number of three-body angles each atom
-        n_triple_s (np.ndarray): number of three-body angles for each structure
-    """
-    n_atoms = g.num_nodes()
-    first_col = g.edges()[0].cpu().numpy().reshape(-1, 1)
-    all_indices = np.arange(n_atoms).reshape(1, -1)
-    n_bond_per_atom = np.count_nonzero(first_col == all_indices, axis=0)
-    n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
-    n_triple = np.sum(n_triple_i)
-    n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
-    triple_bond_indices = np.empty((n_triple, 2), dtype=matgl.int_np)  # type: ignore
-
-    start = 0
-    cs = 0
-    for n in n_bond_per_atom:
-        if n > 0:
-            """
-            triple_bond_indices is generated from all pair permutations of atom indices. The
-            numpy version below does this with much greater efficiency. The equivalent slow
-            code is:
-
-            ```
-            for j, k in itertools.permutations(range(n), 2):
-                triple_bond_indices[index] = [start + j, start + k]
-            ```
-            """
-            r = np.arange(n)
-            x, y = np.meshgrid(r, r, indexing="xy")
-            c = np.stack([y.ravel(), x.ravel()], axis=1)
-            final = c[c[:, 0] != c[:, 1]]
-            triple_bond_indices[start : start + (n * (n - 1)), :] = final + cs
-            start += n * (n - 1)
-            cs += n
-
-    n_triple_s = [np.sum(n_triple_i[0:n_atoms])]
-    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=matgl.int_th)
-    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=matgl.int_th)
-    l_g = dgl.graph((src_id, dst_id))
-    three_body_id = torch.concatenate(l_g.edges())
-    n_triple_ij = torch.tensor(n_triple_ij, dtype=matgl.int_th)
-    max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
-    l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
-    l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
-    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
-    l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
-    n_triple_s = torch.tensor(n_triple_s, dtype=matgl.int_th)  # type: ignore
-    return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
-
-
 def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     """Calculate bond vectors and distances using dgl graphs.
 
@@ -129,84 +70,23 @@ def compute_theta(
     return {key: val, "triple_bond_lengths": edges.dst["bond_dist"]}
 
 
-def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float):
+def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float, directed: bool = False) -> dgl.DGLGraph:
     """
     Calculate the three body indices from pair atom indices.
 
     Args:
         g: DGL graph
         threebody_cutoff (float): cutoff for three-body interactions
+        directed (bool): Whether to create a directed line graph, or an m3gnet 3body line graph (default: False, m3gnet)
 
     Returns:
         l_g: DGL graph containing three body information from graph
     """
     graph_with_three_body = prune_edges_by_features(g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
-    l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = compute_3body(graph_with_three_body)
-    return l_g
-
-
-def create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> dgl.DGLGraph:
-    """Creates a line graph from a graph, considers periodic boundary conditions.
-
-    Args:
-        graph: DGL graph representing atom graph
-        threebody_cutoff: cutoff for three-body interactions
-
-    Returns:
-        line_graph: DGL graph line graph of pruned graph to three body cutoff
-    """
-    with torch.no_grad():
-        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
-        src_indices, dst_indices = pg.edges()
-        images = pg.edata["pbc_offset"]
-        all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
-        num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
-        num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
-        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
-        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
-
-        incoming_edges = src_indices.unsqueeze(1) == dst_indices
-        is_self_edge = src_indices == dst_indices
-        not_self_edge = ~is_self_edge
-
-        n = 0
-        # create line graph edges for bonds that are self edges in atom graph
-        if is_self_edge.any():
-            edge_inds_s = is_self_edge.nonzero()
-            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
-            lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1].squeeze()
-            lg_src_s = lg_src_s[lg_src_s != lg_dst_s]
-            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
-            n = len(lg_dst_s)
-            lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
-
-        # create line graph edges for bonds that are not self edges in atom graph
-        shared_src = src_indices.unsqueeze(1) == src_indices
-        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
-        incoming = incoming_edges & (shared_src | ~back_tracking)
-
-        edge_inds_ns = not_self_edge.nonzero().squeeze()
-        lg_src_ns = incoming[not_self_edge].nonzero()[:, 1].squeeze()
-        lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
-        lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
-        lg = dgl.graph((lg_src, lg_dst))
-
-        for key in pg.edata:
-            lg.ndata[key] = pg.edata[key][: lg.number_of_nodes()]
-
-        # we need to store the sign of bond vector when a bond is a src node in the line
-        # graph in order to appropriately calculate angles when self edges are involved
-        lg.ndata["src_bond_sign"] = torch.ones(
-            (lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
-        )
-        # if we flip self edges then we need to correct computed angles by pi - angle
-        # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
-        # find the intersection for the rare cases where not all edges end up as nodes in the line graph
-        all_ns, counts = torch.cat([torch.arange(lg.number_of_nodes(), device=graph.device), edge_inds_ns]).unique(
-            return_counts=True
-        )
-        lg_inds_ns = all_ns[torch.where(counts > 1)]
-        lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+    if directed:
+        lg = _create_directed_line_graph(graph_with_three_body, threebody_cutoff)
+    else:
+        lg, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s = _compute_3body(graph_with_three_body)
 
     return lg
 
@@ -294,3 +174,128 @@ def prune_edges_by_features(
             new_g.edata[key] = value[valid_edges]
 
     return new_g
+
+
+def _compute_3body(g: dgl.DGLGraph):
+    """Calculate the three body indices from pair atom indices.
+
+    Args:
+        g: DGL graph
+
+    Returns:
+        l_g: DGL graph containing three body information from graph
+        triple_bond_indices (np.ndarray): bond indices that form three-body
+        n_triple_ij (np.ndarray): number of three-body angles for each bond
+        n_triple_i (np.ndarray): number of three-body angles each atom
+        n_triple_s (np.ndarray): number of three-body angles for each structure
+    """
+    n_atoms = g.num_nodes()
+    first_col = g.edges()[0].cpu().numpy().reshape(-1, 1)
+    all_indices = np.arange(n_atoms).reshape(1, -1)
+    n_bond_per_atom = np.count_nonzero(first_col == all_indices, axis=0)
+    n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
+    n_triple = np.sum(n_triple_i)
+    n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
+    triple_bond_indices = np.empty((n_triple, 2), dtype=matgl.int_np)  # type: ignore
+
+    start = 0
+    cs = 0
+    for n in n_bond_per_atom:
+        if n > 0:
+            """
+            triple_bond_indices is generated from all pair permutations of atom indices. The
+            numpy version below does this with much greater efficiency. The equivalent slow
+            code is:
+
+            ```
+            for j, k in itertools.permutations(range(n), 2):
+                triple_bond_indices[index] = [start + j, start + k]
+            ```
+            """
+            r = np.arange(n)
+            x, y = np.meshgrid(r, r, indexing="xy")
+            c = np.stack([y.ravel(), x.ravel()], axis=1)
+            final = c[c[:, 0] != c[:, 1]]
+            triple_bond_indices[start : start + (n * (n - 1)), :] = final + cs
+            start += n * (n - 1)
+            cs += n
+
+    n_triple_s = [np.sum(n_triple_i[0:n_atoms])]
+    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=matgl.int_th)
+    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=matgl.int_th)
+    l_g = dgl.graph((src_id, dst_id))
+    three_body_id = torch.concatenate(l_g.edges())
+    n_triple_ij = torch.tensor(n_triple_ij, dtype=matgl.int_th)
+    max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
+    l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
+    l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
+    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
+    l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
+    n_triple_s = torch.tensor(n_triple_s, dtype=matgl.int_th)  # type: ignore
+    return l_g, triple_bond_indices, n_triple_ij, n_triple_i, n_triple_s
+
+
+def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> dgl.DGLGraph:
+    """Creates a line graph from a graph, considers periodic boundary conditions.
+
+    Args:
+        graph: DGL graph representing atom graph
+        threebody_cutoff: cutoff for three-body interactions
+
+    Returns:
+        line_graph: DGL graph line graph of pruned graph to three body cutoff
+    """
+    with torch.no_grad():
+        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
+        src_indices, dst_indices = pg.edges()
+        images = pg.edata["pbc_offset"]
+        all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
+        num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
+        num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
+        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
+        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
+
+        incoming_edges = src_indices.unsqueeze(1) == dst_indices
+        is_self_edge = src_indices == dst_indices
+        not_self_edge = ~is_self_edge
+
+        n = 0
+        # create line graph edges for bonds that are self edges in atom graph
+        if is_self_edge.any():
+            edge_inds_s = is_self_edge.nonzero()
+            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
+            lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1].squeeze()
+            lg_src_s = lg_src_s[lg_src_s != lg_dst_s]
+            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
+            n = len(lg_dst_s)
+            lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
+
+        # create line graph edges for bonds that are not self edges in atom graph
+        shared_src = src_indices.unsqueeze(1) == src_indices
+        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
+        incoming = incoming_edges & (shared_src | ~back_tracking)
+
+        edge_inds_ns = not_self_edge.nonzero().squeeze()
+        lg_src_ns = incoming[not_self_edge].nonzero()[:, 1].squeeze()
+        lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
+        lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
+        lg = dgl.graph((lg_src, lg_dst))
+
+        for key in pg.edata:
+            lg.ndata[key] = pg.edata[key][: lg.number_of_nodes()]
+
+        # we need to store the sign of bond vector when a bond is a src node in the line
+        # graph in order to appropriately calculate angles when self edges are involved
+        lg.ndata["src_bond_sign"] = torch.ones(
+            (lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
+        )
+        # if we flip self edges then we need to correct computed angles by pi - angle
+        # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
+        # find the intersection for the rare cases where not all edges end up as nodes in the line graph
+        all_ns, counts = torch.cat([torch.arange(lg.number_of_nodes(), device=graph.device), edge_inds_ns]).unique(
+            return_counts=True
+        )
+        lg_inds_ns = all_ns[torch.where(counts > 1)]
+        lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+
+    return lg
