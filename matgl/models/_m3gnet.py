@@ -22,7 +22,7 @@ from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
-    ensure_line_graph_compatibility
+    ensure_line_graph_compatibility,
 )
 from matgl.layers import (
     MLP,
