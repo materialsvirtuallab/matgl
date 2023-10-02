@@ -877,7 +877,7 @@ class CHGNetLineGraphConv(nn.Module):
     def from_dims(
         cls,
         node_dims: list[int],
-        edge_dims: list[int],
+        edge_dims: list[int] | None = None,
         activation: Module | None = None,
         normalization: Literal["graph", "layer"] | None = None,
         normalize_hidden: bool = False,
