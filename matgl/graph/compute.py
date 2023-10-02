@@ -231,6 +231,10 @@ def ensure_directed_line_graph_compatibility(
     if line_graph.number_of_nodes() > sum(valid_edges):
         valid_edges = graph.edata["bond_dist"] <= threebody_cutoff + tol
 
+    # check again and raise if invalid
+    if line_graph.number_of_nodes() > sum(valid_edges):
+        raise RuntimeError("Line graph is not compatible with graph.")
+
     edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
     line_graph.ndata["edge_ids"] = edge_ids
 
