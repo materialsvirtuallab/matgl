@@ -91,8 +91,8 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float, directed: bool =
     return lg
 
 
-def ensure_directed_line_graph_compatibility(
-    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, tol: float = 5e-7
+def ensure_line_graph_compatibility(
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, directed: bool = False, tol: float = 5e-7
 ) -> dgl.DGLGraph:
     """Ensure that line graph is compatible with graph.
 
@@ -102,31 +102,13 @@ def ensure_directed_line_graph_compatibility(
         graph: atomistic graph
         line_graph: line graph of atomistic graph
         threebody_cutoff: cutoff for three-body interactions
+        directed (bool): Whether to create a directed line graph, or an m3gnet 3body line graph (default: False, m3gnet)
         tol: numerical tolerance for cutoff
     """
-    valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
-
-    # this means there probably is a bond that is just at the cutoff
-    # this should only really occur when batching graphs
-    if line_graph.number_of_nodes() > sum(valid_edges):
-        valid_edges = graph.edata["bond_dist"] <= threebody_cutoff + tol
-
-    # check again and raise if invalid
-    if line_graph.number_of_nodes() > sum(valid_edges):
-        raise RuntimeError("Line graph is not compatible with graph.")
-
-    edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
-    line_graph.ndata["edge_ids"] = edge_ids
-
-    for key in graph.edata:
-        line_graph.ndata[key] = graph.edata[key][edge_ids]
-
-    src_indices, dst_indices = graph.edges()
-    ns_edge_ids = (src_indices[edge_ids] != dst_indices[edge_ids]).nonzero().squeeze()
-    line_graph.ndata["src_bond_sign"] = torch.ones(
-        (line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype, device=line_graph.device
-    )
-    line_graph.ndata["src_bond_sign"][ns_edge_ids] = -line_graph.ndata["src_bond_sign"][ns_edge_ids]
+    if directed:
+        line_graph = _ensure_directed_line_graph_compatibility(graph, line_graph, threebody_cutoff, tol)
+    else:
+        line_graph = _ensure_3body_line_graph_compatibility(graph, line_graph, threebody_cutoff)
 
     return line_graph
 
@@ -299,3 +281,68 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
         lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
     return lg
+
+
+def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float):
+    """Ensure that 3body line graph is compatible with a given graph.
+
+    Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
+
+    Args:
+        graph: atomistic graph
+        line_graph: line graph of atomistic graph
+        threebody_cutoff: cutoff for three-body interactions
+    """
+    valid_three_body = graph.edata["bond_dist"] <= threebody_cutoff
+    if line_graph.num_nodes() == graph.edata["bond_vec"][valid_three_body].shape[0]:
+        line_graph.ndata["bond_vec"] = graph.edata["bond_vec"][valid_three_body]
+        line_graph.ndata["bond_dist"] = graph.edata["bond_dist"][valid_three_body]
+        line_graph.ndata["pbc_offset"] = graph.edata["pbc_offset"][valid_three_body]
+    else:
+        three_body_id = torch.concatenate(line_graph.edges())
+        max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
+        line_graph.ndata["bond_vec"] = graph.edata["bond_vec"][:max_three_body_id]
+        line_graph.ndata["bond_dist"] = graph.edata["bond_dist"][:max_three_body_id]
+        line_graph.ndata["pbc_offset"] = graph.edata["pbc_offset"][:max_three_body_id]
+
+    return line_graph
+
+
+def _ensure_directed_line_graph_compatibility(
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, tol: float = 5e-7
+) -> dgl.DGLGraph:
+    """Ensure that line graph is compatible with graph.
+
+    Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
+
+    Args:
+        graph: atomistic graph
+        line_graph: line graph of atomistic graph
+        threebody_cutoff: cutoff for three-body interactions
+        tol: numerical tolerance for cutoff
+    """
+    valid_edges = graph.edata["bond_dist"] <= threebody_cutoff
+
+    # this means there probably is a bond that is just at the cutoff
+    # this should only really occur when batching graphs
+    if line_graph.number_of_nodes() > sum(valid_edges):
+        valid_edges = graph.edata["bond_dist"] <= threebody_cutoff + tol
+
+    # check again and raise if invalid
+    if line_graph.number_of_nodes() > sum(valid_edges):
+        raise RuntimeError("Line graph is not compatible with graph.")
+
+    edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
+    line_graph.ndata["edge_ids"] = edge_ids
+
+    for key in graph.edata:
+        line_graph.ndata[key] = graph.edata[key][edge_ids]
+
+    src_indices, dst_indices = graph.edges()
+    ns_edge_ids = (src_indices[edge_ids] != dst_indices[edge_ids]).nonzero().squeeze()
+    line_graph.ndata["src_bond_sign"] = torch.ones(
+        (line_graph.number_of_nodes(), 1), dtype=graph.edata["bond_vec"].dtype, device=line_graph.device
+    )
+    line_graph.ndata["src_bond_sign"][ns_edge_ids] = -line_graph.ndata["src_bond_sign"][ns_edge_ids]
+
+    return line_graph
