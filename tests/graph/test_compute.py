@@ -260,5 +260,5 @@ def test_ensure_directed_line_graph_compat(graph_data, request):
     tt.assert_allclose(line_graph.ndata["edge_ids"], edge_ids)
     tt.assert_allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         ensure_directed_line_graph_compatibility(g, line_graph, 1.0)

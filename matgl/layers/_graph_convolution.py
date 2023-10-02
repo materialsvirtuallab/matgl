@@ -822,7 +822,7 @@ class CHGNetLineGraphConv(nn.Module):
     def from_dims(
         cls,
         node_dims: list[int],
-        edge_dims: list[int],
+        edge_dims: list[int] | None = None,
         node_weight_input_dims: int = 0,
     ) -> CHGNetLineGraphConv:
         """

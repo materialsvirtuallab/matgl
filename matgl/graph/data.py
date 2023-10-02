@@ -69,12 +69,8 @@ def MGLDataLoader(
     train_data: dgl.data.utils.Subset,
     val_data: dgl.data.utils.Subset,
     collate_fn: Callable,
-    batch_size: int,
-    num_workers: int,
-    use_ddp: bool = False,
-    pin_memory: bool = False,
-    test_data: dgl.data.utils.Subset | None = None,
-    generator: torch.Generator | None = None,
+    test_data: dgl.data.utils.Subset = None,
+    **kwargs,
 ) -> tuple[GraphDataLoader, ...]:
     """Dataloader for MatGL training.
 
@@ -82,45 +78,19 @@ def MGLDataLoader(
         train_data (dgl.data.utils.Subset): Training dataset.
         val_data (dgl.data.utils.Subset): Validation dataset.
         collate_fn (Callable): Collate function.
-        batch_size (int): Batch size.
-        num_workers (int): Number of workers.
-        use_ddp (bool, optional): Whether to use DDP. Defaults to False.
-        pin_memory (bool, optional): Whether to pin memory. Defaults to False.
         test_data (dgl.data.utils.Subset | None, optional): Test dataset. Defaults to None.
-        generator (torch.Generator | None, optional): Random number generator. Defaults to None.
+        **kwargs: Pass-through kwargs to dgl.dataloading.GraphDataLoader. Common ones you may want to set are
+            batch_size, num_workers, use_ddp, pin_memory and generator.
 
     Returns:
         tuple[GraphDataLoader, ...]: Train, validation and test data loaders. Test data
             loader is None if test_data is None.
     """
-    train_loader = GraphDataLoader(
-        train_data,
-        batch_size=batch_size,
-        shuffle=True,
-        collate_fn=collate_fn,
-        num_workers=num_workers,
-        pin_memory=pin_memory,
-        use_ddp=use_ddp,
-        generator=generator,
-    )
+    train_loader = GraphDataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
 
-    val_loader = GraphDataLoader(
-        val_data,
-        batch_size=batch_size,
-        shuffle=False,
-        collate_fn=collate_fn,
-        num_workers=num_workers,
-        pin_memory=pin_memory,
-    )
+    val_loader = GraphDataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
     if test_data is not None:
-        test_loader = GraphDataLoader(
-            test_data,
-            batch_size=batch_size,
-            shuffle=False,
-            collate_fn=collate_fn,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
-        )
+        test_loader = GraphDataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
         return train_loader, val_loader, test_loader
     return train_loader, val_loader
 
