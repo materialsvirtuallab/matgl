@@ -4,7 +4,7 @@ CHGNet is a graph neural network model that includes 3 body interactions in a si
 fashion to m3gnet, and also includes charge information by including training and
 prediction of site-wise magnetic moments.
 
-The CHGNet model is described in the following paper: https://arxiv.org/abs/2302.14231
+The CHGNet model is described in the following paper: https://doi.org/10.1038/s42256-023-00716-3
 """
 
 from __future__ import annotations
