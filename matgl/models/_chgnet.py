@@ -20,8 +20,8 @@ from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta,
-    create_directed_line_graph,
-    ensure_directed_line_graph_compatibility,
+    create_line_graph,
+    ensure_line_graph_compatibility,
 )
 from matgl.layers import (
     MLP,
@@ -269,10 +269,10 @@ class CHGNet(nn.Module, IOMixIn):
 
         # create bond graph (line graph) with necessary node and edge data
         if line_graph is None:
-            bond_graph = create_directed_line_graph(graph, self.three_body_cutoff)
+            bond_graph = create_line_graph(graph, self.three_body_cutoff, directed=True)
         else:
             # need to ensure the line graph matches the graph
-            bond_graph = ensure_directed_line_graph_compatibility(graph, line_graph, self.three_body_cutoff)
+            bond_graph = ensure_line_graph_compatibility(graph, line_graph, self.three_body_cutoff, directed=True)
 
         bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
         threebody_bond_expansion = self.threebody_bond_expansion(bond_graph.ndata["bond_dist"])
