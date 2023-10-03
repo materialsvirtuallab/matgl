@@ -13,9 +13,8 @@ from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta,
     compute_theta_and_phi,
-    create_directed_line_graph,
     create_line_graph,
-    ensure_directed_line_graph_compatibility,
+    ensure_line_graph_compatibility,
     prune_edges_by_features,
 )
 
@@ -233,7 +232,7 @@ def test_directed_line_graph(graph_data, cutoff, request):
     cos_loop = _calculate_cos_loop(g1, cutoff)
     theta_loop = np.arccos(np.clip(cos_loop, -1.0 + 1e-7, 1.0 - 1e-7))
 
-    line_graph = create_directed_line_graph(g1, cutoff)
+    line_graph = create_line_graph(g1, cutoff, directed=True)
     line_graph.apply_edges(compute_theta)
 
     # this test might be lax with just 4 decimal places
@@ -246,7 +245,7 @@ def test_ensure_directed_line_graph_compat(graph_data, request):
     bv, bd = compute_pair_vector_and_distance(g)
     g.edata["bond_vec"] = bv
     g.edata["bond_dist"] = bd
-    line_graph = create_directed_line_graph(g, 3.0)
+    line_graph = create_line_graph(g, 3.0, directed=True)
     edge_ids = line_graph.ndata["edge_ids"].clone()
     src_bond_sign = line_graph.ndata["src_bond_sign"].clone()
     line_graph.ndata["edge_ids"] = torch.zeros(line_graph.num_nodes(), dtype=torch.long)
@@ -256,9 +255,9 @@ def test_ensure_directed_line_graph_compat(graph_data, request):
     assert not torch.allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
 
     # test that the line graph is not compatible
-    line_graph = ensure_directed_line_graph_compatibility(g, line_graph, 3.0)
+    line_graph = ensure_line_graph_compatibility(g, line_graph, 3.0, directed=True)
     tt.assert_allclose(line_graph.ndata["edge_ids"], edge_ids)
     tt.assert_allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
 
     with pytest.raises(RuntimeError):
-        ensure_directed_line_graph_compatibility(g, line_graph, 1.0)
+        ensure_line_graph_compatibility(g, line_graph, 1.0, directed=True)
