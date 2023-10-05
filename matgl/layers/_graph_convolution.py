@@ -807,7 +807,7 @@ class CHGNetAtomGraphBlock(nn.Module):
             self.bond_norm = None
 
         self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
-        self.out_layer = nn.Linear(num_atom_feats, num_atom_feats)
+        self.out_layer = nn.Linear(num_atom_feats, num_atom_feats, bias=False)
 
     def forward(
         self,
@@ -1098,7 +1098,7 @@ class CHGNetBondGraphBlock(nn.Module):
 
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
-        self.out_layer = nn.Linear(num_bond_feats, num_bond_feats)
+        self.out_layer = nn.Linear(num_bond_feats, num_bond_feats, bias=False)
 
     def forward(
         self,
