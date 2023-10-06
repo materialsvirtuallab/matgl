@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     import dgl
 
 
-def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]:
-    """Get the dictionary containing elements in the training set for atomic features.
+def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str, ...]:
+    """Get the tuple of elements in the training set for atomic features.
 
     Args:
         train_structures: pymatgen Molecule/Structure object
@@ -27,7 +27,7 @@ def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str]
     elements: set[str] = set()
     for s in train_structures:
         elements.update(s.composition.get_el_amt_dict().keys())
-    return tuple(sorted(elements, key=lambda el: Element(el).Z))  # type: ignore
+    return tuple(sorted(elements, key=lambda el: Element(el).Z))
 
 
 class Molecule2Graph(GraphConverter):
