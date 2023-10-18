@@ -797,7 +797,8 @@ class CHGNetAtomGraphBlock(nn.Module):
 class CHGNetLineGraphConv(nn.Module):
     """A CHGNet atom graph convolution layer in DGL.
 
-    This implements both the bond and angle update functions in the CHGNet paper as line graph updates.
+    This implements both the bond and angle update functions in the CHGNet paper
+    as line graph updates.
     """
 
     def __init__(
@@ -827,9 +828,12 @@ class CHGNetLineGraphConv(nn.Module):
     ) -> CHGNetLineGraphConv:
         """
         Args:
-            node_dims: NN architecture for node update function given as a list of dimensions of each layer.
-            edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
-            node_weight_input_dims: input dimensions for linear layer of node weights. (the RBF order)
+            node_dims: NN architecture for node update function given as a list of
+                dimensions of each layer.
+            edge_dims: NN architecture for edge update function given as a list of
+                dimensions of each layer.
+            node_weight_input_dims: input dimensions for linear layer of node weights.
+                (the RBF order)
                 If 0, no layer-wise weights are used.
 
         Returns:
@@ -863,7 +867,7 @@ class CHGNetLineGraphConv(nn.Module):
         return {"feat_update": messages_ij}
 
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
-        """Perform edge update -> angle features.
+        """Perform edge update -> update angle features.
 
         Args:
             graph: bond graph (line graph of atom graph)
@@ -876,7 +880,7 @@ class CHGNetLineGraphConv(nn.Module):
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
-        """Perform node update -> bond features.
+        """Perform node update -> update bond features.
 
         Args:
             graph: bond graph (line graph of atom graph)
@@ -1005,7 +1009,7 @@ class CHGNetBondGraphBlock(nn.Module):
         angle_features: Tensor,
         shared_node_weights: Tensor | None,
     ) -> tuple[Tensor, Tensor]:
-        """Perform sequence of bond->angle updates.
+        """Perform convolution in BondGraph to update bond and angle features.
 
         Args:
             graph: bond graph (line graph of atom graph)
