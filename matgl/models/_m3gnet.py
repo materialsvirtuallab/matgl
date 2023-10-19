@@ -22,6 +22,7 @@ from matgl.graph.compute import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
+    ensure_line_graph_compatibility,
 )
 from matgl.layers import (
     MLP,
@@ -232,17 +233,7 @@ class M3GNet(nn.Module, IOMixIn):
         if l_g is None:
             l_g = create_line_graph(g, self.threebody_cutoff)
         else:
-            valid_three_body = g.edata["bond_dist"] <= self.threebody_cutoff
-            if l_g.num_nodes() == g.edata["bond_vec"][valid_three_body].shape[0]:
-                l_g.ndata["bond_vec"] = g.edata["bond_vec"][valid_three_body]
-                l_g.ndata["bond_dist"] = g.edata["bond_dist"][valid_three_body]
-                l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][valid_three_body]
-            else:
-                three_body_id = torch.concatenate(l_g.edges())
-                max_three_body_id = torch.max(three_body_id) + 1 if three_body_id.numel() > 0 else 0
-                l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
-                l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
-                l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
+            l_g = ensure_line_graph_compatibility(g, l_g, self.threebody_cutoff)
         l_g.apply_edges(compute_theta_and_phi)
         g.edata["rbf"] = expanded_dists
         three_body_basis = self.basis_expansion(l_g)

@@ -100,7 +100,7 @@ Finally, we will initialize the Pytorch Lightning trainer and run the fitting. H
 # If you wish to disable GPU or MPS (M1 mac) training, use the accelerator="cpu" kwarg.
 logger = CSVLogger("logs", name="M3GNet_training")
 trainer = pl.Trainer(max_epochs=1, accelerator="cpu", logger=logger)
-trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
+trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader, inference_mode=False)
 ```
 
     GPU available: False, used: False
@@ -127,7 +127,27 @@ trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=va
 
     Epoch 0: 100%|██████████| 163/163 [00:40<00:00,  3.99it/s, v_num=1, val_Total_Loss=0.815, val_Energy_MAE=0.674, val_Force_MAE=0.289, val_Stress_MAE=0.000, val_Site_Wise_MAE=0.000, val_Energy_RMSE=0.730, val_Force_RMSE=0.419, val_Stress_RMSE=0.000, val_Site_Wise_RMSE=0.000, train_Total_Loss=21.60, train_Energy_MAE=2.500, train_Force_MAE=0.349, train_Stress_MAE=0.000, train_Site_Wise_MAE=0.000, train_Energy_RMSE=2.660, train_Force_RMSE=0.487, train_Stress_RMSE=0.000, train_Site_Wise_RMSE=0.000]
 
+```python
+# test the model, remember to set inference_mode=False in trainer (see above)
+trainer.test(dataloaders=test_loader)
+```
 
+    Restoring states from the checkpoint path at logs/M3GNet_training/version_0/checkpoints/epoch=0-step=163.ckpt
+    Loaded model weights from the checkpoint at logs/M3GNet_training/version_0/checkpoints/epoch=0-step=163.ckpt
+    Testing DataLoader 0: 100%|██████████| 21/21 [00:04<00:00,  4.25it/s]
+    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+    ┃        Test metric        ┃       DataLoader 0        ┃
+    ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+    │      test_Energy_MAE      │    0.39233624935150146    │
+    │     test_Energy_RMSE      │    0.47101688385009766    │
+    │      test_Force_MAE       │    0.2673814296722412     │
+    │      test_Force_RMSE      │    0.3861512243747711     │
+    │    test_Site_Wise_MAE     │            0.0            │
+    │    test_Site_Wise_RMSE    │            0.0            │
+    │      test_Stress_MAE      │            0.0            │
+    │     test_Stress_RMSE      │            0.0            │
+    │      test_Total_Loss      │     0.754666268825531     │
+    └───────────────────────────┴───────────────────────────┘
 
 ```python
 # save trained model
