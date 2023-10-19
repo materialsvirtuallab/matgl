@@ -105,7 +105,7 @@ class MEGNetDataset(DGLDataset):
             filename: file name for storing dgl graphs and target properties
             filename_state_attr: file name for storing state attributes
             structures: Pymatgen structure
-            labels: property values
+            labels: targets, as a dict of {name: list of values}.
             converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
             initial: initial distance for Gaussian expansions
             final: final distance for Gaussian expansions
@@ -213,14 +213,14 @@ class M3GNetDataset(DGLDataset):
     ):
         """
         Args:
-            filename: file name for storging dgl graphs
-            filename_line_graph: file name for storging dgl line graphs
-            filename_state_attr: file name for storging state attributes
-            filename_labels: file name for storging labels.
+            filename: file name for storing dgl graphs
+            filename_line_graph: file name for storing dgl line graphs
+            filename_state_attr: file name for storing state attributes
+            filename_labels: file name for storing labels.
             converter: dgl graph converter
             threebody_cutoff: cutoff for three body
             structures: Pymatgen structure
-            labels: target properties
+            labels: targets, as a dict of {name: list of values}.
             name: name of dataset
             label_name: name of target properties
             graph_labels: state attributes.
