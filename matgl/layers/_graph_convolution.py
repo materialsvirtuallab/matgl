@@ -555,7 +555,7 @@ class CHGNetGraphConv(nn.Module):
             CHGNetAtomGraphConv
         """
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
-        nodel_out_func = GatedMLP(in_feats=node_out_dims[0], dims=node_out_dims[1:], use_bias=False)
+        node_out_func = GatedMLP(in_feats=node_out_dims[0], dims=node_out_dims[1:], use_bias=False)
         node_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
         )
@@ -569,7 +569,7 @@ class CHGNetGraphConv(nn.Module):
 
         return cls(
             node_update_func=node_update_func,
-            node_out_func=nodel_out_func,
+            node_out_func=node_out_func,
             edge_update_func=edge_update_func,
             node_weight_func=node_weight_func,
             edge_weight_func=edge_weight_func,
