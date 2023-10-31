@@ -13,8 +13,9 @@ import torch
 
 from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
 
-logger = logging.getLogger(__file__)
-
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class IOMixIn:
     """Mixin class for model saving and loading.
@@ -127,7 +128,11 @@ class IOMixIn:
         d = {k: v for k, v in d.items() if not k.startswith("@")}
         model = cls(**d)
         model.load_state_dict(state, strict=False)  # type: ignore
-
+        total_params = sum(param.numel() for param in model.parameters())
+        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        logger.info(
+            f"The loaded model has {total_params:,d} parameters, among which {trainable_params:,d} are trainable."
+        )
         return model
 
 
