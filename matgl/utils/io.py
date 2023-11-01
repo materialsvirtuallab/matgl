@@ -39,11 +39,7 @@ class IOMixIn:
             kwargs: kwargs passed to the class.
         """
         args = inspect.getfullargspec(self.__class__.__init__).args
-        d = {
-            k: v
-            for k, v in locals.items()
-            if k in args and k not in ("self", "__class__")
-        }
+        d = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
         if kwargs is not None:
             d.update(kwargs)
 
@@ -58,12 +54,7 @@ class IOMixIn:
                 }
         self._init_args = d
 
-    def save(
-        self,
-        path: str | Path = ".",
-        metadata: dict | None = None,
-        makedirs: bool = True,
-    ):
+    def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
         """Save model to a directory.
 
         Three files will be saved.
@@ -115,9 +106,7 @@ class IOMixIn:
 
         Returns: model_object.
         """
-        fpaths = (
-            path if isinstance(path, dict) else _get_file_paths(Path(path), **kwargs)
-        )
+        fpaths = path if isinstance(path, dict) else _get_file_paths(Path(path), **kwargs)
 
         with open(fpaths["model.json"]) as f:
             model_data = json.load(f)
@@ -151,12 +140,7 @@ class IOMixIn:
 class RemoteFile:
     """Handling of download of remote files to a local cache."""
 
-    def __init__(
-        self,
-        uri: str,
-        cache_location: str | Path = MATGL_CACHE,
-        force_download: bool = False,
-    ):
+    def __init__(self, uri: str, cache_location: str | Path = MATGL_CACHE, force_download: bool = False):
         """
         Args:
             uri: Uniform resource identifier.
@@ -260,16 +244,9 @@ def _get_file_paths(path: Path, **kwargs):
         return {fn: path / fn for fn in fnames}
 
     try:
-        return {
-            fn: RemoteFile(
-                f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs
-            ).local_path
-            for fn in fnames
-        }
+        return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
     except requests.RequestException:
-        raise ValueError(
-            f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}."
-        ) from None
+        raise ValueError(f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}.") from None
 
 
 def _check_ver(cls_, d: dict):
@@ -299,9 +276,5 @@ def get_available_pretrained_models() -> list[str]:
     Returns:
         List of available models.
     """
-    r = requests.get(
-        "https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models"
-    )
-    return [
-        d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"
-    ]
+    r = requests.get("https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
+    return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"]
