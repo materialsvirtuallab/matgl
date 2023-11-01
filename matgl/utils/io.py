@@ -129,11 +129,12 @@ class IOMixIn:
         d = {k: v for k, v in d.items() if not k.startswith("@")}
         model = cls(**d)
         model.load_state_dict(state, strict=False)  # type: ignore
-        total_params = sum(param.numel() for param in model.parameters())
-        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        logger.info(
-            f"The loaded model has {total_params:,d} parameters, among which {trainable_params:,d} are trainable."
-        )
+        if hasattr(model, "parameters"):
+            total_params = sum(param.numel() for param in model.parameters())
+            trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+            logger.info(
+                f"The loaded model has {total_params:,d} parameters, among which {trainable_params:,d} are trainable."
+            )
         return model
 
 
