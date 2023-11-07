@@ -499,6 +499,7 @@ class CHGNetGraphConv(nn.Module):
     def __init__(
         self,
         node_update_func: Module,
+        node_out_func: Module,
         edge_update_func: Module | None,
         node_weight_func: Module | None,
         edge_weight_func: Module | None,
@@ -507,7 +508,8 @@ class CHGNetGraphConv(nn.Module):
         """
         Args:
             include_state: Whether including state
-            node_update_func: Update function for nodes (atoms)
+            node_update_func: Update function for message between nodes (atoms)
+            node_out_func: Output function for nodes (atoms), after message aggregation
             edge_update_func: Update function for edges (bonds). If None is given, the
                 edges are not updated.
             node_weight_func: Weight function for radial basis functions.
@@ -521,6 +523,7 @@ class CHGNetGraphConv(nn.Module):
         self.edge_update_func = edge_update_func
         self.edge_weight_func = edge_weight_func
         self.node_update_func = node_update_func
+        self.node_out_func = node_out_func
         self.node_weight_func = node_weight_func
         self.state_update_func = state_update_func
 
@@ -539,17 +542,21 @@ class CHGNetGraphConv(nn.Module):
 
         Args:
             activation: activation function
-            node_dims: NN architecture for node update function given as a list of dimensions of each layer.
-            edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
-            state_dims: NN architecture for state update function given as a list of dimensions of each layer.
+            node_dims: NN architecture for node update function given as a list of
+                dimensions of each layer.
+            edge_dims: NN architecture for edge update function given as a list of
+                dimensions of each layer.
+            state_dims: NN architecture for state update function given as a list of
+                dimensions of each layer.
             normalization: Normalization type to use in update functions. If None, no normalization is applied.
             normalize_hidden: Whether to normalize hidden features.
-            rbf_order: RBF order specifying input dimensions for linear layer specifying message weights.
-                If 0, no layer-wise weights are used.
+            rbf_order: RBF order specifying input dimensions for linear layer
+                specifying message weights. If 0, no layer-wise weights are used.
 
         Returns:
             CHGNetAtomGraphConv
         """
+
         if normalization == "graph":
             norm_kwargs = {"batched_field": "edge"}
         else:
@@ -563,6 +570,7 @@ class CHGNetGraphConv(nn.Module):
             normalize_hidden=normalize_hidden,
             norm_kwargs=norm_kwargs,
         )
+        node_out_func = nn.Linear(in_features=node_dims[-1], out_features=node_dims[-1], bias=False)
         node_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
         )
@@ -594,6 +602,7 @@ class CHGNetGraphConv(nn.Module):
 
         return cls(
             node_update_func=node_update_func,
+            node_out_func=node_out_func,
             edge_update_func=edge_update_func,
             node_weight_func=node_weight_func,
             edge_weight_func=edge_weight_func,
@@ -679,7 +688,9 @@ class CHGNetGraphConv(nn.Module):
         # message passing
         graph.edata["message"] = messages
         graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "feat_update"))
-        node_update = graph.ndata["feat_update"]
+
+        # update nodes
+        node_update = self.node_out_func(graph.ndata["feat_update"], graph)  # the bond update
 
         return node_update
 
@@ -807,7 +818,6 @@ class CHGNetAtomGraphBlock(nn.Module):
             self.bond_norm = None
 
         self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
-        self.out_layer = nn.Linear(num_atom_feats, num_atom_feats, bias=False)
 
     def forward(
         self,
@@ -837,7 +847,7 @@ class CHGNetAtomGraphBlock(nn.Module):
             shared_edge_weights=shared_edge_weights,
         )
         # move skip connections here? dropout before skip connections?
-        atom_features = self.out_layer(self.dropout(atom_features))
+        atom_features = self.dropout(atom_features)
         bond_features = self.dropout(bond_features)
         if self.atom_norm is not None:
             atom_features = self.atom_norm(atom_features, graph)
@@ -852,24 +862,28 @@ class CHGNetAtomGraphBlock(nn.Module):
 class CHGNetLineGraphConv(nn.Module):
     """A CHGNet atom graph convolution layer in DGL.
 
-    This implements both the bond and angle update functions in the CHGNet paper as line graph updates.
+    This implements both the bond and angle update functions in the CHGNet paper
+    as line graph updates.
     """
 
     def __init__(
         self,
         node_update_func: Module,
+        node_out_func: Module,
         edge_update_func: Module | None,
         node_weight_func: Module | None,
     ):
         """
         Args:
-            node_update_func: node update function (for bond features)
+            node_update_func: Update function for message between nodes (bonds)
+            node_out_func: Output function for nodes (bonds), after message aggregation
             edge_update_func: edge update function (for angle features)
             node_weight_func: layer node weight function.
         """
         super().__init__()
 
         self.node_update_func = node_update_func
+        self.node_out_func = node_out_func
         self.node_weight_func = node_weight_func
         self.edge_update_func = edge_update_func
 
@@ -885,12 +899,14 @@ class CHGNetLineGraphConv(nn.Module):
     ) -> CHGNetLineGraphConv:
         """
         Args:
-            node_dims: NN architecture for node update function given as a list of dimensions of each layer.
-            edge_dims: NN architecture for edge update function given as a list of dimensions of each layer.
-            activation: activation function. If None, SilU is used.
+            node_dims: NN architecture for node update function given as a list of
+                dimensions of each layer.
+            edge_dims: NN architecture for edge update function given as a list of
+                dimensions of each layer.
             normalization: Normalization type to use in update functions. If None, no normalization is applied.
             normalize_hidden: Whether to normalize hidden features.
-            node_weight_input_dims: input dimensions for linear layer of node weights. (the RBF order)
+            node_weight_input_dims: input dimensions for linear layer of node weights.
+                (the RBF order)
                 If 0, no layer-wise weights are used.
 
         Returns:
@@ -909,6 +925,8 @@ class CHGNetLineGraphConv(nn.Module):
             normalize_hidden=normalize_hidden,
             norm_kwargs=norm_kwargs,
         )
+        node_out_func = nn.Linear(in_features=node_dims[-1], out_features=node_dims[-1], bias=False)
+
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
         edge_update_func = (
             GatedMLP(
@@ -924,7 +942,10 @@ class CHGNetLineGraphConv(nn.Module):
         )
 
         return cls(
-            node_update_func=node_update_func, edge_update_func=edge_update_func, node_weight_func=node_weight_func
+            node_update_func=node_update_func,
+            node_out_func=node_out_func,
+            edge_update_func=edge_update_func,
+            node_weight_func=node_weight_func,
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
@@ -947,7 +968,7 @@ class CHGNetLineGraphConv(nn.Module):
         return {"feat_update": messages_ij}
 
     def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
-        """Perform edge update -> angle features.
+        """Perform edge update -> update angle features.
 
         Args:
             graph: bond graph (line graph of atom graph)
@@ -960,7 +981,7 @@ class CHGNetLineGraphConv(nn.Module):
         return edge_update
 
     def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
-        """Perform node update -> bond features.
+        """Perform node update -> update bond features.
 
         Args:
             graph: bond graph (line graph of atom graph)
@@ -993,7 +1014,9 @@ class CHGNetLineGraphConv(nn.Module):
         # message passing
         graph.edata["message"] = messages
         graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "feat_update"))
-        node_update = graph.ndata["feat_update"]  # the bond update
+
+        # update nodes
+        node_update = self.node_out_func(graph.ndata["feat_update"])  # the bond update
         return node_update
 
     def forward(
@@ -1098,7 +1121,6 @@ class CHGNetBondGraphBlock(nn.Module):
 
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
-        self.out_layer = nn.Linear(num_bond_feats, num_bond_feats, bias=False)
 
     def forward(
         self,
@@ -1108,7 +1130,7 @@ class CHGNetBondGraphBlock(nn.Module):
         angle_features: Tensor,
         shared_node_weights: Tensor | None,
     ) -> tuple[Tensor, Tensor]:
-        """Perform sequence of bond->angle updates.
+        """Perform convolution in BondGraph to update bond and angle features.
 
         Args:
             graph: bond graph (line graph of atom graph)
@@ -1128,7 +1150,7 @@ class CHGNetBondGraphBlock(nn.Module):
             graph, node_features, edge_features, aux_edge_features, shared_node_weights
         )
 
-        bond_features_ = self.out_layer(self.bond_dropout(bond_features_))
+        bond_features_ = self.bond_dropout(bond_features_)
         angle_features = self.angle_dropout(angle_features)
         if self.bond_norm is not None:
             bond_features_ = self.bond_norm(bond_features_, graph)
