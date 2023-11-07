@@ -532,7 +532,6 @@ class CHGNetGraphConv(nn.Module):
         cls,
         activation: Module,
         node_dims: Sequence[int],
-        node_out_dims: Sequence[int],
         edge_dims: Sequence[int] | None = None,
         state_dims: Sequence[int] | None = None,
         normalization: Literal["graph", "layer"] | None = None,
@@ -544,8 +543,6 @@ class CHGNetGraphConv(nn.Module):
         Args:
             activation: activation function
             node_dims: NN architecture for node update function given as a list of
-                dimensions of each layer.
-            node_out_dims: NN architecture for node output function given as a list of
                 dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of
                 dimensions of each layer.
@@ -559,6 +556,7 @@ class CHGNetGraphConv(nn.Module):
         Returns:
             CHGNetAtomGraphConv
         """
+
         if normalization == "graph":
             norm_kwargs = {"batched_field": "edge"}
         else:
@@ -572,7 +570,7 @@ class CHGNetGraphConv(nn.Module):
             normalize_hidden=normalize_hidden,
             norm_kwargs=norm_kwargs,
         )
-        node_out_func = GatedMLP(in_feats=node_out_dims[0], dims=node_out_dims[1:], use_bias=False)
+        node_out_func = nn.Linear(in_features=node_dims[-1], out_features=node_dims[-1], bias=False)
         node_weight_func = (
             nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
         )
@@ -797,13 +795,11 @@ class CHGNetAtomGraphBlock(nn.Module):
         else:
             state_dims = None
         node_dims = [node_input_dim, *atom_hidden_dims, num_atom_feats]
-        node_out_dims = [num_atom_feats, *atom_hidden_dims, num_atom_feats]
         edge_dims = [node_input_dim, *bond_hidden_dims, num_bond_feats] if bond_hidden_dims is not None else None
 
         self.conv_layer = CHGNetGraphConv.from_dims(
             activation=activation,
             node_dims=node_dims,
-            node_out_dims=node_out_dims,
             edge_dims=edge_dims,
             state_dims=state_dims,
             normalization=normalization,
@@ -895,7 +891,6 @@ class CHGNetLineGraphConv(nn.Module):
     def from_dims(
         cls,
         node_dims: list[int],
-        node_out_dims: list[int],
         edge_dims: list[int] | None = None,
         activation: Module | None = None,
         normalization: Literal["graph", "layer"] | None = None,
@@ -905,8 +900,6 @@ class CHGNetLineGraphConv(nn.Module):
         """
         Args:
             node_dims: NN architecture for node update function given as a list of
-                dimensions of each layer.
-            node_out_dims: NN architecture for node output function given as a list of
                 dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of
                 dimensions of each layer.
@@ -932,7 +925,7 @@ class CHGNetLineGraphConv(nn.Module):
             normalize_hidden=normalize_hidden,
             norm_kwargs=norm_kwargs,
         )
-        node_out_func = GatedMLP(in_feats=node_out_dims[0], dims=node_out_dims[1:], use_bias=False)
+        node_out_func = nn.Linear(in_features=node_dims[-1], out_features=node_dims[-1], bias=False)
 
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
         edge_update_func = (
@@ -1105,12 +1098,10 @@ class CHGNetBondGraphBlock(nn.Module):
 
         node_input_dim = 2 * num_bond_feats + num_angle_feats + num_atom_feats
         node_dims = [node_input_dim, *bond_hidden_dims, num_bond_feats]
-        node_out_dims = [num_bond_feats, *bond_hidden_dims, num_bond_feats]
         edge_dims = [node_input_dim, *angle_hidden_dims, num_angle_feats] if angle_hidden_dims is not None else None
 
         self.conv_layer = CHGNetLineGraphConv.from_dims(
             node_dims=node_dims,
-            node_out_dims=node_out_dims,
             edge_dims=edge_dims,
             activation=activation,
             normalization=normalization,
