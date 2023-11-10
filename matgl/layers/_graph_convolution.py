@@ -689,8 +689,8 @@ class CHGNetGraphConv(nn.Module):
         graph.edata["message"] = messages
         graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "feat_update"))
 
-        # update nodes
-        node_update = self.node_out_func(graph.ndata["feat_update"], graph)  # the bond update
+        # update nodesq
+        node_update = self.node_out_func(graph.ndata["feat_update"])  # the bond update
 
         return node_update
 
