@@ -203,11 +203,8 @@ class MEGNetDataset(DGLDataset):
         self.graphs, self.labels = load_graphs(self.filename)
         self.lattices = torch.load(self.filename_lattice)
         self.state_attr = torch.load(self.filename_state_attr)
-        if os.path.exists(self.filename_labels):
-            with open(self.filename_labels) as f:
-                self.labels = json.load(f)
-        else:
-            self.labels = {}
+        with open(self.filename_labels) as f:
+            self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
@@ -343,11 +340,8 @@ class M3GNetDataset(DGLDataset):
         self.lattices = torch.load(self.filename_lattice)
         self.line_graphs, _ = load_graphs(self.filename_line_graph)
         self.state_attr = torch.load(self.filename_state_attr)
-        if os.path.exists(self.filename_labels):
-            with open(self.filename_labels) as f:
-                self.labels = json.load(f)
-        else:
-            self.labels = {}
+        with open(self.filename_labels) as f:
+            self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""

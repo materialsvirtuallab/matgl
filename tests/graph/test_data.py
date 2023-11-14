@@ -50,6 +50,7 @@ class TestDataset:
         os.remove("dgl_graph.bin")
         os.remove("lattice.pt")
         os.remove("state_attr.pt")
+        os.remove("labels.json")
 
     def test_megnet_dataset_for_mol(self, CH4):
         element_types = get_element_list([CH4])
@@ -153,6 +154,7 @@ class TestDataset:
         os.remove("lattice.pt")
         os.remove("dgl_line_graph.bin")
         os.remove("state_attr.pt")
+        os.remove("labels.json")
 
     def test_megnet_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4] * 10 + [BaNiO3] * 10
