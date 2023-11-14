@@ -570,9 +570,13 @@ class CHGNetGraphConv(nn.Module):
             normalize_hidden=normalize_hidden,
             norm_kwargs=norm_kwargs,
         )
-        node_out_func = nn.Linear(in_features=node_dims[-1], out_features=node_dims[-1], bias=False)
+        node_out_func = nn.Linear(
+            in_features=node_dims[-1], out_features=node_dims[-1], bias=False
+        )
         node_weight_func = (
-            nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
+            nn.Linear(
+                in_features=rbf_order, out_features=node_dims[-1], bias=False
+            ) if rbf_order > 0 else None
         )
         edge_update_func = (
             GatedMLP(
@@ -595,9 +599,8 @@ class CHGNetGraphConv(nn.Module):
             MLP(
                 state_dims,
                 activation,
-                activate_last=True,            )
-            if state_dims is not None
-            else None
+                activate_last=True,
+            ) if state_dims is not None else None
         )
 
         return cls(
@@ -681,6 +684,7 @@ class CHGNetGraphConv(nn.Module):
             rbf = graph.edata["bond_expansion"]
             rbf = rbf.float()
             messages = messages * self.node_weight_func(rbf)
+
         # smooth out the messages with shared weights
         if shared_weights is not None:
             messages = messages * shared_weights
@@ -689,7 +693,7 @@ class CHGNetGraphConv(nn.Module):
         graph.edata["message"] = messages
         graph.update_all(fn.copy_e("message", "message"), fn.sum("message", "feat_update"))
 
-        # update nodesq
+        # update nodes
         node_update = self.node_out_func(graph.ndata["feat_update"])  # the bond update
 
         return node_update
@@ -1017,6 +1021,7 @@ class CHGNetLineGraphConv(nn.Module):
 
         # update nodes
         node_update = self.node_out_func(graph.ndata["feat_update"])  # the bond update
+
         return node_update
 
     def forward(
@@ -1109,16 +1114,6 @@ class CHGNetBondGraphBlock(nn.Module):
             node_weight_input_dims=rbf_order,
         )
 
-        if normalization == "graph":
-            self.bond_norm = GraphNorm(num_bond_feats, batched_field="node")
-            self.angle_norm = GraphNorm(num_angle_feats, batched_field="edge")
-        elif normalization == "layer":
-            self.bond_norm = LayerNorm(num_bond_feats)
-            self.angle_norm = LayerNorm(num_angle_feats)
-        else:
-            self.bond_norm = None
-            self.angle_norm = None
-
         self.bond_dropout = nn.Dropout(bond_dropout) if bond_dropout > 0.0 else nn.Identity()
         self.angle_dropout = nn.Dropout(angle_dropout) if angle_dropout > 0.0 else nn.Identity()
 
@@ -1152,10 +1147,7 @@ class CHGNetBondGraphBlock(nn.Module):
 
         bond_features_ = self.bond_dropout(bond_features_)
         angle_features = self.angle_dropout(angle_features)
-        if self.bond_norm is not None:
-            bond_features_ = self.bond_norm(bond_features_, graph)
-        if self.angle_norm is not None:
-            angle_features = self.angle_norm(angle_features, graph)
 
         bond_features[graph.ndata["bond_index"]] = bond_features_
+
         return bond_features, angle_features
