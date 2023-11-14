@@ -116,7 +116,7 @@ class TestModelTrainer:
         model = M3GNet(element_types=element_types, is_intensive=False)
         lit_model = PotentialLightningModule(model=model, stress_weight=0.0001)
         # We will use CPU if MPS is available since there is a serious bug.
-        trainer = pl.Trainer(max_epochs=5, accelerator=device, inference_mode=False)
+        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
         trainer.test(lit_model, dataloaders=test_loader)
@@ -127,6 +127,26 @@ class TestModelTrainer:
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
+        # specify customize optimizer and scheduler
+        from torch.optim.lr_scheduler import CosineAnnealingLR
+
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1.0e-3, weight_decay=1.0e-5, amsgrad=True)
+        scheduler = CosineAnnealingLR(optimizer, T_max=1000 * 10, eta_min=1.0e-2 * 1.0e-3)
+        lit_model = PotentialLightningModule(
+            model=model, stress_weight=0.0001, loss="l1_loss", optimizer=optimizer, scheduler=scheduler
+        )
+        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer.test(lit_model, dataloaders=test_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
+
+        # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
+        assert pred_LFP_energy < 0
+        assert pred_BNO_energy < 0
+
         os.remove("dgl_graph.bin")
         os.remove("lattice.pt")
         os.remove("dgl_line_graph.bin")
