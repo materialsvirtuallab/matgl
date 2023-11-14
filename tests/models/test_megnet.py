@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import os
 
+import numpy as np
 import pytest
 import torch as th
 from pymatgen.core import Lattice, Structure
 
+import matgl
+from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 
@@ -13,6 +16,11 @@ from matgl.models import MEGNet
 class TestMEGNet:
     def test_megnet(self, graph_MoS):
         structure, graph, state = graph_MoS
+        lat = th.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
+        graph.edata["pbc_offshift"] = th.matmul(graph.edata["pbc_offset"], lat[0])
+        graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
+        bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
+        graph.edata["bond_dist"] = bond_dist
         for act in ["tanh", "sigmoid", "softplus2", "softexp", "swish"]:
             model = MEGNet(
                 dim_node_embedding=16,

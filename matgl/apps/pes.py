@@ -31,6 +31,7 @@ class Potential(nn.Module, IOMixIn):
         calc_stresses: bool = True,
         calc_hessian: bool = False,
         calc_site_wise: bool = False,
+        debug_mode: bool = False,
     ):
         """Initialize Potential from a model and elemental references.
 
@@ -43,6 +44,7 @@ class Potential(nn.Module, IOMixIn):
             calc_stresses: Enable stress calculations.
             calc_hessian: Enable hessian calculations.
             calc_site_wise: Enable site-wise property calculation.
+            debug_mode: return gradient of total energy with respect to atomic positions and lattices for checking
         """
         super().__init__()
         self.save_args(locals())
@@ -52,6 +54,7 @@ class Potential(nn.Module, IOMixIn):
         self.calc_hessian = calc_hessian
         self.calc_site_wise = calc_site_wise
         self.element_refs: AtomRef | None
+        self.debug_mode = debug_mode
         if element_refs is not None:
             self.element_refs = AtomRef(property_offset=torch.tensor(element_refs, dtype=matgl.float_th))
         else:
@@ -63,16 +66,31 @@ class Potential(nn.Module, IOMixIn):
         self.register_buffer("data_std", torch.tensor(data_std, dtype=matgl.float_th))
 
     def forward(
-        self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None
+        self,
+        g: dgl.DGLGraph,
+        lat: torch.Tensor,
+        state_attr: torch.Tensor | None = None,
+        l_g: dgl.DGLGraph | None = None,
     ) -> tuple[torch.Tensor, ...]:
         """Args:
             g: DGL graph
+            lat: lattice
             state_attr: State attrs
             l_g: Line graph.
 
         Returns:
             (energies, forces, stresses, hessian) or (energies, forces, stresses, hessian, site-wise properties)
         """
+        # st (strain) for stress calculations
+        st = lat.new_zeros([g.batch_size, 3, 3])
+        if self.calc_stresses:
+            st.requires_grad_(True)
+        lattice = lat @ (torch.eye(3) + st)
+        g.edata["lattice"] = torch.repeat_interleave(lattice, g.batch_num_edges(), dim=0)
+        g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
+        g.ndata["pos"] = (
+            g.ndata["frac_coords"].unsqueeze(dim=-1) * torch.repeat_interleave(lattice, g.batch_num_nodes(), dim=0)
+        ).sum(dim=1)
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
 
@@ -91,10 +109,12 @@ class Potential(nn.Module, IOMixIn):
         stresses = torch.zeros(1)
         hessian = torch.zeros(1)
 
+        grad_vars = [g.ndata["pos"], st] if self.calc_stresses else [g.ndata["pos"]]
+
         if self.calc_forces:
             grads = grad(
                 total_energies,
-                [g.ndata["pos"], g.edata["bond_vec"]],
+                grad_vars,
                 grad_outputs=torch.ones_like(total_energies),
                 create_graph=True,
                 retain_graph=True,
@@ -111,25 +131,14 @@ class Potential(nn.Module, IOMixIn):
                     hessian[iatom] = tmp.view(-1)
 
         if self.calc_stresses:
-            f_ij = -grads[1]
-            sts: list = []
-            count_edge = 0
-            count_node = 0
-            for graph_id in range(g.batch_size):
-                num_edges = g.batch_num_edges()[graph_id]
-                num_nodes = 0
-                sts.append(
-                    -160.21766208
-                    * torch.matmul(
-                        g.edata["bond_vec"][count_edge : count_edge + num_edges].T,
-                        f_ij[count_edge : count_edge + num_edges],
-                    )
-                    / g.ndata["volume"][count_node + num_nodes]
-                )
-                count_edge = count_edge + num_edges
-                num_nodes = g.batch_num_nodes()[graph_id]
-                count_node = count_node + num_nodes
+            volume = torch.det(lattice)
+            sts = -grads[1]
+            scale = 1.0 / volume * -160.21766208
+            sts = [i * j for i, j in zip(sts, scale)] if sts.dim() == 3 else [sts * scale]
             stresses = torch.cat(sts)
+
+        if self.debug_mode:
+            return total_energies, grads[0], grads[1]
 
         if self.calc_site_wise:
             return total_energies, forces, stresses, hessian, site_wise

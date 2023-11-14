@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 from pymatgen.core import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
@@ -13,6 +12,7 @@ from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
     import dgl
+    import torch
 
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str, ...]:
@@ -47,11 +47,14 @@ class Molecule2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, mol: Molecule) -> tuple[dgl.DGLGraph, list]:
+    def get_graph(self, mol: Molecule) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
         """Get a DGL graph from an input molecule.
 
         :param mol: pymatgen molecule object
-        :return: (dgl graph, state features)
+        :return:
+            g: DGL graph
+            lat: default lattice for molecular systems (np.ones)
+            state_attr: state features
         """
         natoms = len(mol)
         R = mol.cart_coords
@@ -63,17 +66,17 @@ class Molecule2Graph(GraphConverter):
         nbonds /= natoms
         adj = sp.csr_matrix(dist <= self.cutoff) - sp.eye(natoms, dtype=np.bool_)
         adj = adj.tocoo()
-        g, _ = super().get_graph_from_processed_structure(
-            structure=mol,
-            src_id=adj.row,
-            dst_id=adj.col,
-            images=np.zeros((len(adj.row), 3)),
-            lattice_matrix=np.zeros((1, 3, 3)),
-            element_types=element_types,
-            cart_coords=R,
+        g, lat, _ = super().get_graph_from_processed_structure(
+            mol,
+            adj.row,
+            adj.col,
+            np.zeros((len(adj.row), 3)),
+            np.expand_dims(np.identity(3), axis=0),
+            element_types,
+            R,
         )
         state_attr = [weight, nbonds]
-        return g, state_attr
+        return g, lat, state_attr
 
 
 class Structure2Graph(GraphConverter):
@@ -93,19 +96,19 @@ class Structure2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, list]:
+    def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
         """Get a DGL graph from an input Structure.
 
         :param structure: pymatgen structure object
         :return:
             g: DGL graph
+            lat: lattice for periodic systems
             state_attr: state features
         """
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
         lattice_matrix = structure.lattice.matrix
-        volume = structure.volume
         cart_coords = structure.cart_coords
         src_id, dst_id, images, bond_dist = find_points_in_spheres(
             cart_coords,
@@ -122,14 +125,13 @@ class Structure2Graph(GraphConverter):
             images[exclude_self],
             bond_dist[exclude_self],
         )
-        g, state_attr = super().get_graph_from_processed_structure(
+        g, lat, state_attr = super().get_graph_from_processed_structure(
             structure,
             src_id,
             dst_id,
             images,
             [lattice_matrix],
             element_types,
-            cart_coords,
+            structure.frac_coords,
         )
-        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes())
-        return g, state_attr
+        return g, lat, state_attr

@@ -6,7 +6,6 @@ import os
 from functools import partial
 
 import numpy as np
-import torch
 from dgl.data.utils import split_dataset
 from pymatgen.core import Molecule
 
@@ -19,50 +18,57 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 class TestDataset:
     def test_megnet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
-        label = torch.tensor([-1.0, 2.0])
+        label = [-1.0, 2.0]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MEGNetDataset(
             structures=structures, converter=cry_graph, labels={"label": label}, clear_processed=True
         )
-        g1, state1, label1 = dataset[0]
-        g2, state2, label2 = dataset[1]
+        g1, lat1, state1, label1 = dataset[0]
+        g2, lat2, state2, label2 = dataset[1]
         assert label1["label"] == label[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+        assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
+        assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
         # Check that structures are indeed cleared.
         assert len(dataset.structures) == 0
 
     def test_load_megenet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
-        label = torch.tensor([-1.0, 2.0])
+        label = [-1.0, 2.0]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MEGNetDataset()
-        g1, state1, label1 = dataset[0]
+        g1, lat1, state1, label1 = dataset[0]
         assert label1["label"] == label[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
+        assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
         os.remove("dgl_graph.bin")
+        os.remove("lattice.pt")
         os.remove("state_attr.pt")
 
     def test_megnet_dataset_for_mol(self, CH4):
         element_types = get_element_list([CH4])
         mol_graph = Molecule2Graph(element_types=element_types, cutoff=1.5)
-        label = torch.tensor([1.0, 2.0])
+        label = [1.0, 2.0]
         structures = [CH4, CH4]
         dataset = MEGNetDataset(structures=structures, converter=mol_graph, labels={"label": label}, name="MolDataset")
-        g1, state1, label1 = dataset[0]
-        g2, state2, label2 = dataset[1]
+        g1, lat1, state1, label1 = dataset[0]
+        g2, lat2, state2, label2 = dataset[1]
         assert label1["label"] == label[0]
         assert g1.num_edges() == mol_graph.get_graph(CH4)[0].num_edges()
         assert g1.num_nodes() == mol_graph.get_graph(CH4)[0].num_nodes()
         assert g2.num_edges() == mol_graph.get_graph(CH4)[0].num_edges()
         assert g2.num_nodes() == mol_graph.get_graph(CH4)[0].num_nodes()
+        assert np.allclose(lat1.detach().numpy(), np.expand_dims(np.identity(3), axis=0))
         os.remove("dgl_graph.bin")
+        os.remove("lattice.pt")
         os.remove("state_attr.pt")
+        os.remove("labels.json")
 
     def test_m3gnet_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
@@ -78,8 +84,8 @@ class TestDataset:
             labels={"energies": energies, "forces": forces, "stresses": stresses},
             clear_processed=True,
         )
-        g1, l_g1, state1, pes1 = dataset[0]
-        g2, l_g2, state2, pes2 = dataset[1]
+        g1, lat1, l_g1, state1, pes1 = dataset[0]
+        g2, lat2, l_g2, state2, pes2 = dataset[1]
         assert pes1["energies"] == energies[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -87,6 +93,8 @@ class TestDataset:
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
         assert np.shape(pes1["forces"])[0], 28
         assert np.shape(pes2["forces"])[0], 10
+        assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
+        assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
         # Check that structures are indeed cleared.
         assert len(dataset.structures) == 0
 
@@ -96,8 +104,8 @@ class TestDataset:
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = M3GNetDataset()
         dataset.load()
-        g1, l_g1, state1, pes1 = dataset[0]
-        g2, l_g2, state2, pes2 = dataset[1]
+        g1, lat1, l_g1, state1, pes1 = dataset[0]
+        g2, lat2, l_g2, state2, pes2 = dataset[1]
         assert pes1["energies"] == -1.0
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -105,6 +113,8 @@ class TestDataset:
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
         assert np.shape(pes1["forces"])[0], 28
         assert np.shape(pes2["forces"])[0], 10
+        assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
+        assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
 
     def test_m3gnet_property_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
@@ -118,32 +128,35 @@ class TestDataset:
             threebody_cutoff=4.0,
             labels={"Eform_per_atom": labels},
         )
-        g1, l_g1, state1, label1 = dataset[0]
-        g2, l_g2, state2, label2 = dataset[1]
+        g1, lat1, l_g1, state1, label1 = dataset[0]
+        g2, lat2, l_g2, state2, label2 = dataset[1]
         assert label1["Eform_per_atom"] == labels[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
+        assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
+        assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
         dataset.save()
 
         dataset = M3GNetDataset(
             filename_labels="eform.json",
         )
-        g1, l_g1, state1, label1 = dataset[0]
-        g2, l_g2, state2, label2 = dataset[1]
+        g1, lat1, l_g1, state1, label1 = dataset[0]
+        g2, lat2, l_g2, state2, label2 = dataset[1]
         assert label1["Eform_per_atom"] == labels[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
         os.remove("dgl_graph.bin")
+        os.remove("lattice.pt")
         os.remove("dgl_line_graph.bin")
         os.remove("state_attr.pt")
 
     def test_megnet_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4] * 10 + [BaNiO3] * 10
-        label = torch.zeros(20)
+        label = np.zeros(20).tolist()
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MEGNetDataset(structures=structures, converter=cry_graph, labels={"label": label})
@@ -165,7 +178,9 @@ class TestDataset:
         assert len(val_loader) == 1
         assert len(test_loader) == 1
         os.remove("dgl_graph.bin")
+        os.remove("lattice.pt")
         os.remove("state_attr.pt")
+        os.remove("labels.json")
 
     def test_megnet_dataloader_for_mol(self):
         coords = [
@@ -177,7 +192,7 @@ class TestDataset:
         ]
         m1 = Molecule(["C", "H", "H", "H", "H"], coords)
         structures = [m1, m1, m1, m1, m1, m1, m1, m1, m1, m1]
-        label = torch.zeros(10)
+        label = np.zeros(10).tolist()
         element_types = get_element_list([m1])
         mol_graph = Molecule2Graph(element_types=element_types, cutoff=1.5)
         dataset = MEGNetDataset(structures=structures, converter=mol_graph, labels={"label": label})
@@ -199,6 +214,7 @@ class TestDataset:
         assert len(val_loader) == 1
         assert len(test_loader) == 1
         os.remove("dgl_graph.bin")
+        os.remove("lattice.pt")
         os.remove("state_attr.pt")
 
     def test_m3gnet_dataloader(self, LiFePO4, BaNiO3):
@@ -235,6 +251,7 @@ class TestDataset:
         assert len(val_loader) == 1
         assert len(test_loader) == 1
         os.remove("dgl_graph.bin")
+        os.remove("lattice.pt")
         os.remove("dgl_line_graph.bin")
         os.remove("state_attr.pt")
 
@@ -272,6 +289,7 @@ class TestDataset:
         assert len(val_loader) == 1
         assert len(test_loader) == 1
         os.remove("dgl_graph.bin")
+        os.remove("lattice.pt")
         os.remove("dgl_line_graph.bin")
         os.remove("state_attr.pt")
 
@@ -305,7 +323,7 @@ class TestDataset:
 
     @classmethod
     def teardown_class(cls):
-        for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json", "eform.json"):
+        for fn in ("dgl_graph.bin", "lattice.pt", "dgl_line_graph.bin", "state_attr.pt", "labels.json", "eform.json"):
             try:
                 os.remove(fn)
             except FileNotFoundError:

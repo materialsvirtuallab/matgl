@@ -14,7 +14,6 @@ import ase.optimize as opt
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
-import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
@@ -27,11 +26,11 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
-import matgl
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
     import dgl
+    import torch
     from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
 
@@ -69,7 +68,7 @@ class Atoms2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, list]:
+    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
         """Get a DGL graph from an input Atoms.
 
         Args:
@@ -82,8 +81,7 @@ class Atoms2Graph(GraphConverter):
         numerical_tol = 1.0e-8
         pbc = np.array([1, 1, 1], dtype=int)
         element_types = self.element_types
-        lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.zeros((1, 3, 3))
-        volume = atoms.get_volume() if atoms.pbc.all() else 0.0
+        lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.expand_dims(np.identity(3), axis=0)
         cart_coords = atoms.get_positions()
         if atoms.pbc.all():
             src_id, dst_id, images, bond_dist = find_points_in_spheres(
@@ -107,18 +105,18 @@ class Atoms2Graph(GraphConverter):
             adj = adj.tocoo()
             src_id = adj.row
             dst_id = adj.col
-        g, state_attr = super().get_graph_from_processed_structure(
+        g, lat, state_attr = super().get_graph_from_processed_structure(
             atoms,
             src_id,
             dst_id,
             images if atoms.pbc.all() else np.zeros((len(adj.row), 3)),
             [lattice_matrix] if atoms.pbc.all() else lattice_matrix,
             element_types,
-            cart_coords,
+            atoms.get_scaled_positions(False) if atoms.pbc.all() else cart_coords,
             is_atoms=True,
         )
-        g.ndata["volume"] = torch.tensor([volume] * g.num_nodes(), dtype=matgl.float_th)
-        return g, state_attr
+
+        return g, lat, state_attr
 
 
 class M3GNetCalculator(Calculator):
@@ -140,7 +138,7 @@ class M3GNetCalculator(Calculator):
             potential (Potential): m3gnet.models.Potential
             state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
-            stress_weight (float): the stress weight.
+            stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
             **kwargs: Kwargs pass through to super().__init__().
         """
         super().__init__(**kwargs)
@@ -171,11 +169,12 @@ class M3GNetCalculator(Calculator):
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
-        graph, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)  # type: ignore
+        graph, lattice, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)
+        # type: ignore
         if self.state_attr is not None:
-            energies, forces, stresses, hessians = self.potential(graph, self.state_attr)
+            energies, forces, stresses, hessians = self.potential(graph, lattice, self.state_attr)
         else:
-            energies, forces, stresses, hessians = self.potential(graph, state_attr_default)
+            energies, forces, stresses, hessians = self.potential(graph, lattice, state_attr_default)
         self.results.update(
             energy=energies.detach().cpu().numpy(),
             free_energy=energies.detach().cpu().numpy(),
@@ -196,7 +195,7 @@ class Relaxer:
         state_attr: torch.Tensor | None = None,
         optimizer: Optimizer | str = "FIRE",
         relax_cell: bool = True,
-        stress_weight: float = 0.01,
+        stress_weight: float = 1 / 160.21766208,
     ):
         """
         Args:
@@ -206,7 +205,7 @@ class Relaxer:
             optimizer (str or ase Optimizer): the optimization algorithm.
             Defaults to "FIRE"
             relax_cell (bool): whether to relax the lattice cell
-            stress_weight (float): the stress weight for relaxation.
+            stress_weight (float): conversion factor from GPa to eV/A^3.
         """
         self.optimizer: Optimizer = OPTIMIZERS[optimizer.lower()].value if isinstance(optimizer, str) else optimizer
         self.calculator = M3GNetCalculator(
@@ -333,6 +332,7 @@ class MolecularDynamics:
         atoms: Atoms,
         potential: Potential,
         state_attr: torch.Tensor | None = None,
+        stress_weight: float = 1 / 160.21766208,
         ensemble: Literal["nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
@@ -359,6 +359,7 @@ class MolecularDynamics:
             potential (Potential): potential for calculating the energy, force,
             stress of the atoms
             state_attr (torch.Tensor): State attr.
+            stress_weight (float): conversion factor from GPa to eV/A^3
             ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
             use with extra caution
             temperature (float): temperature for MD simulation, in K

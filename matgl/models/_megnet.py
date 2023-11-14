@@ -214,7 +214,9 @@ class MEGNet(nn.Module, IOMixIn):
             from matgl.ext.pymatgen import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
-        g, state_feats_default = graph_converter.get_graph(structure)
+        g, lat, state_feats_default = graph_converter.get_graph(structure)
+        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
+        g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
