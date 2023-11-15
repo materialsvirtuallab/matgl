@@ -78,10 +78,8 @@ class TestModelTrainer:
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
-        os.remove("dgl_graph.bin")
-        os.remove("lattice.pt")
-        os.remove("state_attr.pt")
-        os.remove("labels.json")
+
+        self.teardown_class()
 
     def test_m3gnet_training(self, LiFePO4, BaNiO3):
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
@@ -147,10 +145,7 @@ class TestModelTrainer:
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
 
-        os.remove("dgl_graph.bin")
-        os.remove("lattice.pt")
-        os.remove("dgl_line_graph.bin")
-        os.remove("state_attr.pt")
+        self.teardown_class()
 
     def test_m3gnet_training_without_stress(self, LiFePO4, BaNiO3):
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
@@ -196,10 +191,7 @@ class TestModelTrainer:
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
-        os.remove("dgl_graph.bin")
-        os.remove("lattice.pt")
-        os.remove("dgl_line_graph.bin")
-        os.remove("state_attr.pt")
+        self.teardown_class()
 
     def test_m3gnet_property_training(self, LiFePO4, BaNiO3):
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
@@ -234,7 +226,7 @@ class TestModelTrainer:
         )
         lit_model = ModelLightningModule(model=model)
         # We will use CPU if MPS is available since there is a serious bug.
-        trainer = pl.Trainer(max_epochs=5, accelerator=device)
+        trainer = pl.Trainer(max_epochs=2, accelerator=device)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
@@ -248,10 +240,24 @@ class TestModelTrainer:
         results = trainer.predict(model=lit_model, dataloaders=test_loader)
 
         assert "MAE" in results[0][0]
-        os.remove("dgl_graph.bin")
-        os.remove("lattice.pt")
-        os.remove("dgl_line_graph.bin")
-        os.remove("state_attr.pt")
+
+        lit_model = ModelLightningModule(model=model, loss="l1_loss")
+        # We will use CPU if MPS is available since there is a serious bug.
+        trainer = pl.Trainer(max_epochs=2, accelerator=device)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
+
+        # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
+        assert pred_LFP_energy < 0
+        assert pred_BNO_energy < 0
+
+        results = trainer.predict(model=lit_model, dataloaders=test_loader)
+
+        assert "MAE" in results[0][0]
+        self.teardown_class()
 
     @classmethod
     def teardown_class(cls):
@@ -260,8 +266,10 @@ class TestModelTrainer:
                 os.remove(fn)
             except FileNotFoundError:
                 pass
-
-        shutil.rmtree("lightning_logs")
+        try:
+            shutil.rmtree("lightning_logs")
+        except FileNotFoundError:
+            pass
 
 
 @pytest.mark.parametrize("distribution", ["normal", "uniform", "fake"])
