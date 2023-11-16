@@ -189,11 +189,18 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
 
-    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
+    def forward(
+        self,
+        g: dgl.DGLGraph,
+        lat: torch.Tensor | None = None,
+        l_g: dgl.DGLGraph | None = None,
+        state_attr: torch.Tensor | None = None,
+    ):
         """Args:
             g: dgl Graph
+            lat: lattice
             l_g: Line graph
             state_attr: State attribute.
 
@@ -201,11 +208,16 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             Model prediction.
         """
         if isinstance(self.model, M3GNet):
+            g.edata["lattice"] = torch.repeat_interleave(lat, g.batch_num_edges(), dim=0)
+            g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
+            g.ndata["pos"] = (
+                g.ndata["frac_coords"].unsqueeze(dim=-1) * torch.repeat_interleave(lat, g.batch_num_nodes(), dim=0)
+            ).sum(dim=1)
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
 
         node_feat = g.ndata["node_type"]
         edge_feat = g.edata["edge_attr"]
-        return self.model(g, edge_feat.float(), node_feat.long(), state_attr)
+        return self.model(g, edge_feat, node_feat, state_attr)
 
     def step(self, batch: tuple):
         """Args:
@@ -215,10 +227,10 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             results, batch_size
         """
         if isinstance(self.model, M3GNet):
-            g, l_g, state_attr, labels = batch
-            preds = self(g=g, l_g=l_g, state_attr=state_attr)
+            g, lat, l_g, state_attr, labels = batch
+            preds = self(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
         else:
-            g, labels, state_attr = batch
+            g, lat, state_attr, labels = batch
             preds = self(g=g, state_attr=state_attr)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
@@ -322,11 +334,18 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
 
-    def forward(self, g: dgl.DGLGraph, l_g: dgl.DGLGraph | None = None, state_attr: torch.Tensor | None = None):
+    def forward(
+        self,
+        g: dgl.DGLGraph,
+        lat: torch.Tensor,
+        l_g: dgl.DGLGraph | None = None,
+        state_attr: torch.Tensor | None = None,
+    ):
         """Args:
             g: dgl Graph
+            lat: lattice
             l_g: Line graph
             state_attr: State attr.
 
@@ -334,11 +353,11 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             energy, force, stress, h
         """
         if self.model.calc_site_wise:
-            e, f, s, h, m = self.model(g=g, l_g=l_g, state_attr=state_attr)
-            return e, f.float(), s, h, m
+            e, f, s, h, m = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
+            return e, f, s, h, m
 
-        e, f, s, h = self.model(g=g, l_g=l_g, state_attr=state_attr)
-        return e, f.float(), s, h
+        e, f, s, h = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
+        return e, f, s, h
 
     def step(self, batch: tuple):
         """Args:
@@ -352,13 +371,13 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         torch.set_grad_enabled(True)
         if self.model.calc_site_wise:
-            g, l_g, state_attr, energies, forces, stresses, site_wise = batch
-            e, f, s, _, m = self(g=g, state_attr=state_attr, l_g=l_g)
+            g, lat, l_g, state_attr, energies, forces, stresses, site_wise = batch
+            e, f, s, _, m = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
             preds = (e, f, s, m)
             labels = (energies, forces, stresses, site_wise)
         else:
-            g, l_g, state_attr, energies, forces, stresses = batch
-            e, f, s, _ = self(g=g, state_attr=state_attr, l_g=l_g)
+            g, lat, l_g, state_attr, energies, forces, stresses = batch
+            e, f, s, _ = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
             preds = (e, f, s)
             labels = (energies, forces, stresses)
 
