@@ -191,7 +191,7 @@ class Relaxer:
 
     def __init__(
         self,
-        potential: Potential | None = None,
+        potential: Potential,
         state_attr: torch.Tensor | None = None,
         optimizer: Optimizer | str = "FIRE",
         relax_cell: bool = True,
@@ -209,7 +209,9 @@ class Relaxer:
         """
         self.optimizer: Optimizer = OPTIMIZERS[optimizer.lower()].value if isinstance(optimizer, str) else optimizer
         self.calculator = M3GNetCalculator(
-            potential=potential, state_attr=state_attr, stress_weight=stress_weight  # type: ignore
+            potential=potential,
+            state_attr=state_attr,
+            stress_weight=stress_weight,  # type: ignore
         )
         self.relax_cell = relax_cell
         self.potential = potential
@@ -295,7 +297,7 @@ class TrajectoryObserver(collections.abc.Sequence):
         return len(self.energies)
 
     def as_pandas(self) -> pd.DataFrame:
-        """Returns: DataFrame of energies, forces, streeses, cells and atom_positions."""
+        """Returns: DataFrame of energies, forces, stresses, cells and atom_positions."""
         return pd.DataFrame(
             {
                 "energies": self.energies,
@@ -368,18 +370,18 @@ class MolecularDynamics:
             taut (float): time constant for Berendsen temperature coupling
             taup (float): time constant for pressure coupling
             friction (float): friction coefficient for nvt_langevin, typically set to 1e-4 to 1e-2
-            andersen_prob (float): random collision probility for nvt_andersen, typically set to 1e-4 to 1e-1
+            andersen_prob (float): random collision probability for nvt_andersen, typically set to 1e-4 to 1e-1
             ttime (float): Characteristic timescale of the thermostat, in ASE internal units
             pfactor (float): A constant in the barostat differential equation.
             external_stress (float): The external stress in eV/A^3.
-                                     Either 3x3 tensor,6-vector or a scalar representing pressure
+                Either 3x3 tensor,6-vector or a scalar representing pressure
             compressibility_au (float): compressibility of the material in A^3/eV
             trajectory (str or Trajectory): Attach trajectory object
             logfile (str): open this file for recording MD outputs
             loginterval (int): write to log file every interval steps
             append_trajectory (bool): Whether to append to prev trajectory.
             mask (np.array): either a tuple of 3 numbers (0 or 1) or a symmetric 3x3 array indicating,
-                             which strain values may change for NPT simulations.
+                which strain values may change for NPT simulations.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)

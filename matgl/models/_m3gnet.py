@@ -195,7 +195,9 @@ class M3GNet(nn.Module, IOMixIn):
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive.")
             self.final_layer = WeightedReadOut(
-                in_feats=dim_node_embedding, dims=[units, units], num_targets=ntargets  # type: ignore
+                in_feats=dim_node_embedding,
+                dims=[units, units],
+                num_targets=ntargets,  # type: ignore
             )
 
         self.max_n = max_n
