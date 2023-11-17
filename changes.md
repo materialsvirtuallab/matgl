@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 0.9.1
+* Update Potential version numbers.
+
 ## 0.9.0
 
 * set pbc_offsift and pos as float64 by @lbluque in https://github.com/materialsvirtuallab/matgl/pull/153
