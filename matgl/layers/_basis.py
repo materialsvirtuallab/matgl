@@ -5,7 +5,7 @@ from math import pi, sqrt
 
 import sympy
 import torch
-from torch import nn
+from torch import Tensor, nn
 
 import matgl
 from matgl.layers._three_body import combine_sbf_shf
@@ -239,24 +239,24 @@ class SphericalHarmonicsFunction(nn.Module):
                 func = sympy.functions.special.spherical_harmonics.Znm(lval, m, theta, phi).expand(func=True)
                 funcs.append(func)
         # replace all theta with cos(theta)
-        costheta = sympy.symbols("costheta")
-        funcs = [i.subs({theta: sympy.acos(costheta)}) for i in funcs]
+        cos_theta = sympy.symbols("costheta")
+        funcs = [i.subs({theta: sympy.acos(cos_theta)}) for i in funcs]
         self.orig_funcs = [sympy.simplify(i).evalf() for i in funcs]
-        self.funcs = [sympy.lambdify([costheta, phi], i, [{"conjugate": _conjugate}, torch]) for i in self.orig_funcs]
+        self.funcs = [sympy.lambdify([cos_theta, phi], i, [{"conjugate": torch.conj}, torch]) for i in self.orig_funcs]
         self.funcs[0] = _y00
 
-    def forward(self, costheta, phi=None):
+    def __call__(self, cos_theta, phi=None):
         """Args:
-            costheta: Cosine of the azimuthal angle
+            cos_theta: Cosine of the azimuthal angle
             phi: torch.Tensor, the polar angle.
 
         Returns: [n, m] spherical harmonic results, where n is the number
             of angles. The column is arranged following
             `[Y_0^0, Y_1^{-1}, Y_1^{0}, Y_1^1, Y_2^{-2}, ...]`
         """
-        # costheta = torch.tensor(costheta, dtype=torch.complex64)
+        # cos_theta = torch.tensor(cos_theta, dtype=torch.complex64)
         # phi = torch.tensor(phi, dtype=torch.complex64)
-        return torch.stack([func(costheta, phi) for func in self.funcs], axis=1)
+        return torch.stack([func(cos_theta, phi) for func in self.funcs], axis=1)
         # results = results.type(dtype=DataType.torch_float)
         # return results
 
@@ -276,11 +276,7 @@ def _y00(theta, phi):
     return 0.5 * torch.ones_like(theta) * sqrt(1.0 / pi)
 
 
-def _conjugate(x):
-    return torch.conj(x)
-
-
-def spherical_bessel_smooth(r, cutoff: float = 5.0, max_n: int = 10):
+def spherical_bessel_smooth(r: Tensor, cutoff: float = 5.0, max_n: int = 10) -> Tensor:
     """This is an orthogonal basis with first
     and second derivative at the cutoff
     equals to zero. The function was derived from the order 0 spherical Bessel

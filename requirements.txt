@@ -1,6 +1,6 @@
 dgl==1.1.2
-torch==2.1.0
+torch==2.1.1
 pytorch_lightning==2.0.9
-pymatgen==2023.10.11
+pymatgen==2023.11.12
 ase==3.22.1
 boto3
