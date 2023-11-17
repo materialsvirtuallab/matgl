@@ -58,10 +58,10 @@ version = "0.9.0"
 mgl = "matgl.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["matgl"]
+where = ["src"]
 
 [tool.setuptools.package-data]
-"*" = ["sb_roots.npy"]
+"matgl.utils" = ["sb_roots.npy"]
 
 
 [tool.black]
