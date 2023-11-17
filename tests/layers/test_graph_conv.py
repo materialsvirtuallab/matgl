@@ -4,8 +4,6 @@ from typing import NamedTuple
 
 import dgl
 import torch
-from torch import nn
-
 from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._graph_convolution import (
     MLP,
@@ -15,6 +13,7 @@ from matgl.layers._graph_convolution import (
     MEGNetGraphConv,
 )
 from matgl.utils.cutoff import polynomial_cutoff
+from torch import nn
 
 
 class Graph(NamedTuple):

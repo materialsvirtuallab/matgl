@@ -7,10 +7,9 @@ from functools import partial
 
 import numpy as np
 from dgl.data.utils import split_dataset
-from pymatgen.core import Molecule
-
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
+from pymatgen.core import Molecule
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
