@@ -6,7 +6,7 @@ nav_order: 3
 
 # Change Log
 
-## v0.9.0
+## 0.9.0
 
 * set pbc_offsift and pos as float64 by @lbluque in https://github.com/materialsvirtuallab/matgl/pull/153
 * Bump pytorch-lightning from 2.0.7 to 2.0.8 by @dependabot in https://github.com/materialsvirtuallab/matgl/pull/155
