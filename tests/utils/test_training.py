@@ -259,6 +259,73 @@ class TestModelTrainer:
         assert "MAE" in results[0][0]
         self.teardown_class()
 
+    def test_m3gnet_property_trainin_multiple_values_per_target(self, LiFePO4, BaNiO3):
+        isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
+        structures = [LiFePO4] * 5 + [BaNiO3] * 5 + [isolated_atom]
+        label = np.full((11, 5), -1.0).tolist()  # Artificial dataset.
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        converter = Structure2Graph(element_types=element_types, cutoff=5.0)
+        dataset = M3GNetDataset(
+            threebody_cutoff=4.0, structures=structures, converter=converter, labels={"multiple_values": label}
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        collate_fn_property = partial(collate_fn, include_line_graph=True, multiple_values_per_target=True)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=collate_fn_property,
+            batch_size=2,
+            num_workers=0,
+            generator=torch.Generator(device=device),
+        )
+        model = M3GNet(
+            element_types=element_types,
+            is_intensive=True,
+            readout_type="set2set",
+            ntargets=5,
+        )
+        lit_model = ModelLightningModule(model=model)
+        # We will use CPU if MPS is available since there is a serious bug.
+        trainer = pl.Trainer(max_epochs=2, accelerator=device)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
+
+        # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
+        assert torch.any(pred_LFP_energy < 0)
+        assert torch.any(pred_BNO_energy < 0)
+
+        results = trainer.predict(model=lit_model, dataloaders=test_loader)
+
+        assert "MAE" in results[0][0]
+
+        lit_model = ModelLightningModule(model=model, loss="l1_loss")
+        # We will use CPU if MPS is available since there is a serious bug.
+        trainer = pl.Trainer(max_epochs=2, accelerator=device)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
+
+        # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
+        assert torch.any(pred_LFP_energy < 0)
+        assert torch.any(pred_BNO_energy < 0)
+
+        results = trainer.predict(model=lit_model, dataloaders=test_loader)
+
+        assert "MAE" in results[0][0]
+        self.teardown_class()
+
     @classmethod
     def teardown_class(cls):
         for fn in ("dgl_graph.bin", "lattice.pt", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
