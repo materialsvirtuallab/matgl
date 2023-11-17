@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import os
 
+import matgl
 import numpy as np
 import pytest
 import torch as th
-from pymatgen.core import Lattice, Structure
-
-import matgl
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
+from pymatgen.core import Lattice, Structure
 
 
 class TestMEGNet:

@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 import requests
 import torch
-
 from matgl.utils.io import IOMixIn, RemoteFile, get_available_pretrained_models, load_model
 
 this_dir = Path(os.path.abspath(os.path.dirname(__file__)))
