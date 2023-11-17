@@ -21,14 +21,18 @@ if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
 
 
-def collate_fn(batch, include_line_graph: bool = False):
+def collate_fn(batch, include_line_graph: bool = False, multiple_values_per_target: bool = False):
     """Merge a list of dgl graphs to form a batch."""
     if include_line_graph:
         graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
     else:
         graphs, lattices, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
-    labels = torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)  # type: ignore
+    labels = (
+        torch.vstack([next(iter(d.values())) for d in labels])
+        if multiple_values_per_target
+        else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)
+    )
     state_attr = torch.stack(state_attr)
     lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
     if include_line_graph:
