@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import pytest
 import torch
-from torch import nn
-
 from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._readout import (
     ReduceReadOut,
@@ -11,6 +9,7 @@ from matgl.layers._readout import (
     WeightedReadOut,
     WeightedReadOutPair,
 )
+from torch import nn
 
 
 class TestReadOut:

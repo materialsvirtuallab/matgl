@@ -6,10 +6,9 @@ import numpy as np
 import pytest
 import torch
 from ase.build import molecule
-from pymatgen.io.ase import AseAtomsAdaptor
-
 from matgl import load_model
 from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, Relaxer
+from pymatgen.io.ase import AseAtomsAdaptor
 
 
 def test_M3GNetCalculator(MoS):

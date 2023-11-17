@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class Potential(nn.Module, IOMixIn):
     """A class representing an interatomic potential."""
 
-    __version__ = 1
+    __version__ = 2
 
     def __init__(
         self,
