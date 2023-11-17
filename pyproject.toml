@@ -52,7 +52,7 @@ dependencies = [
     "pytorch_lightning",
     "torch",
 ]
-dynamic = ["version"]
+version = "0.9.0"
 
 [project.scripts]
 mgl = "matgl.cli:main"
@@ -61,7 +61,7 @@ mgl = "matgl.cli:main"
 where = ["matgl"]
 
 [tool.setuptools.package-data]
-matgl = ["*.npy"]
+"*" = ["sb_roots.npy"]
 
 
 [tool.black]
