@@ -11,10 +11,10 @@ build-backend = "setuptools.build_meta"
 name = "matgl"
 authors = [
     { name = "Tsz Wai Ko", email = "t1ko@ucsd.edu" },
-    { name = "Marcel Nassar", email = "j1qi@ucsd.edu" },
+    { name = "Marcel Nassar", email = "marcel.nassar@intel.com" },
     { name = "Ji Qi", email = "j1qi@ucsd.edu" },
-    { name = "Santiago Miret", email = "t1ko@ucsd.edu" },
-    { name = "Eliott Liu", email = "t1ko@ucsd.edu" },
+    { name = "Santiago Miret", email = "santiago.miret@intel.com" },
+    { name = "Eliott Liu", email = "elliottliu17@gmail.com" },
     { name = "Shyue Ping Ong", email = "ongsp@ucsd.edu" },
 ]
 description = "MatGL is a framework for graph deep learning for materials science."
@@ -52,7 +52,7 @@ dependencies = [
     "pytorch_lightning",
     "torch",
 ]
-version = "0.9.0"
+version = "0.9.1"
 
 [project.scripts]
 mgl = "matgl.cli:main"
