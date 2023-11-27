@@ -158,6 +158,21 @@ import matgl
 print(matgl.get_available_pretrained_models())
 ```
 
+## Pytorch Hub
+
+The pre-trained models are also available on Pytorch hub. To use these models, simply install matgl and use the
+following commands:
+
+```python
+import torch
+
+# To obtain a listing of models
+torch.hub.list("materialsvirtuallab/matgl", force_reload=True)
+
+# To load a model
+model = torch.hub.load("materialsvirtuallab/matgl", 'm3gnet_universal_potential')
+```
+
 ## Tutorials
 
 We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter notebooks]

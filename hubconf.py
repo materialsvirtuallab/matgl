@@ -14,7 +14,7 @@ def m3gnet_universal_potential(version="MP-2021.2.8-DIRECT", **kwargs):
         version (str): Defaults to "MP-2021.2.8-DIRECT". Other versions available.
         **kwargs: Pass through to matgl.load_model.
     """
-    return matgl.load_model(f"M3GNet-{version}", **kwargs)
+    return matgl.load_model(f"M3GNet-{version}-PES", **kwargs)
 
 
 def m3gnet_formation_energy(**kwargs):
