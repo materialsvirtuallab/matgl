@@ -7,7 +7,7 @@
 
 # Materials Graph Library <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 
-## Official Documentation [:books:]
+## Official Documentation
 
 <https://matgl.ai>
 
