@@ -225,6 +225,7 @@ class Relaxer:
         traj_file: str | None = None,
         interval: int = 1,
         verbose: bool = False,
+        params_expcellfilter: dict | None = None,
         **kwargs,
     ):
         """
@@ -238,16 +239,20 @@ class Relaxer:
             traj_file (str): the trajectory file for saving
             interval (int): the step interval for saving the trajectories
             verbose (bool): Whether to have verbose output.
-            kwargs: Kwargs pass-through to optimizer.
+            params_expcellfilter (dict): Parameters to be passed to ExpCellFilter. Allows
+                setting of constant pressure or constant volume relaxations, for example. Refer to
+                https://wiki.fysik.dtu.dk/ase/ase/filters.html#the-expcellfilter-class for more information.
+            **kwargs: Kwargs pass-through to optimizer.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = self.ase_adaptor.get_atoms(atoms)
         atoms.set_calculator(self.calculator)
         stream = sys.stdout if verbose else io.StringIO()
+        params_expcellfilter = params_expcellfilter or {}
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
-                atoms = ExpCellFilter(atoms)
+                atoms = ExpCellFilter(atoms, **params_expcellfilter)
             optimizer = self.optimizer(atoms, **kwargs)
             optimizer.attach(obs, interval=interval)
             optimizer.run(fmax=fmax, steps=steps)
