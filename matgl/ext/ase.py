@@ -188,10 +188,9 @@ class M3GNetCalculator(Calculator):
 
 
 class PotentialCalculator(Calculator):
-    """ Machine Learning Interatomic Potential calculator for ASE."""
+    """Machine Learning Interatomic Potential calculator for ASE."""
 
-    implemented_properties = (
-    "energy", "free_energy", "forces", "stress", "hessian", "magmoms")
+    implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian", "magmoms")
 
     def __init__(
         self,
@@ -238,11 +237,8 @@ class PotentialCalculator(Calculator):
         """
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
-        super().calculate(atoms=atoms, properties=properties,
-                          system_changes=system_changes)
-        graph, state_attr_default = Atoms2Graph(self.element_types,
-                                                self.cutoff).get_graph(
-            atoms)  # type: ignore
+        super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
+        graph, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)  # type: ignore
 
         if self.state_attr is not None:
             calc_result = self.potential(graph, self.state_attr)
@@ -254,8 +250,7 @@ class PotentialCalculator(Calculator):
             forces=calc_result[1].detach().cpu().numpy(),
         )
         if self.compute_stress:
-            self.results.update(
-                stress=calc_result[2].detach().cpu().numpy() * self.stress_weight)
+            self.results.update(stress=calc_result[2].detach().cpu().numpy() * self.stress_weight)
         if self.compute_hessian:
             self.results.update(hessian=calc_result[3].detach().cpu().numpy())
         if self.compute_magmoms:
