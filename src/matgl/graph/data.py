@@ -386,6 +386,7 @@ class CHGNetDataset(DGLDataset):
         labels: dict[str, list] | None = None,
         graph_labels: list[int | float] | None = None,
         filename_graphs: str = "dgl_graph.bin",
+        filename_lattice: str = "lattice.pt",
         filename_line_graphs: str = "dgl_line_graph.bin",
         filename_labels: str = "labels.json",
         filename_state_attr: str = "state_attr.pt",
@@ -402,6 +403,7 @@ class CHGNetDataset(DGLDataset):
             labels: target properties
             graph_labels: state attributes.
             filename_graphs: filename of dgl graphs
+            filename_lattice: file name for storing lattice matrixs
             filename_line_graphs: filename of dgl line graphs
             filename_labels: filename of target labels file
             filename_state_attr: filename of state attributes.
@@ -421,10 +423,12 @@ class CHGNetDataset(DGLDataset):
 
         self.graph_labels = graph_labels
         self.graphs = None
+        self.lattices = None
         self.line_graphs = None
         self.state_attr = None
         self.skip_label_keys = skip_label_keys or ()
         self.filename_graphs = filename_graphs
+        self.filename_lattice = filename_lattice
         self.filename_line_graphs = filename_line_graphs
         self.filename_state_attr = filename_state_attr
         self.filename_labels = filename_labels
@@ -447,13 +451,16 @@ class CHGNetDataset(DGLDataset):
     def process(self):
         """Convert Pymatgen structure into dgl graphs."""
         num_graphs = len(self.structures)
-        graphs, line_graphs, state_attrs = [], [], []
+        graphs, lattices, line_graphs, state_attrs = [], [], [], []
 
         for idx in trange(num_graphs):
             structure = self.structures[idx]
             graph, lattice, state_attr = self.converter.get_graph(structure)
             graphs.append(graph)
+            lattices.append(lattice)
             state_attrs.append(state_attr)
+            graph.ndata["pos"] = torch.tensor(structure.cart_coords)
+            graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lattice[0])
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["bond_vec"] = bond_vec
             graph.edata["bond_dist"] = bond_dist
@@ -466,6 +473,7 @@ class CHGNetDataset(DGLDataset):
             state_attrs = torch.tensor(state_attrs)  # type: ignore
 
         self.graphs = graphs
+        self.lattices = lattices
         self.line_graphs = line_graphs
         self.state_attr = state_attrs
 
@@ -475,6 +483,7 @@ class CHGNetDataset(DGLDataset):
             os.makedirs(self.save_path)
 
         filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
+        torch.save(self.lattices, self.filename_lattice)
         filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
         filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
         filepath_labels = os.path.join(self.save_path, self.filename_labels)
@@ -490,6 +499,7 @@ class CHGNetDataset(DGLDataset):
     def load(self):
         """Load CHGNet dataset from files."""
         filepath_graphs = os.path.join(self.save_path, self.filename_graphs)
+        filepath_lattices = os.path.join(self.save_path, self.filename_lattice)
         filepath_line_graphs = os.path.join(self.save_path, self.filename_line_graphs)
         filepath_state_attr = os.path.join(self.save_path, self.filename_state_attr)
         filepath_labels = os.path.join(self.save_path, self.filename_labels)
@@ -497,6 +507,11 @@ class CHGNetDataset(DGLDataset):
         self.graphs, _ = load_graphs(filepath_graphs)
         self.line_graphs, _ = load_graphs(filepath_line_graphs)
         self.state_attr = torch.load(filepath_state_attr)
+
+        if os.path.exists(filepath_lattices):
+            self.lattices = torch.load(filepath_lattices)
+        else:
+            self.lattices = [g.edata['lattice'][0] for g in self.graphs]
 
         with open(filepath_labels) as f:
             self.labels = json.load(f)
@@ -513,6 +528,7 @@ class CHGNetDataset(DGLDataset):
 
         return (
             self.graphs[idx],
+            self.lattices[idx],
             self.line_graphs[idx],
             self.state_attr[idx],
             labels,
@@ -543,6 +559,7 @@ class OOMCHGNetDataset(CHGNetDataset):
         line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graphs), [idx])
 
         graph = graphs[0]
+        lattice = graph.edata['lattice'][0]
         line_graph = line_graphs[0]
 
         labels = {
@@ -555,6 +572,7 @@ class OOMCHGNetDataset(CHGNetDataset):
 
         return (
             graph,
+            lattice,
             line_graph,
             self.state_attr[idx],
             labels,
