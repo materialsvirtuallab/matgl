@@ -60,7 +60,7 @@ def collate_fn_efs(batch, include_stress: bool = True):
 
 def collate_fn_efsm(batch):
     """Merge a list of dgl graphs to form a batch."""
-    graphs, line_graphs, state_attr, labels = map(list, zip(*batch))
+    graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     l_g = dgl.batch(line_graphs)
     e = torch.tensor([d["energy"] for d in labels], dtype=torch.float32)
@@ -68,7 +68,8 @@ def collate_fn_efsm(batch):
     s = torch.vstack([d["stress"] for d in labels])
     m = torch.vstack([d["magmom"] for d in labels])
     state_attr = torch.stack(state_attr)
-    return g, l_g, state_attr, e, f, s, m
+    lat = torch.stack(lattices)
+    return g,torch.squeeze(lat), l_g, state_attr, e, f, s, m
 
 
 def MGLDataLoader(
