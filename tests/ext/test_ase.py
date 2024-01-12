@@ -4,11 +4,11 @@ import os.path
 
 import numpy as np
 import pytest
+import torch
 from ase.build import molecule
-from pymatgen.io.ase import AseAtomsAdaptor
-
 from matgl import load_model
 from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, Relaxer
+from pymatgen.io.ase import AseAtomsAdaptor
 
 
 def test_M3GNetCalculator(MoS):
@@ -18,11 +18,19 @@ def test_M3GNetCalculator(MoS):
     ff.calc_hessian = True
     calc = M3GNetCalculator(potential=ff)
     s_ase.set_calculator(calc)
-    assert [s_ase.get_potential_energy().size] == [1]
+    assert isinstance(s_ase.get_potential_energy(), float)
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
-    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.312888)
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
+
+    calc = M3GNetCalculator(potential=ff, state_attr=torch.tensor([0.0, 0.0]))
+    s_ase.set_calculator(calc)
+    assert isinstance(s_ase.get_potential_energy(), float)
+    assert list(s_ase.get_forces().shape) == [2, 3]
+    assert list(s_ase.get_stress().shape) == [6]
+    assert list(calc.results["hessian"].shape) == [6, 6]
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
 
 
 def test_M3GNetCalculator_mol(AcAla3NHMe):
@@ -31,9 +39,9 @@ def test_M3GNetCalculator_mol(AcAla3NHMe):
     ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     calc = M3GNetCalculator(potential=ff)
     mol.set_calculator(calc)
-    assert [mol.get_potential_energy().size] == [1]
+    assert isinstance(mol.get_potential_energy(), float)
     assert list(mol.get_forces().shape) == [42, 3]
-    np.testing.assert_allclose(mol.get_potential_energy(), -242.77213)
+    np.testing.assert_allclose(mol.get_potential_energy(), -250.16803)
 
 
 def test_Relaxer(MoS):
@@ -54,7 +62,7 @@ def test_get_graph_from_atoms(LiFePO4):
     adaptor = AseAtomsAdaptor()
     structure_ase = adaptor.get_atoms(LiFePO4)
     a2g = Atoms2Graph(element_types=["Li", "Fe", "P", "O"], cutoff=4.0)
-    graph, state = a2g.get_graph(structure_ase)
+    graph, lat, state = a2g.get_graph(structure_ase)
     # check the number of nodes
     assert np.allclose(graph.num_nodes(), len(structure_ase.get_atomic_numbers()))
     # check the atomic feature of atom 0
@@ -70,7 +78,7 @@ def test_get_graph_from_atoms(LiFePO4):
 def test_get_graph_from_atoms_mol():
     mol = molecule("CH4")
     a2g = Atoms2Graph(element_types=["H", "C"], cutoff=4.0)
-    graph, state = a2g.get_graph(mol)
+    graph, lat, state = a2g.get_graph(mol)
     # check the number of nodes
     assert np.allclose(graph.num_nodes(), len(mol.get_atomic_numbers()))
     # check the atomic feature of atom 0

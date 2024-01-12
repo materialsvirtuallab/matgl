@@ -94,7 +94,7 @@ def make_docs(ctx):
             contents = re.sub(
                 r"\n## Official Documentation[^#]*",
                 "{: .no_toc }\n\n## Table of contents\n{: .no_toc .text-delta }\n* TOC\n{:toc}\n\n",
-                contents
+                contents,
             )
             contents = "---\nlayout: default\ntitle: Home\nnav_order: 1\n---\n\n" + contents
 
@@ -139,6 +139,7 @@ def release(ctx, notest=False):
 def get_changelog():
     with open("changes.md") as f:
         contents = f.read()
+        print(NEW_VER)
         m = re.search(f"## {NEW_VER}([^#]*)", contents)
         changes = m.group(1).strip()
         return changes

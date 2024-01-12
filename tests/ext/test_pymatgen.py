@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 
 import numpy as np
-from pymatgen.core import Lattice, Structure
-
+import torch
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
+from pymatgen.core import Lattice, Structure
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -47,7 +47,9 @@ class TestPmg2Graph:
         structure_BaTiO3 = Structure.from_prototype("perovskite", ["Ba", "Ti", "O"], a=4.04)
         element_types = get_element_list([structure_BaTiO3])
         p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
-        graph, state = p2g.get_graph(structure_BaTiO3)
+        graph, lattice, state = p2g.get_graph(structure_BaTiO3)
+        graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lattice[0])
+        graph.ndata["pos"] = graph.ndata["frac_coords"] @ lattice[0]
         # check the number of nodes
         assert np.allclose(graph.num_nodes(), structure_BaTiO3.num_sites)
         # check the atomic features of atom 0
@@ -63,9 +65,9 @@ class TestPmg2Graph:
         # check the pbc offset from node 0 to image atom 6
         assert np.allclose(graph.edata["pbc_offset"][0], [-1, -1, -1])
         # check the lattice vector
-        assert np.allclose(graph.edata["lattice"][0], [[4.04, 0.0, 0.0], [0.0, 4.04, 0.0], [0.0, 0.0, 4.04]])
+        assert np.allclose(lattice[0].numpy(), [[4.04, 0.0, 0.0], [0.0, 4.04, 0.0], [0.0, 0.0, 4.04]])
         # check the volume
-        assert np.allclose(graph.ndata["volume"][0], [65.939264])
+        assert np.allclose(torch.det(lattice).numpy(), [65.939264])
 
     def test_get_element_list(self):
         cscl = Structure.from_spacegroup("Pm-3m", Lattice.cubic(3), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])

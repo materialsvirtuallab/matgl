@@ -10,15 +10,15 @@ of "function".
 """
 from __future__ import annotations
 
-import pytest
-from pymatgen.core import Lattice, Molecule, Structure
-from pymatgen.util.testing import PymatgenTest
-
 import matgl
+import pytest
+import torch
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
 )
+from pymatgen.core import Lattice, Molecule, Structure
+from pymatgen.util.testing import PymatgenTest
 
 matgl.clear_cache(confirm=False)
 
@@ -35,7 +35,9 @@ def get_graph(structure, cutoff):
         converter = Structure2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
     else:
         converter = Molecule2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
-    graph, state = converter.get_graph(structure)
+    graph, lattice, state = converter.get_graph(structure)
+    graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lattice[0])
+    graph.ndata["pos"] = graph.ndata["frac_coords"] @ lattice[0]
     bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
     graph.edata["bond_dist"] = bond_dist
     graph.edata["bond_vec"] = bond_vec

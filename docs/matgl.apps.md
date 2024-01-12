@@ -21,45 +21,21 @@ A class representing an interatomic potential.
 
 Initialize Potential from a model and elemental references.
 
-
 * **Parameters:**
-
-    * **model** – Model for predicting energies.
-
-
-    * **data_mean** – Mean of target.
-
-
-    * **data_std** – Std dev of target.
-
-
-    * **element_refs** – Element reference values for each element.
-
-
-    * **calc_forces** – Enable force calculations.
-
-
-    * **calc_stresses** – Enable stress calculations.
-
-
-    * **calc_hessian** – Enable hessian calculations.
-
-
-    * **calc_site_wise** – Enable site-wise property calculation.
+  * **model** – Model for predicting energies.
+  * **data_mean** – Mean of target.
+  * **data_std** – Std dev of target.
+  * **element_refs** – Element reference values for each element.
+  * **calc_forces** – Enable force calculations.
+  * **calc_stresses** – Enable stress calculations.
+  * **calc_hessian** – Enable hessian calculations.
+  * **calc_site_wise** – Enable site-wise property calculation.
 
 #### forward(g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, l_g: dgl.DGLGraph | None = None)
 
-
 * **Parameters:**
-
-    * **g** – DGL graph
-
-
-    * **state_attr** – State attrs
-
-
-    * **l_g** – Line graph.
-
-
+  * **g** – DGL graph
+  * **state_attr** – State attrs
+  * **l_g** – Line graph.
 * **Returns:**
-(energies, forces, stresses, hessian) or (energies, forces, stresses, hessian, site-wise properties)
+  (energies, forces, stresses, hessian) or (energies, forces, stresses, hessian, site-wise properties)

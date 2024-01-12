@@ -1,10 +1,68 @@
 [build-system]
 requires = [
-  # pin NumPy version used in the build
-  "oldest-supported-numpy",
-  "setuptools>=58.0.3",
+    # pin NumPy version used in the build
+    "oldest-supported-numpy",
+    "setuptools>=58.0.3",
 ]
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "matgl"
+authors = [
+    { name = "Tsz Wai Ko", email = "t1ko@ucsd.edu" },
+    { name = "Marcel Nassar", email = "marcel.nassar@intel.com" },
+    { name = "Ji Qi", email = "j1qi@ucsd.edu" },
+    { name = "Santiago Miret", email = "santiago.miret@intel.com" },
+    { name = "Eliott Liu", email = "elliottliu17@gmail.com" },
+    { name = "Shyue Ping Ong", email = "ongsp@ucsd.edu" },
+]
+description = "MatGL is a framework for graph deep learning for materials science."
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = [
+    "materials",
+    "interatomic potential",
+    "force field",
+    "science",
+    "property prediction",
+    "AI",
+    "machine learning",
+    "graph",
+    "deep learning",
+]
+license = { text = "BSD-3-Clause" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "ase",
+    "dgl",
+    "pymatgen",
+    "pytorch_lightning",
+    "torch",
+]
+version = "0.9.1"
+
+[project.scripts]
+mgl = "matgl.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"matgl.utils" = ["sb_roots.npy"]
+
 
 [tool.black]
 line-length = 120
@@ -32,46 +90,46 @@ exclude = '''
 target-version = "py39"
 line-length = 120
 select = [
-  "B",    # flake8-bugbear
-  "C4",   # flake8-comprehensions
-  "D",    # pydocstyle
-  "E",    # pycodestyle error
-  "EXE",  # flake8-executable
-  "F",    # pyflakes
-  "I",    # isort
-  "ICN",  # flake8-import-conventions
-  "ISC",  # flake8-implicit-str-concat
-  "PD",   # pandas-vet
-  "PERF", # perflint
-  "PIE",  # flake8-pie
-  "PL",   # pylint
-  "PT",   # flake8-pytest-style
-  "PYI",  # flakes8-pyi
-  "Q",    # flake8-quotes
-  "RET",  # flake8-return
-  "RSE",  # flake8-raise
-  "RUF",  # Ruff-specific rules
-  "SIM",  # flake8-simplify
-  "SLOT", # flake8-slots
-  "TCH",  # flake8-type-checking
-  "TID",  # tidy imports
-  "TID",  # flake8-tidy-imports
-  "UP",   # pyupgrade
-  "W",    # pycodestyle warning
-  "YTT",  # flake8-2020
+    "B", # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "D", # pydocstyle
+    "E", # pycodestyle error
+    "EXE", # flake8-executable
+    "F", # pyflakes
+    "I", # isort
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "PD", # pandas-vet
+    "PERF", # perflint
+    "PIE", # flake8-pie
+    "PL", # pylint
+    "PT", # flake8-pytest-style
+    "PYI", # flakes8-pyi
+    "Q", # flake8-quotes
+    "RET", # flake8-return
+    "RSE", # flake8-raise
+    "RUF", # Ruff-specific rules
+    "SIM", # flake8-simplify
+    "SLOT", # flake8-slots
+    "TCH", # flake8-type-checking
+    "TID", # tidy imports
+    "TID", # flake8-tidy-imports
+    "UP", # pyupgrade
+    "W", # pycodestyle warning
+    "YTT", # flake8-2020
 ]
 ignore = [
-  "B019",    # functools.lru_cache on methods can lead to memory leaks
-  "D105",    # Missing docstring in magic method
-  "D205",    # 1 blank line required between summary line and description
-  "D212",    # Multi-line docstring summary should start at the first line
-  "PD901",   # df-bad-var-name
-  "PERF203", # try-except-in-loop
-  "PLR",     # pylint refactor
-  "PLW0603", # Using the global statement to update variables is discouraged
-  "PLW2901", # redefined-loop-name
-  "RET504",  # unnecessary-assign
-  "SIM105",  # Use contextlib.suppress(OSError) instead of try-except-pass
+    "B019", # functools.lru_cache on methods can lead to memory leaks
+    "D105", # Missing docstring in magic method
+    "D205", # 1 blank line required between summary line and description
+    "D212", # Multi-line docstring summary should start at the first line
+    "PD901", # df-bad-var-name
+    "PERF203", # try-except-in-loop
+    "PLR", # pylint refactor
+    "PLW0603", # Using the global statement to update variables is discouraged
+    "PLW2901", # redefined-loop-name
+    "RET504", # unnecessary-assign
+    "SIM105", # Use contextlib.suppress(OSError) instead of try-except-pass
 ]
 pydocstyle.convention = "google"
 isort.required-imports = ["from __future__ import annotations"]
@@ -106,18 +164,18 @@ relative_files = true
 
 [tool.coverage.report]
 exclude_lines = [
-  "@deprecated",
-  "def __repr__",
-  "except PackageNotFoundError:",
-  "if 0:",
-  "if TYPE_CHECKING:",
-  "if __name__ == .__main__.:",
-  "if self.debug:",
-  "if settings.DEBUG",
-  "input",
-  "logging.basicConfig",
-  "pragma: no cover",
-  "raise AssertionError",
-  "raise NotImplementedError",
-  "raise RuntimeError",
+    "@deprecated",
+    "def __repr__",
+    "except PackageNotFoundError:",
+    "if 0:",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "input",
+    "logging.basicConfig",
+    "pragma: no cover",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise RuntimeError",
 ]
