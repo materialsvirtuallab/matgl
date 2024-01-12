@@ -315,6 +315,7 @@ class M3GNetDataset(DGLDataset):
         if self.graph_labels is not None:
             state_attrs = torch.tensor(self.graph_labels).long()
         else:
+            state_attrs = np.array(state_attrs)
             state_attrs = torch.tensor(state_attrs)
 
         if self.clear_processed:
