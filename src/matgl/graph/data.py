@@ -69,7 +69,7 @@ def collate_fn_efsm(batch):
     m = torch.vstack([d["magmom"] for d in labels])
     state_attr = torch.stack(state_attr)
     lat = torch.stack(lattices)
-    return g,torch.squeeze(lat), l_g, state_attr, e, f, s, m
+    return g, torch.squeeze(lat), l_g, state_attr, e, f, s, m
 
 
 def MGLDataLoader(
@@ -562,6 +562,8 @@ class OOMCHGNetDataset(CHGNetDataset):
         graph = graphs[0]
         lattice = graph.edata['lattice'][0]
         line_graph = line_graphs[0]
+        if 'frac_coords' not in graph.ndata.keys():
+            graph.ndata['frac_coords'] = (torch.linalg.inv(lattice) @ graph.ndata['pos'].T).T
 
         labels = {
             k: torch.tensor(v[idx])
