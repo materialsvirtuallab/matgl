@@ -560,7 +560,7 @@ class OOMCHGNetDataset(CHGNetDataset):
         line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graphs), [idx])
 
         graph = graphs[0]
-        lattice = graph.edata['lattice'][0]
+        lattice = graph.edata['lattice'][0].to(torch.float64)
         line_graph = line_graphs[0]
         if 'frac_coords' not in graph.ndata.keys():
             graph.ndata['frac_coords'] = (torch.linalg.inv(lattice) @ graph.ndata['pos'].T).T
