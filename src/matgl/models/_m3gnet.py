@@ -290,8 +290,9 @@ class M3GNet(nn.Module, IOMixIn):
             graph_converter: Object that implements a get_graph_from_structure.
             output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
                 "readout", and "final" (default).
+
         Returns:
-            output: output property
+            output: output property for a structure
         """
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
