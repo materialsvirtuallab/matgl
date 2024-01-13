@@ -280,6 +280,7 @@ class M3GNet(nn.Module, IOMixIn):
         structure,
         state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
+        output_layer: str = "final",
     ):
         """Convenience method to directly predict property from structure.
 
@@ -287,7 +288,8 @@ class M3GNet(nn.Module, IOMixIn):
             structure: An input crystal/molecule.
             state_feats (torch.tensor): Graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
-
+            output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
+                "readout", and "final" (default).
         Returns:
             output (torch.tensor): output property
         """
@@ -300,4 +302,4 @@ class M3GNet(nn.Module, IOMixIn):
         g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        return self(g=g, state_attr=state_feats).detach()
+        return self(g=g, state_attr=state_feats, output_layer=output_layer).detach()
