@@ -291,7 +291,7 @@ class M3GNet(nn.Module, IOMixIn):
             output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
                 "readout", and "final" (default).
         Returns:
-            output (torch.tensor): output property
+            output: output property
         """
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
