@@ -261,11 +261,11 @@ class M3GNet(nn.Module, IOMixIn):
         g.ndata["node_feat"] = node_feat
         g.edata["edge_feat"] = edge_feat
         if self.is_intensive:
-            node_vec = self.readout(g)
-            vec = torch.hstack([node_vec, state_feat]) if self.include_states else node_vec  # type: ignore
+            field_vec = self.readout(g)
+            readout_vec = torch.hstack([field_vec, state_feat]) if self.include_states else field_vec  # type: ignore
             if output_layer == "readout":
-                return vec
-            output = self.final_layer(vec)
+                return readout_vec
+            output = self.final_layer(readout_vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
         else:
