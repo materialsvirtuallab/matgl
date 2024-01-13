@@ -58,3 +58,20 @@ class TestM3GNet:
         model = M3GNet(element_types=["Mo", "S"], is_intensive=True, task_type="classification", readout_type="set2set")
         output = model(g=graph)
         assert torch.numel(output) == 1
+
+    def test_predict_structure(self, graph_MoS):
+        structure, graph, state = graph_MoS
+        model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
+        model_extensive = M3GNet(is_intensive=False)
+        for model in [model_extensive, model_intensive]:
+            for output_layer in ["embedding", "gc_1", "gc_2", "gc_3"]:
+                node_fea, bond_fea, state_fea = model.predict_structure(structure, output_layer=output_layer)
+                assert torch.numel(node_fea) == 128
+                assert torch.numel(bond_fea) == 1792
+                assert state_fea is None
+            output_final = model.predict_structure(structure)
+            assert torch.numel(output_final) == 1
+        output_readout_intensive = model_intensive.predict_structure(structure, output_layer="readout")
+        assert torch.numel(output_readout_intensive) == 64
+        output_readout_extensive = model_extensive.predict_structure(structure, output_layer="readout")
+        assert torch.numel(output_readout_extensive) == 2

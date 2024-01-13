@@ -256,7 +256,7 @@ class M3GNet(nn.Module, IOMixIn):
                 edge_feat,
             )
             edge_feat, node_feat, state_feat = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
-            if i + 1 in output_layer:
+            if f"{i + 1}" in output_layer:
                 return node_feat, edge_feat, state_feat
         g.ndata["node_feat"] = node_feat
         g.edata["edge_feat"] = edge_feat
@@ -302,4 +302,6 @@ class M3GNet(nn.Module, IOMixIn):
         g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        return self(g=g, state_attr=state_feats, output_layer=output_layer).detach()
+        if output_layer == "final":
+            return self(g=g, state_attr=state_feats).detach()
+        return self(g=g, state_attr=state_feats, output_layer=output_layer)
