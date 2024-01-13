@@ -215,6 +215,7 @@ class M3GNet(nn.Module, IOMixIn):
         g: dgl.DGLGraph,
         state_attr: torch.Tensor | None = None,
         l_g: dgl.DGLGraph | None = None,
+        output_layer: str = "final",
     ):
         """Performs message passing and updates node representations.
 
@@ -222,6 +223,8 @@ class M3GNet(nn.Module, IOMixIn):
             g : DGLGraph for a batch of graphs.
             state_attr: State attrs for a batch of graphs.
             l_g : DGLGraph for a batch of line graphs.
+            output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
+                "readout", and "final" (default).
 
         Returns:
             output: Output property for a batch of graphs
@@ -241,6 +244,8 @@ class M3GNet(nn.Module, IOMixIn):
         three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
         node_feat, edge_feat, state_feat = self.embedding(node_types, g.edata["rbf"], state_attr)
+        if output_layer == "embedding":
+            return node_feat, edge_feat, state_feat
         for i in range(self.n_blocks):
             edge_feat = self.three_body_interactions[i](
                 g,
@@ -251,16 +256,22 @@ class M3GNet(nn.Module, IOMixIn):
                 edge_feat,
             )
             edge_feat, node_feat, state_feat = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
+            if i + 1 in output_layer:
+                return node_feat, edge_feat, state_feat
         g.ndata["node_feat"] = node_feat
         g.edata["edge_feat"] = edge_feat
         if self.is_intensive:
             node_vec = self.readout(g)
             vec = torch.hstack([node_vec, state_feat]) if self.include_states else node_vec  # type: ignore
+            if output_layer == "readout":
+                return vec
             output = self.final_layer(vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
         else:
             g.ndata["atomic_properties"] = self.final_layer(g)
+            if output_layer == "readout":
+                return g.ndata["atomic_properties"]
             output = dgl.readout_nodes(g, "atomic_properties", op="sum")
         return torch.squeeze(output)
 
