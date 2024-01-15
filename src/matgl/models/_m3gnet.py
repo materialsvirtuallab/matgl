@@ -322,7 +322,7 @@ class M3GNet(nn.Module, IOMixIn):
             graph_converter: Object that implements a get_graph_from_structure.
             output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
                 and "readout". By Default, intensive and extensive M3GNet models return outputs in the "readout"
-                and  "gc_3" layers, respectively.
+                layer and the "gc_3" layer, respectively.
 
         Returns:
             output: output M3GNet features for a structure
