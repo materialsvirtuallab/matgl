@@ -64,14 +64,26 @@ class TestM3GNet:
         model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
         model_extensive = M3GNet(is_intensive=False)
         for model in [model_extensive, model_intensive]:
+            output_final = model.predict_structure(structure)
+            assert torch.numel(output_final) == 1
+
+    def test_featurize_structure(self, graph_MoS):
+        structure, graph, state = graph_MoS
+        model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
+        model_extensive = M3GNet(is_intensive=False)
+        for model in [model_extensive, model_intensive]:
+            with pytest.raises(ValueError, match="Invalid output_layer"):
+                model.featurize_structure(structure, output_layer="whatever")
             for output_layer in ["embedding", "gc_1", "gc_2", "gc_3"]:
-                node_fea, bond_fea, state_fea = model.predict_structure(structure, output_layer=output_layer)
+                node_fea, bond_fea, state_fea = model.featurize_structure(structure, output_layer=output_layer)
                 assert torch.numel(node_fea) == 128
                 assert torch.numel(bond_fea) == 1792
                 assert state_fea is None
-            output_final = model.predict_structure(structure)
-            assert torch.numel(output_final) == 1
-        output_readout_intensive = model_intensive.predict_structure(structure, output_layer="readout")
+        output_readout_intensive = model_intensive.featurize_structure(structure, output_layer="readout")
         assert torch.numel(output_readout_intensive) == 64
-        output_readout_extensive = model_extensive.predict_structure(structure, output_layer="readout")
+        output_readout_extensive = model_extensive.featurize_structure(structure, output_layer="readout")
         assert torch.numel(output_readout_extensive) == 2
+        output_default_intensive = model_intensive.featurize_structure(structure)
+        assert torch.numel(output_default_intensive) == 64
+        output_default_extensive = model_extensive.featurize_structure(structure)
+        assert [torch.numel(output_default_extensive[i]) == [128, 1792][i] for i in range(2)]

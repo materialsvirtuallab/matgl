@@ -224,7 +224,7 @@ class M3GNet(nn.Module, IOMixIn):
             state_attr: State attrs for a batch of graphs.
             l_g : DGLGraph for a batch of line graphs.
             output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
-                "readout", and "final" (default).
+                "readout", and "final" (default). By default, the final layer output is returned.
 
         Returns:
             output: Output property for a batch of graphs
@@ -233,6 +233,10 @@ class M3GNet(nn.Module, IOMixIn):
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["bond_vec"] = bond_vec
         g.edata["bond_dist"] = bond_dist
+
+        allowed_output_layers = ["embedding", "gc_1", "gc_2", "gc_3", "readout", "final"]
+        if output_layer not in allowed_output_layers:
+            raise ValueError(f"Invalid output_layer, please use one of {allowed_output_layers}.")
 
         expanded_dists = self.bond_expansion(g.edata["bond_dist"])
         if l_g is None:
@@ -323,6 +327,9 @@ class M3GNet(nn.Module, IOMixIn):
         Returns:
             output: output M3GNet features for a structure
         """
+        if output_layer is None:
+            output_layer = "readout" if self.is_intensive else "gc_3"
+
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
 
