@@ -280,7 +280,6 @@ class M3GNet(nn.Module, IOMixIn):
         structure,
         state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
-        output_layer: str = "final",
     ):
         """Convenience method to directly predict property from structure.
 
@@ -288,11 +287,10 @@ class M3GNet(nn.Module, IOMixIn):
             structure: An input crystal/molecule.
             state_feats (torch.tensor): Graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
-            output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
-                "readout", and "final" (default).
+
 
         Returns:
-            output: output property for a structure
+            output(torch.tensor): output property for a structure
         """
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
@@ -303,6 +301,35 @@ class M3GNet(nn.Module, IOMixIn):
         g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        if output_layer == "final":
-            return self(g=g, state_attr=state_feats).detach()
+        return self(g=g, state_attr=state_feats).detach()
+
+    def featurize_structure(
+        self,
+        structure,
+        state_feats: torch.Tensor | None = None,
+        graph_converter: GraphConverter | None = None,
+        output_layer: str | None = None,
+    ):
+        """Convenience method to featurize a structure with M3GNet model.
+
+        Args:
+            structure: An input crystal/molecule.
+            state_feats (torch.tensor): Graph attributes
+            graph_converter: Object that implements a get_graph_from_structure.
+            output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
+                and "readout". By Default, intensive and extensive M3GNet models return outputs in the "readout"
+                and  "gc_3" layers, respectively.
+
+        Returns:
+            output: output M3GNet features for a structure
+        """
+        if graph_converter is None:
+            from matgl.ext.pymatgen import Structure2Graph
+
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+        g, lat, state_feats_default = graph_converter.get_graph(structure)
+        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
+        g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
+        if state_feats is None:
+            state_feats = torch.tensor(state_feats_default)
         return self(g=g, state_attr=state_feats, output_layer=output_layer)
