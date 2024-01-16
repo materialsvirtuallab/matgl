@@ -215,7 +215,7 @@ class M3GNet(nn.Module, IOMixIn):
         g: dgl.DGLGraph,
         state_attr: torch.Tensor | None = None,
         l_g: dgl.DGLGraph | None = None,
-        output_layer: str = "final",
+        return_all_layer_output: bool = False,
     ):
         """Performs message passing and updates node representations.
 
@@ -223,20 +223,16 @@ class M3GNet(nn.Module, IOMixIn):
             g : DGLGraph for a batch of graphs.
             state_attr: State attrs for a batch of graphs.
             l_g : DGLGraph for a batch of line graphs.
-            output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
-                "readout", and "final" (default). By default, the final layer output is returned.
+            return_all_layer_output: Whether to return outputs of all M3GNet layers. By default, only the final layer
+                output is returned.
 
         Returns:
-            output: Output property for a batch of graphs
+            output: Output property for a batch of graphs.
         """
         node_types = g.ndata["node_type"]
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["bond_vec"] = bond_vec
         g.edata["bond_dist"] = bond_dist
-
-        allowed_output_layers = ["embedding", "gc_1", "gc_2", "gc_3", "readout", "final"]
-        if output_layer not in allowed_output_layers:
-            raise ValueError(f"Invalid output_layer, please use one of {allowed_output_layers}.")
 
         expanded_dists = self.bond_expansion(g.edata["bond_dist"])
         if l_g is None:
@@ -248,8 +244,12 @@ class M3GNet(nn.Module, IOMixIn):
         three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
         node_feat, edge_feat, state_feat = self.embedding(node_types, g.edata["rbf"], state_attr)
-        if output_layer == "embedding":
-            return node_feat, edge_feat, state_feat
+        if return_all_layer_output:
+            fea_dict = {
+                "bond_expansion": expanded_dists,
+                "three_body_basis": three_body_basis,
+                "embedding": {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat},
+            }
         for i in range(self.n_blocks):
             edge_feat = self.three_body_interactions[i](
                 g,
@@ -260,24 +260,74 @@ class M3GNet(nn.Module, IOMixIn):
                 edge_feat,
             )
             edge_feat, node_feat, state_feat = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
-            if f"{i + 1}" in output_layer:
-                return node_feat, edge_feat, state_feat
+            if return_all_layer_output:
+                fea_dict[f"gc_{i+1}"] = {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat}
         g.ndata["node_feat"] = node_feat
         g.edata["edge_feat"] = edge_feat
         if self.is_intensive:
             field_vec = self.readout(g)
             readout_vec = torch.hstack([field_vec, state_feat]) if self.include_states else field_vec  # type: ignore
-            if output_layer == "readout":
-                return readout_vec
+            if return_all_layer_output:
+                fea_dict["readout"] = readout_vec
             output = self.final_layer(readout_vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
         else:
             g.ndata["atomic_properties"] = self.final_layer(g)
-            if output_layer == "readout":
-                return g.ndata["atomic_properties"]
+            if return_all_layer_output:
+                fea_dict["readout"] = g.ndata["atomic_properties"]
             output = dgl.readout_nodes(g, "atomic_properties", op="sum")
+        if return_all_layer_output:
+            fea_dict["final"] = output
+            return fea_dict
         return torch.squeeze(output)
+
+    def featurize_structure(
+        self,
+        structure,
+        state_feats: torch.Tensor | None = None,
+        graph_converter: GraphConverter | None = None,
+        output_layers: list | None = None,
+    ):
+        """Convenience method to featurize a structure with M3GNet model.
+
+        Args:
+            structure: An input crystal/molecule.
+            state_feats (torch.tensor): Graph attributes.
+            graph_converter: Object that implements a get_graph_from_structure.
+            output_layers: List of names for the layer of GNN as output. Choose from "bond_expansion", "embedding",
+                "three_body_basis", "gc_1", "gc_2", "gc_3", "readout", and "final". By default, all M3GNet layer
+                outputs are returned.
+
+        Returns:
+            output (dict): M3GNet intermediate and final layer outputs for a structure.
+        """
+        if output_layers is not None:
+            allowed_output_layers = [
+                "bond_expansion",
+                "embedding",
+                "three_body_basis",
+                "gc_1",
+                "gc_2",
+                "gc_3",
+                "readout",
+                "final",
+            ]
+            if not isinstance(output_layers, list) or set(output_layers).difference(allowed_output_layers):
+                raise ValueError(f"Invalid output_layers, it must be a sublist of {allowed_output_layers}.")
+
+        if graph_converter is None:
+            from matgl.ext.pymatgen import Structure2Graph
+
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+        g, lat, state_feats_default = graph_converter.get_graph(structure)
+        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
+        g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
+        if state_feats is None:
+            state_feats = torch.tensor(state_feats_default)
+        if output_layers == ["final"]:
+            return self(g=g, state_attr=state_feats).detach()
+        return self(g=g, state_attr=state_feats, return_all_layer_output=True)
 
     def predict_structure(
         self,
@@ -292,51 +342,7 @@ class M3GNet(nn.Module, IOMixIn):
             state_feats (torch.tensor): Graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
 
-
         Returns:
             output(torch.tensor): output property for a structure
         """
-        if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
-
-            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
-        g, lat, state_feats_default = graph_converter.get_graph(structure)
-        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
-        g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
-        if state_feats is None:
-            state_feats = torch.tensor(state_feats_default)
-        return self(g=g, state_attr=state_feats).detach()
-
-    def featurize_structure(
-        self,
-        structure,
-        state_feats: torch.Tensor | None = None,
-        graph_converter: GraphConverter | None = None,
-        output_layer: str | None = None,
-    ):
-        """Convenience method to featurize a structure with M3GNet model.
-
-        Args:
-            structure: An input crystal/molecule.
-            state_feats (torch.tensor): Graph attributes
-            graph_converter: Object that implements a get_graph_from_structure.
-            output_layer : Name for the layer of GNN as output. Choose from "embedding", "gc_1", "gc_2", "gc_3",
-                and "readout". By Default, intensive and extensive M3GNet models return outputs in the "readout"
-                layer and the "gc_3" layer, respectively.
-
-        Returns:
-            output: output M3GNet features for a structure
-        """
-        if output_layer is None:
-            output_layer = "readout" if self.is_intensive else "gc_3"
-
-        if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
-
-            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
-        g, lat, state_feats_default = graph_converter.get_graph(structure)
-        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
-        g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
-        if state_feats is None:
-            state_feats = torch.tensor(state_feats_default)
-        return self(g=g, state_attr=state_feats, output_layer=output_layer)
+        return self.featurize_structure(structure, state_feats, graph_converter, ["final"])

@@ -72,18 +72,17 @@ class TestM3GNet:
         model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
         model_extensive = M3GNet(is_intensive=False)
         for model in [model_extensive, model_intensive]:
-            with pytest.raises(ValueError, match="Invalid output_layer"):
-                model.featurize_structure(structure, output_layer="whatever")
+            with pytest.raises(ValueError, match="Invalid output_layers"):
+                model.featurize_structure(structure, output_layers=["whatever"])
+            features = model.featurize_structure(structure)
+            assert torch.numel(features["bond_expansion"]) == 252
+            assert torch.numel(features["three_body_basis"]) == 3276
             for output_layer in ["embedding", "gc_1", "gc_2", "gc_3"]:
-                node_fea, bond_fea, state_fea = model.featurize_structure(structure, output_layer=output_layer)
-                assert torch.numel(node_fea) == 128
-                assert torch.numel(bond_fea) == 1792
-                assert state_fea is None
-        output_readout_intensive = model_intensive.featurize_structure(structure, output_layer="readout")
-        assert torch.numel(output_readout_intensive) == 64
-        output_readout_extensive = model_extensive.featurize_structure(structure, output_layer="readout")
-        assert torch.numel(output_readout_extensive) == 2
-        output_default_intensive = model_intensive.featurize_structure(structure)
-        assert torch.numel(output_default_intensive) == 64
-        output_default_extensive = model_extensive.featurize_structure(structure)
-        assert [torch.numel(output_default_extensive[i]) == [128, 1792][i] for i in range(2)]
+                assert torch.numel(features[output_layer]["node_feat"]) == 128
+                assert torch.numel(features[output_layer]["edge_feat"]) == 1792
+                assert features[output_layer]["state_feat"] is None
+            if model.is_intensive:
+                assert torch.numel(features["readout"]) == 64
+            else:
+                assert torch.numel(features["readout"]) == 2
+            assert torch.numel(features["final"]) == 1
