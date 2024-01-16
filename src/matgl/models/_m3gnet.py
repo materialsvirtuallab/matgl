@@ -244,12 +244,11 @@ class M3GNet(nn.Module, IOMixIn):
         three_body_basis = self.basis_expansion(l_g)
         three_body_cutoff = polynomial_cutoff(g.edata["bond_dist"], self.threebody_cutoff)
         node_feat, edge_feat, state_feat = self.embedding(node_types, g.edata["rbf"], state_attr)
-        if return_all_layer_output:
-            fea_dict = {
-                "bond_expansion": expanded_dists,
-                "three_body_basis": three_body_basis,
-                "embedding": {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat},
-            }
+        fea_dict = {
+            "bond_expansion": expanded_dists,
+            "three_body_basis": three_body_basis,
+            "embedding": {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat},
+        }
         for i in range(self.n_blocks):
             edge_feat = self.three_body_interactions[i](
                 g,
@@ -260,25 +259,22 @@ class M3GNet(nn.Module, IOMixIn):
                 edge_feat,
             )
             edge_feat, node_feat, state_feat = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
-            if return_all_layer_output:
-                fea_dict[f"gc_{i+1}"] = {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat}
+            fea_dict[f"gc_{i+1}"] = {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat}
         g.ndata["node_feat"] = node_feat
         g.edata["edge_feat"] = edge_feat
         if self.is_intensive:
             field_vec = self.readout(g)
             readout_vec = torch.hstack([field_vec, state_feat]) if self.include_states else field_vec  # type: ignore
-            if return_all_layer_output:
-                fea_dict["readout"] = readout_vec
+            fea_dict["readout"] = readout_vec
             output = self.final_layer(readout_vec)
             if self.task_type == "classification":
                 output = self.sigmoid(output)
         else:
             g.ndata["atomic_properties"] = self.final_layer(g)
-            if return_all_layer_output:
-                fea_dict["readout"] = g.ndata["atomic_properties"]
+            fea_dict["readout"] = g.ndata["atomic_properties"]
             output = dgl.readout_nodes(g, "atomic_properties", op="sum")
+        fea_dict["final"] = output
         if return_all_layer_output:
-            fea_dict["final"] = output
             return fea_dict
         return torch.squeeze(output)
 
