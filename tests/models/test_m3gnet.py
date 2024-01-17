@@ -86,3 +86,4 @@ class TestM3GNet:
             else:
                 assert torch.numel(features["readout"]) == 2
             assert torch.numel(features["final"]) == 1
+            assert list(model.featurize_structure(structure, output_layers=["gc_1"]).keys()) == ["gc_1"]

@@ -298,19 +298,20 @@ class M3GNet(nn.Module, IOMixIn):
         Returns:
             output (dict): M3GNet intermediate and final layer outputs for a structure.
         """
-        if output_layers is not None:
-            allowed_output_layers = [
-                "bond_expansion",
-                "embedding",
-                "three_body_basis",
-                "gc_1",
-                "gc_2",
-                "gc_3",
-                "readout",
-                "final",
-            ]
-            if not isinstance(output_layers, list) or set(output_layers).difference(allowed_output_layers):
-                raise ValueError(f"Invalid output_layers, it must be a sublist of {allowed_output_layers}.")
+        allowed_output_layers = [
+            "bond_expansion",
+            "embedding",
+            "three_body_basis",
+            "gc_1",
+            "gc_2",
+            "gc_3",
+            "readout",
+            "final",
+        ]
+        if output_layers is None:
+            output_layers = allowed_output_layers
+        elif not isinstance(output_layers, list) or set(output_layers).difference(allowed_output_layers):
+            raise ValueError(f"Invalid output_layers, it must be a sublist of {allowed_output_layers}.")
 
         if graph_converter is None:
             from matgl.ext.pymatgen import Structure2Graph
@@ -323,7 +324,11 @@ class M3GNet(nn.Module, IOMixIn):
             state_feats = torch.tensor(state_feats_default)
         if output_layers == ["final"]:
             return self(g=g, state_attr=state_feats).detach()
-        return self(g=g, state_attr=state_feats, return_all_layer_output=True)
+        return {
+            k: v
+            for k, v in self(g=g, state_attr=state_feats, return_all_layer_output=True).items()
+            if k in output_layers
+        }
 
     def predict_structure(
         self,
