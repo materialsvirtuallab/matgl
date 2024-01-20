@@ -179,7 +179,10 @@ class M3GNet(nn.Module, IOMixIn):
             input_feats = dim_node_embedding if field == "node_feat" else dim_edge_embedding
             if readout_type == "set2set":
                 self.readout = Set2SetReadOut(
-                    in_feats=input_feats, n_iters=niters_set2set, n_layers=nlayers_set2set, field=field
+                    in_feats=input_feats,
+                    n_iters=niters_set2set,
+                    n_layers=nlayers_set2set,
+                    field=field,
                 )
                 readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
             else:
@@ -247,7 +250,11 @@ class M3GNet(nn.Module, IOMixIn):
         fea_dict = {
             "bond_expansion": expanded_dists,
             "three_body_basis": three_body_basis,
-            "embedding": {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat},
+            "embedding": {
+                "node_feat": node_feat,
+                "edge_feat": edge_feat,
+                "state_feat": state_feat,
+            },
         }
         for i in range(self.n_blocks):
             edge_feat = self.three_body_interactions[i](
@@ -259,7 +266,11 @@ class M3GNet(nn.Module, IOMixIn):
                 edge_feat,
             )
             edge_feat, node_feat, state_feat = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
-            fea_dict[f"gc_{i+1}"] = {"node_feat": node_feat, "edge_feat": edge_feat, "state_feat": state_feat}
+            fea_dict[f"gc_{i+1}"] = {
+                "node_feat": node_feat,
+                "edge_feat": edge_feat,
+                "state_feat": state_feat,
+            }
         g.ndata["node_feat"] = node_feat
         g.edata["edge_feat"] = edge_feat
         if self.is_intensive:
@@ -302,12 +313,9 @@ class M3GNet(nn.Module, IOMixIn):
             "bond_expansion",
             "embedding",
             "three_body_basis",
-            "gc_1",
-            "gc_2",
-            "gc_3",
             "readout",
             "final",
-        ]
+        ] + [f"gc_{i + 1}" for i in range(self.n_blocks)]
         if output_layers is None:
             output_layers = allowed_output_layers
         elif not isinstance(output_layers, list) or set(output_layers).difference(allowed_output_layers):
