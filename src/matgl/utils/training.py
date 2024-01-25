@@ -343,7 +343,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.sync_dist = sync_dist
         self.allow_missing_labels = allow_missing_labels
         self.site_wise_target = site_wise_target
-        self.save_hyperparameters(ignore=["model"])
+        self.save_hyperparameters()
 
     def on_load_checkpoint(self, checkpoint: dict[str, ...]):
         """
