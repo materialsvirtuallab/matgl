@@ -8,6 +8,7 @@ please refer to::
     Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
 
 """
+
 from __future__ import annotations
 
 import logging

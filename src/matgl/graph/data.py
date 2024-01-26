@@ -1,4 +1,5 @@
 """Tools to construct a dataset of DGL graphs."""
+
 from __future__ import annotations
 
 import json
