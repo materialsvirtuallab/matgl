@@ -58,3 +58,32 @@ class TestM3GNet:
         model = M3GNet(element_types=["Mo", "S"], is_intensive=True, task_type="classification", readout_type="set2set")
         output = model(g=graph)
         assert torch.numel(output) == 1
+
+    def test_predict_structure(self, graph_MoS):
+        structure, graph, state = graph_MoS
+        model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
+        model_extensive = M3GNet(is_intensive=False)
+        for model in [model_extensive, model_intensive]:
+            output_final = model.predict_structure(structure)
+            assert torch.numel(output_final) == 1
+
+    def test_featurize_structure(self, graph_MoS):
+        structure, graph, state = graph_MoS
+        model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
+        model_extensive = M3GNet(is_intensive=False)
+        for model in [model_extensive, model_intensive]:
+            with pytest.raises(ValueError, match="Invalid output_layers"):
+                model.featurize_structure(structure, output_layers=["whatever"])
+            features = model.featurize_structure(structure)
+            assert torch.numel(features["bond_expansion"]) == 252
+            assert torch.numel(features["three_body_basis"]) == 3276
+            for output_layer in ["embedding", "gc_1", "gc_2", "gc_3"]:
+                assert torch.numel(features[output_layer]["node_feat"]) == 128
+                assert torch.numel(features[output_layer]["edge_feat"]) == 1792
+                assert features[output_layer]["state_feat"] is None
+            if model.is_intensive:
+                assert torch.numel(features["readout"]) == 64
+            else:
+                assert torch.numel(features["readout"]) == 2
+            assert torch.numel(features["final"]) == 1
+            assert list(model.featurize_structure(structure, output_layers=["gc_1"]).keys()) == ["gc_1"]
