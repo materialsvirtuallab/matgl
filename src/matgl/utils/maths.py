@@ -53,7 +53,7 @@ def _block_repeat(array, block_size, repeats):
     col_index = torch.arange(array.size()[1])
     indices = []
     start = 0
-    
+
     for i, b in enumerate(block_size):
         indices.append(torch.tile(col_index[start : start + b], [repeats[i]]).to(array.device))
         start += b
