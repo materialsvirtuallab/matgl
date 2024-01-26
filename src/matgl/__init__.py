@@ -1,4 +1,5 @@
 """MatGL (Materials Graph Library) is a graph deep learning library for materials science."""
+
 from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version
