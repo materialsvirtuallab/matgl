@@ -7,7 +7,7 @@
 
 # Materials Graph Library <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MatGL.png?raw=true" alt="matgl" width="30%" style="float: right">
 
-## Official Documentation [:books:]
+## Official Documentation
 
 <https://matgl.ai>
 
@@ -156,6 +156,21 @@ To obtain a listing of available pre-trained models,
 ```python
 import matgl
 print(matgl.get_available_pretrained_models())
+```
+
+## Pytorch Hub
+
+The pre-trained models are also available on Pytorch hub. To use these models, simply install matgl and use the
+following commands:
+
+```python
+import torch
+
+# To obtain a listing of models
+torch.hub.list("materialsvirtuallab/matgl", force_reload=True)
+
+# To load a model
+model = torch.hub.load("materialsvirtuallab/matgl", 'm3gnet_universal_potential')
 ```
 
 ## Tutorials
