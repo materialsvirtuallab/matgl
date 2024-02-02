@@ -15,8 +15,10 @@ def test_set_default_dtype():
 def test_set_default_dtype_invalid_size():
     with pytest.raises(ValueError, match="Invalid dtype size"):
         set_default_dtype("float", 128)
+    set_default_dtype("float", 32)
 
 
 def test_set_default_dtype_exception():
     with pytest.raises(Exception, match="torch.float16 is not supported for M3GNet"):
         set_default_dtype("float", 16)
+    set_default_dtype("float", 32)
