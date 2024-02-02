@@ -23,7 +23,7 @@ def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     """
     dst_pos = g.ndata["pos"][g.edges()[1]] + g.edata["pbc_offshift"]
     src_pos = g.ndata["pos"][g.edges()[0]]
-    bond_vec = (dst_pos - src_pos).float()
+    bond_vec = dst_pos - src_pos
     bond_dist = torch.norm(bond_vec, dim=1)
 
     return bond_vec, bond_dist

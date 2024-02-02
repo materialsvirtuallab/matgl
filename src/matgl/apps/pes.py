@@ -132,7 +132,11 @@ class Potential(nn.Module, IOMixIn):
                     hessian[iatom] = tmp.view(-1)
 
         if self.calc_stresses:
-            volume = torch.abs(torch.det(lattice))
+            volume = (
+                torch.abs(torch.det(lattice.float())).half()
+                if matgl.float_th == torch.float16
+                else torch.abs(torch.det(lattice))
+            )
             sts = -grads[1]
             scale = 1.0 / volume * -160.21766208
             sts = [i * j for i, j in zip(sts, scale)] if sts.dim() == 3 else [sts * scale]
