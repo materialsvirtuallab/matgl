@@ -305,7 +305,6 @@ class M3GNetGraphConv(Module):
             u = edges.src["u"]
         eij = edges.data.pop("e")
         rbf = edges.data["rbf"]
-        rbf = rbf.float()
         inputs = torch.hstack([vi, vj, eij, u]) if self.include_states else torch.hstack([vi, vj, eij])
         mij = {"mij": self.edge_update_func(inputs) * self.edge_weight_func(rbf)}
         return mij
@@ -339,7 +338,6 @@ class M3GNetGraphConv(Module):
         dst_id = graph.edges()[1]
         vj = graph.ndata["v"][dst_id]
         rbf = graph.edata["rbf"]
-        rbf = rbf.float()
         if self.include_states:
             u = dgl.broadcast_edges(graph, state_feat)
             inputs = torch.hstack([vi, vj, eij, u])

@@ -39,3 +39,8 @@ def set_default_dtype(type_: str = "float", size: int = 32):
         torch.set_default_dtype(getattr(torch, f"float{size}"))
     else:
         raise ValueError("Invalid dtype size")
+    if type_ == "float" and size == 16 and not torch.cuda.is_available():
+        raise Exception(
+            "torch.float16 is not supported for M3GNet because addmm_impl_cpu_ is not implemented"
+            " for this floating precision, please use size = 32, 64 or using 'cuda' instead !!"
+        )
