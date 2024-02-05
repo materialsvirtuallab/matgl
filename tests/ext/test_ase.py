@@ -18,7 +18,7 @@ def test_M3GNetCalculator(MoS):
     ff.calc_hessian = True
     calc = M3GNetCalculator(potential=ff)
     s_ase.set_calculator(calc)
-    assert [s_ase.get_potential_energy().size] == [1]
+    assert isinstance(s_ase.get_potential_energy(), float)
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
@@ -26,7 +26,7 @@ def test_M3GNetCalculator(MoS):
 
     calc = M3GNetCalculator(potential=ff, state_attr=torch.tensor([0.0, 0.0]))
     s_ase.set_calculator(calc)
-    assert [s_ase.get_potential_energy().size] == [1]
+    assert isinstance(s_ase.get_potential_energy(), float)
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
@@ -39,7 +39,7 @@ def test_M3GNetCalculator_mol(AcAla3NHMe):
     ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     calc = M3GNetCalculator(potential=ff)
     mol.set_calculator(calc)
-    assert [mol.get_potential_energy().size] == [1]
+    assert isinstance(mol.get_potential_energy(), float)
     assert list(mol.get_forces().shape) == [42, 3]
     np.testing.assert_allclose(mol.get_potential_energy(), -250.16803)
 
