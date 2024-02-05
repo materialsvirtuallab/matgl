@@ -1,4 +1,5 @@
 """Generate bond features based on spherical bessel functions or gaussian expansion."""
+
 from __future__ import annotations
 
 from typing import Literal

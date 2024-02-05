@@ -1,4 +1,5 @@
 """This package implements the layers for M*GNet."""
+
 from __future__ import annotations
 
 from matgl.layers._activations import ActivationFunction

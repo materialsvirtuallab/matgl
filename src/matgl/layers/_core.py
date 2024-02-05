@@ -1,4 +1,5 @@
 """Implementations of multi-layer perceptron (MLP) and other helper classes."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable

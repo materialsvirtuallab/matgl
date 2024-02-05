@@ -6,6 +6,11 @@ nav_order: 3
 
 # Change Log
 
+## 0.9.2
+* Added Tensor Placement Calls For Ease of Training with PyTorch Lightning (@melo-gonzo).
+* Allow extraction of intermediate outputs in "embedding", "gc_1", "gc_2", "gc_3", and "readout" layers for use as
+  atom, bond, and structure features. (@JiQi535)
+
 ## 0.9.1
 * Update Potential version numbers.
 

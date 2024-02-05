@@ -55,7 +55,7 @@ def _block_repeat(array, block_size, repeats):
     start = 0
 
     for i, b in enumerate(block_size):
-        indices.append(torch.tile(col_index[start : start + b], [repeats[i]]))
+        indices.append(torch.tile(col_index[start : start + b], [repeats[i]]).to(array.device))
         start += b
     indices = torch.cat(indices, axis=0)
     return torch.index_select(array, 1, indices)
@@ -188,6 +188,8 @@ def scatter_sum(input_tensor: torch.Tensor, segment_ids: torch.Tensor, num_segme
     else:
         size[dim] = num_segments
     output = torch.zeros(size, dtype=input_tensor.dtype)
+    output = output.to(input_tensor.device)
+    segment_ids = segment_ids.to(input_tensor.device)
     return output.scatter_add_(dim, segment_ids, input_tensor)
 
 
