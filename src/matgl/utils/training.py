@@ -350,7 +350,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             state_attr: State attr.
 
         Returns:
-            energy, force, stress, h
+            energy, force, stress, hessian and optional site_wise
         """
         if self.model.calc_site_wise:
             e, f, s, h, m = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)

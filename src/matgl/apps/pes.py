@@ -8,7 +8,7 @@ from torch import nn
 from torch.autograd import grad
 
 import matgl
-from matgl.layers import AtomRef
+from matgl.layers import AtomRef, NuclearRepulsion
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
@@ -31,6 +31,8 @@ class Potential(nn.Module, IOMixIn):
         calc_stresses: bool = True,
         calc_hessian: bool = False,
         calc_site_wise: bool = False,
+        calc_repuls: bool = False,
+        zbl_trainable: bool = False,
         debug_mode: bool = False,
     ):
         """Initialize Potential from a model and elemental references.
@@ -44,7 +46,9 @@ class Potential(nn.Module, IOMixIn):
             calc_stresses: Enable stress calculations.
             calc_hessian: Enable hessian calculations.
             calc_site_wise: Enable site-wise property calculation.
-            debug_mode: return gradient of total energy with respect to atomic positions and lattices for checking
+            calc_repuls: Whether the ZBL repulsion is included
+            zbl_trainable: Whether zbl repulsion is trainable
+            debug_mode: Return gradient of total energy with respect to atomic positions and lattices for checking
         """
         super().__init__()
         self.save_args(locals())
@@ -55,6 +59,11 @@ class Potential(nn.Module, IOMixIn):
         self.calc_site_wise = calc_site_wise
         self.element_refs: AtomRef | None
         self.debug_mode = debug_mode
+        self.calc_repuls = calc_repuls
+
+        if calc_repuls:
+            self.repuls = NuclearRepulsion(self.model.cutoff, trainable=zbl_trainable)
+
         if element_refs is not None:
             self.element_refs = AtomRef(property_offset=torch.tensor(element_refs, dtype=matgl.float_th))
         else:
@@ -100,7 +109,12 @@ class Potential(nn.Module, IOMixIn):
         else:
             total_energies = predictions
             site_wise = None
+
         total_energies = self.data_std * total_energies + self.data_mean
+
+        if self.calc_repuls:
+            total_energies += self.repuls(self.model.element_types, g)
+
         if self.element_refs is not None:
             property_offset = torch.squeeze(self.element_refs(g))
             total_energies += property_offset

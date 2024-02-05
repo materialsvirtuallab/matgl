@@ -8,7 +8,10 @@ import torch
 from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
 
+import matgl
 from matgl.layers._core import MLP, GatedMLP
+from matgl.utils.cutoff import cosine_cutoff
+from matgl.utils.maths import decompose_tensor, new_radial_tensor, tensor_norm
 
 
 class MEGNetGraphConv(Module):
@@ -243,12 +246,12 @@ class M3GNetGraphConv(Module):
         state_update_func: Module | None,
     ):
         """Parameters:
-        include_state (bool): Whether including state
+        include_states (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
         node_weight_func (Module): Weight function for radial basis functions (Eq. 5)
-        attr_update_func (Module): Update function for state feats (Eq. 6).
+        state_update_func (Module): Update function for state feats (Eq. 6).
         """
         super().__init__()
         self.include_states = include_states
@@ -301,6 +304,7 @@ class M3GNetGraphConv(Module):
         """
         vi = edges.src["v"]
         vj = edges.dst["v"]
+        u = None
         if self.include_states:
             u = edges.src["u"]
         eij = edges.data.pop("e")
@@ -485,3 +489,147 @@ class M3GNetBlock(Module):
                 state_feat = self.dropout(state_feat)  # pylint: disable=E1102
 
         return edge_feat, node_feat, state_feat
+
+
+class TensorNetInteraction(nn.Module):
+    """A Graph Convolution block for TensorNet. The official implementation can be found in https://github.com/torchmd/torchmd-net."""
+
+    def __init__(
+        self,
+        num_rbf: int,
+        units: int,
+        activation: nn.Module,
+        cutoff: float,
+        equivariance_invariance_group: str,
+        dtype: torch.dtype = matgl.float_th,
+    ):
+        """
+
+        Args:
+            num_rbf: Number of radial basis functions.
+            units: number of hidden neurons.
+            activation: activation.
+            cutoff: cutoff radius for graph construction.
+            equivariance_invariance_group: Group action on geometric tensor representations, either O(3) or SO(3).
+            dtype: data type for all variables.
+        """
+        super().__init__()
+
+        self.num_rbf = num_rbf
+        self.units = units
+        self.linears_scalar = nn.ModuleList()
+        self.linears_scalar.append(nn.Linear(num_rbf, units, bias=True, dtype=dtype))
+        self.linears_scalar.append(nn.Linear(units, 2 * units, bias=True, dtype=dtype))
+        self.linears_scalar.append(nn.Linear(2 * units, 3 * units, bias=True, dtype=dtype))
+        self.linears_tensor = nn.ModuleList(nn.Linear(units, units, bias=False) for _ in range(6))
+        #        self.act = activation()
+        self.act = activation
+        self.equivariance_invariance_group = equivariance_invariance_group
+        self.reset_parameters()
+        self.cutoff = cutoff
+
+    def reset_parameters(self):
+        """Reinitialize the parameters."""
+        for linear in self.linears_scalar:
+            linear.reset_parameters()
+        for linear in self.linears_tensor:
+            linear.reset_parameters()
+
+    def _edge_udf(self, edges: dgl.udf.EdgeBatch):
+        """Edge update functions.
+
+        Args:
+        edges (DGL graph): edges in dgl graph
+
+        Returns:
+        mij: message passing between node i and j
+        """
+        I_j = edges.dst["I"]
+        A_j = edges.dst["A"]
+        S_j = edges.dst["S"]
+        edge_attr = edges.data["e"]
+        scalars, skew_metrices, traceless_tensors = new_radial_tensor(
+            I_j, A_j, S_j, edge_attr[..., 0], edge_attr[..., 1], edge_attr[..., 2]
+        )
+        mij = {"I": scalars, "A": skew_metrices, "S": traceless_tensors}
+        return mij
+
+    def edge_update_(self, graph: dgl.DGLGraph) -> dgl.DGLGraph:
+        """Perform edge update.
+
+        Args:
+        graph: DGL graph
+
+        Returns:
+        edge_update: edge features update
+        """
+        graph.apply_edges(self._edge_udf)
+        return graph
+
+    def node_update_(self, graph: dgl.DGLGraph) -> tuple[Tensor, Tensor, Tensor]:
+        """Perform node update.
+
+        Args:
+            graph: DGL graph
+
+        Returns:
+            node_update: node features update
+        """
+        graph.update_all(fn.copy_e("I", "I"), fn.sum("I", "Ie"))
+        graph.update_all(fn.copy_e("A", "A"), fn.sum("A", "Ae"))
+        graph.update_all(fn.copy_e("S", "S"), fn.sum("S", "Se"))
+        scalars = graph.ndata.pop("Ie")
+        skew_metrices = graph.ndata.pop("Ae")
+        traceless_tensors = graph.ndata.pop("Se")
+        return scalars, skew_metrices, traceless_tensors
+
+    def forward(self, g: dgl.DGLGraph, X: Tensor):
+        """
+
+        Args:
+            g: dgl graph.
+            X: node tensor representations.
+
+        Returns:
+            X: message passed tensor representations.
+        """
+        edge_weight = g.edata["bond_dist"]
+        edge_attr = g.edata["edge_attr"]
+        C = cosine_cutoff(edge_weight, self.cutoff)
+        for linear_scalar in self.linears_scalar:
+            edge_attr = self.act(linear_scalar(edge_attr))
+        edge_attr = (edge_attr * C.view(-1, 1)).reshape(edge_attr.shape[0], self.units, 3)
+        X = X / (tensor_norm(X) + 1)[..., None, None]
+        scalars, skew_metrices, traceless_tensors = decompose_tensor(X)
+        scalars = self.linears_tensor[0](scalars.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        skew_metrices = self.linears_tensor[1](skew_metrices.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        traceless_tensors = self.linears_tensor[2](traceless_tensors.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        Y = scalars + skew_metrices + traceless_tensors
+        # propagate_type: (I: Tensor, A: Tensor, S: Tensor, edge_attr: Tensor)
+        with g.local_scope():
+            g.ndata["I"] = scalars
+            g.ndata["A"] = skew_metrices
+            g.ndata["S"] = traceless_tensors
+            g.edata["e"] = edge_attr
+            g = self.edge_update_(g)
+            Im, Am, Sm = self.node_update_(g)
+            msg = Im + Am + Sm
+            if self.equivariance_invariance_group == "O(3)":
+                A = torch.matmul(msg, Y)
+                B = torch.matmul(Y, msg)
+                scalars, skew_metrices, traceless_tensors = decompose_tensor(A + B)
+            if self.equivariance_invariance_group == "SO(3)":
+                B = torch.matmul(Y, msg)
+                scalars, skew_metrices, traceless_tensors = decompose_tensor(2 * B)
+            normp1 = (tensor_norm(scalars + skew_metrices + traceless_tensors) + 1)[..., None, None]
+            scalars, skew_metrices, traceless_tensors = (
+                scalars / normp1,
+                skew_metrices / normp1,
+                traceless_tensors / normp1,
+            )
+            scalars = self.linears_tensor[3](scalars.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            skew_metrices = self.linears_tensor[4](skew_metrices.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            traceless_tensors = self.linears_tensor[5](traceless_tensors.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            dX = scalars + skew_metrices + traceless_tensors
+            X = X + dX + torch.matmul(dX, dX)
+        return X

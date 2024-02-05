@@ -238,7 +238,7 @@ class M3GNetDataset(DGLDataset):
         threebody_cutoff: float | None = None,
         structures: list | None = None,
         labels: dict[str, list] | None = None,
-        name="M3GNetDataset",
+        name: str = "M3GNetDataset",
         graph_labels: list[int | float] | None = None,
         clear_processed: bool = False,
     ):
