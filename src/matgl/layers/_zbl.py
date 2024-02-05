@@ -1,4 +1,4 @@
-"""Zbl repulsive potential."""
+"""Zbl repulsive potential.The official implementation can be found in https://github.com/atomistic-machine-learning/schnetpack."""
 from __future__ import annotations
 
 import dgl
@@ -47,6 +47,15 @@ class NuclearRepulsion(nn.Module):
         self.exponents = nn.Parameter(exponents, requires_grad=trainable)
 
     def forward(self, element_types: tuple, graph: dgl.DGLGraph):
+        """
+
+        Args:
+            element_types: A tuple of element types defined in the model class.
+            graph: dgl.DGL graph.
+
+        Returns:
+            energy: Pairwise ZBL nuclear repulsive energy.
+        """
         z_list = torch.tensor([atomic_numbers[i] for i in element_types], dtype=matgl.float_th)
         z = z_list[graph.ndata["node_type"]]
 

@@ -252,7 +252,8 @@ class SphericalHarmonicsFunction(nn.Module):
             cos_theta: Cosine of the azimuthal angle
             phi: torch.Tensor, the polar angle.
 
-        Returns: [n, m] spherical harmonic results, where n is the number
+        Returns:
+            torch.Tensor: [n, m] spherical harmonic results, where n is the number
             of angles. The column is arranged following
             `[Y_0^0, Y_1^{-1}, Y_1^{0}, Y_1^1, Y_2^{-2}, ...]`
         """

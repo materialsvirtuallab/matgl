@@ -181,6 +181,7 @@ class TensorEmbedding(nn.Module):
         """
         vi = edges.src["v"]
         vj = edges.dst["v"]
+        u = None
         if self.include_state:
             u = edges.src["u"]
         zij = torch.hstack([vi, vj, u]) if self.include_state else torch.hstack([vi, vj])

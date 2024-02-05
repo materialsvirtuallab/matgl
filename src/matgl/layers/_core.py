@@ -101,7 +101,7 @@ class GatedMLP(nn.Module):
         """:param in_feats: Dimension of input features.
         :param dims: Architecture of neural networks.
         :param activate_last: Whether applying activation to last layer or not.
-        :param bias_last: Whether applying bias to last layer or not.
+        :param use_bias: Whether applying bias in MLP.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -182,6 +182,7 @@ class GatedEquivariantBlock(nn.Module):
     """
     Gated equivariant block as used for the prediction of tensorial properties by PaiNN.
     Transforms scalar and vector representation using gated nonlinearities.
+    The official implementation can be found in https://github.com/atomistic-machine-learning/schnetpack/blob/master/src/schnetpack/nn/equivariant.py.
 
     References:
     .. [#painn1] Schütt, Unke, Gastegger:
@@ -198,7 +199,7 @@ class GatedEquivariantBlock(nn.Module):
         n_vout: int,
         n_hidden: int,
         activation: nn.Module,
-        sactivation: nn.Module,
+        sactivation: nn.Module | None = None,
     ):
         """
         Args:
@@ -248,13 +249,14 @@ def build_gated_equivariant_mlp(
     n_in: int,
     n_out: int,
     activation: nn.Module,
-    sactivation: nn.Module,
+    sactivation: nn.Module | None = None,
     n_hidden: int | Sequence[int] | None = None,
     n_gating_hidden: int | Sequence[int] | None = None,
     n_layers: int = 2,
 ):
     """
     Build neural network analog to MLP with `GatedEquivariantBlock`s instead of dense layers.
+     The official implementation can be found in https://github.com/atomistic-machine-learning/schnetpack/blob/master/src/schnetpack/nn/blocks.py.
 
     Args:
         n_in: number of input nodes.
@@ -286,11 +288,6 @@ def build_gated_equivariant_mlp(
     else:
         # get list of number of nodes hidden layers
         n_hidden = [n_hidden] * (n_layers - 1) if isinstance(n_hidden, int) else list(n_hidden)
-        #        if type(n_hidden) is int:
-        #            n_hidden = [n_hidden] * (n_layers - 1)
-        #        else:
-        #            n_hidden = list(n_hidden)
-        # n_neurons = [n_in] + n_hidden + [n_out]
         n_neurons = [n_in, *n_hidden, n_out]
     if n_gating_hidden is None:
         n_gating_hidden = n_neurons[:-1]

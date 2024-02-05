@@ -44,7 +44,6 @@ class RealSphericalHarmonics(nn.Module):
         """
         Args:
             lmax: maximum angular momentum.
-            dtype_str: dtype for spherical harmonics coefficients.
         """
         super().__init__()
         self.lmax = lmax

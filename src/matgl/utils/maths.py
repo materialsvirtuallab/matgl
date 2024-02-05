@@ -108,7 +108,7 @@ def get_segment_indices_from_n(ns):
     return segments.cumsum(0)
 
 
-def get_range_indices_from_n(ns):
+def get_range_indices_from_n(ns: torch.Tensor):
     """Give ns = [2, 3], return [0, 1, 0, 1, 2].
 
     Args:
@@ -116,7 +116,7 @@ def get_range_indices_from_n(ns):
 
     Returns: range indices
     """
-    max_n = torch.max(ns)
+    max_n = int(torch.max(ns))
     n = ns.size(dim=0)
     n_range = torch.arange(max_n)
     matrix = n_range.tile(
@@ -270,7 +270,9 @@ def broadcast(input_tensor: torch.Tensor, target_tensor: torch.Tensor, dim: int)
 
 
 def binom(n: torch.Tensor, k: torch.Tensor) -> torch.Tensor:
-    """Compute binomial coefficients (n k)."""
+    """Compute binomial coefficients (n k). Token from Schnetpack2.0
+    (https://github.com/atomistic-machine-learning/schnetpack in schnetpack/src/schnetpack/nn/ops/math.py.
+    """
     return torch.exp(torch.lgamma(n + 1) - torch.lgamma((n - k) + 1) - torch.lgamma(k + 1))
 
 

@@ -1,10 +1,10 @@
 """Implementation of TensorNet model.
 
-For more details on TensorNet,
+A Cartestian based equivariant GNN model. For more details on TensorNet,
 please refer to::
 
-TensorNet: Cartesian Tensor Representations
-        for Efficient Learning of Molecular Potentials; G. Simeon and G. de Fabritiis.
+    G. Simeon, G. de. Fabritiis, _TensorNet: Cartesian Tensor Representations for Efficient Learning of Molecular
+    Potentials. _arXiv, June 10, 2023, 10.48550/arXiv.2306.06482.
 
 """
 from __future__ import annotations

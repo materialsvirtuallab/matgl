@@ -176,7 +176,7 @@ class M3GNetCalculator(Calculator):
         else:
             energies, forces, stresses, hessians = self.potential(graph, lattice, state_attr_default)
         self.results.update(
-            energy=energies.detach().cpu().numpy().item(),
+            energy=energies.detach().cpu().numpy(),
             free_energy=energies.detach().cpu().numpy(),
             forces=forces.detach().cpu().numpy(),
         )

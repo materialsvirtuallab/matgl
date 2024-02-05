@@ -124,7 +124,6 @@ class WeightedAtomReadOut(nn.Module):
     def forward(self, g: dgl.DGLGraph):
         """Args:
             g: DGL graph.
-            feat: input features.
 
         Returns:
             atomic_properties: torch.Tensor.
@@ -182,7 +181,7 @@ class GlobalPool(nn.Module):
         """
         Perform one-step readout.
 
-        Parameters
+        Args:
         ----------
         g : DGLGraph
             DGLGraph for a batch of graphs.
@@ -241,31 +240,25 @@ class AttentiveFPReadout(nn.Module):
         for _ in range(num_timesteps):
             self.readouts.append(GlobalPool(feat_size, dropout))
 
-    def forward(self, g, node_feats, get_node_weight=False):
+    def forward(self, g: dgl.DGLGraph, node_feats: torch.Tensor, get_node_weight=False):
         """Computes graph representations out of node features.
 
-        Parameters
-        ----------
-        g : DGLGraph
-            DGLGraph for a batch of graphs.
-        node_feats : float32 tensor of shape (V, node_feat_size)
-            Input node features. V for the number of nodes.
-        get_node_weight : bool
-            Whether to get the weights of nodes in readout. Default to False.
+        Args:
+            g (dgl.DGLGraph): DGLGraph for a batch of graphs.
+            node_feats (torch.Tenor): Input node features. V for the number of nodes.
+            get_node_weight (bool):  Whether to get the weights of nodes in readout. Default to False.
 
         Returns:
-        -------
-        g_feats : float32 tensor of shape (G, graph_feat_size)
-            Graph representations computed. G for the number of graphs.
-        node_weights : list of float32 tensor of shape (V, 1), optional
-            This is returned when ``get_node_weight`` is ``True``.
-            The list has a length ``num_timesteps`` and ``node_weights[i]``
-            gives the node weights in the i-th update.
+            g_feats (torch.Tensor): float32 tensor of shape (G, graph_feat_size)
+                Graph representations computed. G for the number of graphs.
+            node_weights (torch.Tensor): list of float32 tensor of shape (V, 1), optional
+                This is returned when ``get_node_weight`` is ``True``.
+
         """
         with g.local_scope():
             g.ndata["hv"] = node_feats
             g_feats = dgl.sum_nodes(g, "hv")
-
+        node_weights = None
         if get_node_weight:
             node_weights = []
 
