@@ -225,7 +225,7 @@ class MEGNetDataset(DGLDataset):
         return len(self.graphs)
 
 
-class M3GNetDataset(DGLDataset):
+class MGLDataset(DGLDataset):
     """Create a dataset including dgl graphs."""
 
     def __init__(
@@ -239,7 +239,7 @@ class M3GNetDataset(DGLDataset):
         threebody_cutoff: float | None = None,
         structures: list | None = None,
         labels: dict[str, list] | None = None,
-        name: str = "M3GNetDataset",
+        name: str = "MGLDataset",
         graph_labels: list[int | float] | None = None,
         clear_processed: bool = False,
     ):
@@ -255,7 +255,6 @@ class M3GNetDataset(DGLDataset):
             structures: Pymatgen structure
             labels: targets, as a dict of {name: list of values}.
             name: name of dataset
-            label_name: name of target properties
             graph_labels: state attributes.
             clear_processed: Whether to clear the stored structures after processing into graphs. Structures
                 are not really needed after the conversion to DGL graphs and can take a significant amount of memory.

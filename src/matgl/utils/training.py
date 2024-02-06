@@ -12,7 +12,7 @@ import torchmetrics
 from torch import nn
 
 from matgl.apps.pes import Potential
-from matgl.models import M3GNet
+from matgl.models import MEGNet
 
 if TYPE_CHECKING:
     import dgl
@@ -207,7 +207,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             Model prediction.
         """
-        if isinstance(self.model, M3GNet):
+        if not isinstance(self.model, MEGNet):
             g.edata["lattice"] = torch.repeat_interleave(lat, g.batch_num_edges(), dim=0)
             g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
             g.ndata["pos"] = (
@@ -226,12 +226,12 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             results, batch_size
         """
-        if isinstance(self.model, M3GNet):
-            g, lat, l_g, state_attr, labels = batch
-            preds = self(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
-        else:
+        if isinstance(self.model, MEGNet):
             g, lat, state_attr, labels = batch
             preds = self(g=g, state_attr=state_attr)
+        else:
+            g, lat, l_g, state_attr, labels = batch
+            preds = self(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size

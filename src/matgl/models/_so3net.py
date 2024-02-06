@@ -55,7 +55,7 @@ class SO3Net(nn.Module, IOMixIn):
         lmax: int = 3,
         cutoff: float = 5.0,
         rbf_learnable: bool = False,
-        target_property: Literal["atomwise", "dipole_moment", "polarizability", "graph_property"] = "atomwise",
+        target_property: Literal["atomwise", "dipole_moment", "polarizability", "graph"] = "atomwise",
         task_type: Literal["classification", "regression"] = "regression",
         readout_type: Literal["set2set", "weighted_atom", "reduce_atom"] = "weighted_atom",
         niters_set2set: int = 3,
@@ -76,25 +76,25 @@ class SO3Net(nn.Module, IOMixIn):
             element_types (tuple): List of elements appearing in the dataset. Default to DEFAULT_ELEMENTS.
             dim_node_embedding (int): Number of embedded atomic features.
                 This determines the size of each embedding vector; i.e. embeddings_dim.
-            units (int): Number of neurons in each MLP layer
-            dim_state_embedding (int): Number of hidden neurons in state embedding
-            ntypes_state (int): Number of state labels
-            dim_state_feats (int): Number of state features after linear layer
+            units (int): Number of neurons in each MLP layer.
+            dim_state_embedding (int): Number of hidden neurons in state embedding.
+            ntypes_state (int): Number of state labels.
+            dim_state_feats (int): Number of state features after linear layer.
             nblocks (int): number of interaction blocks.
             nmax (int): number of radial basis functions.
-            lmax (int): maximum angular momentum of spherical harmonics basis
-            cutoff (float): Cutoff radius of the graph
-            rbf_learnable (bool): whether radial basis functions are trained or not
-            target_property (Literal): Target properties including atomwise, dipole_moment, polarizability
+            lmax (int): maximum angular momentum of spherical harmonics basis.
+            cutoff (float): Cutoff radius of the graph.
+            rbf_learnable (bool): whether radial basis functions are trained or not.
+            target_property (Literal): Target properties including atomwise, dipole_moment, polarizability and graph.
             task_type (Literal): `classification` or `regression` (default).
             readout_type (Literal): Readout function type, `Set2Set`, `weighted_atom` (default) or `reduce_atom`.
-            niters_set2set (int): Number of Set2Set iterations
-            nlayers_set2set (int): Number of Set2Set layers
-            nlayers_readout (int): Number of layers for readout
-            is_intensive (bool): Whether the prediction is intensive
-            include_state (bool): Whether to include states features
-            use_vector_representation (bool): Whether to use node vector features
-            correct_charges (bool): Whether to correct the sum of atomic charges to the total charge
+            niters_set2set (int): Number of Set2Set iterations.
+            nlayers_set2set (int): Number of Set2Set layers.
+            nlayers_readout (int): Number of layers for readout.
+            is_intensive (bool): Whether the prediction is intensive.
+            include_state (bool): Whether to include states features.
+            use_vector_representation (bool): Whether to use node vector features.
+            correct_charges (bool): Whether to correct the sum of atomic charges to the total charge.
             predict_dipole_magnitude (bool): Whether to predict the magnitude of dipole moment.
             activation_type (Literal): Activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'.
             ntargets (int): Number of target properties.
