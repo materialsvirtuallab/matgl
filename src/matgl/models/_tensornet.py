@@ -1,6 +1,6 @@
 """Implementation of TensorNet model.
 
-A Cartestian based equivariant GNN model. For more details on TensorNet,
+A Cartesian based equivariant GNN model. For more details on TensorNet,
 please refer to::
 
     G. Simeon, G. de. Fabritiis, _TensorNet: Cartesian Tensor Representations for Efficient Learning of Molecular

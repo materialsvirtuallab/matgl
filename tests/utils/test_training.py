@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
+from matgl.graph.data import MEGNetDataset, MGLDataLoader, MGLDataset, collate_fn, collate_fn_efs
 from matgl.models import M3GNet, MEGNet
 from matgl.utils.training import ModelLightningModule, PotentialLightningModule, xavier_init
 from pymatgen.core import Lattice, Structure
@@ -89,7 +89,7 @@ class TestModelTrainer:
         stresses = [np.zeros((3, 3)).tolist()] * len(structures)
         element_types = get_element_list([LiFePO4, BaNiO3])
         converter = Structure2Graph(element_types=element_types, cutoff=5.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             threebody_cutoff=4.0,
             structures=structures,
             converter=converter,
@@ -154,7 +154,7 @@ class TestModelTrainer:
         forces = [np.zeros((len(s), 3)).tolist() for s in structures]
         element_types = get_element_list([LiFePO4, BaNiO3])
         converter = Structure2Graph(element_types=element_types, cutoff=5.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             threebody_cutoff=4.0,
             structures=structures,
             converter=converter,
@@ -198,9 +198,7 @@ class TestModelTrainer:
         label = [-2] * 5 + [-3] * 5 + [-1]  # Artificial dataset.
         element_types = get_element_list([LiFePO4, BaNiO3])
         converter = Structure2Graph(element_types=element_types, cutoff=5.0)
-        dataset = M3GNetDataset(
-            threebody_cutoff=4.0, structures=structures, converter=converter, labels={"eform": label}
-        )
+        dataset = MGLDataset(threebody_cutoff=4.0, structures=structures, converter=converter, labels={"eform": label})
         train_data, val_data, test_data = split_dataset(
             dataset,
             frac_list=[0.8, 0.1, 0.1],
@@ -264,7 +262,7 @@ class TestModelTrainer:
         label = np.full((11, 5), -1.0).tolist()  # Artificial dataset.
         element_types = get_element_list([LiFePO4, BaNiO3])
         converter = Structure2Graph(element_types=element_types, cutoff=5.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             threebody_cutoff=4.0, structures=structures, converter=converter, labels={"multiple_values": label}
         )
         train_data, val_data, test_data = split_dataset(

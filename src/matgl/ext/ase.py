@@ -119,8 +119,8 @@ class Atoms2Graph(GraphConverter):
         return g, lat, state_attr
 
 
-class M3GNetCalculator(Calculator):
-    """M3GNet calculator for ASE."""
+class PESCalculator(Calculator):
+    """Potential calculator for ASE."""
 
     implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian")
 
@@ -208,7 +208,7 @@ class Relaxer:
             stress_weight (float): conversion factor from GPa to eV/A^3.
         """
         self.optimizer: Optimizer = OPTIMIZERS[optimizer.lower()].value if isinstance(optimizer, str) else optimizer
-        self.calculator = M3GNetCalculator(
+        self.calculator = PESCalculator(
             potential=potential,
             state_attr=state_attr,
             stress_weight=stress_weight,  # type: ignore
@@ -391,7 +391,7 @@ class MolecularDynamics:
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
-        self.atoms.set_calculator(M3GNetCalculator(potential=potential, state_attr=state_attr))
+        self.atoms.set_calculator(PESCalculator(potential=potential, state_attr=state_attr))
 
         if taut is None:
             taut = 100 * timestep * units.fs

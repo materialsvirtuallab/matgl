@@ -8,7 +8,7 @@ from functools import partial
 import numpy as np
 from dgl.data.utils import split_dataset
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
-from matgl.graph.data import M3GNetDataset, MEGNetDataset, MGLDataLoader, collate_fn, collate_fn_efs
+from matgl.graph.data import MEGNetDataset, MGLDataLoader, MGLDataset, collate_fn, collate_fn_efs
 from pymatgen.core import Molecule
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -104,14 +104,14 @@ class TestDataset:
         assert np.allclose(lat1.detach().numpy(), np.expand_dims(np.identity(3), axis=0))
         self.teardown_class()
 
-    def test_m3gnet_dataset(self, LiFePO4, BaNiO3):
+    def test_mgl_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
         energies = [-1.0, 2.0]
         forces = [np.zeros((28, 3)).tolist(), np.zeros((10, 3)).tolist()]
         stresses = [np.zeros((3, 3)).tolist(), np.zeros((3, 3)).tolist()]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
             threebody_cutoff=4.0,
@@ -132,11 +132,11 @@ class TestDataset:
         # Check that structures are indeed cleared.
         assert len(dataset.structures) == 0
 
-    def test_load_m3gnet_dataset(self, LiFePO4, BaNiO3):
+    def test_load_mgl_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = M3GNetDataset()
+        dataset = MGLDataset()
         dataset.load()
         g1, lat1, l_g1, state1, pes1 = dataset[0]
         g2, lat2, l_g2, state2, pes2 = dataset[1]
@@ -150,12 +150,12 @@ class TestDataset:
         assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
         assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
 
-    def test_m3gnet_property_dataset(self, LiFePO4, BaNiO3):
+    def test_mgl_property_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
         labels = [1.0, -2.0]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             filename_labels="eform.json",
             structures=structures,
             converter=cry_graph,
@@ -173,7 +173,7 @@ class TestDataset:
         assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
         dataset.save()
 
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             filename_labels="eform.json",
         )
         g1, lat1, l_g1, state1, label1 = dataset[0]
@@ -186,13 +186,13 @@ class TestDataset:
 
         self.teardown_class()
 
-    def test_m3gnet_property_dataset_with_graph_label(self, LiFePO4, BaNiO3):
+    def test_mgl_property_dataset_with_graph_label(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
         labels = [1.0, -2.0]
         graph_label = [0, 1]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             filename_labels="eform.json",
             structures=structures,
             converter=cry_graph,
@@ -274,7 +274,7 @@ class TestDataset:
         assert len(test_loader) == 1
         self.teardown_class()
 
-    def test_m3gnet_dataloader(self, LiFePO4, BaNiO3):
+    def test_mgl_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
         energies = np.zeros(20).tolist()
         f1 = np.zeros((28, 3)).tolist()
@@ -284,7 +284,7 @@ class TestDataset:
         stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
             threebody_cutoff=4.0,
@@ -309,7 +309,7 @@ class TestDataset:
         assert len(test_loader) == 1
         self.teardown_class()
 
-    def test_m3gnet_dataloader_without_stresses(self, LiFePO4, BaNiO3):
+    def test_mgl_dataloader_without_stresses(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
         energies = np.zeros(20).tolist()
         f1 = np.zeros((28, 3)).tolist()
@@ -318,7 +318,7 @@ class TestDataset:
         forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = M3GNetDataset(
+        dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
             threebody_cutoff=4.0,
@@ -344,14 +344,12 @@ class TestDataset:
         assert len(test_loader) == 1
         self.teardown_class()
 
-    def test_m3gnet_property_dataloader(self, LiFePO4, BaNiO3):
+    def test_mgl_property_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
         e_form = np.zeros(20)
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = M3GNetDataset(
-            structures=structures, converter=cry_graph, threebody_cutoff=4.0, labels={"EForm": e_form}
-        )
+        dataset = MGLDataset(structures=structures, converter=cry_graph, threebody_cutoff=4.0, labels={"EForm": e_form})
         train_data, val_data, test_data = split_dataset(
             dataset,
             frac_list=[0.8, 0.1, 0.1],
