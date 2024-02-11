@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import matgl
 import pytest
 import torch
-from matgl.layers import BondExpansion, EmbeddingBlock
+from matgl.layers import (
+    BondExpansion,
+    EmbeddingBlock,
+    GatedEquivariantBlock,
+    NeighborEmbedding,
+    TensorEmbedding,
+    build_gated_equivariant_mlp,
+)
 from matgl.layers._core import MLP, GatedMLP
 from torch import nn
 
@@ -27,6 +35,28 @@ class TestCoreAndEmbedding:
         layer = GatedMLP(in_feats=10, dims=[10, 1], activate_last=False)
         out = layer(x)
         assert [out.size()[0], out.size()[1]] == [4, 1]
+
+    def test_gated_equivairant_block(self, x):
+        scaler_input = x
+        vector_input = torch.randn(4, 3, 10)
+
+        output_scalar, output_vector = GatedEquivariantBlock(
+            n_sin=10, n_vin=10, n_sout=10, n_vout=10, n_hidden=10, activation=nn.SiLU(), sactivation=nn.SiLU()
+        )([scaler_input, vector_input])
+
+        assert output_scalar.shape == (4, 10)
+        assert output_vector.shape == (4, 3, 10)
+
+    def test_build_gated_equivariant_mlp(selfself, x):
+        scaler_input = x
+        vector_input = torch.randn(4, 3, 10)
+        net = build_gated_equivariant_mlp(  # type: ignore
+            n_in=10, n_out=1, n_hidden=10, n_layers=2, activation=nn.SiLU(), sactivation=nn.SiLU()
+        )
+        output_scalar, output_vector = net([scaler_input, vector_input])
+
+        assert output_scalar.shape == (4, 1)
+        assert torch.squeeze(output_vector).shape == (4, 3)
 
     def test_embedding(self, graph_Mo):
         s1, g1, state1 = graph_Mo
@@ -96,3 +126,32 @@ class TestCoreAndEmbedding:
         )
         node_feat, edge_feat, state_feat = embed5(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 16]
+
+    def test_tensor_embedding(self, graph_Mo):
+        s1, g1, state1 = graph_Mo
+        bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
+        g1.edata["edge_attr"] = bond_expansion(g1.edata["bond_dist"])
+
+        tensor_embedding = TensorEmbedding(
+            units=64, degree_rbf=3, activation=nn.SiLU(), ntypes_node=1, cutoff=5.0, dtype=matgl.float_th
+        )
+
+        X, edge_feat, state_feat = tensor_embedding(g1, state1)
+
+        assert [X.shape[0], X.shape[1], X.shape[2], X.shape[3]] == [2, 64, 3, 3]
+        assert [edge_feat.shape[0], edge_feat.shape[1]] == [52, 64]
+
+    def test_neighbor_embedding(self, graph_Mo):
+        s1, g1, state1 = graph_Mo
+        bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
+        g1.edata["edge_attr"] = bond_expansion(g1.edata["bond_dist"])
+
+        embedding = NeighborEmbedding(ntypes_node=1, hidden_channels=64, num_rbf=3, cutoff=5.0)
+
+        g1.ndata["node_feat"] = torch.rand(2, 64)
+
+        x = embedding(
+            g1.ndata["node_type"], g1.ndata["node_feat"], g1.edges(), g1.edata["bond_dist"], g1.edata["edge_attr"]
+        )
+
+        assert [x.shape[0], x.shape[1]] == [2, 64]

@@ -150,35 +150,33 @@ class MEGNet(nn.Module, IOMixIn):
         self.is_classification = is_classification
         self.include_state_embedding = include_state
 
-    def forward(
-        self,
-        graph: dgl.DGLGraph,
-        edge_feat: torch.Tensor,
-        node_feat: torch.Tensor,
-        state_feat: torch.Tensor,
-    ):
+    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, **kwargs):
         """Forward pass of MEGnet. Executes all blocks.
 
         Args:
-            graph: Input graph
-            edge_feat: Edge features
-            node_feat: Node features
-            state_feat: State features.
+            g (dgl.DGLGraph): DGL graphs
+            state_attr (torch.Tensor): State attributes
+            **kwargs: For future flexibility. Not used at the moment.
 
         Returns:
             Prediction
         """
-        node_feat, edge_feat, state_feat = self.embedding(node_feat, edge_feat, state_feat)
+        node_attr = g.ndata["node_type"]
+        bond_vec, bond_dist = compute_pair_vector_and_distance(g)
+        g.edata["bond_vec"] = bond_vec
+        g.edata["bond_dist"] = bond_dist
+        edge_attr = self.bond_expansion(g.edata["bond_dist"])
+        node_feat, edge_feat, state_feat = self.embedding(node_attr, edge_attr, state_attr)
         edge_feat = self.edge_encoder(edge_feat)
         node_feat = self.node_encoder(node_feat)
         state_feat = self.state_encoder(state_feat)
 
         for block in self.blocks:
-            output = block(graph, edge_feat, node_feat, state_feat)
+            output = block(g, edge_feat, node_feat, state_feat)
             edge_feat, node_feat, state_feat = output
 
-        node_vec = self.node_s2s(graph, node_feat)
-        edge_vec = self.edge_s2s(graph, edge_feat)
+        node_vec = self.node_s2s(g, node_feat)
+        edge_vec = self.edge_s2s(g, edge_feat)
 
         node_vec = torch.squeeze(node_vec)
         edge_vec = torch.squeeze(edge_vec)
@@ -198,14 +196,14 @@ class MEGNet(nn.Module, IOMixIn):
     def predict_structure(
         self,
         structure,
-        state_feats: torch.Tensor | None = None,
+        state_attr: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
     ):
         """Convenience method to directly predict property from structure.
 
         Args:
             structure: An input crystal/molecule.
-            state_feats (torch.tensor): Graph attributes
+            state_attr (torch.tensor): Graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
 
         Returns:
@@ -215,11 +213,11 @@ class MEGNet(nn.Module, IOMixIn):
             from matgl.ext.pymatgen import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
-        g, lat, state_feats_default = graph_converter.get_graph(structure)
+        g, lat, state_attr_default = graph_converter.get_graph(structure)
         g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
         g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
-        if state_feats is None:
-            state_feats = torch.tensor(state_feats_default)
+        if state_attr is None:
+            state_attr = torch.tensor(state_attr_default)
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
-        return self(g, g.edata["edge_attr"], g.ndata["node_type"], state_feats).detach()
+        return self(g=g, state_attr=state_attr).detach()

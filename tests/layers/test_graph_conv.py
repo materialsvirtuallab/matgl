@@ -3,14 +3,16 @@ from __future__ import annotations
 from typing import NamedTuple
 
 import dgl
+import matgl
 import torch
-from matgl.layers import BondExpansion, EmbeddingBlock
+from matgl.layers import BondExpansion, EmbeddingBlock, TensorEmbedding
 from matgl.layers._graph_convolution import (
     MLP,
     M3GNetBlock,
     M3GNetGraphConv,
     MEGNetBlock,
     MEGNetGraphConv,
+    TensorNetInteraction,
 )
 from matgl.utils.cutoff import polynomial_cutoff
 from torch import nn
@@ -176,3 +178,25 @@ class TestGraphConv:
             edge_feat_new, node_feat_new, state_feat_new = graph_conv(g1, edge_feat, node_feat, state_feat)
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 32]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
+
+    def test_tensornet_interaction(self, graph_Mo):
+        s, g1, state = graph_Mo
+        bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
+        g1.edata["edge_attr"] = bond_expansion(g1.edata["bond_dist"])
+
+        tensor_embedding = TensorEmbedding(
+            units=64, degree_rbf=3, activation=nn.SiLU(), ntypes_node=1, cutoff=5.0, dtype=matgl.float_th
+        )
+
+        X, edge_feat, state_feat = tensor_embedding(g1, state)
+        interaction = TensorNetInteraction(
+            num_rbf=3,
+            units=64,
+            activation=nn.SiLU(),
+            equivariance_invariance_group="O3",
+            dtype=matgl.float_th,
+            cutoff=5.0,
+        )
+        X = interaction(g1, X)
+
+        assert [X.shape[0], X.shape[1], X.shape[2], X.shape[3]] == [2, 64, 3, 3]

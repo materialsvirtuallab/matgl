@@ -108,7 +108,7 @@ def get_segment_indices_from_n(ns):
     return segments.cumsum(0)
 
 
-def get_range_indices_from_n(ns):
+def get_range_indices_from_n(ns: torch.Tensor):
     """Give ns = [2, 3], return [0, 1, 0, 1, 2].
 
     Args:
@@ -116,7 +116,7 @@ def get_range_indices_from_n(ns):
 
     Returns: range indices
     """
-    max_n = torch.max(ns)
+    max_n = int(torch.max(ns))
     n = ns.size(dim=0)
     n_range = torch.arange(max_n)
     matrix = n_range.tile(
@@ -193,6 +193,46 @@ def scatter_sum(input_tensor: torch.Tensor, segment_ids: torch.Tensor, num_segme
     return output.scatter_add_(dim, segment_ids, input_tensor)
 
 
+def scatter_add(x: torch.Tensor, idx_i: torch.Tensor, dim_size: int, dim: int = 0) -> torch.Tensor:
+    """
+    Sum over values with the same indices. This implementation is token from Schnetpack2.0
+    (https://github.com/atomistic-machine-learning/schnetpack in schnetpack/src/schnetpack/nn/scatter.py).
+
+    Args:
+        x: input values
+        idx_i: index of central atom i
+        dim_size: size of the dimension after reduction
+        dim: the dimension to reduce
+
+    Returns:
+        resulting output from _scatter_add
+
+    """
+    return _scatter_add(x, idx_i, dim_size, dim)
+
+
+@torch.jit.script
+def _scatter_add(x: torch.Tensor, idx_i: torch.Tensor, dim_size: int, dim: int = 0) -> torch.Tensor:
+    """
+    This implementation is token from Schnetpack2.0
+    (https://github.com/atomistic-machine-learning/schnetpack in schnetpack/src/schnetpack/nn/scatter.py).
+
+    Args:
+        x: input values
+        idx_i: index of central atom i
+        dim_size: size of the dimension after reduction
+        dim:  the dimension to redice
+
+    Returns:
+        y: resulting tensors
+    """
+    shape = list(x.shape)
+    shape[dim] = dim_size
+    tmp = torch.zeros(shape, dtype=x.dtype, device=x.device)
+    y = tmp.index_add(dim, idx_i, x)
+    return y
+
+
 def unsorted_segment_fraction(data: torch.Tensor, segment_ids: torch.Tensor, num_segments: int):
     """Segment fraction
     Args:
@@ -227,3 +267,115 @@ def broadcast(input_tensor: torch.Tensor, target_tensor: torch.Tensor, dim: int)
     target_shape = list(target_tensor.shape)
     target_shape[dim] = input_tensor.shape[dim]
     return input_tensor.expand(target_shape)
+
+
+def binom(n: torch.Tensor, k: torch.Tensor) -> torch.Tensor:
+    """Compute binomial coefficients (n k). Token from Schnetpack2.0
+    (https://github.com/atomistic-machine-learning/schnetpack in schnetpack/src/schnetpack/nn/ops/math.py.
+    """
+    return torch.exp(torch.lgamma(n + 1) - torch.lgamma((n - k) + 1) - torch.lgamma(k + 1))
+
+
+# following functions are token from TensorNet
+def vector_to_skewtensor(vector: torch.Tensor):
+    """Create a skew-symmetric tensor from a vector.
+
+    Args:
+        vector: input vectors.
+
+    Returns:
+        resulting skew tensors
+    """
+    batch_size = vector.size(0)
+    zero = torch.zeros(batch_size, device=vector.device, dtype=vector.dtype)
+    tensor = torch.stack(
+        (
+            zero,
+            -vector[:, 2],
+            vector[:, 1],
+            vector[:, 2],
+            zero,
+            -vector[:, 0],
+            -vector[:, 1],
+            vector[:, 0],
+            zero,
+        ),
+        dim=1,
+    )
+    tensor = tensor.view(-1, 3, 3)
+    return tensor.squeeze(0)
+
+
+def vector_to_symtensor(vector: torch.Tensor):
+    """Create a symmetric traceless tensor from the outer product of a vector with itself.
+
+    Args:
+        vector: input vectors.
+
+    Returns:
+        resulting symmetric traceless tensors
+    """
+    tensor = torch.matmul(vector.unsqueeze(-1), vector.unsqueeze(-2))
+    scalars = (tensor.diagonal(offset=0, dim1=-1, dim2=-2)).mean(-1)[..., None, None] * torch.eye(
+        3, 3, device=tensor.device, dtype=tensor.dtype
+    )
+    traceless_tensors = 0.5 * (tensor + tensor.transpose(-2, -1)) - scalars
+    return traceless_tensors
+
+
+# Full tensor decomposition into irreducible components
+def decompose_tensor(tensor: torch.Tensor):
+    """Create a symmetric traceless tensor from the outer product of a vector with itself.
+
+    Args:
+        tensor: input tensors.
+
+    Returns:
+        resulting symmetric traceless tensors.
+    """
+    scalars = (tensor.diagonal(offset=0, dim1=-1, dim2=-2)).mean(-1)[..., None, None] * torch.eye(
+        3, 3, device=tensor.device, dtype=tensor.dtype
+    )
+    skew_metrices = 0.5 * (tensor - tensor.transpose(-2, -1))
+    traceless_tensors = 0.5 * (tensor + tensor.transpose(-2, -1)) - scalars
+    return scalars, skew_metrices, traceless_tensors
+
+
+# Modifies tensor by multiplying invariant features to irreducible components
+def new_radial_tensor(
+    scalars: torch.Tensor,
+    skew_metrices: torch.Tensor,
+    traceless_tensors: torch.Tensor,
+    f_I: torch.Tensor,
+    f_A: torch.Tensor,
+    f_S: torch.Tensor,
+):
+    """Modifies tensor by multiplying invariant features to irreducible components.
+
+    Args:
+        scalars: input scalars.
+        skew_metrices: input skew tensors.
+        traceless_tensors: input traceless tensors.
+        f_I: pair distance dependent features for scalars.
+        f_A: pair distance dependent features for input skew tensors.
+        f_S: pair distance dependent features for input traceless tensors.
+
+    Returns:
+        resulting new radial tensors
+    """
+    scalars = f_I[..., None, None] * scalars
+    skew_metrices = f_A[..., None, None] * skew_metrices
+    traceless_tensors = f_S[..., None, None] * traceless_tensors
+    return scalars, skew_metrices, traceless_tensors
+
+
+def tensor_norm(tensor: torch.Tensor):
+    """Computes Frobenius norm.
+
+    Args:
+        tensor: input tensor.
+
+    Returns:
+        resulting Frobenius norm of tensors
+    """
+    return (tensor**2).sum((-2, -1))

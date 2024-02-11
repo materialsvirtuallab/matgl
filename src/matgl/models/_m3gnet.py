@@ -36,6 +36,7 @@ from matgl.layers import (
     Set2SetReadOut,
     SphericalBesselWithHarmonics,
     ThreeBodyInteractions,
+    WeightedAtomReadOut,
     WeightedReadOut,
 )
 from matgl.utils.cutoff import polynomial_cutoff
@@ -186,6 +187,9 @@ class M3GNet(nn.Module, IOMixIn):
                     field=field,
                 )
                 readout_feats = 2 * input_feats + dim_state_feats if include_state else 2 * input_feats  # type: ignore
+            elif readout_type == "weighted_atom":
+                self.readout = WeightedAtomReadOut(in_feats=input_feats, dims=[units, units], activation=activation)
+                readout_feats = units + dim_state_feats if include_state else units  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)  # type: ignore
                 readout_feats = input_feats + dim_state_feats if include_state else input_feats  # type: ignore
@@ -345,7 +349,7 @@ class M3GNet(nn.Module, IOMixIn):
         state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
     ):
-        """Convenience method to directly predict property from structure.
+        """Convenient method to directly predict property from structure.
 
         Args:
             structure: An input crystal/molecule.
