@@ -39,7 +39,7 @@ def test_PESCalculator_mol(AcAla3NHMe):
     ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     calc = PESCalculator(potential=ff)
     mol.set_calculator(calc)
-    assert isinstance(float(mol.get_potential_energy()), float)
+    assert isinstance(mol.get_potential_energy(), float)
     assert list(mol.get_forces().shape) == [42, 3]
     np.testing.assert_allclose(mol.get_potential_energy(), -250.16803)
 

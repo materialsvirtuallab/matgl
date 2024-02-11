@@ -1,4 +1,5 @@
 """Zbl repulsive potential.The official implementation can be found in https://github.com/atomistic-machine-learning/schnetpack."""
+
 from __future__ import annotations
 
 import dgl

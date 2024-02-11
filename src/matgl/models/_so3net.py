@@ -6,6 +6,7 @@ please refer to::
     K.T. Schütt, S.S.P. Hessmann, N.W.A. Gebauer, J. Lederer, M. Gastegger. _SchNetPack 2.0: A neural network toolbox
     for atomistic machine learning. _J. Chem. Phys. 2023, 158 (14): 144801. 10.1063/5.0138367.
 """
+
 from __future__ import annotations
 
 import logging

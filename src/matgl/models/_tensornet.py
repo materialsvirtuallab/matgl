@@ -7,6 +7,7 @@ please refer to::
     Potentials. _arXiv, June 10, 2023, 10.48550/arXiv.2306.06482.
 
 """
+
 from __future__ import annotations
 
 import logging

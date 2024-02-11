@@ -1,6 +1,7 @@
 """Main components in SO3Net, the implementations are token from Schnetpack2.0
 (https://github.com/atomistic-machine-learning/schnetpack in schnetpack/src/schnetpack/nn/so3.py).
 """
+
 from __future__ import annotations
 
 import math
