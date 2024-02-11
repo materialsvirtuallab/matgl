@@ -9,7 +9,7 @@ please refer to::
 from __future__ import annotations
 
 import logging
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import dgl
 import torch
@@ -30,6 +30,9 @@ from matgl.layers import (
 from matgl.layers._basis import RadialBesselFunction
 from matgl.utils.cutoff import polynomial_cutoff
 from matgl.utils.io import IOMixIn
+
+if TYPE_CHECKING:
+    from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__file__)
 
@@ -205,20 +208,13 @@ class SO3Net(nn.Module, IOMixIn):
                         dims=dim_readout_layers, activation=activation, activate_last=True, bias_last=True
                     )
 
-    def forward(
-        self,
-        g: dgl.DGLGraph,
-        l_g: dgl.DGLGraph | None = None,
-        state_attr: torch.Tensor | None = None,
-        total_charges: torch.Tensor | None = None,
-    ):
+    def forward(self, g: dgl.DGLGraph, total_charges: torch.Tensor | None = None, **kwargs):
         """Performs message passing and updates node representations.
 
         Args:
             g : DGLGraph for a batch of graphs.
-            l_g : DGLGraph for a batch of line graphs.
-            state_attr: State attrs for a batch of graphs.
             total_charges: a list of total charges of systems
+            **kwargs: For future flexibility. Not used at the moment.
 
         Returns:
             output: Output property for a batch of graphs
@@ -327,3 +323,30 @@ class SO3Net(nn.Module, IOMixIn):
         alpha = dgl.readout_nodes(g, "alpha", op="sum")
 
         return torch.squeeze(alpha)
+
+    def predict_structure(
+        self,
+        structure,
+        state_feats: torch.Tensor | None = None,
+        graph_converter: GraphConverter | None = None,
+    ):
+        """Convenience method to directly predict property from structure.
+
+        Args:
+            structure: An input crystal/molecule.
+            state_feats (torch.tensor): Graph attributes
+            graph_converter: Object that implements a get_graph_from_structure.
+
+        Returns:
+            output (torch.tensor): output property
+        """
+        if graph_converter is None:
+            from matgl.ext.pymatgen import Structure2Graph
+
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+        g, lat, state_feats_default = graph_converter.get_graph(structure)
+        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
+        g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
+        if state_feats is None:
+            state_feats = torch.tensor(state_feats_default)
+        return self(g=g, state_attr=state_feats).detach()

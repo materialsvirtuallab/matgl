@@ -104,7 +104,7 @@ class Potential(nn.Module, IOMixIn):
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
 
-        predictions = self.model(g, state_attr, l_g)
+        predictions = self.model(g=g, state_attr=state_attr, l_g=l_g)
         if isinstance(predictions, tuple) and len(predictions) > 1:
             total_energies, site_wise = predictions
         else:

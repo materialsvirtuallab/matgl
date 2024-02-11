@@ -18,7 +18,7 @@ def test_PESCalculator(MoS):
     ff.calc_hessian = True
     calc = PESCalculator(potential=ff)
     s_ase.set_calculator(calc)
-    assert isinstance(float(s_ase.get_potential_energy()), float)
+    assert isinstance(s_ase.get_potential_energy(), float)
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
@@ -26,7 +26,7 @@ def test_PESCalculator(MoS):
 
     calc = PESCalculator(potential=ff, state_attr=torch.tensor([0.0, 0.0]))
     s_ase.set_calculator(calc)
-    assert isinstance(float(s_ase.get_potential_energy()), float)
+    assert isinstance(s_ase.get_potential_energy(), float)
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]

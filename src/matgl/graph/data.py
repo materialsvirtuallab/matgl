@@ -16,7 +16,6 @@ from tqdm import trange
 
 import matgl
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
-from matgl.layers import BondExpansion
 
 if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
@@ -24,6 +23,7 @@ if TYPE_CHECKING:
 
 def collate_fn(batch, include_line_graph: bool = False, multiple_values_per_target: bool = False):
     """Merge a list of dgl graphs to form a batch."""
+    line_graphs = None
     if include_line_graph:
         graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
     else:
@@ -42,11 +42,15 @@ def collate_fn(batch, include_line_graph: bool = False, multiple_values_per_targ
     return g, lat, state_attr, labels
 
 
-def collate_fn_efs(batch, include_stress: bool = True):
+def collate_fn_efs(batch, include_stress: bool = True, include_line_graph: bool = False):
     """Merge a list of dgl graphs to form a batch."""
-    graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
+    l_g = None
+    if include_line_graph:
+        graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
+        l_g = dgl.batch(line_graphs)
+    else:
+        graphs, lattices, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
-    l_g = dgl.batch(line_graphs)
     e = torch.tensor([d["energies"] for d in labels])  # type: ignore
     f = torch.vstack([d["forces"] for d in labels])  # type: ignore
     s = (
@@ -56,7 +60,9 @@ def collate_fn_efs(batch, include_stress: bool = True):
     )
     state_attr = torch.stack(state_attr)
     lat = torch.stack(lattices)
-    return g, torch.squeeze(lat), l_g, state_attr, e, f, s
+    if include_line_graph:
+        return g, torch.squeeze(lat), l_g, state_attr, e, f, s
+    return g, torch.squeeze(lat), state_attr, e, f, s
 
 
 def MGLDataLoader(
@@ -89,142 +95,6 @@ def MGLDataLoader(
     return train_loader, val_loader
 
 
-class MEGNetDataset(DGLDataset):
-    """Create a dataset including dgl graphs."""
-
-    def __init__(
-        self,
-        filename: str = "dgl_graph.bin",
-        filename_lattice: str = "lattice.pt",
-        filename_state_attr: str = "state_attr.pt",
-        filename_labels: str = "labels.json",
-        structures: list | None = None,
-        labels: dict[str, list] | None = None,
-        converter: GraphConverter | None = None,
-        initial: float = 0.0,
-        final: float = 5.0,
-        num_centers: int = 100,
-        width: float = 0.5,
-        name: str = "MEGNETDataset",
-        graph_labels: list[int | float] | None = None,
-        clear_processed: bool = False,
-    ):
-        """
-        Args:
-            filename: file name for storing dgl graphs and target properties
-            filename_lattice: file name for storing lattice matrixs
-            filename_state_attr: file name for storing state attributes
-            filename_labels: file name for storing target properties
-            structures: Pymatgen structure
-            labels: targets, as a dict of {name: list of values}.
-            converter: Transformer for converting structures to DGL graphs, e.g., Pmg2Graph.
-            initial: initial distance for Gaussian expansions
-            final: final distance for Gaussian expansions
-            num_centers: number of Gaussian functions
-            width: width of Gaussian functions
-            name: Name of dataset
-            graph_labels: graph attributes either integers and floating point numbers.
-            clear_processed: Whether to clear the stored structures after processing into graphs. Structures
-                are not really needed after the conversion to DGL graphs and can take a significant amount of memory.
-                Setting this to True will delete the structures from memory.
-        """
-        self.filename = filename
-        self.filename_lattice = filename_lattice
-        self.filename_state_attr = filename_state_attr
-        self.filename_labels = filename_labels
-        self.converter = converter
-        self.structures = structures or []
-        self.labels = labels or {}
-        self.initial = initial
-        self.final = final
-        self.num_centers = num_centers
-        self.width = width
-        self.graph_labels = graph_labels
-        self.clear_processed = clear_processed
-
-        super().__init__(name=name)
-
-    def has_cache(self) -> bool:
-        """Check if the dgl_graph.bin exists or not.
-
-        Returns: True if file exists.
-        """
-        return (
-            os.path.exists(self.filename)
-            and os.path.exists(self.filename_lattice)
-            and os.path.exists(self.filename_state_attr)
-            and os.path.exists(self.filename_labels)
-        )
-
-    def process(self):
-        """Convert Pymatgen structure into dgl graphs."""
-        num_graphs = len(self.structures)
-        graphs = []
-        lattices = []
-        state_attrs = []
-        bond_expansion = BondExpansion(
-            rbf_type="Gaussian",
-            initial=self.initial,
-            final=self.final,
-            num_centers=self.num_centers,
-            width=self.width,
-        )
-        for idx in trange(num_graphs):
-            structure = self.structures[idx]  # type: ignore
-            graph, lattice, state_attr = self.converter.get_graph(structure)  # type: ignore
-            lattices.append(lattice)
-            graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lattice[0])
-            graph.ndata["pos"] = graph.ndata["frac_coords"] @ lattice[0]
-            bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-            graph.edata["edge_attr"] = bond_expansion(bond_dist)
-            graphs.append(graph)
-            state_attrs.append(state_attr)
-        if self.graph_labels is not None:
-            if np.array(self.graph_labels).dtype == "int64":
-                state_attrs = torch.tensor(self.graph_labels).long()
-            else:
-                state_attrs = torch.tensor(self.graph_labels)
-        else:
-            state_attrs = torch.tensor(state_attrs)
-        if self.clear_processed:
-            del self.structures
-            self.structures = []
-        self.graphs = graphs
-        self.lattices = lattices
-        self.state_attr = state_attrs
-        return self.graphs, self.lattices, self.state_attr
-
-    def save(self):
-        """Save dgl graphs and labels."""
-        save_graphs(self.filename, self.graphs)
-        torch.save(self.lattices, self.filename_lattice)
-        torch.save(self.state_attr, self.filename_state_attr)
-        if self.labels:
-            with open(self.filename_labels, "w") as f:
-                json.dump(self.labels, f)
-
-    def load(self):
-        """Load dgl graphs and labels."""
-        self.graphs, self.labels = load_graphs(self.filename)
-        self.lattices = torch.load(self.filename_lattice)
-        self.state_attr = torch.load(self.filename_state_attr)
-        with open(self.filename_labels) as f:
-            self.labels = json.load(f)
-
-    def __getitem__(self, idx: int):
-        """Get graph and label with idx."""
-        return (
-            self.graphs[idx],
-            self.lattices[idx],
-            self.state_attr[idx],
-            {k: torch.tensor(v[idx], dtype=matgl.float_th) for k, v in self.labels.items()},
-        )  # type: ignore
-
-    def __len__(self):
-        """Get size of dataset."""
-        return len(self.graphs)
-
-
 class MGLDataset(DGLDataset):
     """Create a dataset including dgl graphs."""
 
@@ -235,6 +105,7 @@ class MGLDataset(DGLDataset):
         filename_line_graph: str = "dgl_line_graph.bin",
         filename_state_attr: str = "state_attr.pt",
         filename_labels: str = "labels.json",
+        include_line_graph: bool = False,
         converter: GraphConverter | None = None,
         threebody_cutoff: float | None = None,
         structures: list | None = None,
@@ -245,16 +116,17 @@ class MGLDataset(DGLDataset):
     ):
         """
         Args:
-            filename: file name for storing dgl graphs
-            filename_lattice: file name for storing lattice matrixs
-            filename_line_graph: file name for storing dgl line graphs
-            filename_state_attr: file name for storing state attributes
+            filename: file name for storing dgl graphs.
+            filename_lattice: file name for storing lattice matrixs.
+            filename_line_graph: file name for storing dgl line graphs.
+            filename_state_attr: file name for storing state attributes.
             filename_labels: file name for storing labels.
-            converter: dgl graph converter
-            threebody_cutoff: cutoff for three body
-            structures: Pymatgen structure
+            include_line_graph: whether to include line graphs.
+            converter: dgl graph converter.
+            threebody_cutoff: cutoff for three body.
+            structures: Pymatgen structure.
             labels: targets, as a dict of {name: list of values}.
-            name: name of dataset
+            name: name of dataset.
             graph_labels: state attributes.
             clear_processed: Whether to clear the stored structures after processing into graphs. Structures
                 are not really needed after the conversion to DGL graphs and can take a significant amount of memory.
@@ -265,6 +137,7 @@ class MGLDataset(DGLDataset):
         self.filename_line_graph = filename_line_graph
         self.filename_state_attr = filename_state_attr
         self.filename_labels = filename_labels
+        self.include_line_graph = include_line_graph
         self.converter = converter
         self.structures = structures or []
         self.labels = labels or {}
@@ -277,16 +150,15 @@ class MGLDataset(DGLDataset):
 
     def has_cache(self) -> bool:
         """Check if the dgl_graph.bin exists or not."""
-        return all(
-            os.path.exists(f)
-            for f in (
-                self.filename,
-                self.filename_lattice,
-                self.filename_line_graph,
-                self.filename_state_attr,
-                self.filename_labels,
-            )
-        )
+        files_to_check = [
+            self.filename,
+            self.filename_lattice,
+            self.filename_state_attr,
+            self.filename_labels,
+        ]
+        if self.include_line_graph:
+            files_to_check.append(self.filename_line_graph)
+        return all(os.path.exists(f) for f in files_to_check)
 
     def process(self):
         """Convert Pymatgen structure into dgl graphs."""
@@ -306,16 +178,17 @@ class MGLDataset(DGLDataset):
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
             graph.edata["bond_vec"] = bond_vec
             graph.edata["bond_dist"] = bond_dist
-            line_graph = create_line_graph(graph, self.threebody_cutoff)  # type: ignore
-            for name in ["bond_vec", "bond_dist", "pbc_offset"]:
-                line_graph.ndata.pop(name)
+            if self.include_line_graph:
+                line_graph = create_line_graph(graph, self.threebody_cutoff)  # type: ignore
+                for name in ["bond_vec", "bond_dist", "pbc_offset"]:
+                    line_graph.ndata.pop(name)
+                line_graphs.append(line_graph)
             graph.ndata.pop("pos")
             graph.edata.pop("pbc_offshift")
-            line_graphs.append(line_graph)
         if self.graph_labels is not None:
             state_attrs = torch.tensor(self.graph_labels).long()
         else:
-            state_attrs = torch.tensor(state_attrs)
+            state_attrs = torch.tensor(np.array(state_attrs))
 
         if self.clear_processed:
             del self.structures
@@ -323,10 +196,11 @@ class MGLDataset(DGLDataset):
 
         self.graphs = graphs
         self.lattices = lattices
-        self.line_graphs = line_graphs
         self.state_attr = state_attrs
-
-        return self.graphs, self.lattices, self.line_graphs, self.state_attr
+        if self.include_line_graph:
+            self.line_graphs = line_graphs
+            return self.graphs, self.lattices, self.line_graphs, self.state_attr
+        return self.graphs, self.lattices, self.state_attr
 
     def save(self):
         """Save dgl graphs."""
@@ -335,27 +209,31 @@ class MGLDataset(DGLDataset):
                 json.dump(self.labels, f)
         save_graphs(self.filename, self.graphs)
         torch.save(self.lattices, self.filename_lattice)
-        save_graphs(self.filename_line_graph, self.line_graphs)
         torch.save(self.state_attr, self.filename_state_attr)
+        if self.include_line_graph:
+            save_graphs(self.filename_line_graph, self.line_graphs)
 
     def load(self):
         """Load dgl graphs from files."""
         self.graphs, _ = load_graphs(self.filename)
         self.lattices = torch.load(self.filename_lattice)
-        self.line_graphs, _ = load_graphs(self.filename_line_graph)
+        if self.include_line_graph:
+            self.line_graphs, _ = load_graphs(self.filename_line_graph)
         self.state_attr = torch.load(self.filename_state_attr)
         with open(self.filename_labels) as f:
             self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
         """Get graph and label with idx."""
-        return (
+        items = [
             self.graphs[idx],
             self.lattices[idx],
-            self.line_graphs[idx],
             self.state_attr[idx],
             {k: torch.tensor(v[idx], dtype=matgl.float_th) for k, v in self.labels.items()},
-        )
+        ]
+        if self.include_line_graph:
+            items.insert(2, self.line_graphs[idx])
+        return tuple(items)
 
     def __len__(self):
         """Get size of dataset."""
