@@ -270,6 +270,6 @@ class AttentiveFPReadout(nn.Module):
                 g_feats = readout(g, node_feats, g_feats)
 
         if get_node_weight:
-            return g_feats, node_weights
+            return g_feats, torch.hstack(node_weights)
 
         return g_feats
