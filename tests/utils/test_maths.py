@@ -6,7 +6,6 @@ import pytest
 import torch
 from matgl.utils.maths import (
     SPHERICAL_BESSEL_ROOTS,
-    _scatter_add,
     binom,
     broadcast_states_to_atoms,
     broadcast_states_to_bonds,
@@ -15,6 +14,7 @@ from matgl.utils.maths import (
     get_segment_indices_from_n,
     new_radial_tensor,
     repeat_with_n,
+    scatter_add,
     scatter_sum,
     spherical_bessel_roots,
     tensor_norm,
@@ -82,7 +82,7 @@ def test_scatter_add():
     dim_size = 3
 
     # Perform the scatter add
-    result = _scatter_add(x, idx_i, dim_size, dim=0)
+    result = scatter_add(x, idx_i, dim_size, dim=0)
 
     # Check the correctness of the result
     expected_result = torch.tensor([3, 7, 11], dtype=x.dtype)

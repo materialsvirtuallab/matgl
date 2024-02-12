@@ -132,10 +132,10 @@ class PESCalculator(Calculator):
         **kwargs,
     ):
         """
-        Init M3GNetCalculator with a Potential.
+        Init PESCalculator with a Potential from matgl.
 
         Args:
-            potential (Potential): m3gnet.models.Potential
+            potential (Potential): matgl.apps.pes.Potential
             state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
             stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
@@ -184,6 +184,30 @@ class PESCalculator(Calculator):
             self.results.update(stress=stresses.detach().cpu().numpy() * self.stress_weight)
         if self.compute_hessian:
             self.results.update(hessian=hessians.detach().cpu().numpy())
+
+
+# for backward compatibility
+class M3GNetCalculator(PESCalculator):
+    """M3GNet potential Calculator for ASE."""
+
+    def __init__(
+        self,
+        potential: Potential,
+        state_attr: torch.Tensor | None = None,
+        stress_weight: float = 1.0,
+        **kwargs,
+    ):
+        """
+        Init M3GNetCalculator with a M3GNet Potential.
+
+        Args:
+            potential (Potential): matgl.apps.pes.Potential
+            state_attr (tensor): State attribute
+            compute_stress (bool): whether to calculate the stress
+            stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
+            **kwargs: Kwargs pass through to super().__init__().
+        """
+        super().__init__(potential=potential, state_attr=state_attr, stress_weight=stress_weight, **kwargs)
 
 
 class Relaxer:
