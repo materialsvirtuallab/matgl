@@ -160,8 +160,9 @@ class TestReadOut:
         g1.edata["edge_feat"] = edge_feat
         g_attr = torch.zeros((1, 16), dtype=matgl.float_th)
         pool = GlobalPool(feat_size=16)
-        g_feat = pool(g1, node_feat, g_attr)
+        g_feat, attention_weights = pool(g1, node_feat, g_attr, True)
         assert [g_feat.shape[0], g_feat.shape[1]] == [1, 16]
+        assert [attention_weights.shape[0]] == [2]
 
     def test_attentive_fp(self, graph_MoS):
         s, g1, state = graph_MoS
@@ -181,5 +182,6 @@ class TestReadOut:
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         pool = AttentiveFPReadout(feat_size=16, num_timesteps=2)
-        g_feat = pool(g1, node_feat)
+        g_feat, attention_weights = pool(g1, node_feat, True)
         assert [g_feat.shape[0], g_feat.shape[1]] == [1, 16]
+        assert [attention_weights.shape[0], attention_weights.shape[1]] == [2, 2]

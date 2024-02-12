@@ -10,7 +10,12 @@ from torch import nn
 import matgl
 from matgl.layers._core import MLP
 from matgl.utils.cutoff import cosine_cutoff
-from matgl.utils.maths import new_radial_tensor, tensor_norm, vector_to_skewtensor, vector_to_symtensor
+from matgl.utils.maths import (
+    new_radial_tensor,
+    tensor_norm,
+    vector_to_skewtensor,
+    vector_to_symtensor,
+)
 
 
 class EmbeddingBlock(nn.Module):
@@ -51,8 +56,18 @@ class EmbeddingBlock(nn.Module):
         self.activation = activation
         if ntypes_state and dim_state_embedding is not None:
             self.layer_state_embedding = nn.Embedding(ntypes_state, dim_state_embedding)  # type: ignore
+        elif dim_state_feats is not None:
+            self.layer_state_embedding = nn.Sequential(
+                nn.LazyLinear(dim_state_feats, bias=False, dtype=matgl.float_th),
+                activation,
+            )
         if ntypes_node is not None:
             self.layer_node_embedding = nn.Embedding(ntypes_node, dim_node_embedding)
+        else:
+            self.layer_node_embedding = nn.Sequential(
+                nn.LazyLinear(dim_node_embedding, bias=False, dtype=matgl.float_th),
+                activation,
+            )
         if dim_edge_embedding is not None:
             dim_edges = [degree_rbf, dim_edge_embedding]
             self.layer_edge_embedding = MLP(dim_edges, activation=activation, activate_last=True)
@@ -73,8 +88,7 @@ class EmbeddingBlock(nn.Module):
         if self.ntypes_node is not None:
             node_feat = self.layer_node_embedding(node_attr)
         else:
-            node_embed = MLP([node_attr.shape[-1], self.dim_node_embedding], activation=self.activation)
-            node_feat = node_embed(node_attr.to(matgl.float_th))
+            node_feat = self.layer_node_embedding(node_attr.to(matgl.float_th))
         if self.dim_edge_embedding is not None:
             edge_feat = self.layer_edge_embedding(edge_attr.to(matgl.float_th))
         else:
@@ -84,8 +98,7 @@ class EmbeddingBlock(nn.Module):
                 state_feat = self.layer_state_embedding(state_attr)
             elif self.dim_state_feats is not None:
                 state_attr = torch.unsqueeze(state_attr, 0)
-                state_embed = MLP([state_attr.shape[-1], self.dim_state_feats], activation=self.activation)
-                state_feat = state_embed(state_attr.to(matgl.float_th))
+                state_feat = self.layer_state_embedding(state_attr.to(matgl.float_th))
             else:
                 state_feat = state_attr
         else:
@@ -109,7 +122,7 @@ class TensorEmbedding(nn.Module):
         include_state: bool = False,
         ntypes_state: int | None = None,
         dim_state_feats: int | None = None,
-        dim_state_embedding: int | None = None,
+        dim_state_embedding: int = 0,
     ):
         """
         Args:
@@ -140,26 +153,32 @@ class TensorEmbedding(nn.Module):
         self.linears_scalar.append(nn.Linear(2 * units, 3 * units, bias=True, dtype=dtype))
         self.init_norm = nn.LayerNorm(units, dtype=dtype)
         self.cutoff = cutoff
-        if ntypes_state and include_state is not None:
+        if ntypes_state is not None and dim_state_embedding > 0:
             self.layer_state_embedding = nn.Embedding(ntypes_state, dim_state_embedding)  # type: ignore
             self.emb2 = nn.Linear(2 * units + dim_state_embedding, units, dtype=dtype)  # type: ignore
+        elif dim_state_feats is not None:
+            self.layer_state_mlp = nn.Sequential(nn.LazyLinear(dim_state_feats, bias=False, dtype=dtype), activation)
+            self.emb2 = nn.Linear(2 * units + dim_state_feats, units, dtype=dtype)
         else:
-            self.layer_state_embedding = None
-            self.emb2 = nn.Linear(2 * units, units, dtype=dtype)  # type: ignore
+            self.emb2 = nn.Linear(2 * units, units, dtype=dtype)
         self.emb3 = nn.Linear(degree_rbf, units)
-        self.reset_parameters()
-        self.dim_state_fests = dim_state_feats
+        self.dim_state_feats = dim_state_feats
         self.include_state = include_state
         self.ntypes_state = ntypes_state
         self.dim_state_embedding = dim_state_embedding
+        self.reset_parameters()
 
     def reset_parameters(self):
         """Reinitialize the parameters."""
         self.distance_proj1.reset_parameters()
         self.distance_proj2.reset_parameters()
         self.distance_proj3.reset_parameters()
-        if self.layer_state_embedding is not None:
+        if self.dim_state_embedding > 0:
             self.layer_state_embedding.reset_parameters()
+        if self.dim_state_feats is not None:
+            for layer in self.layer_state_mlp:
+                if hasattr(layer, "reset_parameters"):
+                    layer.reset_parameters()
         self.emb.reset_parameters()
         self.emb2.reset_parameters()
         self.emb3.reset_parameters()
@@ -248,17 +267,14 @@ class TensorEmbedding(nn.Module):
             W2,
             W3,
         )
+        state_feat = None
         if self.include_state is True:
             if self.ntypes_state and self.dim_state_embedding is not None:
                 state_feat = self.layer_state_embedding(state_attr)
             elif self.dim_state_feats is not None:
                 state_attr = torch.unsqueeze(state_attr, 0)
-                state_embed = MLP([state_attr.shape[-1], self.dim_state_feats], activation=self.activation)
-                state_feat = state_embed(state_attr.to(matgl.float_th))
-            else:
-                state_feat = state_attr
-        else:
-            state_feat = None
+                state_feat = self.layer_state_mlp(state_attr.to(matgl.float_th))
+
         edge_feat = self.emb3(edge_attr)
         with g.local_scope():
             g.edata["Iij"] = Iij
@@ -282,7 +298,12 @@ class TensorEmbedding(nn.Module):
                 norm = self.act(linear_scalar(norm))
             norm = norm.reshape(norm.shape[0], self.units, 3)
             scalars, skew_metrices, traceless_tensors = new_radial_tensor(
-                scalars, skew_metrices, traceless_tensors, norm[..., 0], norm[..., 1], norm[..., 2]
+                scalars,
+                skew_metrices,
+                traceless_tensors,
+                norm[..., 0],
+                norm[..., 1],
+                norm[..., 2],
             )
             X = scalars + skew_metrices + traceless_tensors
 
@@ -351,7 +372,10 @@ class NeighborEmbedding(nn.Module):
         x_neighbors = self.embedding(z)
         msg = W * x_neighbors.index_select(0, edge_index[1])
         x_neighbors = torch.zeros(
-            node_feat.shape[0], node_feat.shape[1], dtype=node_feat.dtype, device=node_feat.device
+            node_feat.shape[0],
+            node_feat.shape[1],
+            dtype=node_feat.dtype,
+            device=node_feat.device,
         ).index_add(0, edge_index[0], msg)
         x_neighbors = self.combine(torch.cat([node_feat, x_neighbors], dim=1))
         return x_neighbors
