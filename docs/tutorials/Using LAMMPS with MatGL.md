@@ -113,11 +113,8 @@ run           100
         for line in f:
             if "Total wall time" in line:
                 _, hours, minutes, seconds = line.split(":")
-                walltime = timedelta(
-                    hours=int(hours),
-                    minutes=int(minutes),
-                    seconds=int(seconds)).total_seconds()
-    run_stats.append((x*8, r.average / 100, walltime / 100))
+                walltime = timedelta(hours=int(hours), minutes=int(minutes), seconds=int(seconds)).total_seconds()
+    run_stats.append((x * 8, r.average / 100, walltime / 100))
 ```
 
     /bin/sh: lscpu: command not found

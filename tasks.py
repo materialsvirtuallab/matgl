@@ -67,7 +67,7 @@ def make_docs(ctx):
 
     with cd("docs"):
         ctx.run("rm matgl.*.rst", warn=True)
-        ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../matgl")
+        ctx.run("sphinx-apidoc -P -M -d 6 -o . -f ../src/matgl")
         # ctx.run("rm matgl*.html", warn=True)
         # ctx.run("sphinx-build -b html . ../docs")  # HTML building.
         ctx.run("sphinx-build -M markdown . .")
