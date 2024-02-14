@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import torch
-from matgl.layers._activations import SoftExponential, SoftPlus2
+from matgl.layers._activations import SoftExponential, SoftPlus2, softplus_inverse
 
 
 @pytest.fixture()
@@ -24,3 +24,7 @@ def test_soft_exponential(x):
 
     out = SoftExponential(-1.0)(x)
     np.testing.assert_allclose(out.detach().numpy(), np.array([0.0, 0.693147]), atol=1e-5)
+
+
+def test_softplus_inverse(x):
+    assert torch.allclose(softplus_inverse(torch.nn.functional.softplus(x)), x, atol=1e-5)

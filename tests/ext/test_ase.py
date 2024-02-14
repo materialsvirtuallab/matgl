@@ -7,15 +7,31 @@ import pytest
 import torch
 from ase.build import molecule
 from matgl import load_model
-from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, Relaxer
+from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, PESCalculator, Relaxer
 from pymatgen.io.ase import AseAtomsAdaptor
 
 
-def test_M3GNetCalculator(MoS):
+def test_PESCalculator_and_M3GNetCalculator(MoS):
     adaptor = AseAtomsAdaptor()
     s_ase = adaptor.get_atoms(MoS)  # type: ignore
     ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     ff.calc_hessian = True
+    calc = PESCalculator(potential=ff)
+    s_ase.set_calculator(calc)
+    assert isinstance(s_ase.get_potential_energy(), float)
+    assert list(s_ase.get_forces().shape) == [2, 3]
+    assert list(s_ase.get_stress().shape) == [6]
+    assert list(calc.results["hessian"].shape) == [6, 6]
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
+
+    calc = PESCalculator(potential=ff, state_attr=torch.tensor([0.0, 0.0]))
+    s_ase.set_calculator(calc)
+    assert isinstance(s_ase.get_potential_energy(), float)
+    assert list(s_ase.get_forces().shape) == [2, 3]
+    assert list(s_ase.get_stress().shape) == [6]
+    assert list(calc.results["hessian"].shape) == [6, 6]
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
+
     calc = M3GNetCalculator(potential=ff)
     s_ase.set_calculator(calc)
     assert isinstance(s_ase.get_potential_energy(), float)
@@ -24,20 +40,12 @@ def test_M3GNetCalculator(MoS):
     assert list(calc.results["hessian"].shape) == [6, 6]
     np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
 
-    calc = M3GNetCalculator(potential=ff, state_attr=torch.tensor([0.0, 0.0]))
-    s_ase.set_calculator(calc)
-    assert isinstance(s_ase.get_potential_energy(), float)
-    assert list(s_ase.get_forces().shape) == [2, 3]
-    assert list(s_ase.get_stress().shape) == [6]
-    assert list(calc.results["hessian"].shape) == [6, 6]
-    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
 
-
-def test_M3GNetCalculator_mol(AcAla3NHMe):
+def test_PESCalculator_mol(AcAla3NHMe):
     adaptor = AseAtomsAdaptor()
     mol = adaptor.get_atoms(AcAla3NHMe)
     ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
-    calc = M3GNetCalculator(potential=ff)
+    calc = PESCalculator(potential=ff)
     mol.set_calculator(calc)
     assert isinstance(mol.get_potential_energy(), float)
     assert list(mol.get_forces().shape) == [42, 3]

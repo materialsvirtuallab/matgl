@@ -27,7 +27,7 @@ from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import M3GNetDataset, MGLDataLoader, collate_fn
+from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn
 from matgl.models import M3GNet
 from matgl.utils.io import RemoteFile
 from matgl.utils.training import ModelLightningModule
@@ -55,19 +55,19 @@ def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
     data = pd.read_json("mp.2018.6.1.json")
     structures = []
     mp_ids = []
+    i = 0
     for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
         struct = Structure.from_str(structure_str, fmt="cif")
         structures.append(struct)
         mp_ids.append(mid)
-
+        i = i + 1
+        if i > 1000:
+            break
     return structures, mp_ids, data["formation_energy_per_atom"].tolist()
 
 
 structures, mp_ids, eform_per_atom = load_dataset()
 ```
-
-    69239it [03:54, 295.16it/s]
-
 
 For demonstration purposes, we are only going to select 100 structures from the entire set of structures to shorten the training time.
 
@@ -86,13 +86,10 @@ elem_list = get_element_list(structures)
 # setup a graph converter
 converter = Structure2Graph(element_types=elem_list, cutoff=4.0)
 # convert the raw dataset into MEGNetDataset
-mp_dataset = M3GNetDataset(
+mp_dataset = MGLDataset(
     threebody_cutoff=4.0, structures=structures, converter=converter, labels={"eform": eform_per_atom}
 )
 ```
-
-    100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 346.60it/s]
-
 
 We will then split the dataset into training, validation and test data.
 
@@ -123,10 +120,10 @@ In the next step, we setup the model and the ModelLightningModule. Here, we have
 ```python
 # setup the architecture of MEGNet model
 model = M3GNet(
-        element_types=elem_list,
-        is_intensive=True,
-        readout_type="set2set",
-        )
+    element_types=elem_list,
+    is_intensive=True,
+    readout_type="set2set",
+)
 # setup the MEGNetTrainer
 lit_module = ModelLightningModule(model=model)
 ```
@@ -144,114 +141,6 @@ trainer = pl.Trainer(max_epochs=20, accelerator="cpu", logger=logger)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
-    GPU available: False, used: False
-    TPU available: False, using: 0 TPU cores
-    IPU available: False, using: 0 IPUs
-    HPU available: False, using: 0 HPUs
-
-      | Name  | Type              | Params
-    --------------------------------------------
-    0 | model | M3GNet            | 388 K
-    1 | mae   | MeanAbsoluteError | 0
-    2 | rmse  | MeanSquaredError  | 0
-    --------------------------------------------
-    388 K     Trainable params
-    0         Non-trainable params
-    388 K     Total params
-    1.553     Total estimated model params size (MB)
-
-
-
-    Sanity Checking: 0it [00:00, ?it/s]
-
-
-
-    Training: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-    `Trainer.fit` stopped: `max_epochs=20` reached.
-
-
 # Visualizing the convergence
 
 Finally, we can plot the convergence plot for the loss metrics. You can see that the MAE is already going down nicely with 20 epochs. Obviously, this is nowhere state of the art performance for the formation energies, but a longer training time should lead to results consistent with what was reported in the original MEGNet work.
@@ -266,16 +155,10 @@ _ = plt.legend()
 ```
 
 
-
-![png](assets/Training%20a%20M3GNet%20Formation%20Energy%20Model%20with%20PyTorch%20Lightning_15_0.png)
-
-
-
-
 ```python
 # This code just performs cleanup for this notebook.
 
-for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
+for fn in ("dgl_graph.bin", "lattice.pt", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
     try:
         os.remove(fn)
     except FileNotFoundError:

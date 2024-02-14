@@ -6,6 +6,15 @@ nav_order: 3
 
 # Change Log
 
+## 1.0.0
+- First 1.0.0 release to reflect the maturity of the matgl code! All changes below are the efforts of @kenko911.
+- Equivariant TensorNet and SO3Net are now implemented in MatGL.
+- Refactoring of M3GNetCalculator and M3GNetDataset into generic PESCalculator and MGLDataset for use with all models
+  instead of just M3GNet.
+- Training framework has been unified for all models.
+- ZBL repulsive potentials has been implemented.
+
+
 ## 0.9.2
 * Added Tensor Placement Calls For Ease of Training with PyTorch Lightning (@melo-gonzo).
 * Allow extraction of intermediate outputs in "embedding", "gc_1", "gc_2", "gc_3", and "readout" layers for use as

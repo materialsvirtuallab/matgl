@@ -27,7 +27,7 @@ from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MEGNetDataset, MGLDataLoader, collate_fn
+from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 from matgl.utils.io import RemoteFile
@@ -56,6 +56,7 @@ def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
     data = pd.read_json("mp.2018.6.1.json")
     structures = []
     mp_ids = []
+
     for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
         struct = Structure.from_str(structure_str, fmt="cif")
         structures.append(struct)
@@ -75,9 +76,6 @@ structures = structures[:100]
 eform_per_atom = eform_per_atom[:100]
 ```
 
-    69239it [02:56, 392.16it/s]
-
-
 Here, we set up the dataset.
 
 
@@ -87,8 +85,10 @@ elem_list = get_element_list(structures)
 # setup a graph converter
 converter = Structure2Graph(element_types=elem_list, cutoff=4.0)
 # convert the raw dataset into MEGNetDataset
-mp_dataset = MEGNetDataset(
-    structures, eform_per_atom, "Eform", converter=converter, initial=0.0, final=5.0, num_centers=100, width=0.5
+mp_dataset = MGLDataset(
+    structures=structures,
+    labels={"Eform": eform_per_atom},
+    converter=converter,
 )
 ```
 
@@ -108,12 +108,9 @@ train_loader, val_loader, test_loader = MGLDataLoader(
     test_data=test_data,
     collate_fn=collate_fn,
     batch_size=2,
-    num_workers=1,
+    num_workers=0,
 )
 ```
-
-    100%|███████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 680.77it/s]
-
 
 # Model setup
 
@@ -161,115 +158,6 @@ trainer = pl.Trainer(max_epochs=20, accelerator="cpu", logger=logger)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
-    GPU available: True (mps), used: False
-    TPU available: False, using: 0 TPU cores
-    IPU available: False, using: 0 IPUs
-    HPU available: False, using: 0 HPUs
-    Missing logger folder: logs/MEGNet_training
-
-      | Name  | Type              | Params
-    --------------------------------------------
-    0 | model | MEGNet            | 189 K
-    1 | mae   | MeanAbsoluteError | 0
-    2 | rmse  | MeanSquaredError  | 0
-    --------------------------------------------
-    189 K     Trainable params
-    100       Non-trainable params
-    189 K     Total params
-    0.758     Total estimated model params size (MB)
-
-
-
-    Sanity Checking: 0it [00:00, ?it/s]
-
-
-
-    Training: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-
-    Validation: 0it [00:00, ?it/s]
-
-
-    `Trainer.fit` stopped: `max_epochs=20` reached.
-
-
 # Visualizing the convergence
 
 Finally, we can plot the convergence plot for the loss metrics. You can see that the MAE is already going down nicely with 20 epochs. Obviously, this is nowhere state of the art performance for the formation energies, but a longer training time should lead to results consistent with what was reported in the original MEGNet work.
@@ -284,16 +172,10 @@ _ = plt.legend()
 ```
 
 
-
-![png](assets/Training%20a%20MEGNet%20Formation%20Energy%20Model%20with%20PyTorch%20Lightning_15_0.png)
-
-
-
-
 ```python
 # This code just performs cleanup for this notebook.
 
-for fn in ("dgl_graph.bin", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
+for fn in ("dgl_graph.bin", "lattice.pt", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
     try:
         os.remove(fn)
     except FileNotFoundError:
