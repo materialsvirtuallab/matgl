@@ -74,6 +74,19 @@ class SoftExponential(nn.Module):
         return (torch.exp(self.alpha * x) - 1.0) / self.alpha + self.alpha
 
 
+def softplus_inverse(x: torch.Tensor):
+    """
+    Inverse of the softplus function.
+
+    Args:
+        x (torch.Tensor): Input vector
+
+    Returns:
+        torch.Tensor: softplus inverse of input.
+    """
+    return x + (torch.log(-torch.expm1(-x)))
+
+
 class ActivationFunction(Enum):
     """Enumeration of optional activation functions."""
 

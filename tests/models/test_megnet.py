@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 import torch as th
 from matgl.graph.compute import compute_pair_vector_and_distance
-from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 from pymatgen.core import Lattice, Structure
 
@@ -35,10 +34,8 @@ class TestMEGNet:
                 hidden_layer_sizes_output=(32, 16),
                 is_classification=True,
             )
-            bond_expansion = BondExpansion(rbf_type="Gaussian", initial=0.0, final=6.0, num_centers=100, width=0.5)
-            graph.edata["edge_attr"] = bond_expansion(graph.edata["bond_dist"])
-            state = th.tensor(state)
-            output = model(graph, graph.edata["edge_attr"], graph.ndata["node_type"], state)
+            state = th.tensor(np.array(state))
+            output = model(g=graph, state_attr=state)
         with pytest.raises(ValueError, match="Invalid activation type"):
             _ = MEGNet(is_intensive=False, activation_type="whatever")
         assert [th.numel(output)] == [1]

@@ -119,8 +119,8 @@ class Atoms2Graph(GraphConverter):
         return g, lat, state_attr
 
 
-class M3GNetCalculator(Calculator):
-    """M3GNet calculator for ASE."""
+class PESCalculator(Calculator):
+    """Potential calculator for ASE."""
 
     implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian")
 
@@ -132,10 +132,10 @@ class M3GNetCalculator(Calculator):
         **kwargs,
     ):
         """
-        Init M3GNetCalculator with a Potential.
+        Init PESCalculator with a Potential from matgl.
 
         Args:
-            potential (Potential): m3gnet.models.Potential
+            potential (Potential): matgl.apps.pes.Potential
             state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
             stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
@@ -186,6 +186,30 @@ class M3GNetCalculator(Calculator):
             self.results.update(hessian=hessians.detach().cpu().numpy())
 
 
+# for backward compatibility
+class M3GNetCalculator(PESCalculator):
+    """M3GNet potential Calculator for ASE."""
+
+    def __init__(
+        self,
+        potential: Potential,
+        state_attr: torch.Tensor | None = None,
+        stress_weight: float = 1.0,
+        **kwargs,
+    ):
+        """
+        Init M3GNetCalculator with a M3GNet Potential.
+
+        Args:
+            potential (Potential): matgl.apps.pes.Potential
+            state_attr (tensor): State attribute
+            compute_stress (bool): whether to calculate the stress
+            stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
+            **kwargs: Kwargs pass through to super().__init__().
+        """
+        super().__init__(potential=potential, state_attr=state_attr, stress_weight=stress_weight, **kwargs)
+
+
 class Relaxer:
     """Relaxer is a class for structural relaxation."""
 
@@ -208,7 +232,7 @@ class Relaxer:
             stress_weight (float): conversion factor from GPa to eV/A^3.
         """
         self.optimizer: Optimizer = OPTIMIZERS[optimizer.lower()].value if isinstance(optimizer, str) else optimizer
-        self.calculator = M3GNetCalculator(
+        self.calculator = PESCalculator(
             potential=potential,
             state_attr=state_attr,
             stress_weight=stress_weight,  # type: ignore
@@ -391,7 +415,7 @@ class MolecularDynamics:
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
-        self.atoms.set_calculator(M3GNetCalculator(potential=potential, state_attr=state_attr))
+        self.atoms.set_calculator(PESCalculator(potential=potential, state_attr=state_attr))
 
         if taut is None:
             taut = 100 * timestep * units.fs
