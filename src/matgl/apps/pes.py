@@ -1,4 +1,5 @@
 """Implementation of Interatomic Potentials."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -85,7 +86,7 @@ class Potential(nn.Module, IOMixIn):
         st = lat.new_zeros([g.batch_size, 3, 3])
         if self.calc_stresses:
             st.requires_grad_(True)
-        lattice = lat @ (torch.eye(3) + st)
+        lattice = lat @ (torch.eye(3).to(st.device) + st)
         g.edata["lattice"] = torch.repeat_interleave(lattice, g.batch_num_edges(), dim=0)
         g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
         g.ndata["pos"] = (
@@ -131,7 +132,11 @@ class Potential(nn.Module, IOMixIn):
                     hessian[iatom] = tmp.view(-1)
 
         if self.calc_stresses:
-            volume = torch.det(lattice)
+            volume = (
+                torch.abs(torch.det(lattice.float())).half()
+                if matgl.float_th == torch.float16
+                else torch.abs(torch.det(lattice))
+            )
             sts = -grads[1]
             scale = 1.0 / volume * -160.21766208
             sts = [i * j for i, j in zip(sts, scale)] if sts.dim() == 3 else [sts * scale]

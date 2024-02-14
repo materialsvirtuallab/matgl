@@ -1,4 +1,5 @@
 """Embedding node, edge and optional state attributes."""
+
 from __future__ import annotations
 
 import torch
