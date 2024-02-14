@@ -51,14 +51,6 @@ in future.
 <p>Figure: Schematic of M3GNet/MEGNet</p>
 </div>
 
-### MEGNet
-
-[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
-machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
-array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
-[multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
-network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an output graph.
-
 ### M3GNet
 
 [Materials 3-body Graph Network (M3GNet)][m3gnet] is a new materials graph neural network architecture that
@@ -76,6 +68,24 @@ stresses via auto-differentiation. As a framework, M3GNet has diverse applicatio
   state-of-the-art ML models.
 
 For detailed performance benchmarks, please refer to the publications in the [References](#references) section.
+
+### MEGNet
+
+[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
+machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
+array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
+[multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
+network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an
+output graph.
+
+### Other models
+
+We have implemented other models in matgl as well. A non-exhaustive list is given below.
+
+- [TensorNet](https://arxiv.org/abs/2306.06482), an O(3)-equivariant message-passing neural network architecture that
+  leverages Cartesian tensor representations.
+- [SO3Net](https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for?redirectedFrom=fulltext),
+  a minimalist SO(3)-equivariant neural network.
 
 ## Installation
 

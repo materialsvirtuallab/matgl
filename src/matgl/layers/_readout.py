@@ -6,10 +6,13 @@ from typing import TYPE_CHECKING, Literal
 
 import dgl
 import torch
+import torch.nn.functional as F
 from dgl.nn import Set2Set
 from torch import nn
 
-from ._core import EdgeSet2Set, GatedMLP
+from matgl.layers._activations import SoftPlus2
+
+from ._core import MLP, EdgeSet2Set, GatedMLP
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -77,7 +80,7 @@ class ReduceReadOut(nn.Module):
 
 
 class WeightedReadOut(nn.Module):
-    """Feed node features into Gated MLP as readout."""
+    """Feed node features into Gated MLP as readout for atomic properties."""
 
     def __init__(self, in_feats: int, dims: Sequence[int], num_targets: int):
         """
@@ -102,6 +105,36 @@ class WeightedReadOut(nn.Module):
         return atomic_properties
 
 
+class WeightedAtomReadOut(nn.Module):
+    """Weighted atom readout for graph properties."""
+
+    def __init__(self, in_feats: int, dims: Sequence[int], activation: nn.Module):
+        """
+        Args:
+            in_feats: input features (nodes)
+            dims: NN architecture for Gated MLP
+            activation: activation function for multi-layer perceptons.
+        """
+        super().__init__()
+        self.dims = [in_feats, *dims]
+        self.activation = activation
+        self.mlp = MLP(dims=self.dims, activation=self.activation, activate_last=True)
+        self.weight = nn.Sequential(nn.Linear(in_feats, 1), nn.Sigmoid())
+
+    def forward(self, g: dgl.DGLGraph):
+        """Args:
+            g: DGL graph.
+
+        Returns:
+            atomic_properties: torch.Tensor.
+        """
+        with g.local_scope():
+            g.ndata["h"] = self.mlp(g.ndata["node_feat"])
+            g.ndata["w"] = self.weight(g.ndata["node_feat"])
+            h_g_sum = dgl.sum_nodes(g, "h", "w")
+        return h_g_sum
+
+
 class WeightedReadOutPair(nn.Module):
     """Feed the average of atomic features i and j into weighted readout layer."""
 
@@ -122,3 +155,121 @@ class WeightedReadOutPair(nn.Module):
                 pair_properties[i][j][:] = self.gated(in_features)[:]
                 pair_properties[j][i][:] = pair_properties[i][j][:]
         return pair_properties
+
+
+class GlobalPool(nn.Module):
+    """
+    One-step readout in AttentiveFP. Token from dgllife.model.readout.attentivefp_readout.
+
+    Parameters
+    ----------
+    feat_size : int
+        Size for the input node features, graph features and output graph
+        representations.
+    dropout : float
+        The probability for performing dropout.
+    """
+
+    def __init__(self, feat_size: int, dropout: float = 0.0):
+        super().__init__()
+
+        self.compute_logits = nn.Sequential(nn.Linear(2 * feat_size, 1), SoftPlus2())
+        self.project_nodes = nn.Sequential(nn.Dropout(dropout), nn.Linear(feat_size, feat_size))
+        self.gru = nn.GRUCell(feat_size, feat_size)
+
+    def forward(self, g, node_feats, g_feats, get_node_weight=False):
+        """
+        Perform one-step readout.
+
+        Args:
+        ----------
+        g : DGLGraph
+            DGLGraph for a batch of graphs.
+        node_feats : float32 tensor of shape (V, node_feat_size)
+            Input node features. V for the number of nodes.
+        g_feats : float32 tensor of shape (G, graph_feat_size)
+            Input graph features. G for the number of graphs.
+        get_node_weight : bool
+            Whether to get the weights of atoms during readout.
+
+        Returns:
+        -------
+        float32 tensor of shape (G, graph_feat_size)
+            Updated graph features.
+        float32 tensor of shape (V, 1)
+            The weights of nodes in readout.
+        """
+        with g.local_scope():
+            g.ndata["z"] = self.compute_logits(torch.cat([dgl.broadcast_nodes(g, F.relu(g_feats)), node_feats], dim=1))
+            g.ndata["a"] = dgl.softmax_nodes(g, "z")
+            g.ndata["hv"] = self.project_nodes(node_feats)
+
+            g_repr = dgl.sum_nodes(g, "hv", "a")
+            context = F.elu(g_repr)
+
+            if get_node_weight:
+                return self.gru(context, g_feats), g.ndata["a"]
+
+            return self.gru(context, g_feats)
+
+
+class AttentiveFPReadout(nn.Module):
+    """Readout in AttentiveFP. Token from dgllife.model.readout.attentivefp_readout.
+
+    AttentiveFP is introduced in `Pushing the Boundaries of Molecular Representation for
+    Drug Discovery with the Graph Attention Mechanism
+    <https://www.ncbi.nlm.nih.gov/pubmed/31408336>`__
+
+    This class computes graph representations out of node features.
+
+    Parameters
+    ----------
+    feat_size : int
+        Size for the input node features, graph features and output graph
+        representations.
+    num_timesteps : int
+        Times of updating the graph representations with GRU. Default to 2.
+    dropout : float
+        The probability for performing dropout. Default to 0.
+    """
+
+    def __init__(self, feat_size, num_timesteps=2, dropout=0.0):
+        super().__init__()
+
+        self.readouts = nn.ModuleList()
+        for _ in range(num_timesteps):
+            self.readouts.append(GlobalPool(feat_size, dropout))
+
+    def forward(self, g: dgl.DGLGraph, node_feats: torch.Tensor, get_node_weight=False):
+        """Computes graph representations out of node features.
+
+        Args:
+            g (dgl.DGLGraph): DGLGraph for a batch of graphs.
+            node_feats (torch.Tenor): Input node features. V for the number of nodes.
+            get_node_weight (bool):  Whether to get the weights of nodes in readout. Default to False.
+
+        Returns:
+            g_feats (torch.Tensor): float32 tensor of shape (G, graph_feat_size)
+                Graph representations computed. G for the number of graphs.
+            node_weights (torch.Tensor): list of float32 tensor of shape (V, 1), optional
+                This is returned when ``get_node_weight`` is ``True``.
+
+        """
+        with g.local_scope():
+            g.ndata["hv"] = node_feats
+            g_feats = dgl.sum_nodes(g, "hv")
+        node_weights = None
+        if get_node_weight:
+            node_weights = []
+
+        for readout in self.readouts:
+            if get_node_weight:
+                g_feats, node_weights_t = readout(g, node_feats, g_feats, get_node_weight)
+                node_weights.append(node_weights_t)
+            else:
+                g_feats = readout(g, node_feats, g_feats)
+
+        if get_node_weight:
+            return g_feats, torch.hstack(node_weights)
+
+        return g_feats

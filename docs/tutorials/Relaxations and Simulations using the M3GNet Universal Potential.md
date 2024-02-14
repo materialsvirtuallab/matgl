@@ -22,7 +22,7 @@ from pymatgen.core import Lattice, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
-from matgl.ext.ase import M3GNetCalculator, MolecularDynamics, Relaxer
+from matgl.ext.ase import PESCalculator, MolecularDynamics, Relaxer
 
 # To suppress warnings for clearer output
 warnings.simplefilter("ignore")
@@ -55,19 +55,6 @@ print(final_structure)
 print(f"The final energy is {float(final_energy):.3f} eV.")
 ```
 
-    Full Formula (Cs1 Cl1)
-    Reduced Formula: CsCl
-    abc   :   4.211410   4.211410   4.211410
-    angles:  90.000000  90.000000  90.000000
-    pbc   :       True       True       True
-    Sites (2)
-      #  SP      a     b     c
-    ---  ----  ---  ----  ----
-      0  Cs    0    -0    -0
-      1  Cl    0.5   0.5   0.5
-    The final energy is -6.543 eV.
-
-
 # Molecular Dynamics
 
 MD simulations are performed with the ASE interface.
@@ -86,9 +73,6 @@ driver.run(100)
 print(f"The potential energy of CsCl at 300 K after 100 steps is {float(atoms.get_potential_energy()):.3f} eV.")
 ```
 
-    The potential energy of CsCl at 300 K after 100 steps is -6.430 eV.
-
-
 # Single point energy calculation
 
 Perform a single-point calculation for final structure using M3GNetCalculator.
@@ -96,10 +80,8 @@ Perform a single-point calculation for final structure using M3GNetCalculator.
 
 ```python
 # define the M3GNet calculator
-calc = M3GNetCalculator(pot)
+calc = PESCalculator(pot)
 # set up the calculator for atoms object
 atoms.set_calculator(calc)
-print(f"The calculated potential energy is {float(atoms.get_potential_energy()):.3f} eV.")
+print(f"The calculated potential energy is {atoms.get_potential_energy():.3f} eV.")
 ```
-
-    The calculated potential energy is -6.430 eV.

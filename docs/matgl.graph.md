@@ -111,7 +111,7 @@ Construct a dgl graph from processed structure and bond information.
 
 Tools to construct a dataset of DGL graphs.
 
-### *class* matgl.graph.data.M3GNetDataset(converter: GraphConverter, threebody_cutoff: float, structures: list, energies: list | None = None, forces: list | None = None, stresses: list | None = None, labels: list | None = None, name=’M3GNETDataset’, label_name: str | None = None, graph_labels: list | None = None)
+### *class* matgl.graph.data.MGLDataset(converter: GraphConverter, threebody_cutoff: float, structures: list, energies: list | None = None, forces: list | None = None, stresses: list | None = None, labels: list | None = None, name=’M3GNETDataset’, label_name: str | None = None, graph_labels: list | None = None)
 
 Bases: `DGLDataset`
 

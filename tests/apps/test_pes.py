@@ -6,25 +6,36 @@ import pytest
 import torch
 from matgl.apps.pes import Potential
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.models._m3gnet import M3GNet
+from matgl.models import M3GNet, SO3Net, TensorNet
 from pymatgen.core import Lattice, Structure
 
 
 @pytest.fixture()
 def model():
-    return M3GNet(element_types=["Mo", "S"], is_intensive=False)
+    return M3GNet(element_types=["Mo", "S"], is_intensive=False, use_smooth=True)
+
+
+@pytest.fixture()
+def model_so3net():
+    return SO3Net(element_types=["Mo", "S"], is_intensive=False, lmax=2)
+
+
+@pytest.fixture()
+def model_tensornet():
+    return TensorNet(element_types=["Mo", "S"], is_intensive=False, units=64)
 
 
 class TestPotential:
-    def test_potential_efsh(self, graph_MoS, model):
+    def test_potential_efsh(self, graph_MoS, model, model_tensornet, model_so3net):
         structure, graph, state = graph_MoS
         lat = torch.tensor(structure.lattice.matrix, dtype=matgl.float_th)
-        ff = Potential(model=model, calc_hessian=True)
-        e, f, s, h = ff(graph, lat, state)
-        assert [torch.numel(e)] == [1]
-        assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
-        assert [s.size(dim=0), s.size(dim=1)] == [3, 3]
-        assert [h.size(dim=0), h.size(dim=1)] == [6, 6]
+        for m in [model, model_tensornet, model_so3net]:
+            ff = Potential(model=m, calc_hessian=True)
+            e, f, s, h = ff(graph, lat, state)
+            assert [torch.numel(e)] == [1]
+            assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
+            assert [s.size(dim=0), s.size(dim=1)] == [3, 3]
+            assert [h.size(dim=0), h.size(dim=1)] == [6, 6]
 
     def test_potential_efs(self, graph_MoS, model):
         structure, graph, state = graph_MoS
@@ -55,6 +66,15 @@ class TestPotential:
         assert [f.size(dim=0)] == [1]
         assert [s.size(dim=0)] == [1]
         assert [h.size(dim=0)] == [1]
+
+    def test_including_repulsion(self, graph_MoS, model):
+        structure, graph, state = graph_MoS
+        lat = torch.tensor(structure.lattice.matrix, dtype=matgl.float_th)
+        ff = Potential(model=model, calc_forces=True, calc_stresses=True, calc_hessian=True, calc_repuls=True)
+        e, f, s, h = ff(graph, lat, state)
+        assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
+        assert [s.size(dim=0), s.size(dim=1)] == [3, 3]
+        assert [h.size(dim=0), h.size(dim=1)] == [6, 6]
 
     def test_potential_two_body(self, model):
         structure = Structure(Lattice.cubic(10.0), ["Mo", "Mo"], [[0.0, 0, 0], [0.2, 0.0, 0.0]])
