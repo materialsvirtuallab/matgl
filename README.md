@@ -19,12 +19,7 @@ exceptional performance as surrogate models for the prediction of materials prop
 
 MatGL is built on the [Deep Graph Library (DGL)][dgl] and PyTorch, with suitable adaptations for materials-specific
 applications. The goal is for MatGL to serve as an extensible platform to develop and share materials graph deep
-learning models. For the initial release, we have re-implemented the [MatErials 3-body Graph Network (M3GNet)]
-[m3gnet] and its predecessor, [MEGNet][megnet], which were originally implemented in Tensorflow, to improve the
-usability, extensibility and scalability of these models. Here are some key improvements over the TF implementations:
-
-- A more intuitive API and class structure based on DGL.
-- Multi-GPU support via PyTorch Lightning.
+learning models, including the [MatErials 3-body Graph Network (M3GNet)][m3gnet] and its predecessor, [MEGNet].
 
 This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
 Nassar, Carmelo Gonzales).
@@ -33,6 +28,7 @@ Nassar, Carmelo Gonzales).
 
 Major milestones are summarized below. Please refer to the [changelog] for details.
 
+- v1.0.0 (Feb 14 2024): Implementation of [TensorNet] and [SO3Net].
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
 - v0.4.0 (Jun 7 2023): Near feature parity with original TF implementations. Re-trained M3Gnet universal potential now
@@ -69,6 +65,12 @@ stresses via auto-differentiation. As a framework, M3GNet has diverse applicatio
 
 For detailed performance benchmarks, please refer to the publications in the [References](#references) section.
 
+MatGL reimplemennts M3GNet using DGL and Pytorch. Compared to the original Tensorflow implementation, some key
+improvements over the TF implementations are:
+
+- A more intuitive API and class structure based on DGL.
+- Multi-GPU support via PyTorch Lightning.
+
 ### MEGNet
 
 [MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
@@ -82,10 +84,9 @@ output graph.
 
 We have implemented other models in matgl as well. A non-exhaustive list is given below.
 
-- [TensorNet](https://arxiv.org/abs/2306.06482), an O(3)-equivariant message-passing neural network architecture that
+- [TensorNet], an O(3)-equivariant message-passing neural network architecture that
   leverages Cartesian tensor representations.
-- [SO3Net](https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for?redirectedFrom=fulltext),
-  a minimalist SO(3)-equivariant neural network.
+- [SO3Net],  a minimalist SO(3)-equivariant neural network.
 
 ## Installation
 
@@ -284,3 +285,5 @@ ACI-1548562.
 [ongemail]: mailto:ongsp@ucsd.edu "Email"
 [mqm]: https://materialsqm.com "MaterialsQM"
 [tutorials]: https://matgl.ai/tutorials "Tutorials"
+[tensornet]: https://arxiv.org/abs/2306.06482 "TensorNet"
+[so3net]: https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for "SO3Net"
