@@ -58,6 +58,7 @@ class TensorNet(nn.Module, IOMixIn):
         nblocks: int = 2,
         num_rbf: int = 32,
         rbf_type: Literal["Gaussian", "SphericalBessel"] = "Gaussian",
+        use_smooth: bool = False,
         activation_type: Literal["swish", "tanh", "sigmoid", "softplus2", "softexp"] = "swish",
         cutoff: float = 5.0,
         equivariance_invariance_group: str = "O(3)",
@@ -87,6 +88,8 @@ class TensorNet(nn.Module, IOMixIn):
             num_rbf (int, optional): The number of radial basis functions :math:`\mu`.
                 (default: :obj:`32`)
             rbf_type (str): Radial basis function. choose from 'Gaussian' or 'SphericalBessel'
+            use_smooth (bool): Whether to use the smooth version of SphericalBessel functions.
+                This is particularly important for the smoothness of PES.
             activation_type (str): Activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
             cutoff (float): cutoff distance for interatomic interactions.
             equivariance_invariance_group (string, optional): Group under whose action on input
@@ -122,7 +125,7 @@ class TensorNet(nn.Module, IOMixIn):
             self.element_types = element_types  # type: ignore
 
         self.bond_expansion = BondExpansion(
-            cutoff=cutoff, rbf_type=rbf_type, final=cutoff + 1.0, num_centers=num_rbf, width=width
+            cutoff=cutoff, rbf_type=rbf_type, final=cutoff + 1.0, num_centers=num_rbf, width=width, smooth=use_smooth
         )
 
         assert equivariance_invariance_group in ["O(3)", "SO(3)"], "Unknown group representation. Choose O(3) or SO(3)."
