@@ -57,6 +57,8 @@ class TensorNet(nn.Module, IOMixIn):
         include_state: bool = False,
         nblocks: int = 2,
         num_rbf: int = 32,
+        max_n: int = 3,
+        max_l: int = 3,
         rbf_type: Literal["Gaussian", "SphericalBessel"] = "Gaussian",
         use_smooth: bool = False,
         activation_type: Literal["swish", "tanh", "sigmoid", "softplus2", "softexp"] = "swish",
@@ -78,15 +80,17 @@ class TensorNet(nn.Module, IOMixIn):
         Args:
             element_types (tuple): List of elements appearing in the dataset. Default to DEFAULT_ELEMENTS.
             units (int, optional): Hidden embedding size.
-                (default: :obj:`128`)
+                (default: :obj:`64`)
             ntypes_state (int): Number of state labels
             dim_state_embedding (int): Number of hidden neurons in state embedding
             dim_state_feats (int): Number of state features after linear layer
             include_state (bool): Whether to include states features
             nblocks (int, optional): The number of interaction layers.
                 (default: :obj:`2`)
-            num_rbf (int, optional): The number of radial basis functions :math:`\mu`.
+            num_rbf (int, optional): The number of radial basis Gaussian functions :math:`\mu`.
                 (default: :obj:`32`)
+            max_n (int): maximum of n in spherical Bessel functions
+            max_l (int): maximum of l in spherical Bessel functions
             rbf_type (str): Radial basis function. choose from 'Gaussian' or 'SphericalBessel'
             use_smooth (bool): Whether to use the smooth version of SphericalBessel functions.
                 This is particularly important for the smoothness of PES.
@@ -125,7 +129,14 @@ class TensorNet(nn.Module, IOMixIn):
             self.element_types = element_types  # type: ignore
 
         self.bond_expansion = BondExpansion(
-            cutoff=cutoff, rbf_type=rbf_type, final=cutoff + 1.0, num_centers=num_rbf, width=width, smooth=use_smooth
+            cutoff=cutoff,
+            rbf_type=rbf_type,
+            final=cutoff + 1.0,
+            num_centers=num_rbf,
+            width=width,
+            smooth=use_smooth,
+            max_n=max_n,
+            max_l=max_l,
         )
 
         assert equivariance_invariance_group in ["O(3)", "SO(3)"], "Unknown group representation. Choose O(3) or SO(3)."
@@ -142,6 +153,10 @@ class TensorNet(nn.Module, IOMixIn):
         self.include_state = include_state
         self.ntypes_state = ntypes_state
         self.task_type = task_type
+
+        # make sure the number of radial basis functions correct for tensor embedding
+        if rbf_type == "SphericalBessel":
+            num_rbf = max_n
 
         self.tensor_embedding = TensorEmbedding(
             units=units,

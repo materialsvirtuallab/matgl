@@ -22,7 +22,7 @@ def model_so3net():
 
 @pytest.fixture()
 def model_tensornet():
-    return TensorNet(element_types=["Mo", "S"], is_intensive=False, units=64, use_smooth=True)
+    return TensorNet(element_types=["Mo", "S"], is_intensive=False, units=64, use_smooth=True, max_n=5)
 
 
 class TestPotential:
