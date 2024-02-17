@@ -46,6 +46,15 @@ class TestTensorNet:
         output = model(g=graph)
         assert torch.numel(output) == 1
 
+    def test_model_intensive_with_ReduceReadOut(self, graph_MoS):
+        structure, graph, state = graph_MoS
+        lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
+        graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
+        graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
+        model = TensorNet(is_intensive=True, readout_type="reduce_atom")
+        output = model(g=graph)
+        assert torch.numel(output) == 1
+
     def test_model_intensive_with_classification(self, graph_MoS):
         structure, graph, state = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
