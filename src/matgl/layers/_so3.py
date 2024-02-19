@@ -66,8 +66,8 @@ class RealSphericalHarmonics(nn.Module):
 
         ls = torch.arange(0, lmax + 1)
         nls = 2 * ls + 1
-        self.lidx = torch.repeat_interleave(ls, nls).cpu()
-        self.midx = torch.cat([torch.arange(-l_id, l_id + 1) for l_id in ls]).cpu()
+        self.lidx = torch.repeat_interleave(ls, nls)
+        self.midx = torch.cat([torch.arange(-l_id, l_id + 1) for l_id in ls])
 
         self.register_buffer("flidx", self.lidx.to(dtype=dtype), False)
 
@@ -356,7 +356,6 @@ class SO3ParametricGatedNonlinearity(nn.Module):
         self.n_in = n_in
         self.lidx, _ = sh_indices(lmax)
         self.scaling = nn.Linear(n_in, n_in * (lmax + 1))
-        self.lidx = self.lidx.cpu()  # added by kenko
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         s0 = x[:, 0, :]
