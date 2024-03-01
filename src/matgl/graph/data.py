@@ -184,7 +184,8 @@ class MGLDataset(DGLDataset):
                     line_graph.ndata.pop(name)
                 line_graphs.append(line_graph)
             graph.ndata.pop("pos")
-            graph.edata.pop("pbc_offshift")
+            for name in ["bond_vec", "bond_dist", "pbc_offshift"]:
+                graph.edata.pop(name)
         if self.graph_labels is not None:
             state_attrs = torch.tensor(self.graph_labels).long()
         else:
