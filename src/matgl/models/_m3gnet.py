@@ -214,7 +214,7 @@ class M3GNet(nn.Module, IOMixIn):
         self.units = units
         self.cutoff = cutoff
         self.threebody_cutoff = threebody_cutoff
-        self.include_states = include_state
+        self.include_state = include_state
         self.task_type = task_type
         self.is_intensive = is_intensive
 
@@ -280,7 +280,7 @@ class M3GNet(nn.Module, IOMixIn):
         g.edata["edge_feat"] = edge_feat
         if self.is_intensive:
             field_vec = self.readout(g)
-            readout_vec = torch.hstack([field_vec, state_feat]) if self.include_states else field_vec  # type: ignore
+            readout_vec = torch.hstack([field_vec, state_feat]) if self.include_state else field_vec  # type: ignore
             fea_dict["readout"] = readout_vec
             output = self.final_layer(readout_vec)
             if self.task_type == "classification":

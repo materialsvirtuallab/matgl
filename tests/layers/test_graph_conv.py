@@ -113,7 +113,7 @@ class TestGraphConv:
         degree = max_n * max_l
         conv = M3GNetGraphConv.from_dims(
             degree=degree,
-            include_states=True,
+            include_state=True,
             edge_dims=[edge_in, *conv_hiddens, num_edge_feats],
             node_dims=[node_in, *conv_hiddens, num_node_feats],
             state_dims=[state_in, *conv_hiddens, num_state_feats],
