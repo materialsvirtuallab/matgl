@@ -238,7 +238,7 @@ class M3GNetGraphConv(Module):
 
     def __init__(
         self,
-        include_states: bool,
+        include_state: bool,
         edge_update_func: Module,
         edge_weight_func: Module,
         node_update_func: Module,
@@ -246,7 +246,7 @@ class M3GNetGraphConv(Module):
         state_update_func: Module | None,
     ):
         """Parameters:
-        include_states (bool): Whether including state
+        include_state (bool): Whether including state
         edge_update_func (Module): Update function for edges (Eq. 4)
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
@@ -254,7 +254,7 @@ class M3GNetGraphConv(Module):
         state_update_func (Module): Update function for state feats (Eq. 6).
         """
         super().__init__()
-        self.include_states = include_states
+        self.include_state = include_state
         self.edge_update_func = edge_update_func
         self.edge_weight_func = edge_weight_func
         self.node_update_func = node_update_func
@@ -264,7 +264,7 @@ class M3GNetGraphConv(Module):
     @staticmethod
     def from_dims(
         degree,
-        include_states,
+        include_state,
         edge_dims: list[int],
         node_dims: list[int],
         state_dims: list[int] | None,
@@ -274,7 +274,7 @@ class M3GNetGraphConv(Module):
 
         Args:
             degree (int): max_n*max_l
-            include_states (bool): whether including state or not
+            include_state (bool): whether including state or not
             edge_dims (list): NN architecture for edge update function
             node_dims (list): NN architecture for node update function
             state_dims (list): NN architecture for state update function
@@ -288,9 +288,9 @@ class M3GNetGraphConv(Module):
 
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
-        attr_update_func = MLP(state_dims, activation, activate_last=True) if include_states else None  # type: ignore
+        attr_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None  # type: ignore
         return M3GNetGraphConv(
-            include_states, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
+            include_state, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
@@ -305,11 +305,11 @@ class M3GNetGraphConv(Module):
         vi = edges.src["v"]
         vj = edges.dst["v"]
         u = None
-        if self.include_states:
+        if self.include_state:
             u = edges.src["u"]
         eij = edges.data.pop("e")
         rbf = edges.data["rbf"]
-        inputs = torch.hstack([vi, vj, eij, u]) if self.include_states else torch.hstack([vi, vj, eij])
+        inputs = torch.hstack([vi, vj, eij, u]) if self.include_state else torch.hstack([vi, vj, eij])
         mij = {"mij": self.edge_update_func(inputs) * self.edge_weight_func(rbf)}
         return mij
 
@@ -342,7 +342,7 @@ class M3GNetGraphConv(Module):
         dst_id = graph.edges()[1]
         vj = graph.ndata["v"][dst_id]
         rbf = graph.edata["rbf"]
-        if self.include_states:
+        if self.include_state:
             u = dgl.broadcast_edges(graph, state_feat)
             inputs = torch.hstack([vi, vj, eij, u])
         else:
@@ -390,14 +390,14 @@ class M3GNetGraphConv(Module):
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
-            if self.include_states:
+            if self.include_state:
                 graph.ndata["u"] = dgl.broadcast_nodes(graph, state_feat)
 
             edge_update = self.edge_update_(graph)
             graph.edata["e"] = edge_feat + edge_update
             node_update = self.node_update_(graph, state_feat)
             graph.ndata["v"] = node_feat + node_update
-            if self.include_states:
+            if self.include_state:
                 state_feat = self.state_update_(graph, state_feat)
 
         return edge_feat + edge_update, node_feat + node_update, state_feat
