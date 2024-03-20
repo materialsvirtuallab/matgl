@@ -83,10 +83,10 @@ class Potential(nn.Module, IOMixIn):
         l_g: dgl.DGLGraph | None = None,
     ) -> tuple[torch.Tensor, ...]:
         """Args:
-            g: DGL g
+            g: DGL graph
             lat: lattice
             state_attr: State attrs
-            l_g: Line g.
+            l_g: Line graph.
 
         Returns:
             (energies, forces, stresses, hessian) or (energies, forces, stresses, hessian, site-wise properties)

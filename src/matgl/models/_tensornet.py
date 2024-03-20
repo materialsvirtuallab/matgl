@@ -228,7 +228,7 @@ class TensorNet(nn.Module, IOMixIn):
         Returns:
             output: output: Output property for a batch of graphs
         """
-        # Obtain g, with distances and relative position vectors
+        # Obtain graph, with distances and relative position vectors
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["bond_vec"] = bond_vec.to(g.device)
         g.edata["bond_dist"] = bond_dist.to(g.device)

@@ -51,7 +51,7 @@ class OPTIMIZERS(Enum):
 
 
 class Atoms2Graph(GraphConverter):
-    """Construct a DGL g from ASE Atoms."""
+    """Construct a DGL graph from ASE Atoms."""
 
     def __init__(
         self,
@@ -61,21 +61,21 @@ class Atoms2Graph(GraphConverter):
         """Init Atoms2Graph from element types and cutoff radius.
 
         Args:
-            element_types: List of elements present in dataset for g conversion. This ensures all graphs are
+            element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
                 constructed with the same dimensionality of features.
-            cutoff: Cutoff radius for g representation
+            cutoff: Cutoff radius for graph representation
         """
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
     def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
-        """Get a DGL g from an input Atoms.
+        """Get a DGL graph from an input Atoms.
 
         Args:
             atoms: Atoms object.
 
         Returns:
-            g: DGL g
+            g: DGL graph
             state_attr: state features
         """
         numerical_tol = 1.0e-8

@@ -145,7 +145,7 @@ class CHGNet(nn.Module, IOMixIn):
                 Default = (64, )
             angle_update_hidden_dims (Sequence(int)): hidden dimensions for the angle layer.
                 Default = ()
-            conv_dropout (float): dropout probability for the g convolution layers.
+            conv_dropout (float): dropout probability for the graph convolution layers.
                 Default = 0.0
             final_mlp_type (str): type of readout block, options are "gated" for a Gated MLP and "mlp".
                 Default = "mlp"
@@ -228,7 +228,7 @@ class CHGNet(nn.Module, IOMixIn):
             else None
         )
 
-        # operations involving the g (i.e. atom g) to update atom and bond features
+        # operations involving the graph (i.e. atom graph) to update atom and bond features
         self.atom_graph_layers = nn.ModuleList(
             [
                 CHGNetAtomGraphBlock(
@@ -247,7 +247,7 @@ class CHGNet(nn.Module, IOMixIn):
             ]
         )
 
-        # operations involving the line g (i.e. bond g) to update bond and angle features
+        # operations involving the line graph (i.e. bond graph) to update bond and angle features
         self.bond_graph_layers = nn.ModuleList(
             [
                 CHGNetBondGraphBlock(
@@ -309,7 +309,7 @@ class CHGNet(nn.Module, IOMixIn):
         Args:
             g (dgl.DGLGraph): Input g.
             state_attr (torch.Tensor, optional): State features. Defaults to None.
-            l_g (dgl.DGLGraph, optional): Line g. Defaults to None and is computed internally.
+            l_g (dgl.DGLGraph, optional): Line graph. Defaults to None and is computed internally.
 
         Returns:
             torch.Tensor: Model output.
@@ -322,11 +322,11 @@ class CHGNet(nn.Module, IOMixIn):
         smooth_cutoff = polynomial_cutoff(bond_expansion, self.cutoff, self.cutoff_exponent)
         g.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
-        # create bond g (line g) with necessary node and edge data
+        # create bond graph (line graoh) with necessary node and edge data
         if l_g is None:
             bond_graph = create_line_graph(g, self.three_body_cutoff, directed=True)
         else:
-            # need to ensure the line g matches the g
+            # need to ensure the line graph matches the graph
             bond_graph = ensure_line_graph_compatibility(g, l_g, self.three_body_cutoff, directed=True)
 
         bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
@@ -374,7 +374,7 @@ class CHGNet(nn.Module, IOMixIn):
         # site wise target readout
         site_properties = self.sitewise_readout(atom_features)
 
-        # last atom g message passing layer
+        # last atom graph message passing layer
         atom_features, bond_features, state_attr = self.atom_graph_layers[-1](
             g, atom_features, bond_features, state_attr, atom_bond_weights, bond_bond_weights
         )

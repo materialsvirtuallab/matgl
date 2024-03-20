@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from functools import partial
 from typing import TYPE_CHECKING, Callable
 
 import dgl
@@ -105,10 +106,16 @@ def MGLDataLoader(
             loader is None if test_data is None.
     """
     if collate_fn is None:
-        if "stresses" not in train_data.dataset.labels:
+        if "forces" not in train_data.dataset.labels:
             collate_fn = collate_fn_graph
         else:
-            collate_fn = collate_fn_efs if "magmoms" not in train_data.dataset.labels else collate_fn_efsm
+            if "stresses" not in train_data.dataset.labels:
+                collate_fn = partial(collate_fn_efs, include_stress=False)
+            else:
+                if "magmoms" not in train_data.dataset.labels:  # noqa: SIM108
+                    collate_fn = collate_fn_efs
+                else:
+                    collate_fn = collate_fn_efsm
 
     train_loader = GraphDataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
     val_loader = GraphDataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
@@ -149,10 +156,10 @@ class MGLDataset(DGLDataset):
             filename_state_attr: file name for storing state attributes.
             filename_labels: file name for storing labels.
             include_line_graph: whether to include line graphs.
-            converter: dgl g converter.
+            converter: dgl graph converter.
             threebody_cutoff: cutoff for three body.
-            directed_line_graph (bool): Whether to create a directed line g (CHGNet), or an
-                undirected 3body line g (M3GNet)
+            directed_line_graph (bool): Whether to create a directed line graph (CHGNet), or an
+                undirected 3body line graph (M3GNet)
                 Default: False (for M3GNet)
             structures: Pymatgen structure.
             labels: targets, as a dict of {name: list of values}.
@@ -266,7 +273,7 @@ class MGLDataset(DGLDataset):
             self.labels = json.load(f)
 
     def __getitem__(self, idx: int):
-        """Get g and label with idx."""
+        """Get graph and label with idx."""
         items = [
             self.graphs[idx],
             self.lattices[idx],

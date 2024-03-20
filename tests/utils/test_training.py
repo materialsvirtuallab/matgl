@@ -455,7 +455,7 @@ class TestModelTrainer:
             element_types=element_types,
             is_intensive=True,
             lmax=2,
-            target_property="g",
+            target_property="graph",
             readout_type="set2set",
         )
         lit_model = ModelLightningModule(model=model)

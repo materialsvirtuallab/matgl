@@ -51,7 +51,9 @@ class TestSO3Net:
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
-        model = SO3Net(element_types=["Mo", "S"], is_intensive=True, task_type="classification", target_property="g")
+        model = SO3Net(
+            element_types=["Mo", "S"], is_intensive=True, task_type="classification", target_property="graph"
+        )
         output = model(g=graph)
         assert torch.numel(output) == 1
 
@@ -65,7 +67,7 @@ class TestSO3Net:
             is_intensive=True,
             task_type="classification",
             readout_type="set2set",
-            target_property="g",
+            target_property="graph",
         )
         output = model(g=graph)
         assert torch.numel(output) == 1

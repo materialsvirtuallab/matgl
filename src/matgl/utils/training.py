@@ -201,7 +201,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         """Args:
             g: dgl Graph
             lat: lattice
-            l_g: Line g
+            l_g: Line graph
             state_attr: State attribute.
 
         Returns:
@@ -367,7 +367,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         """Args:
             g: dgl Graph
             lat: lattice
-            l_g: Line g
+            l_g: Line graph
             state_attr: State attr.
 
         Returns:

@@ -287,7 +287,7 @@ class EdgeSet2Set(Module):
     def forward(self, g: DGLGraph, feat: torch.Tensor):
         """Defines the computation performed at every call.
 
-        :param g: Input g
+        :param g: Input graph
         :param feat: Input features.
         :return: One hot vector
         """

@@ -32,7 +32,7 @@ def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str,
 
 
 class Molecule2Graph(GraphConverter):
-    """Construct a DGL g from Pymatgen Molecules."""
+    """Construct a DGL graph from Pymatgen Molecules."""
 
     def __init__(
         self,
@@ -41,15 +41,15 @@ class Molecule2Graph(GraphConverter):
     ):
         """Parameters
         ----------
-        element_types: List of elements present in dataset for g conversion. This ensures all graphs are
+        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
             constructed with the same dimensionality of features.
-        cutoff: Cutoff radius for g representation
+        cutoff: Cutoff radius for graph representation
         """
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
     def get_graph(self, mol: Molecule) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
-        """Get a DGL g from an input molecule.
+        """Get a DGL graph from an input molecule.
 
         :param mol: pymatgen molecule object
         :return:
@@ -81,7 +81,7 @@ class Molecule2Graph(GraphConverter):
 
 
 class Structure2Graph(GraphConverter):
-    """Construct a DGL g from Pymatgen Structure."""
+    """Construct a DGL graph from Pymatgen Structure."""
 
     def __init__(
         self,
@@ -90,15 +90,15 @@ class Structure2Graph(GraphConverter):
     ):
         """Parameters
         ----------
-        element_types: List of elements present in dataset for g conversion. This ensures all graphs are
+        element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
             constructed with the same dimensionality of features.
-        cutoff: Cutoff radius for g representation
+        cutoff: Cutoff radius for graph representation
         """
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
     def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
-        """Get a DGL g from an input Structure.
+        """Get a DGL graph from an input Structure.
 
         :param structure: pymatgen structure object
         :return:

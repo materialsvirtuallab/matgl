@@ -32,7 +32,7 @@ class AtomRef(nn.Module):
         """Get the number of atoms for different elements in the structure.
 
         Args:
-            graphs (list): a list of dgl g
+            graphs (list): a list of dgl graph
 
         Returns:
             features (torch.Tensor): a matrix (num_structures, num_elements)

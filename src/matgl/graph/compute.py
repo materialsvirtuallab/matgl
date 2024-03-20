@@ -33,7 +33,7 @@ def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
     """Calculate bond angle Theta and Phi using dgl graphs.
 
     Args:
-    edges: DGL g edges
+    edges: DGL graph edges
 
     Returns:
     cos_theta: torch.Tensor
@@ -51,9 +51,9 @@ def compute_theta(
     """User defined dgl function to calculate bond angles from edges in a g.
 
     Args:
-        edges: DGL g edges
+        edges: DGL graph edges
         cosine: Whether to return the cosine of the angle or the angle itself
-        directed: Whether to the line g was created with create directed line g.
+        directed: Whether to the line graph was created with create directed line g.
             In which case bonds (only those that are not self bonds) need to
             have their bond vectors flipped.
         eps: eps value used to clamp cosine values to avoid acos of values > 1.0
@@ -78,10 +78,10 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float, directed: bool =
     Args:
         g: DGL g
         threebody_cutoff (float): cutoff for three-body interactions
-        directed (bool): Whether to create a directed line g, or an m3gnet 3body line g (default: False, m3gnet)
+        directed (bool): Whether to create a directed line g, or an m3gnet 3body line graph (default: False, m3gnet)
 
     Returns:
-        l_g: DGL g containing three body information from g
+        l_g: DGL graph containing three body information from g
     """
     graph_with_three_body = prune_edges_by_features(g, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
     if directed:
@@ -95,15 +95,15 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float, directed: bool =
 def ensure_line_graph_compatibility(
     graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, directed: bool = False, tol: float = 5e-7
 ) -> dgl.DGLGraph:
-    """Ensure that line g is compatible with g.
+    """Ensure that line graph is compatible with g.
 
-    Sets edge data in line g to be consistent with g. The line g is updated in place.
+    Sets edge data in line graph to be consistent with g. The line graph is updated in place.
 
     Args:
-        graph: atomistic g
-        line_graph: line g of atomistic g
+        graph: atomistic graph
+        line_graph: line graph of atomistic graph
         threebody_cutoff: cutoff for three-body interactions
-        directed (bool): Whether to create a directed line g, or an m3gnet 3body line g (default: False, m3gnet)
+        directed (bool): Whether to create a directed line g, or an m3gnet 3body line graph (default: False, m3gnet)
         tol: numerical tolerance for cutoff
     """
     if directed:
@@ -123,9 +123,9 @@ def prune_edges_by_features(
     *args,
     **kwargs,
 ) -> dgl.DGLGraph:
-    """Removes edges g that do satisfy given condition based on a specified feature value.
+    """Removes edges graph that do satisfy given condition based on a specified feature value.
 
-    Returns a new g with edges removed.
+    Returns a new graph with edges removed.
 
     Args:
         graph: DGL g
@@ -166,7 +166,7 @@ def _compute_3body(g: dgl.DGLGraph):
         g: DGL g
 
     Returns:
-        l_g: DGL g containing three body information from g
+        l_g: DGL graph containing three body information from g
         triple_bond_indices (np.ndarray): bond indices that form three-body
         n_triple_ij (np.ndarray): number of three-body angles for each bond
         n_triple_i (np.ndarray): number of three-body angles each atom
@@ -219,14 +219,14 @@ def _compute_3body(g: dgl.DGLGraph):
 
 
 def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) -> dgl.DGLGraph:
-    """Creates a line g from a g, considers periodic boundary conditions.
+    """Creates a line graph from a graph, considers periodic boundary conditions.
 
     Args:
-        graph: DGL g representing atom g
+        graph: DGL graph representing atom g
         threebody_cutoff: cutoff for three-body interactions
 
     Returns:
-        l_g: DGL g line g of pruned g to three body cutoff
+        l_g: DGL line graph of pruned graph to three body cutoff
     """
     with torch.no_grad():
         pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: torch.gt(x, threebody_cutoff))
@@ -243,7 +243,7 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
         not_self_edge = ~is_self_edge
 
         n = 0
-        # create line g edges for bonds that are self edges in atom g
+        # create line graph edges for bonds that are self edges in atom g
         if is_self_edge.any():
             edge_inds_s = is_self_edge.nonzero()
             lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
@@ -253,7 +253,7 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
             n = len(lg_dst_s)
             lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
 
-        # create line g edges for bonds that are not self edges in atom g
+        # create line graph edges for bonds that are not self edges in atom g
         shared_src = src_indices.unsqueeze(1) == src_indices
         back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
         incoming = incoming_edges & (shared_src | ~back_tracking)
@@ -268,7 +268,7 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
             lg.ndata[key] = pg.edata[key][: lg.number_of_nodes()]
 
         # we need to store the sign of bond vector when a bond is a src node in the line
-        # g in order to appropriately calculate angles when self edges are involved
+        # graph in order to appropriately calculate angles when self edges are involved
         lg.ndata["src_bond_sign"] = torch.ones(
             (lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
         )
@@ -285,13 +285,13 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
 
 
 def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float):
-    """Ensure that 3body line g is compatible with a given g.
+    """Ensure that 3body line graph is compatible with a given g.
 
-    Sets edge data in line g to be consistent with g. The line g is updated in place.
+    Sets edge data in line graph to be consistent with g. The line graph is updated in place.
 
     Args:
-        graph: atomistic g
-        line_graph: line g of atomistic g
+        graph: atomistic graph
+        line_graph: line graph of atomistic graph
         threebody_cutoff: cutoff for three-body interactions
     """
     valid_three_body = graph.edata["bond_dist"] <= threebody_cutoff
@@ -312,13 +312,13 @@ def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.
 def _ensure_directed_line_graph_compatibility(
     graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, tol: float = 5e-7
 ) -> dgl.DGLGraph:
-    """Ensure that line g is compatible with g.
+    """Ensure that line graph is compatible with graph.
 
-    Sets edge data in line g to be consistent with g. The line g is updated in place.
+    Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
 
     Args:
-        graph: atomistic g
-        line_graph: line g of atomistic g
+        graph: atomistic graph
+        line_graph: line graph of atomistic graph
         threebody_cutoff: cutoff for three-body interactions
         tol: numerical tolerance for cutoff
     """
@@ -331,7 +331,7 @@ def _ensure_directed_line_graph_compatibility(
 
     # check again and raise if invalid
     if line_graph.number_of_nodes() > sum(valid_edges):
-        raise RuntimeError("Line g is not compatible with g.")
+        raise RuntimeError("Line graph is not compatible with graph.")
 
     edge_ids = valid_edges.nonzero().squeeze()[: line_graph.number_of_nodes()]
     line_graph.ndata["edge_ids"] = edge_ids

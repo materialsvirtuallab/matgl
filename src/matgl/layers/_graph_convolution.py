@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 class MEGNetGraphConv(Module):
-    """A MEGNet g convolution layer in DGL."""
+    """A MEGNet graph convolution layer in DGL."""
 
     def __init__(
         self,
@@ -47,7 +47,7 @@ class MEGNetGraphConv(Module):
         state_dims: list[int],
         activation: Module,
     ) -> MEGNetGraphConv:
-        """Create a MEGNet g convolution layer from dimensions.
+        """Create a MEGNet graph convolution layer from dimensions.
 
         Args:
             edge_dims (list[int]): Edge dimensions.
@@ -56,7 +56,7 @@ class MEGNetGraphConv(Module):
             activation (Module): Activation function.
 
         Returns:
-            MEGNetGraphConv: MEGNet g convolution layer.
+            MEGNetGraphConv: MEGNet graph convolution layer.
         """
         # TODO(marcel): Softplus doesn't exactly match paper's SoftPlus2
         # TODO(marcel): Should we activate last?
@@ -138,7 +138,7 @@ class MEGNetGraphConv(Module):
             state_feat: Graph attributes (global state)
 
         Returns:
-            (edge features, node features, g attributes)
+            (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
@@ -162,8 +162,8 @@ class MEGNetBlock(Module):
         Init the MEGNet block with key parameters.
 
         Args:
-            dims: Dimension of dense layers before g convolution.
-            conv_hiddens: Architecture of hidden layers of g convolution.
+            dims: Dimension of dense layers before graph convolution.
+            conv_hiddens: Architecture of hidden layers of graph convolution.
             act: Activation type.
             dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
                 to a Bernoulli distribution.
@@ -217,7 +217,7 @@ class MEGNetBlock(Module):
 
         Returns:
             tuple[Tensor, Tensor, Tensor]: Updated (edge features,
-                node features, g attributes)
+                node features, graph attributes)
         """
         inputs = (edge_feat, node_feat, state_feat)
         edge_feat = self.edge_func(edge_feat)
@@ -240,7 +240,7 @@ class MEGNetBlock(Module):
 
 
 class M3GNetGraphConv(Module):
-    """A M3GNet g convolution layer in DGL."""
+    """A M3GNet graph convolution layer in DGL."""
 
     def __init__(
         self,
@@ -363,7 +363,7 @@ class M3GNetGraphConv(Module):
 
         Args:
             graph: DGL g
-            state_feat: g features
+            state_feat: graph features
 
         Returns:
         state_update: state_attr update
@@ -391,7 +391,7 @@ class M3GNetGraphConv(Module):
             state_feat: Graph attributes (global state).
 
         Returns:
-            (edge features, node features, g attributes)
+            (edge features, node features, graph attributes)
         """
         with graph.local_scope():
             graph.edata["e"] = edge_feat
@@ -513,7 +513,7 @@ class TensorNetInteraction(nn.Module):
             num_rbf: Number of radial basis functions.
             units: number of hidden neurons.
             activation: activation.
-            cutoff: cutoff radius for g construction.
+            cutoff: cutoff radius for graph construction.
             equivariance_invariance_group: Group action on geometric tensor representations, either O(3) or SO(3).
             dtype: data type for all variables.
         """
@@ -640,7 +640,7 @@ class TensorNetInteraction(nn.Module):
 
 
 class CHGNetGraphConv(nn.Module):
-    """A CHGNet atom g convolution layer in DGL."""
+    """A CHGNet atom graph convolution layer in DGL."""
 
     def __init__(
         self,
@@ -760,10 +760,10 @@ class CHGNetGraphConv(nn.Module):
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
         """Edge user defined update function.
 
-        Update for bond features (edges) in atom g.
+        Update for bond features (edges) in atom graph.
 
         Args:
-            edges: edges in atom g (ie bonds)
+            edges: edges in atom graph (ie bonds)
 
         Returns:
             edge_update: edge features update
@@ -789,8 +789,8 @@ class CHGNetGraphConv(nn.Module):
         """Perform edge update -> bond features.
 
         Args:
-            graph: atom g
-            shared_weights: atom g edge weights shared between convolution layers
+            graph: atom graph
+            shared_weights: atom graph edge weights shared between convolution layers
 
         Returns:
             edge_update: edge features update
@@ -805,7 +805,7 @@ class CHGNetGraphConv(nn.Module):
         """Perform node update -> atom features.
 
         Args:
-            graph: DGL atom g
+            graph: DGL atom graph
             shared_weights: node message shared weights
 
         Returns:
@@ -847,7 +847,7 @@ class CHGNetGraphConv(nn.Module):
         """Perform attribute (global state) update.
 
         Args:
-            graph: atom g
+            graph: atom graph
             state_attr: global state features
 
         Returns:
@@ -870,7 +870,7 @@ class CHGNetGraphConv(nn.Module):
         """Perform sequence of edge->node->states updates.
 
         Args:
-            graph: atom g
+            graph: atom graph
             node_features: node features
             edge_features: edge features
             state_attr: state attributes
@@ -906,7 +906,7 @@ class CHGNetGraphConv(nn.Module):
 
 class CHGNetAtomGraphBlock(nn.Module):
     """
-    A CHGNet atom g block as a sequence of operations
+    A CHGNet atom graph block as a sequence of operations
     involving a message passing layer over the atom graph.
     """
 
@@ -989,7 +989,7 @@ class CHGNetAtomGraphBlock(nn.Module):
         """Perform sequence of bond(optional)->atom->states(optional) updates.
 
         Args:
-            graph: atom g
+            graph: atom graph
             atom_features: node features
             bond_features: edge features
             state_attr: state attributes
@@ -1018,10 +1018,10 @@ class CHGNetAtomGraphBlock(nn.Module):
 
 
 class CHGNetLineGraphConv(nn.Module):
-    """A CHGNet atom g convolution layer in DGL.
+    """A CHGNet atom graph convolution layer in DGL.
 
     This implements both the bond and angle update functions in the CHGNet paper
-    as line g updates.
+    as line graph updates.
     """
 
     def __init__(
@@ -1111,7 +1111,7 @@ class CHGNetLineGraphConv(nn.Module):
     def _edge_udf(self, edges: dgl.udf.EdgeBatch) -> dict[str, Tensor]:
         """Edge user defined update function.
 
-        Update angle features (edges in bond g)
+        Update angle features (edges in bond graph)
 
         Args:
             edges: edge batch
@@ -1131,7 +1131,7 @@ class CHGNetLineGraphConv(nn.Module):
         """Perform edge update -> update angle features.
 
         Args:
-            graph: bond g (line g of atom g)
+            graph: bond graph (line graph of atom graph)
 
         Returns:
             edge_update: edge features update
@@ -1144,7 +1144,7 @@ class CHGNetLineGraphConv(nn.Module):
         """Perform node update -> update bond features.
 
         Args:
-            graph: bond g (line g of atom g)
+            graph: bond graph (line graph of atom graph)
             shared_weights: node message shared weights
 
         Returns:
@@ -1191,8 +1191,8 @@ class CHGNetLineGraphConv(nn.Module):
         """Perform sequence of edge->node->states updates.
 
         Args:
-            graph: bond g (line g of atom g)
-            node_features: bond features (edge features (for bonds within three body cutoff in atom g)
+            graph: bond graph (line graph of atom graph)
+            node_features: bond features (edge features (for bonds within three body cutoff in atom graph)
             edge_features: angle features (edge features to be updated)
             aux_edge_features: center atom features (edge features that are not updated)
 
@@ -1200,7 +1200,7 @@ class CHGNetLineGraphConv(nn.Module):
 
         Returns:
             tuple: update edge features, update node features
-            note that the node features are the bond features included in the line g only.
+            note that the node features are the bond features included in the line graph only.
         """
         with graph.local_scope():
             graph.ndata["features"] = node_features
@@ -1224,7 +1224,7 @@ class CHGNetLineGraphConv(nn.Module):
 
 
 class CHGNetBondGraphBlock(nn.Module):
-    """A CHGNet atom g block as a sequence of operations involving a message passing layer over the bond g."""
+    """A CHGNet atom graph block as a sequence of operations involving a message passing layer over the bond graph."""
 
     def __init__(
         self,
@@ -1247,7 +1247,7 @@ class CHGNetBondGraphBlock(nn.Module):
             num_bond_feats: number of bond features
             num_angle_feats: number of angle features
             activation: activation function
-            bond_hidden_dims: dimensions of hidden layers of bond g convolution
+            bond_hidden_dims: dimensions of hidden layers of bond graph convolution
             angle_hidden_dims: dimensions of hidden layers of angle update function
                 Default = None
             normalization: Normalization type to use in update functions. either "graph" or "layer"
@@ -1258,7 +1258,7 @@ class CHGNetBondGraphBlock(nn.Module):
             rbf_order (int): RBF order specifying input dimensions for linear layer
                 specifying message weights. If 0, no layer-wise weights are used.
                 Default = 0
-            bond_dropout (float): dropout probability for bond g convolution.
+            bond_dropout (float): dropout probability for bond graph convolution.
                 Default = 0.0
             angle_dropout (float): dropout probability for angle update function.
                 Default = 0.0
@@ -1292,7 +1292,7 @@ class CHGNetBondGraphBlock(nn.Module):
         """Perform convolution in BondGraph to update bond and angle features.
 
         Args:
-            graph: bond g (line g of atom g)
+            graph: bond graph (line graph of atom graph)
             atom_features: atom features
             bond_features: bond features
             angle_features: concatenated center atom and angle features
