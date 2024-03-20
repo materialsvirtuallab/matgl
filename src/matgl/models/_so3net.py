@@ -171,7 +171,7 @@ class SO3Net(nn.Module, IOMixIn):
                     dims=[units, units],
                     num_targets=ntargets,  # type: ignore
                 )
-        else:  # g property, dipole_moment or polarizability
+        else:  # graph property, dipole_moment or polarizability
             if target_property == "graph":
                 input_feats = dim_node_embedding
                 if readout_type == "set2set":

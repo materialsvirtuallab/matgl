@@ -53,7 +53,7 @@ class Molecule2Graph(GraphConverter):
 
         :param mol: pymatgen molecule object
         :return:
-            g: DGL g
+            g: DGL graph
             lat: default lattice for molecular systems (np.ones)
             state_attr: state features
         """
@@ -102,7 +102,7 @@ class Structure2Graph(GraphConverter):
 
         :param structure: pymatgen structure object
         :return:
-            g: DGL g
+            g: DGL graph
             lat: lattice for periodic systems
             state_attr: state features
         """
