@@ -44,9 +44,7 @@ def test_PESCalculator_and_M3GNetCalculator(MoS):
 def test_CHGNetCalculator(MoS):
     adaptor = AseAtomsAdaptor()
     s_ase = adaptor.get_atoms(MoS)  # type: ignore
-    ff = load_model(
-        "pretrained_models/CHGNet-MPtrj-2023.12.1-PES-2.7M/"
-    )
+    ff = load_model("pretrained_models/CHGNet-MPtrj-2023.12.1-PES-2.7M/")
     ff.calc_hessian = True
     calc = PESCalculator(potential=ff)
     s_ase.set_calculator(calc)
