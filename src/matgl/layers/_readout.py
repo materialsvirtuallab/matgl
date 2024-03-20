@@ -164,7 +164,7 @@ class GlobalPool(nn.Module):
     Parameters
     ----------
     feat_size : int
-        Size for the input node features, graph features and output g
+        Size for the input node features, graph features and output graph
         representations.
     dropout : float
         The probability for performing dropout.
@@ -225,7 +225,7 @@ class AttentiveFPReadout(nn.Module):
     Parameters
     ----------
     feat_size : int
-        Size for the input node features, graph features and output g
+        Size for the input node features, graph features and output graph
         representations.
     num_timesteps : int
         Times of updating the graph representations with GRU. Default to 2.

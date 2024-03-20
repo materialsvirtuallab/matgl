@@ -286,9 +286,9 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
 
 
 def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float):
-    """Ensure that 3body line graph is compatible with a given g.
+    """Ensure that 3body line graph is compatible with a given graph.
 
-    Sets edge data in line graph to be consistent with g. The line graph is updated in place.
+    Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
 
     Args:
         graph: atomistic graph
