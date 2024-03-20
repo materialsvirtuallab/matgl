@@ -1,4 +1,4 @@
-"""Computing various g based operations."""
+"""Computing various graph based operations."""
 
 from __future__ import annotations
 
@@ -227,7 +227,7 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
         threebody_cutoff: cutoff for three-body interactions
 
     Returns:
-        l_g: DGL line graph of pruned graph to three body cutoff
+        line_graph: DGL line graph of pruned graph to three body cutoff
     """
     with torch.no_grad():
         pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: torch.gt(x, threebody_cutoff))
