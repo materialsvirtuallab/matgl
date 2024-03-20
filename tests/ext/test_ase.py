@@ -45,7 +45,7 @@ def test_CHGNetCalculator(MoS):
     adaptor = AseAtomsAdaptor()
     s_ase = adaptor.get_atoms(MoS)  # type: ignore
     ff = load_model(
-        "/Users/bowendeng/PackagesforReseach/matgl-private/pretrained_models/CHGNet-MPtrj-2023.12.1-PES-2.7M/"
+        "pretrained_models/CHGNet-MPtrj-2023.12.1-PES-2.7M/"
     )
     ff.calc_hessian = True
     calc = PESCalculator(potential=ff)
