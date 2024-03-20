@@ -52,7 +52,7 @@ class NuclearRepulsion(nn.Module):
 
         Args:
             element_types: A tuple of element types defined in the model class.
-            graph: dgl.DGL graph.
+            graph: dgl.DGL g.
 
         Returns:
             energy: Pairwise ZBL nuclear repulsive energy.

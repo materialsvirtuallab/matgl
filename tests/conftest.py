@@ -2,7 +2,7 @@
 Define commonly used text fixtures. These are meant to be reused in unittests.
 - Fixtures that are formulae (e.g., LiFePO4) returns the appropriate pymatgen Structure or Molecule based on the most
   commonly known structure.
-- Fixtures that are prefixed with `graph_` returns a (structure, graph, state) tuple.
+- Fixtures that are prefixed with `graph_` returns a (structure, g, state) tuple.
 
 Given that the fixtures are unlikely to be modified by the underlying code, the fixtures are set with a scope of
 "session". In the event that future tests are written that modifies the fixtures, these can be set to the default scope
@@ -25,7 +25,7 @@ matgl.clear_cache(confirm=False)
 
 def get_graph(structure, cutoff):
     """
-    Helper class to generate DGL graph from an input Structure or Molecule.
+    Helper class to generate DGL g from an input Structure or Molecule.
 
     Returns:
         Structure/Molecule, Graph, State

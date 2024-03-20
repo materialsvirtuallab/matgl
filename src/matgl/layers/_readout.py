@@ -33,7 +33,7 @@ class Set2SetReadOut(nn.Module):
             in_feats (int): length of input feature vector
             n_iters (int): Number of LSTM steps
             n_layers (int): Number of layers.
-            field (str): Field of graph to perform the readout.
+            field (str): Field of g to perform the readout.
         """
         super().__init__()
         self.field = field
@@ -61,7 +61,7 @@ class ReduceReadOut(nn.Module):
         """
         Args:
             op (str): op for the reduction
-            field (str): Field of graph to perform the reduction.
+            field (str): Field of g to perform the reduction.
         """
         super().__init__()
         self.op = op
@@ -69,7 +69,7 @@ class ReduceReadOut(nn.Module):
 
     def forward(self, g: dgl.DGLGraph):
         """Args:
-            g: DGL graph.
+            g: DGL g.
 
         Returns:
             torch.tensor.
@@ -96,7 +96,7 @@ class WeightedReadOut(nn.Module):
 
     def forward(self, g: dgl.DGLGraph):
         """Args:
-            g: DGL graph.
+            g: DGL g.
 
         Returns:
             atomic_properties: torch.Tensor.
@@ -106,7 +106,7 @@ class WeightedReadOut(nn.Module):
 
 
 class WeightedAtomReadOut(nn.Module):
-    """Weighted atom readout for graph properties."""
+    """Weighted atom readout for g properties."""
 
     def __init__(self, in_feats: int, dims: Sequence[int], activation: nn.Module):
         """
@@ -123,7 +123,7 @@ class WeightedAtomReadOut(nn.Module):
 
     def forward(self, g: dgl.DGLGraph):
         """Args:
-            g: DGL graph.
+            g: DGL g.
 
         Returns:
             atomic_properties: torch.Tensor.
@@ -164,7 +164,7 @@ class GlobalPool(nn.Module):
     Parameters
     ----------
     feat_size : int
-        Size for the input node features, graph features and output graph
+        Size for the input node features, g features and output g
         representations.
     dropout : float
         The probability for performing dropout.
@@ -188,14 +188,14 @@ class GlobalPool(nn.Module):
         node_feats : float32 tensor of shape (V, node_feat_size)
             Input node features. V for the number of nodes.
         g_feats : float32 tensor of shape (G, graph_feat_size)
-            Input graph features. G for the number of graphs.
+            Input g features. G for the number of graphs.
         get_node_weight : bool
             Whether to get the weights of atoms during readout.
 
         Returns:
         -------
         float32 tensor of shape (G, graph_feat_size)
-            Updated graph features.
+            Updated g features.
         float32 tensor of shape (V, 1)
             The weights of nodes in readout.
         """
@@ -220,15 +220,15 @@ class AttentiveFPReadout(nn.Module):
     Drug Discovery with the Graph Attention Mechanism
     <https://www.ncbi.nlm.nih.gov/pubmed/31408336>`__
 
-    This class computes graph representations out of node features.
+    This class computes g representations out of node features.
 
     Parameters
     ----------
     feat_size : int
-        Size for the input node features, graph features and output graph
+        Size for the input node features, g features and output g
         representations.
     num_timesteps : int
-        Times of updating the graph representations with GRU. Default to 2.
+        Times of updating the g representations with GRU. Default to 2.
     dropout : float
         The probability for performing dropout. Default to 0.
     """
@@ -241,7 +241,7 @@ class AttentiveFPReadout(nn.Module):
             self.readouts.append(GlobalPool(feat_size, dropout))
 
     def forward(self, g: dgl.DGLGraph, node_feats: torch.Tensor, get_node_weight=False):
-        """Computes graph representations out of node features.
+        """Computes g representations out of node features.
 
         Args:
             g (dgl.DGLGraph): DGLGraph for a batch of graphs.

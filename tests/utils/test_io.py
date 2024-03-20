@@ -76,6 +76,8 @@ def test_load_model():
     # Load model from a full path.
     model = load_model(this_dir / ".." / ".." / "pretrained_models" / "MEGNet-MP-2018.6.1-Eform")
     assert issubclass(model.__class__, torch.nn.Module)
+    model = load_model(this_dir / ".." / ".." / "pretrained_models" / "CHGNet-MPtrj-2024.2.13-PES-11M")
+    assert issubclass(model.__class__, torch.nn.Module)
 
     with pytest.raises(ValueError, match="No valid model found in pre-trained_models"):
         load_model("badbadmodelname")

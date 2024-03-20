@@ -34,7 +34,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         frac_coords,
         is_atoms: bool = False,
     ) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
-        """Construct a dgl graph from processed structure and bond information.
+        """Construct a dgl g from processed structure and bond information.
 
         Args:
             structure: Input crystals or molecule of pymatgen structure or molecule types.

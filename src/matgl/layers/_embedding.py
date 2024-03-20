@@ -130,7 +130,7 @@ class TensorEmbedding(nn.Module):
             degree_rbf (int): number of rbf
             activation (nn.Module): activation type
             ntypes_node: number of node labels
-            cutoff (float): cutoff radius for graph construction
+            cutoff (float): cutoff radius for g construction
             dtype (torch.dtype): data type for all variables
             include_state: Whether to include state embedding
             ntypes_state (int): number of state labels
@@ -214,7 +214,7 @@ class TensorEmbedding(nn.Module):
     def edge_update_(self, graph: dgl.DGLGraph) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform edge update.
 
-        :param graph: Input graph
+        :param graph: Input g
         :return: Output tensor for edges.
         """
         graph.apply_edges(self._edge_udf)
@@ -226,7 +226,7 @@ class TensorEmbedding(nn.Module):
     def node_update_(self, graph: dgl.DGLGraph) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform node update.
 
-        :param graph: Input graph
+        :param graph: Input g
         :return: Output tensor for nodes.
         """
         graph.update_all(fn.copy_e("I", "I"), fn.sum("I", "Ie"))
@@ -242,7 +242,7 @@ class TensorEmbedding(nn.Module):
         """
 
         Args:
-            g: dgl graph.
+            g: dgl g.
             state_attr: global state attributes.
 
         Returns:
@@ -358,7 +358,7 @@ class NeighborEmbedding(nn.Module):
         """
         Args:
             z (Tensor): Atomic numbers of shape [num_nodes].
-            node_feat (Tensor): graph-convoluted node features [num_nodes, hidden_channels].
+            node_feat (Tensor): g-convoluted node features [num_nodes, hidden_channels].
             edge_index (Tensor): Graph connectivity (list of neighbor pairs) with shape [2, num_edges].
             edge_weight (Tensor): Edge weight vector of shape [num_edges].
             edge_attr (Tensor): Edge attribute matrix of shape [num_edges, num_rbf].

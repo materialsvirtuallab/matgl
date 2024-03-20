@@ -12,8 +12,8 @@ import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn, collate_fn_efs
-from matgl.models import M3GNet, MEGNet, SO3Net, TensorNet
+from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_efs, collate_fn_efsm, collate_fn_graph
+from matgl.models import CHGNet, M3GNet, MEGNet, SO3Net, TensorNet
 from matgl.utils.training import ModelLightningModule, PotentialLightningModule, xavier_init
 from pymatgen.core import Lattice, Structure
 
@@ -32,7 +32,12 @@ class TestModelTrainer:
         label = [-2] * 5 + [-3] * 5 + [-1]  # Artificial dataset.
         element_types = get_element_list([LiFePO4, BaNiO3])
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = MGLDataset(structures=structures, converter=cry_graph, labels={"label": label})
+        dataset = MGLDataset(
+            structures=structures,
+            converter=cry_graph,
+            labels={"label": label},
+            save_cache=False,
+        )
         train_data, val_data, test_data = split_dataset(
             dataset,
             frac_list=[0.8, 0.1, 0.1],
@@ -43,7 +48,7 @@ class TestModelTrainer:
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=collate_fn,
+            collate_fn=collate_fn_graph,
             batch_size=2,
             num_workers=0,
             generator=torch.Generator(device=device),
@@ -95,6 +100,7 @@ class TestModelTrainer:
             converter=converter,
             include_line_graph=True,
             labels={"energies": energies, "forces": forces, "stresses": stresses},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -168,6 +174,7 @@ class TestModelTrainer:
             converter=converter,
             include_line_graph=False,
             labels={"energies": energies, "forces": forces, "stresses": stresses},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -239,6 +246,7 @@ class TestModelTrainer:
             converter=converter,
             include_line_graph=False,
             labels={"energies": energies, "forces": forces, "stresses": stresses},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -309,6 +317,7 @@ class TestModelTrainer:
             converter=converter,
             include_line_graph=True,
             labels={"energies": energies, "forces": forces},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -354,6 +363,7 @@ class TestModelTrainer:
             converter=converter,
             include_line_graph=True,
             labels={"eform": label},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -362,7 +372,7 @@ class TestModelTrainer:
             random_state=42,
         )
         # This modification is required for M3GNet property dataset
-        collate_fn_property = partial(collate_fn, include_line_graph=True)
+        collate_fn_property = partial(collate_fn_graph, include_line_graph=True)
         train_loader, val_loader, test_loader = MGLDataLoader(
             train_data=train_data,
             val_data=val_data,
@@ -423,6 +433,7 @@ class TestModelTrainer:
             structures=structures,
             converter=converter,
             labels={"eform": label},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -435,7 +446,7 @@ class TestModelTrainer:
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=collate_fn,
+            collate_fn=collate_fn_graph,
             batch_size=2,
             num_workers=0,
             generator=torch.Generator(device=device),
@@ -444,7 +455,7 @@ class TestModelTrainer:
             element_types=element_types,
             is_intensive=True,
             lmax=2,
-            target_property="graph",
+            target_property="g",
             readout_type="set2set",
         )
         lit_model = ModelLightningModule(model=model)
@@ -493,6 +504,7 @@ class TestModelTrainer:
             structures=structures,
             converter=converter,
             labels={"eform": label},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -505,7 +517,7 @@ class TestModelTrainer:
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=collate_fn,
+            collate_fn=collate_fn_graph,
             batch_size=2,
             num_workers=0,
             generator=torch.Generator(device=device),
@@ -562,6 +574,7 @@ class TestModelTrainer:
             converter=converter,
             include_line_graph=True,
             labels={"multiple_values": label},
+            save_cache=False,
         )
         train_data, val_data, test_data = split_dataset(
             dataset,
@@ -570,7 +583,7 @@ class TestModelTrainer:
             random_state=42,
         )
         # This modification is required for M3GNet property dataset
-        collate_fn_property = partial(collate_fn, include_line_graph=True, multiple_values_per_target=True)
+        collate_fn_property = partial(collate_fn_graph, include_line_graph=True, multiple_values_per_target=True)
         train_loader, val_loader, test_loader = MGLDataLoader(
             train_data=train_data,
             val_data=val_data,
@@ -621,13 +634,143 @@ class TestModelTrainer:
         assert "MAE" in results[0][0]
         self.teardown_class()
 
+    def test_chgnet_training(self, LiFePO4, BaNiO3):
+        isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
+        two_body = Structure(Lattice.cubic(10.0), ["Li", "Li"], [[0, 0, 0], [0.5, 0, 0]])
+        structures = [LiFePO4, BaNiO3] * 5 + [isolated_atom, two_body]
+        energies = [-2.0, -3.0] * 5 + [-1.0, -1.5]
+        forces = [np.zeros((len(s), 3)).tolist() for s in structures]
+        stresses = [np.zeros((3, 3)).tolist()] * len(structures)
+        magmoms = [np.zeros((len(s), 1)).tolist() for s in structures]
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        converter = Structure2Graph(element_types=element_types, cutoff=6.0)
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=converter,
+            include_line_graph=True,
+            directed_line_graph=True,
+            labels={
+                "energies": energies,
+                "forces": forces,
+                "stresses": stresses,
+                "magmoms": magmoms,
+            },
+            save_cache=False,
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=collate_fn_efsm,
+            batch_size=2,
+            num_workers=0,
+            generator=torch.Generator(device=device),
+        )
+        model = CHGNet(element_types=element_types, is_intensive=False)
+        lit_model = PotentialLightningModule(
+            model=model, stress_weight=0.1, site_wise_weight=0.1, include_line_graph=True
+        )
+        # We will use CPU if MPS is available since there is a serious bug.
+        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer.test(lit_model, dataloaders=test_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)[0]
+        pred_BNO_energy = model.predict_structure(BaNiO3)[0]
+
+        assert torch.any(pred_LFP_energy < 0)
+        assert torch.any(pred_BNO_energy < 0)
+        # specify customize optimizer and scheduler
+        from torch.optim.lr_scheduler import CosineAnnealingLR
+
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1.0e-3, weight_decay=1.0e-5, amsgrad=True)
+        scheduler = CosineAnnealingLR(optimizer, T_max=1000 * 10, eta_min=1.0e-2 * 1.0e-3)
+        lit_model = PotentialLightningModule(
+            model=model,
+            stress_weight=0.1,
+            site_wise_weight=0.1,
+            include_line_graph=True,
+            loss="huber_loss",
+            optimizer=optimizer,
+            scheduler=scheduler,
+        )
+        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer.test(lit_model, dataloaders=test_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)[0]
+        pred_BNO_energy = model.predict_structure(BaNiO3)[0]
+
+        assert pred_LFP_energy < 0
+        assert pred_BNO_energy < 0
+
+        self.teardown_class()
+
+    def test_chgnet_training_without_m(self, LiFePO4, BaNiO3):
+        isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
+        two_body = Structure(Lattice.cubic(10.0), ["Li", "Li"], [[0, 0, 0], [0.5, 0, 0]])
+        structures = [LiFePO4, BaNiO3] * 5 + [isolated_atom, two_body]
+        energies = [-2.0, -3.0] * 5 + [-1.0, -1.5]
+        forces = [np.zeros((len(s), 3)).tolist() for s in structures]
+        stresses = [np.zeros((3, 3)).tolist()] * len(structures)
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        converter = Structure2Graph(element_types=element_types, cutoff=6.0)
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=converter,
+            include_line_graph=True,
+            directed_line_graph=True,
+            labels={
+                "energies": energies,
+                "forces": forces,
+                "stresses": stresses,
+            },
+            save_cache=False,
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        my_collate_fn = partial(collate_fn_efs, include_line_graph=True)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=my_collate_fn,
+            batch_size=2,
+            num_workers=0,
+            generator=torch.Generator(device=device),
+        )
+        model = CHGNet(element_types=element_types, is_intensive=False)
+        lit_model = PotentialLightningModule(model=model, include_line_graph=True)
+        # We will use CPU if MPS is available since there is a serious bug.
+        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer.test(lit_model, dataloaders=test_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)[0]
+        pred_BNO_energy = model.predict_structure(BaNiO3)[0]
+
+        assert torch.any(pred_LFP_energy < 0)
+        assert torch.any(pred_BNO_energy < 0)
+
+        self.teardown_class()
+
     @classmethod
     def teardown_class(cls):
-        for fn in ("dgl_graph.bin", "lattice.pt", "dgl_line_graph.bin", "state_attr.pt", "labels.json"):
-            try:
-                os.remove(fn)
-            except FileNotFoundError:
-                pass
         try:
             shutil.rmtree("lightning_logs")
         except FileNotFoundError:

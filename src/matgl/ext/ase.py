@@ -51,7 +51,7 @@ class OPTIMIZERS(Enum):
 
 
 class Atoms2Graph(GraphConverter):
-    """Construct a DGL graph from ASE Atoms."""
+    """Construct a DGL g from ASE Atoms."""
 
     def __init__(
         self,
@@ -61,21 +61,21 @@ class Atoms2Graph(GraphConverter):
         """Init Atoms2Graph from element types and cutoff radius.
 
         Args:
-            element_types: List of elements present in dataset for graph conversion. This ensures all graphs are
+            element_types: List of elements present in dataset for g conversion. This ensures all graphs are
                 constructed with the same dimensionality of features.
-            cutoff: Cutoff radius for graph representation
+            cutoff: Cutoff radius for g representation
         """
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
     def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
-        """Get a DGL graph from an input Atoms.
+        """Get a DGL g from an input Atoms.
 
         Args:
             atoms: Atoms object.
 
         Returns:
-            g: DGL graph
+            g: DGL g
             state_attr: state features
         """
         numerical_tol = 1.0e-8
@@ -122,7 +122,7 @@ class Atoms2Graph(GraphConverter):
 class PESCalculator(Calculator):
     """Potential calculator for ASE."""
 
-    implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian")
+    implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian", "magmoms")
 
     def __init__(
         self,
@@ -145,6 +145,7 @@ class PESCalculator(Calculator):
         self.potential = potential
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
+        self.compute_magmoms = potential.calc_site_wise
         self.stress_weight = stress_weight
         self.state_attr = state_attr
         self.element_types = potential.model.element_types  # type: ignore
@@ -172,18 +173,20 @@ class PESCalculator(Calculator):
         graph, lattice, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)
         # type: ignore
         if self.state_attr is not None:
-            energies, forces, stresses, hessians = self.potential(graph, lattice, self.state_attr)
+            calc_result = self.potential(graph, lattice, self.state_attr)
         else:
-            energies, forces, stresses, hessians = self.potential(graph, lattice, state_attr_default)
+            calc_result = self.potential(graph, lattice, state_attr_default)
         self.results.update(
-            energy=energies.detach().cpu().numpy().item(),
-            free_energy=energies.detach().cpu().numpy().item(),
-            forces=forces.detach().cpu().numpy(),
+            energy=calc_result[0].detach().cpu().numpy().item(),
+            free_energy=calc_result[0].detach().cpu().numpy(),
+            forces=calc_result[1].detach().cpu().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=stresses.detach().cpu().numpy() * self.stress_weight)
+            self.results.update(stress=calc_result[2].detach().cpu().numpy() * self.stress_weight)
         if self.compute_hessian:
-            self.results.update(hessian=hessians.detach().cpu().numpy())
+            self.results.update(hessian=calc_result[3].detach().cpu().numpy())
+        if self.compute_magmoms:
+            self.results.update(magmoms=calc_result[4].detach().cpu().numpy())
 
 
 # for backward compatibility

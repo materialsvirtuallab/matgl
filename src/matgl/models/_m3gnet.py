@@ -4,7 +4,7 @@ The main improvement over MEGNet is the addition of many-body interactios terms,
 representation of local interactions for applications such as interatomic potentials. For more details on M3GNet,
 please refer to::
 
-    Chen, C., Ong, S.P. _A universal graph deep learning interatomic potential for the periodic table._ Nature
+    Chen, C., Ong, S.P. _A universal g deep learning interatomic potential for the periodic table._ Nature
     Computational Science, 2023, 2, 718-728. DOI: 10.1038/s43588-022-00349-3.
 
 """
@@ -96,7 +96,7 @@ class M3GNet(nn.Module, IOMixIn):
             is_intensive (bool): Whether the prediction is intensive
             readout_type (str): Readout function type, `set2set`, `weighted_atom` (default) or `reduce_atom`.
             task_type (str): `classification` or `regression` (default).
-            cutoff (float): Cutoff radius of the graph
+            cutoff (float): Cutoff radius of the g
             threebody_cutoff (float): Cutoff radius for 3 body interaction
             units (int): Number of neurons in each MLP layer
             ntargets (int): Number of target properties

@@ -64,11 +64,11 @@ class MEGNet(nn.Module, IOMixIn):
             dim_state_embedding: Dimension of state embedding.
             ntypes_state: Number of state types.
             nblocks: Number of blocks.
-            hidden_layer_sizes_input: Architecture of dense layers before the graph convolution
+            hidden_layer_sizes_input: Architecture of dense layers before the g convolution
             hidden_layer_sizes_conv: Architecture of dense layers for message and update functions
             nlayers_set2set: Number of layers in Set2Set layer
             niters_set2set: Number of iterations in Set2Set layer
-            hidden_layer_sizes_output: Architecture of dense layers for concatenated features after graph convolution
+            hidden_layer_sizes_output: Architecture of dense layers for concatenated features after g convolution
             activation_type: Activation used for non-linearity
             is_classification: Whether this is classification task or not
             layer_node_embedding: Architecture of embedding layer for node attributes

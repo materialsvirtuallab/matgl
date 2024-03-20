@@ -59,7 +59,7 @@ class SO3Net(nn.Module, IOMixIn):
         lmax: int = 3,
         cutoff: float = 5.0,
         rbf_learnable: bool = False,
-        target_property: Literal["atomwise", "dipole_moment", "polarizability", "graph"] = "atomwise",
+        target_property: Literal["atomwise", "dipole_moment", "polarizability", "g"] = "atomwise",
         task_type: Literal["classification", "regression"] = "regression",
         readout_type: Literal["set2set", "weighted_atom", "reduce_atom"] = "weighted_atom",
         niters_set2set: int = 3,
@@ -87,9 +87,9 @@ class SO3Net(nn.Module, IOMixIn):
             nblocks (int): number of interaction blocks.
             nmax (int): number of radial basis functions.
             lmax (int): maximum angular momentum of spherical harmonics basis.
-            cutoff (float): Cutoff radius of the graph.
+            cutoff (float): Cutoff radius of the g.
             rbf_learnable (bool): whether radial basis functions are trained or not.
-            target_property (Literal): Target properties including atomwise, dipole_moment, polarizability and graph.
+            target_property (Literal): Target properties including atomwise, dipole_moment, polarizability and g.
             task_type (Literal): `classification` or `regression` (default).
             readout_type (Literal): Readout function type, `Set2Set`, `weighted_atom` (default) or `reduce_atom`.
             niters_set2set (int): Number of Set2Set iterations.
@@ -171,8 +171,8 @@ class SO3Net(nn.Module, IOMixIn):
                     dims=[units, units],
                     num_targets=ntargets,  # type: ignore
                 )
-        else:  # graph property, dipole_moment or polarizability
-            if target_property == "graph":
+        else:  # g property, dipole_moment or polarizability
+            if target_property == "g":
                 input_feats = dim_node_embedding
                 if readout_type == "set2set":
                     self.readout = Set2SetReadOut(
@@ -264,7 +264,7 @@ class SO3Net(nn.Module, IOMixIn):
                 output = dgl.readout_nodes(g, "atomic_properties", op="sum")
             return torch.squeeze(output)
 
-        if self.target_property == "graph":
+        if self.target_property == "g":
             g.ndata["node_feat"] = x[:, 0]
             if self.is_intensive:
                 node_vec = self.readout(g)

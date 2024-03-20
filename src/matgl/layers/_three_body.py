@@ -43,8 +43,8 @@ class ThreeBodyInteractions(nn.Module):
         Forward function for ThreeBodyInteractions.
 
         Args:
-            graph: dgl graph
-            line_graph: line graph.
+            graph: dgl g
+            line_graph: line g.
             three_basis: three body basis expansion
             three_cutoff: cutoff radius
             node_feat: node features

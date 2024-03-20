@@ -146,7 +146,7 @@ def broadcast_states_to_bonds(g, state_feat):
     bond attributes shape [Nb, Nstate].
 
     Args:
-        g: DGL graph
+        g: DGL g
         state_feat: state_feature
 
     Returns: broadcasted state attributes
@@ -159,7 +159,7 @@ def broadcast_states_to_atoms(g, state_feat):
     bond attributes shape [Nb, Nstate].
 
     Args:
-        g: DGL graph
+        g: DGL g
         state_feat: state_feature
 
     Returns: broadcasted state attributes

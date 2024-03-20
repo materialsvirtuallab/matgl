@@ -83,10 +83,10 @@ class Potential(nn.Module, IOMixIn):
         l_g: dgl.DGLGraph | None = None,
     ) -> tuple[torch.Tensor, ...]:
         """Args:
-            g: DGL graph
+            g: DGL g
             lat: lattice
             state_attr: State attrs
-            l_g: Line graph.
+            l_g: Line g.
 
         Returns:
             (energies, forces, stresses, hessian) or (energies, forces, stresses, hessian, site-wise properties)
@@ -95,7 +95,7 @@ class Potential(nn.Module, IOMixIn):
         st = lat.new_zeros([g.batch_size, 3, 3])
         if self.calc_stresses:
             st.requires_grad_(True)
-        lattice = lat @ (torch.eye(3).to(st.device) + st)
+        lattice = lat @ (torch.eye(3, device=lat.device) + st)
         g.edata["lattice"] = torch.repeat_interleave(lattice, g.batch_num_edges(), dim=0)
         g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
         g.ndata["pos"] = (
