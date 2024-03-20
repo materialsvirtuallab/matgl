@@ -3,6 +3,7 @@ from __future__ import annotations
 import matgl
 import pytest
 import torch
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.layers import (
     BondExpansion,
     EmbeddingBlock,
@@ -11,13 +12,22 @@ from matgl.layers import (
     TensorEmbedding,
     build_gated_equivariant_mlp,
 )
-from matgl.layers._core import MLP, GatedMLP
+from matgl.layers._core import MLP, GatedMLP, GatedMLP_norm, MLP_norm
+from pymatgen.core import Lattice, Structure
 from torch import nn
 
 
 @pytest.fixture()
 def x():
     return torch.randn(4, 10, requires_grad=True)
+
+
+@pytest.fixture()
+def graph():
+    structure = Structure(Lattice.cubic(4.05), ["Al"] * 4, [(0, 0, 0), (0.5, 0.5, 0), (0.5, 0, 0.5), (0, 0.5, 0.5)])
+    converter = Structure2Graph(element_types=get_element_list([structure]), cutoff=6.0)
+    g = converter.get_graph(structure)
+    return g[0]
 
 
 class TestCoreAndEmbedding:
@@ -34,6 +44,20 @@ class TestCoreAndEmbedding:
         torch.manual_seed(42)
         layer = GatedMLP(in_feats=10, dims=[10, 1], activate_last=False)
         out = layer(x)
+        assert [out.size()[0], out.size()[1]] == [4, 1]
+
+    @pytest.mark.parametrize("normalization", ["layer", "graph"])
+    def test_mlp_norm(self, x, graph, normalization):
+        layer = MLP_norm(dims=[10, 3], normalization=normalization)
+        out = layer(x, g=graph).double()
+        assert [out.size()[0], out.size()[1]] == [4, 3]
+        assert out.mean().item() == pytest.approx(0, abs=1e-6)
+
+    @pytest.mark.parametrize("normalization", ["layer", "graph"])
+    def test_gated_mlp_norm(self, x, graph, normalization):
+        torch.manual_seed(42)
+        layer = GatedMLP_norm(in_feats=10, dims=[10, 1], normalization=normalization)
+        out = layer(x, graph)
         assert [out.size()[0], out.size()[1]] == [4, 1]
 
     def test_gated_equivairant_block(self, x):

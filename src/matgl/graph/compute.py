@@ -78,7 +78,8 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float, directed: bool =
     Args:
         g: DGL graph
         threebody_cutoff (float): cutoff for three-body interactions
-        directed (bool): Whether to create a directed line graph, or an m3gnet 3body line graph (default: False, m3gnet)
+        directed (bool): Whether to create a directed line graph, or an M3gnet 3body line graph
+            Default = False (M3Gnet)
 
     Returns:
         l_g: DGL graph containing three body information from graph
@@ -226,10 +227,10 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
         threebody_cutoff: cutoff for three-body interactions
 
     Returns:
-        line_graph: DGL graph line graph of pruned graph to three body cutoff
+        line_graph: DGL line graph of pruned graph to three body cutoff
     """
     with torch.no_grad():
-        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: x > threebody_cutoff)
+        pg = prune_edges_by_features(graph, feat_name="bond_dist", condition=lambda x: torch.gt(x, threebody_cutoff))
         src_indices, dst_indices = pg.edges()
         images = pg.edata["pbc_offset"]
         all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
