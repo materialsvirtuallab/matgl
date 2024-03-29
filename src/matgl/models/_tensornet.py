@@ -180,8 +180,9 @@ class TensorNet(nn.Module, IOMixIn):
         )
 
         self.out_norm = nn.LayerNorm(3 * units, dtype=dtype)
+        self.linear = nn.Linear(3 * units, units, dtype=dtype)
         if is_intensive:
-            input_feats = 3 * units if field == "node_feat" else units
+            input_feats = units
             if readout_type == "set2set":
                 self.readout = Set2SetReadOut(
                     in_feats=input_feats, n_iters=niters_set2set, n_layers=nlayers_set2set, field=field
@@ -203,7 +204,7 @@ class TensorNet(nn.Module, IOMixIn):
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive.")
             self.final_layer = WeightedReadOut(
-                in_feats=3 * units,
+                in_feats=units,
                 dims=[units, units],
                 num_targets=ntargets,  # type: ignore
             )
@@ -247,6 +248,7 @@ class TensorNet(nn.Module, IOMixIn):
 
         x = torch.cat((tensor_norm(scalars), tensor_norm(skew_metrices), tensor_norm(traceless_tensors)), dim=-1)
         x = self.out_norm(x)
+        x = self.linear(x)
 
         g.ndata["node_feat"] = x
         if self.is_intensive:
