@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import pytorch_lightning as pl
 import torch
@@ -12,7 +12,6 @@ import torchmetrics
 from torch import nn
 
 from matgl.apps.pes import Potential
-from matgl.models import M3GNet
 
 if TYPE_CHECKING:
     import dgl
@@ -75,6 +74,7 @@ class MatglLightningModuleMixin:
             batch: Data batch.
             batch_idx: Batch index.
         """
+        torch.set_grad_enabled(True)
         results, batch_size = self.step(batch)  # type: ignore
         self.log_dict(  # type: ignore
             {f"test_{key}": val for key, val in results.items()},
@@ -132,6 +132,7 @@ class MatglLightningModuleMixin:
         Returns:
             Prediction
         """
+        torch.set_grad_enabled(True)
         return self.step(batch)
 
 
@@ -141,6 +142,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
     def __init__(
         self,
         model,
+        include_line_graph: bool = False,
         data_mean: float = 0.0,
         data_std: float = 1.0,
         loss: str = "mse_loss",
@@ -157,6 +159,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         Args:
             model: Which type of the model for training
+            include_line_graph: whether to include line graphs
             data_mean: average of training data
             data_std: standard deviation of training data
             loss: loss function used for training
@@ -171,7 +174,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         super().__init__(**kwargs)
 
         self.model = model
-
+        self.include_line_graph = include_line_graph
         self.mae = torchmetrics.MeanAbsoluteError()
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         self.data_mean = data_mean
@@ -204,17 +207,14 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             Model prediction.
         """
-        if isinstance(self.model, M3GNet):
-            g.edata["lattice"] = torch.repeat_interleave(lat, g.batch_num_edges(), dim=0)
-            g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
-            g.ndata["pos"] = (
-                g.ndata["frac_coords"].unsqueeze(dim=-1) * torch.repeat_interleave(lat, g.batch_num_nodes(), dim=0)
-            ).sum(dim=1)
+        g.edata["lattice"] = torch.repeat_interleave(lat, g.batch_num_edges(), dim=0)
+        g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
+        g.ndata["pos"] = (
+            g.ndata["frac_coords"].unsqueeze(dim=-1) * torch.repeat_interleave(lat, g.batch_num_nodes(), dim=0)
+        ).sum(dim=1)
+        if self.include_line_graph:
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
-
-        node_feat = g.ndata["node_type"]
-        edge_feat = g.edata["edge_attr"]
-        return self.model(g, edge_feat, node_feat, state_attr)
+        return self.model(g, state_attr=state_attr)
 
     def step(self, batch: tuple):
         """Args:
@@ -223,12 +223,12 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             results, batch_size
         """
-        if isinstance(self.model, M3GNet):
+        if self.include_line_graph:
             g, lat, l_g, state_attr, labels = batch
             preds = self(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
         else:
             g, lat, state_attr, labels = batch
-            preds = self(g=g, state_attr=state_attr)
+            preds = self(g=g, lat=lat, state_attr=state_attr)
         results = self.loss_fn(loss=self.loss, preds=preds, labels=labels)  # type: ignore
         batch_size = preds.numel()
         return results, batch_size
@@ -260,6 +260,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self,
         model,
         element_refs: np.ndarray | None = None,
+        include_line_graph: bool = False,
         energy_weight: float = 1.0,
         force_weight: float = 1.0,
         stress_weight: float = 0.0,
@@ -284,6 +285,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Args:
             model: Which type of the model for training
             element_refs: element offset for PES
+            include_line_graph: whether to include line graphs
             energy_weight: relative importance of energy
             force_weight: relative importance of force
             stress_weight: relative importance of stress
@@ -291,6 +293,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             data_mean: average of training data
             data_std: standard deviation of training data
             loss: loss function used for training
+            loss_params: parameters for loss function
             optimizer: optimizer for training
             scheduler: scheduler for training
             lr: learning rate for training
@@ -322,6 +325,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.lr = lr
         self.decay_steps = decay_steps
         self.decay_alpha = decay_alpha
+        self.include_line_graph = include_line_graph
 
         self.model = Potential(
             model=model,
@@ -343,13 +347,13 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.sync_dist = sync_dist
         self.allow_missing_labels = allow_missing_labels
         self.site_wise_target = site_wise_target
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
 
-    def on_load_checkpoint(self, checkpoint: dict[str, ...]):
+    def on_load_checkpoint(self, checkpoint: dict[str, Any]):
+        """# noqa: D200
+        hacky hacky hack to add missing keys to the state dict when changes are made.
         """
-        hacky hacky hack to add missing keys to the state dict when changes are mad
-        """
-        for key in self.state_dict().keys():
+        for key in self.state_dict():
             if key not in checkpoint["state_dict"]:
                 checkpoint["state_dict"][key] = self.state_dict()[key]
 
@@ -367,15 +371,17 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             state_attr: State attr.
 
         Returns:
-            energy, force, stress, h
+            energy, force, stress, hessian and optional site_wise
         """
-        torch.set_grad_enabled(True)
-        if self.model.calc_site_wise:
-            e, f, s, h, m = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
-            return e, f, s, h, m
-
-        e, f, s, h = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
-        return e, f, s, h
+        if self.include_line_graph:
+            if self.model.calc_site_wise:
+                e, f, s, h, m = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
+                return e, f, s, h, m
+            e, f, s, h = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
+            return e, f, s, h
+        else:  # noqa: RET505
+            e, f, s, h = self.model(g=g, lat=lat, state_attr=state_attr)
+            return e, f, s, h
 
     def step(self, batch: tuple):
         """Args:
@@ -387,14 +393,21 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         preds: tuple
         labels: tuple
 
-        if self.model.calc_site_wise:
-            g, lat, l_g, state_attr, energies, forces, stresses, site_wise = batch
-            e, f, s, _, m = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
-            preds = (e, f, s, m)
-            labels = (energies, forces, stresses, site_wise)
+        torch.set_grad_enabled(True)
+        if self.include_line_graph:
+            if self.model.calc_site_wise:
+                g, lat, l_g, state_attr, energies, forces, stresses, site_wise = batch
+                e, f, s, _, m = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
+                preds = (e, f, s, m)
+                labels = (energies, forces, stresses, site_wise)
+            else:
+                g, lat, l_g, state_attr, energies, forces, stresses = batch
+                e, f, s, _ = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
+                preds = (e, f, s)
+                labels = (energies, forces, stresses)
         else:
-            g, lat, l_g, state_attr, energies, forces, stresses = batch
-            e, f, s, _ = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
+            g, lat, state_attr, energies, forces, stresses = batch
+            e, f, s, _ = self(g=g, lat=lat, state_attr=state_attr)
             preds = (e, f, s)
             labels = (energies, forces, stresses)
 

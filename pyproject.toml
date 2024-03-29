@@ -15,6 +15,8 @@ authors = [
     { name = "Ji Qi", email = "j1qi@ucsd.edu" },
     { name = "Santiago Miret", email = "santiago.miret@intel.com" },
     { name = "Eliott Liu", email = "elliottliu17@gmail.com" },
+    { name = "Bowen Deng", email = "bowendeng@berkeley.edu" },
+    { name = "Luis Barroso-Luque", email = "lbluque@berkeley.edu" },
     { name = "Shyue Ping Ong", email = "ongsp@ucsd.edu" },
 ]
 description = "MatGL is a framework for graph deep learning for materials science."
@@ -39,6 +41,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Information Analysis",
@@ -52,7 +55,7 @@ dependencies = [
     "pytorch_lightning",
     "torch",
 ]
-version = "0.9.1"
+version = "1.0.0"
 
 [project.scripts]
 mgl = "matgl.cli:main"
@@ -66,7 +69,7 @@ where = ["src"]
 
 [tool.black]
 line-length = 120
-target-version = ['py39']
+target-version = ['py312']
 include = '\.pyi?$'
 exclude = '''
 (

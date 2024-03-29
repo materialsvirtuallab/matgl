@@ -10,8 +10,11 @@ import torch
 from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
 
-from matgl.layers._core import MLP, GatedMLP
+import matgl
+from matgl.layers._core import MLP, GatedMLP, GatedMLP_norm
 from matgl.layers._norm import GraphNorm, LayerNorm
+from matgl.utils.cutoff import cosine_cutoff
+from matgl.utils.maths import decompose_tensor, new_radial_tensor, tensor_norm
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -75,7 +78,7 @@ class MEGNetGraphConv(Module):
         """Perform edge update.
 
         Args:
-            graph: Input graph
+            graph: Input g
 
         Returns:
             Output tensor for edges.
@@ -88,7 +91,7 @@ class MEGNetGraphConv(Module):
         """Perform node update.
 
         Args:
-            graph: Input graph
+            graph: Input g
 
         Returns:
             Output tensor for nodes.
@@ -105,7 +108,7 @@ class MEGNetGraphConv(Module):
         """Perform attribute (global state) update.
 
         Args:
-            graph: Input graph
+            graph: Input g
             state_feat: Input attributes
 
         Returns:
@@ -129,7 +132,7 @@ class MEGNetGraphConv(Module):
         """Perform sequence of edge->node->attribute updates.
 
         Args:
-            graph: Input graph
+            graph: Input g
             edge_feat: Edge features
             node_feat: Node features
             state_feat: Graph attributes (global state)
@@ -241,7 +244,7 @@ class M3GNetGraphConv(Module):
 
     def __init__(
         self,
-        include_states: bool,
+        include_state: bool,
         edge_update_func: Module,
         edge_weight_func: Module,
         node_update_func: Module,
@@ -254,10 +257,10 @@ class M3GNetGraphConv(Module):
         edge_weight_func (Module): Weight function for radial basis functions (Eq. 4)
         node_update_func (Module): Update function for nodes (Eq. 5)
         node_weight_func (Module): Weight function for radial basis functions (Eq. 5)
-        attr_update_func (Module): Update function for state feats (Eq. 6).
+        state_update_func (Module): Update function for state feats (Eq. 6).
         """
         super().__init__()
-        self.include_states = include_states
+        self.include_state = include_state
         self.edge_update_func = edge_update_func
         self.edge_weight_func = edge_weight_func
         self.node_update_func = node_update_func
@@ -267,7 +270,7 @@ class M3GNetGraphConv(Module):
     @staticmethod
     def from_dims(
         degree,
-        include_states,
+        include_state,
         edge_dims: list[int],
         node_dims: list[int],
         state_dims: list[int] | None,
@@ -277,7 +280,7 @@ class M3GNetGraphConv(Module):
 
         Args:
             degree (int): max_n*max_l
-            include_states (bool): whether including state or not
+            include_state (bool): whether including state or not
             edge_dims (list): NN architecture for edge update function
             node_dims (list): NN architecture for node update function
             state_dims (list): NN architecture for state update function
@@ -291,28 +294,28 @@ class M3GNetGraphConv(Module):
 
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
-        attr_update_func = MLP(state_dims, activation, activate_last=True) if include_states else None  # type: ignore
+        attr_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None  # type: ignore
         return M3GNetGraphConv(
-            include_states, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
+            include_state, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
         """Edge update functions.
 
         Args:
-        edges (DGL graph): edges in dgl graph
+        edges (DGL g): edges in dgl g
 
         Returns:
         mij: message passing between node i and j
         """
         vi = edges.src["v"]
         vj = edges.dst["v"]
-        if self.include_states:
+        u = None
+        if self.include_state:
             u = edges.src["u"]
         eij = edges.data.pop("e")
         rbf = edges.data["rbf"]
-        rbf = rbf.float()
-        inputs = torch.hstack([vi, vj, eij, u]) if self.include_states else torch.hstack([vi, vj, eij])
+        inputs = torch.hstack([vi, vj, eij, u]) if self.include_state else torch.hstack([vi, vj, eij])
         mij = {"mij": self.edge_update_func(inputs) * self.edge_weight_func(rbf)}
         return mij
 
@@ -333,7 +336,7 @@ class M3GNetGraphConv(Module):
         """Perform node update.
 
         Args:
-            graph: DGL graph
+            graph: DGL g
             state_feat: State attributes
 
         Returns:
@@ -345,8 +348,7 @@ class M3GNetGraphConv(Module):
         dst_id = graph.edges()[1]
         vj = graph.ndata["v"][dst_id]
         rbf = graph.edata["rbf"]
-        rbf = rbf.float()
-        if self.include_states:
+        if self.include_state:
             u = dgl.broadcast_edges(graph, state_feat)
             inputs = torch.hstack([vi, vj, eij, u])
         else:
@@ -360,11 +362,11 @@ class M3GNetGraphConv(Module):
         """Perform attribute (global state) update.
 
         Args:
-            graph: DGL graph
+            graph: DGL g
             state_feat: graph features
 
         Returns:
-        state_update: state_features update
+        state_update: state_attr update
         """
         u = state_feat
         uv = dgl.readout_nodes(graph, feat="v", op="mean")
@@ -383,7 +385,7 @@ class M3GNetGraphConv(Module):
         Perform sequence of edge->node->states updates.
 
         Args:
-            graph: Input graph
+            graph: Input g
             edge_feat: Edge features
             node_feat: Node features
             state_feat: Graph attributes (global state).
@@ -394,14 +396,14 @@ class M3GNetGraphConv(Module):
         with graph.local_scope():
             graph.edata["e"] = edge_feat
             graph.ndata["v"] = node_feat
-            if self.include_states:
+            if self.include_state:
                 graph.ndata["u"] = dgl.broadcast_nodes(graph, state_feat)
 
             edge_update = self.edge_update_(graph)
             graph.edata["e"] = edge_feat + edge_update
             node_update = self.node_update_(graph, state_feat)
             graph.ndata["v"] = node_feat + node_update
-            if self.include_states:
+            if self.include_state:
                 state_feat = self.state_update_(graph, state_feat)
 
         return edge_feat + edge_update, node_feat + node_update, state_feat
@@ -474,7 +476,7 @@ class M3GNetBlock(Module):
     ) -> tuple:
         """
         Args:
-            graph: DGL graph
+            graph: DGL g
             edge_feat: Edge features
             node_feat: Node features
             state_feat: State features.
@@ -493,6 +495,150 @@ class M3GNetBlock(Module):
         return edge_feat, node_feat, state_feat
 
 
+class TensorNetInteraction(nn.Module):
+    """A Graph Convolution block for TensorNet. The official implementation can be found in https://github.com/torchmd/torchmd-net."""
+
+    def __init__(
+        self,
+        num_rbf: int,
+        units: int,
+        activation: nn.Module,
+        cutoff: float,
+        equivariance_invariance_group: str,
+        dtype: torch.dtype = matgl.float_th,
+    ):
+        """
+
+        Args:
+            num_rbf: Number of radial basis functions.
+            units: number of hidden neurons.
+            activation: activation.
+            cutoff: cutoff radius for graph construction.
+            equivariance_invariance_group: Group action on geometric tensor representations, either O(3) or SO(3).
+            dtype: data type for all variables.
+        """
+        super().__init__()
+
+        self.num_rbf = num_rbf
+        self.units = units
+        self.linears_scalar = nn.ModuleList()
+        self.linears_scalar.append(nn.Linear(num_rbf, units, bias=True, dtype=dtype))
+        self.linears_scalar.append(nn.Linear(units, 2 * units, bias=True, dtype=dtype))
+        self.linears_scalar.append(nn.Linear(2 * units, 3 * units, bias=True, dtype=dtype))
+        self.linears_tensor = nn.ModuleList(nn.Linear(units, units, bias=False) for _ in range(6))
+        #        self.act = activation()
+        self.act = activation
+        self.equivariance_invariance_group = equivariance_invariance_group
+        self.reset_parameters()
+        self.cutoff = cutoff
+
+    def reset_parameters(self):
+        """Reinitialize the parameters."""
+        for linear in self.linears_scalar:
+            linear.reset_parameters()
+        for linear in self.linears_tensor:
+            linear.reset_parameters()
+
+    def _edge_udf(self, edges: dgl.udf.EdgeBatch):
+        """Edge update functions.
+
+        Args:
+        edges (DGL g): edges in dgl g
+
+        Returns:
+        mij: message passing between node i and j
+        """
+        I_j = edges.dst["I"]
+        A_j = edges.dst["A"]
+        S_j = edges.dst["S"]
+        edge_attr = edges.data["e"]
+        scalars, skew_metrices, traceless_tensors = new_radial_tensor(
+            I_j, A_j, S_j, edge_attr[..., 0], edge_attr[..., 1], edge_attr[..., 2]
+        )
+        mij = {"I": scalars, "A": skew_metrices, "S": traceless_tensors}
+        return mij
+
+    def edge_update_(self, graph: dgl.DGLGraph) -> dgl.DGLGraph:
+        """Perform edge update.
+
+        Args:
+        graph: DGL graph
+
+        Returns:
+        edge_update: edge features update
+        """
+        graph.apply_edges(self._edge_udf)
+        return graph
+
+    def node_update_(self, graph: dgl.DGLGraph) -> tuple[Tensor, Tensor, Tensor]:
+        """Perform node update.
+
+        Args:
+            graph: DGL g
+
+        Returns:
+            node_update: node features update
+        """
+        graph.update_all(fn.copy_e("I", "I"), fn.sum("I", "Ie"))
+        graph.update_all(fn.copy_e("A", "A"), fn.sum("A", "Ae"))
+        graph.update_all(fn.copy_e("S", "S"), fn.sum("S", "Se"))
+        scalars = graph.ndata.pop("Ie")
+        skew_metrices = graph.ndata.pop("Ae")
+        traceless_tensors = graph.ndata.pop("Se")
+        return scalars, skew_metrices, traceless_tensors
+
+    def forward(self, g: dgl.DGLGraph, X: Tensor):
+        """
+
+        Args:
+            g: dgl g.
+            X: node tensor representations.
+
+        Returns:
+            X: message passed tensor representations.
+        """
+        edge_weight = g.edata["bond_dist"]
+        edge_attr = g.edata["edge_attr"]
+        C = cosine_cutoff(edge_weight, self.cutoff)
+        for linear_scalar in self.linears_scalar:
+            edge_attr = self.act(linear_scalar(edge_attr))
+        edge_attr = (edge_attr * C.view(-1, 1)).reshape(edge_attr.shape[0], self.units, 3)
+        X = X / (tensor_norm(X) + 1)[..., None, None]
+        scalars, skew_metrices, traceless_tensors = decompose_tensor(X)
+        scalars = self.linears_tensor[0](scalars.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        skew_metrices = self.linears_tensor[1](skew_metrices.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        traceless_tensors = self.linears_tensor[2](traceless_tensors.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+        Y = scalars + skew_metrices + traceless_tensors
+        # propagate_type: (I: Tensor, A: Tensor, S: Tensor, edge_attr: Tensor)
+        with g.local_scope():
+            g.ndata["I"] = scalars
+            g.ndata["A"] = skew_metrices
+            g.ndata["S"] = traceless_tensors
+            g.edata["e"] = edge_attr
+            g = self.edge_update_(g)
+            Im, Am, Sm = self.node_update_(g)
+            msg = Im + Am + Sm
+            if self.equivariance_invariance_group == "O(3)":
+                A = torch.matmul(msg, Y)
+                B = torch.matmul(Y, msg)
+                scalars, skew_metrices, traceless_tensors = decompose_tensor(A + B)
+            if self.equivariance_invariance_group == "SO(3)":
+                B = torch.matmul(Y, msg)
+                scalars, skew_metrices, traceless_tensors = decompose_tensor(2 * B)
+            normp1 = (tensor_norm(scalars + skew_metrices + traceless_tensors) + 1)[..., None, None]
+            scalars, skew_metrices, traceless_tensors = (
+                scalars / normp1,
+                skew_metrices / normp1,
+                traceless_tensors / normp1,
+            )
+            scalars = self.linears_tensor[3](scalars.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            skew_metrices = self.linears_tensor[4](skew_metrices.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            traceless_tensors = self.linears_tensor[5](traceless_tensors.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
+            dX = scalars + skew_metrices + traceless_tensors
+            X = X + dX + torch.matmul(dX, dX)
+        return X
+
+
 class CHGNetGraphConv(nn.Module):
     """A CHGNet atom graph convolution layer in DGL."""
 
@@ -507,7 +653,6 @@ class CHGNetGraphConv(nn.Module):
     ):
         """
         Args:
-            include_state: Whether including state
             node_update_func: Update function for message between nodes (atoms)
             node_out_func: Output function for nodes (atoms), after message aggregation
             edge_update_func: Update function for edges (bonds). If None is given, the
@@ -546,22 +691,25 @@ class CHGNetGraphConv(nn.Module):
                 dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of
                 dimensions of each layer.
+                Default = None
             state_dims: NN architecture for state update function given as a list of
                 dimensions of each layer.
-            normalization: Normalization type to use in update functions. If None, no normalization is applied.
+                Default = None
+            normalization: Normalization type to use in update functions. either "graph" or "layer"
+                If None, no normalization is applied.
+                Default = None
             normalize_hidden: Whether to normalize hidden features.
-            rbf_order: RBF order specifying input dimensions for linear layer
+                Default = False
+            rbf_order (int): RBF order specifying input dimensions for linear layer
                 specifying message weights. If 0, no layer-wise weights are used.
+                Default = 0
 
         Returns:
             CHGNetAtomGraphConv
         """
-        if normalization == "graph":
-            norm_kwargs = {"batched_field": "edge"}
-        else:
-            norm_kwargs = None
+        norm_kwargs = {"batched_field": "edge"} if normalization == "graph" else None
 
-        node_update_func = GatedMLP(
+        node_update_func = GatedMLP_norm(
             in_feats=node_dims[0],
             dims=node_dims[1:],
             activation=activation,
@@ -574,7 +722,7 @@ class CHGNetGraphConv(nn.Module):
             nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
         )
         edge_update_func = (
-            GatedMLP(
+            GatedMLP_norm(
                 in_feats=edge_dims[0],
                 dims=edge_dims[1:],
                 activation=activation,
@@ -757,7 +905,10 @@ class CHGNetGraphConv(nn.Module):
 
 
 class CHGNetAtomGraphBlock(nn.Module):
-    """A CHGNet atom graph block as a sequence of operations involving a message passing layer over the atom graph."""
+    """
+    A CHGNet atom graph block as a sequence of operations
+    involving a message passing layer over the atom graph.
+    """
 
     def __init__(
         self,
@@ -772,20 +923,26 @@ class CHGNetAtomGraphBlock(nn.Module):
         rbf_order: int = 0,
         dropout: float = 0.0,
     ):
-        """
+        """.
+
         Args:
             num_atom_feats: number of atom features
             num_bond_feats: number of bond features
             activation: activation function
             atom_hidden_dims: dimensions of atom convolution hidden layers
             bond_hidden_dims: dimensions of bond update hidden layers.
-            normalization: Normalization type to use update functions. If None, no normalization is applied.
-            normalize_hidden: whether to normalize hidden layers
-            num_state_feats: number of state features if include_state is True
-            rbf_order: whether to include layer-wise node weights
-             RBF order specifying input dimensions for linear layer specifying message weights.
-                If 0, no layer-wise weights are used
+            normalization: Normalization type to use in update functions. either "graph" or "layer"
+                If None, no normalization is applied.
+                Default = None
+            normalize_hidden: Whether to normalize hidden features.
+                Default = False
+            num_state_feats: number of state features if self.include_state is True
+                Default = None
+            rbf_order: RBF order specifying input dimensions for linear layer
+                specifying message weights. If 0, no layer-wise weights are used.
+                Default = False
             dropout: dropout probability.
+                Default = 0.0
         """
         super().__init__()
 
@@ -904,8 +1061,13 @@ class CHGNetLineGraphConv(nn.Module):
                 dimensions of each layer.
             edge_dims: NN architecture for edge update function given as a list of
                 dimensions of each layer.
-            normalization: Normalization type to use in update functions. If None, no normalization is applied.
+            activation (nn.Module): activation function
+                Default = None
+            normalization: Normalization type to use in update functions. either "graph" or "layer"
+                If None, no normalization is applied.
+                Default = None
             normalize_hidden: Whether to normalize hidden features.
+                Default = False
             node_weight_input_dims: input dimensions for linear layer of node weights.
                 (the RBF order)
                 If 0, no layer-wise weights are used.
@@ -913,12 +1075,9 @@ class CHGNetLineGraphConv(nn.Module):
         Returns:
             CHGNetBondGraphConv
         """
-        if normalization == "graph":
-            norm_kwargs = {"batched_field": "edge"}
-        else:
-            norm_kwargs = None
+        norm_kwargs = {"batched_field": "edge"} if normalization == "graph" else None
 
-        node_update_func = GatedMLP(
+        node_update_func = GatedMLP_norm(
             in_feats=node_dims[0],
             dims=node_dims[1:],
             activation=activation,
@@ -930,7 +1089,7 @@ class CHGNetLineGraphConv(nn.Module):
 
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
         edge_update_func = (
-            GatedMLP(
+            GatedMLP_norm(
                 in_feats=edge_dims[0],
                 dims=edge_dims[1:],
                 activation=activation,
@@ -1081,7 +1240,8 @@ class CHGNetBondGraphBlock(nn.Module):
         bond_dropout: float = 0.0,
         angle_dropout: float = 0.0,
     ):
-        """
+        """.
+
         Args:
             num_atom_feats: number of atom features
             num_bond_feats: number of bond features
@@ -1089,12 +1249,19 @@ class CHGNetBondGraphBlock(nn.Module):
             activation: activation function
             bond_hidden_dims: dimensions of hidden layers of bond graph convolution
             angle_hidden_dims: dimensions of hidden layers of angle update function
-            normalization: normalization function
-            normalize_hidden: whether to normalize hidden layers
-            rbf_order: dimensions of input to node weight function (num RBF functions)
-                If 0, no layer-wise node weights are used.
-            bond_dropout: dropout probability for bond graph convolution.
-            angle_dropout: dropout probability for angle update function.
+                Default = None
+            normalization: Normalization type to use in update functions. either "graph" or "layer"
+                If None, no normalization is applied.
+                Default = None
+            normalize_hidden: Whether to normalize hidden features.
+                Default = False
+            rbf_order (int): RBF order specifying input dimensions for linear layer
+                specifying message weights. If 0, no layer-wise weights are used.
+                Default = 0
+            bond_dropout (float): dropout probability for bond graph convolution.
+                Default = 0.0
+            angle_dropout (float): dropout probability for angle update function.
+                Default = 0.0
         """
         super().__init__()
 

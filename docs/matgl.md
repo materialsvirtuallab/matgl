@@ -68,11 +68,11 @@ MatGL (Materials Graph Library) is a graph deep learning library for materials s
       * `GraphConverter.get_graph()`
       * `GraphConverter.get_graph_from_processed_structure()`
   * matgl.graph.data module
-    * `M3GNetDataset`
-      * `M3GNetDataset.has_cache()`
-      * `M3GNetDataset.load()`
-      * `M3GNetDataset.process()`
-      * `M3GNetDataset.save()`
+    * `MGLDataset`
+      * `MGLDataset.has_cache()`
+      * `MGLDataset.load()`
+      * `MGLDataset.process()`
+      * `MGLDataset.save()`
     * `MEGNetDataset`
       * `MEGNetDataset.has_cache()`
       * `MEGNetDataset.load()`

@@ -1,6 +1,5 @@
 """Normalization modules."""
 
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
@@ -40,7 +39,7 @@ class GraphNorm(nn.Module):
 
         Args:
             features (torch.Tensor): features
-            graph (dgl.DGLGraph): graph
+            graph (dgl.DGLGraph): g
 
         Returns:
             torch.Tensor: normalized features

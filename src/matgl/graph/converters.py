@@ -1,4 +1,5 @@
 """Tools to convert materials representations from Pymatgen and other codes to DGLGraphs."""
+
 from __future__ import annotations
 
 import abc

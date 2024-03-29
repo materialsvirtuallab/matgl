@@ -1,4 +1,5 @@
 """Implementation of Interatomic Potentials."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -8,7 +9,7 @@ from torch import nn
 from torch.autograd import grad
 
 import matgl
-from matgl.layers import AtomRef
+from matgl.layers import AtomRef, NuclearRepulsion
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
@@ -31,6 +32,8 @@ class Potential(nn.Module, IOMixIn):
         calc_stresses: bool = True,
         calc_hessian: bool = False,
         calc_site_wise: bool = False,
+        calc_repuls: bool = False,
+        zbl_trainable: bool = False,
         debug_mode: bool = False,
     ):
         """Initialize Potential from a model and elemental references.
@@ -44,7 +47,9 @@ class Potential(nn.Module, IOMixIn):
             calc_stresses: Enable stress calculations.
             calc_hessian: Enable hessian calculations.
             calc_site_wise: Enable site-wise property calculation.
-            debug_mode: return gradient of total energy with respect to atomic positions and lattices for checking
+            calc_repuls: Whether the ZBL repulsion is included
+            zbl_trainable: Whether zbl repulsion is trainable
+            debug_mode: Return gradient of total energy with respect to atomic positions and lattices for checking
         """
         super().__init__()
         self.save_args(locals())
@@ -55,6 +60,11 @@ class Potential(nn.Module, IOMixIn):
         self.calc_site_wise = calc_site_wise
         self.element_refs: AtomRef | None
         self.debug_mode = debug_mode
+        self.calc_repuls = calc_repuls
+
+        if calc_repuls:
+            self.repuls = NuclearRepulsion(self.model.cutoff, trainable=zbl_trainable)
+
         if element_refs is not None:
             self.element_refs = AtomRef(property_offset=torch.tensor(element_refs, dtype=matgl.float_th))
         else:
@@ -94,13 +104,18 @@ class Potential(nn.Module, IOMixIn):
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
 
-        predictions = self.model(g, state_attr, l_g)
+        predictions = self.model(g=g, state_attr=state_attr, l_g=l_g)
         if isinstance(predictions, tuple) and len(predictions) > 1:
             total_energies, site_wise = predictions
         else:
             total_energies = predictions
             site_wise = None
+
         total_energies = self.data_std * total_energies + self.data_mean
+
+        if self.calc_repuls:
+            total_energies += self.repuls(self.model.element_types, g)
+
         if self.element_refs is not None:
             property_offset = torch.squeeze(self.element_refs(g))
             total_energies += property_offset
@@ -131,7 +146,11 @@ class Potential(nn.Module, IOMixIn):
                     hessian[iatom] = tmp.view(-1)
 
         if self.calc_stresses:
-            volume = torch.abs(torch.det(lattice))
+            volume = (
+                torch.abs(torch.det(lattice.float())).half()
+                if matgl.float_th == torch.float16
+                else torch.abs(torch.det(lattice))
+            )
             sts = -grads[1]
             scale = 1.0 / volume * -160.21766208
             sts = [i * j for i, j in zip(sts, scale)] if sts.dim() == 3 else [sts * scale]

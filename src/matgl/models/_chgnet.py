@@ -1,10 +1,13 @@
-"""Implementation of the Crystal Hamiltonian Graph Network (CHGNet) model.
+"""Implementation of the Crystal Hamiltonian Graph neural Network (CHGNet) model.
 
-CHGNet is a graph neural network model that includes 3 body interactions in a similar
-fashion to m3gnet, and also includes charge information by including training and
+CHGNet is a graph neural network model that includes 3 body interactions through a
+global line graph, and also includes charge information by including training and
 prediction of site-wise magnetic moments.
 
 The CHGNet model is described in the following paper: https://doi.org/10.1038/s42256-023-00716-3
+
+This implementation is contributed by Bowen Deng and Luis Barroso-Luque
+Date: March 2024
 """
 
 from __future__ import annotations
@@ -24,12 +27,12 @@ from matgl.graph.compute import (
     ensure_line_graph_compatibility,
 )
 from matgl.layers import (
-    MLP,
     ActivationFunction,
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,
     FourierExpansion,
-    GatedMLP,
+    GatedMLP_norm,
+    MLP_norm,
     RadialBesselFunction,
 )
 from matgl.utils.cutoff import polynomial_cutoff
@@ -62,7 +65,7 @@ class CHGNet(nn.Module, IOMixIn):
         dim_state_feats: int | None = None,
         non_linear_bond_embedding: bool = False,
         non_linear_angle_embedding: bool = False,
-        cutoff: float = 5.0,
+        cutoff: float = 6.0,
         threebody_cutoff: float = 3.0,
         cutoff_exponent: int = 5,
         max_n: int = 9,
@@ -92,42 +95,84 @@ class CHGNet(nn.Module, IOMixIn):
     ):
         """
         Args:
-            element_types: List of element types to consider in the model. If None, defaults to DEFAULT_ELEMENTS.
-            dim_atom_embedding: Dimension of the atom embedding.
-            dim_bond_embedding: Dimension of the bond embedding.
-            dim_angle_embedding: Dimension of the angle embedding.
-            dim_state_embedding: Dimension of the state embedding.
-            dim_state_feats: Dimension of the state features.
-            non_linear_bond_embedding: Whether to use a non-linear embedding for the bond features (single layer MLP).
-            non_linear_angle_embedding: Whether to use a non-linear embedding for the angle features (single layer MLP).
-            cutoff: cutoff radius of atom graph.
-            threebody_cutoff: cutoff radius for bonds included in bond graph for three body interactions.
-            cutoff_exponent: exponent for the smoothing cutoff function.
-            max_n: maximum number of basis functions for the bond length radial expansion.
-            max_f: maximum number of basis functions for the angle Fourier expansion.
-            learn_basis: whether to learn the frequencies used in basis functions or use fixed basis functions.
-            num_blocks: number of graph convolution blocks.
-            shared_bond_weights: whether to share bond weights among layers in the atom and bond graph blocks.
-            layer_bond_weights: whether to use independent weights in each convolution layer.
-            atom_conv_hidden_dims: hidden dimensions for the atom graph convolution layers.
-            bond_update_hidden_dims: hidden dimensions for the atom to bond message passing layer in atom graph.
-                Default is None, which means no atom to bond message passing layer in atom graph.
-            bond_conv_hidden_dims: hidden dimensions for the bond graph convolution layers.
-            angle_update_hidden_dims: hidden dimensions for the angle layer.
-            conv_dropout: dropout probability for the graph convolution layers.
-            final_mlp_type: type of readout block, options are "gated" for a Gated MLP and "mlp".
-            final_hidden_dims: hidden dimensions for the readout MLP.
-            final_dropout: dropout probability for the readout MLP.
-            pooling_operation: type of readout pooling operation to use.
-            readout_field: field to readout from the graph.
-            activation_type: activation function to use.
-            conv_normalization: type of normalization to use in the convolution update functions.
-            update_normalization: type of normalization to use in edge update functions.
-            normalize_hidden: whether to normalize the hidden layers in convolution update functions.
-            is_intensive: whether the target is intensive or extensive.
-            num_targets: number of targets to predict.
-            num_site_targets: number of site-wise targets to predict. (ie magnetic moments)
-            task_type: type of task to perform.
+            element_types (list(str)): List of element types to consider in the model.
+                If None, defaults to DEFAULT_ELEMENTS.
+                Default = None
+            dim_atom_embedding (int): Dimension of the atom embedding.
+                Default = 64
+            dim_bond_embedding (int): Dimension of the bond embedding.
+                Default = 64
+            dim_angle_embedding (int): Dimension of the angle embedding.
+                Default = 64
+            dim_state_embedding (int): Dimension of the state embedding.
+                Default = None
+            dim_state_feats (int): Dimension of the state features.
+                Default = None
+            non_linear_bond_embedding (bool): Whether to use a non-linear embedding for the
+                bond features (single layer MLP).
+                Default = False
+            non_linear_angle_embedding (bool): Whether to use a non-linear embedding for the
+                angle features (single layer MLP).
+                Default = False
+            cutoff (float): cutoff radius of atom graph.
+                Default = 6.0
+            threebody_cutoff (float): cutoff radius for bonds included in bond graph for
+                three body interactions.
+                Default = 3.0
+            cutoff_exponent (int): exponent for the smoothing cutoff function.
+                Default = 5
+            max_n (int): maximum number of basis functions for the bond length radial expansion.
+                Default = 9
+            max_f (int): maximum number of basis functions for the angle Fourier expansion.
+                Default = 4
+            learn_basis (bool): whether to learn the frequencies used in basis functions
+                or use fixed basis functions.
+                Default = True
+            num_blocks (int): number of graph convolution blocks.
+                Default = 4
+            shared_bond_weights (str): whether to share bond weights among layers in the atom
+                and bond graph blocks.
+                Default = "both"
+            layer_bond_weights (str): whether to use independent weights in each convolution layer.
+                Default = None
+            atom_conv_hidden_dims (Sequence(int)): hidden dimensions for the atom graph convolution layers.
+                Default = (64, )
+            bond_update_hidden_dims: (Sequence(int)) hidden dimensions for the atom to
+                bond message passing layer in atom graph. None means no atom to bond
+                message passing layer in atom graph.
+                Default = None
+            bond_conv_hidden_dims (Sequence(int)): hidden dimensions for the bond graph convolution layers.
+                Default = (64, )
+            angle_update_hidden_dims (Sequence(int)): hidden dimensions for the angle layer.
+                Default = ()
+            conv_dropout (float): dropout probability for the graph convolution layers.
+                Default = 0.0
+            final_mlp_type (str): type of readout block, options are "gated" for a Gated MLP and "mlp".
+                Default = "mlp"
+            final_hidden_dims (Sequence(int)): hidden dimensions for the readout MLP.
+                Default = (64, 64)
+            final_dropout (float): dropout probability for the readout MLP.
+                Default = 0.0
+            pooling_operation (str): type of readout pooling operation to use.
+                Default = "sum"
+            readout_field (str): field to readout from the graph.
+                Default = "atom_feat"
+            activation_type (str): activation function to use.
+                Default = "swish"
+            normalization (str): Normalization type to use in update functions.
+                Either "graph" or "layer". If None, no normalization is applied.
+                Default = None
+            normalize_hidden (bool): whether to normalize the hidden layers in
+                convolution update functions.
+                Default = False
+            is_intensive (bool): whether the target is intensive or extensive.
+                Default = False
+            num_targets (int): number of targets to predict.
+                Default = 1
+            num_site_targets (int): number of site-wise targets to predict. (ie magnetic moments)
+                Default = 1
+            task_type (str): type of task to perform, either "regression" pr "classification"
+                Default = "regression"
             **kwargs: additional keyword arguments.
         """
         super().__init__()
@@ -160,10 +205,10 @@ class CHGNet(nn.Module, IOMixIn):
         self.include_states = dim_state_feats is not None
         self.state_embedding = nn.Embedding(dim_state_feats, dim_state_embedding) if self.include_states else None
         self.atom_embedding = nn.Embedding(len(element_types), dim_atom_embedding)
-        self.bond_embedding = MLP(
+        self.bond_embedding = MLP_norm(
             [max_n, dim_bond_embedding], activation=activation, activate_last=non_linear_bond_embedding, bias_last=False
         )
-        self.angle_embedding = MLP(
+        self.angle_embedding = MLP_norm(
             [2 * max_f + 1, dim_angle_embedding],
             activation=activation,
             activate_last=non_linear_angle_embedding,
@@ -226,15 +271,15 @@ class CHGNet(nn.Module, IOMixIn):
             nn.Linear(dim_atom_embedding, num_site_targets) if num_site_targets > 0 else lambda x: None
         )
 
-        # TODO different allowed readouts for intensive/extensive targets and task types
-        # TODO chgnet has a simple MLP instead of a gMLP for the readout
         input_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
         if final_mlp_type == "mlp":
-            self.final_layer = MLP(
+            self.final_layer = MLP_norm(
                 dims=[input_dim, *final_hidden_dims, num_targets], activation=activation, activate_last=False
             )
         elif final_mlp_type == "gated":
-            self.final_layer = GatedMLP(in_feats=input_dim, dims=[*final_hidden_dims, num_targets], activate_last=False)
+            self.final_layer = GatedMLP_norm(
+                in_feats=input_dim, dims=[*final_hidden_dims, num_targets], activate_last=False
+            )
         else:
             raise ValueError(f"Invalid final MLP type: {final_mlp_type}")
 
@@ -255,35 +300,34 @@ class CHGNet(nn.Module, IOMixIn):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
-        state_features: torch.Tensor | None = None,
-        line_graph: dgl.DGLGraph | None = None,
+        g: dgl.DGLGraph,
+        state_attr: torch.Tensor | None = None,
+        l_g: dgl.DGLGraph | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
         """Forward pass of the model.
 
         Args:
-            graph (dgl.DGLGraph): Input graph.
-            state_features (torch.Tensor, optional): State features. Defaults to None.
-            line_graph (dgl.DGLGraph, optional): Line graph. Defaults to None and is computed internally.
+            g (dgl.DGLGraph): Input g.
+            state_attr (torch.Tensor, optional): State features. Defaults to None.
+            l_g (dgl.DGLGraph, optional): Line graph. Defaults to None and is computed internally.
 
         Returns:
             torch.Tensor: Model output.
         """
-        # TODO should all ops be graph.local_scope? otherwise we are changing the state of the graph implicitly
-        # compute bond vectors and distances and add to graph, needs to be computed here to register gradients
-        bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-        graph.edata["bond_vec"] = bond_vec.to(graph.device)
-        graph.edata["bond_dist"] = bond_dist.to(graph.device)
+        # compute bond vectors and distances and add to g, needs to be computed here to register gradients
+        bond_vec, bond_dist = compute_pair_vector_and_distance(g)
+        g.edata["bond_vec"] = bond_vec.to(g.device)
+        g.edata["bond_dist"] = bond_dist.to(g.device)
         bond_expansion = self.bond_expansion(bond_dist)
         smooth_cutoff = polynomial_cutoff(bond_expansion, self.cutoff, self.cutoff_exponent)
-        graph.edata["bond_expansion"] = smooth_cutoff * bond_expansion
+        g.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
-        # create bond graph (line graph) with necessary node and edge data
-        if line_graph is None:
-            bond_graph = create_line_graph(graph, self.three_body_cutoff, directed=True)
+        # create bond graph (line graoh) with necessary node and edge data
+        if l_g is None:
+            bond_graph = create_line_graph(g, self.three_body_cutoff, directed=True)
         else:
             # need to ensure the line graph matches the graph
-            bond_graph = ensure_line_graph_compatibility(graph, line_graph, self.three_body_cutoff, directed=True)
+            bond_graph = ensure_line_graph_compatibility(g, l_g, self.three_body_cutoff, directed=True)
 
         bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
         threebody_bond_expansion = self.threebody_bond_expansion(bond_graph.ndata["bond_dist"])
@@ -292,25 +336,25 @@ class CHGNet(nn.Module, IOMixIn):
         # the center atom is the dst atom of the src bond or the reverse (the src atom of the dst bond)
         # need to use "bond_index" just to be safe always
         bond_indices = bond_graph.ndata["bond_index"][bond_graph.edges()[0]]
-        bond_graph.edata["center_atom_index"] = graph.edges()[1][bond_indices]
+        bond_graph.edata["center_atom_index"] = g.edges()[1][bond_indices]
         bond_graph.apply_edges(compute_theta)
         bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
 
         # compute state, atom, bond and angle embeddings
-        atom_features = self.atom_embedding(graph.ndata["node_type"])
-        bond_features = self.bond_embedding(graph.edata["bond_expansion"])
+        atom_features = self.atom_embedding(g.ndata["node_type"])
+        bond_features = self.bond_embedding(g.edata["bond_expansion"])
         angle_features = self.angle_embedding(bond_graph.edata["angle_expansion"])
-        if self.state_embedding is not None and state_features is not None:
-            state_features = self.state_embedding(state_features)
+        if self.state_embedding is not None and state_attr is not None:
+            state_attr = self.state_embedding(state_attr)
         else:
-            state_features = None
+            state_attr = None
 
         # shared message weights
         atom_bond_weights = (
-            self.atom_bond_weights(graph.edata["bond_expansion"]) if self.atom_bond_weights is not None else None
+            self.atom_bond_weights(g.edata["bond_expansion"]) if self.atom_bond_weights is not None else None
         )
         bond_bond_weights = (
-            self.bond_bond_weights(graph.edata["bond_expansion"]) if self.bond_bond_weights is not None else None
+            self.bond_bond_weights(g.edata["bond_expansion"]) if self.bond_bond_weights is not None else None
         )
         threebody_bond_weights = (
             self.threebody_bond_weights(bond_graph.ndata["bond_expansion"])
@@ -320,8 +364,8 @@ class CHGNet(nn.Module, IOMixIn):
 
         # message passing layers
         for i in range(self.n_blocks - 1):
-            atom_features, bond_features, state_features = self.atom_graph_layers[i](
-                graph, atom_features, bond_features, state_features, atom_bond_weights, bond_bond_weights
+            atom_features, bond_features, state_attr = self.atom_graph_layers[i](
+                g, atom_features, bond_features, state_attr, atom_bond_weights, bond_bond_weights
             )
             bond_features, angle_features = self.bond_graph_layers[i](
                 bond_graph, atom_features, bond_features, angle_features, threebody_bond_weights
@@ -331,22 +375,22 @@ class CHGNet(nn.Module, IOMixIn):
         site_properties = self.sitewise_readout(atom_features)
 
         # last atom graph message passing layer
-        atom_features, bond_features, state_features = self.atom_graph_layers[-1](
-            graph, atom_features, bond_features, state_features, atom_bond_weights, bond_bond_weights
+        atom_features, bond_features, state_attr = self.atom_graph_layers[-1](
+            g, atom_features, bond_features, state_attr, atom_bond_weights, bond_bond_weights
         )
 
         # really only needed if using the readout modules in _readout.py
-        # graph.ndata["node_feat"] = atom_features
-        # graph.edata["edge_feat"] = bond_features
+        # g.ndata["node_feat"] = atom_features
+        # g.edata["edge_feat"] = bond_features
         # bond_graph.edata["angle_features"] = angle_features
 
         # readout
         if self.readout_field == "atom_feat":
-            graph.ndata["atom_feat"] = self.final_layer(atom_features)
-            structure_properties = readout_nodes(graph, "atom_feat", op=self.readout_operation)
+            g.ndata["atom_feat"] = self.final_layer(atom_features)
+            structure_properties = readout_nodes(g, "atom_feat", op=self.readout_operation)
         elif self.readout_field == "bond_feat":
-            graph.edata["bond_feat"] = self.final_layer(bond_features)
-            structure_properties = readout_edges(graph, "bond_feat", op=self.readout_operation)
+            g.edata["bond_feat"] = self.final_layer(bond_features)
+            structure_properties = readout_edges(g, "bond_feat", op=self.readout_operation)
         else:  # self.readout_field == "angle_feat":
             bond_graph.edata["angle_feat"] = self.final_layer(angle_features)
             structure_properties = readout_edges(bond_graph, "angle_feat", op=self.readout_operation)
@@ -380,5 +424,5 @@ class CHGNet(nn.Module, IOMixIn):
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lattice[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        output = self(graph=graph, state_features=state_feats)
+        output = self(g=graph, state_attr=state_feats)
         return [out.detach() for out in output]

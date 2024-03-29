@@ -7,19 +7,18 @@ This Matgl implementation has slight modification from original pytorch implemen
 # Training dataset
 
 MPtrj-2022.9: Materials Project trajectory dataset that contains GGA and GGA+U static and relaxation calculations.
-- Train-Val-Test splitting with mp-id: 0.9 - 0.5 - 0.5
-- Train set size: 1419861
+- Train-Val-Test splitting with mp-id: 0.95 - 0.5
+- Train set size: 1499043
 - Validation set size: 79719
-- Test set size: 79182
+- Test set size: 0
 
 # Performance metrics
 ## Training and validation errors
 
 | partition  | Energy (meV/atom) | Force (meV/A) | stress (GPa) | magmom (muB) |
 | ---------- | ----------------- | ------------- | ------------ | ------------ |
-| Train      | 26.45             | 49            | 0.173        | 0.036        |
-| Validation | 30.31             | 70            | 0.297        | 0.037        |
-| Test       | 30.80             | 66            | 0.296        | 0.038        |
+| Train      | 25.6              | 47.6          | 0.177        | 0.017        |
+| Validation | 27.7              | 62.5          | 0.288        | 0.017        |
 
 
 # References
@@ -29,5 +28,5 @@ Deng, B. et al. CHGNet as a pretrained universal neural network potential for ch
 Nat. Mach. Intell. 1–11 (2023) doi:10.1038/s42256-023-00716-3.
   ```
 
-####  Date: 2023.12.1
+####  Date: 2024.2.13
 ####  Author: Bowen Deng

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import dgl
 import torch
-from torch.testing import assert_close
-
 from matgl.layers import GraphNorm
+from torch.testing import assert_close
 
 
 def test_graph_norm(graph_MoS):
