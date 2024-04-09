@@ -1,6 +1,6 @@
 """DGL implementation of SO3Net.
 
-A simple spherical harmonic based equivariant GNNs. For more details on TensorNet,
+A simple spherical harmonic based equivariant GNNs. For more details on SO3Net,
 please refer to::
 
     K.T. Schütt, S.S.P. Hessmann, N.W.A. Gebauer, J. Lederer, M. Gastegger. _SchNetPack 2.0: A neural network toolbox
