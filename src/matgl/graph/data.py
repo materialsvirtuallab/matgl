@@ -231,7 +231,7 @@ class MGLDataset(DGLDataset):
         if self.graph_labels is not None:
             state_attrs = torch.tensor(self.graph_labels).long()
         else:
-            state_attrs = torch.tensor(np.array(state_attrs))
+            state_attrs = torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
 
         if self.clear_processed:
             del self.structures
