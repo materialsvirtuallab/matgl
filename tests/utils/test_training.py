@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_efs, collate_fn_efsm, collate_fn_graph
+from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes
 from matgl.models import CHGNet, M3GNet, MEGNet, SO3Net, TensorNet
 from matgl.utils.training import ModelLightningModule, PotentialLightningModule, xavier_init
 from pymatgen.core import Lattice, Structure
@@ -108,7 +108,7 @@ class TestModelTrainer:
             shuffle=True,
             random_state=42,
         )
-        my_collate_fn = partial(collate_fn_efs, include_line_graph=True)
+        my_collate_fn = partial(collate_fn_pes, include_line_graph=True)
         train_loader, val_loader, test_loader = MGLDataLoader(
             train_data=train_data,
             val_data=val_data,
@@ -186,7 +186,7 @@ class TestModelTrainer:
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=collate_fn_efs,
+            collate_fn=collate_fn_pes,
             batch_size=2,
             num_workers=0,
             generator=torch.Generator(device=device),
@@ -258,7 +258,7 @@ class TestModelTrainer:
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=collate_fn_efs,
+            collate_fn=collate_fn_pes,
             batch_size=2,
             num_workers=0,
             generator=torch.Generator(device=device),
@@ -325,7 +325,7 @@ class TestModelTrainer:
             shuffle=True,
             random_state=42,
         )
-        my_collate_fn = partial(collate_fn_efs, include_stress=False, include_line_graph=True)
+        my_collate_fn = partial(collate_fn_pes, include_stress=False, include_line_graph=True)
         train_loader, val_loader, test_loader = MGLDataLoader(
             train_data=train_data,
             val_data=val_data,
@@ -668,23 +668,21 @@ class TestModelTrainer:
             train_data=train_data,
             val_data=val_data,
             test_data=test_data,
-            collate_fn=collate_fn_efsm,
+            collate_fn=partial(collate_fn_pes, include_magmom=True, include_line_graph=True),
             batch_size=2,
             num_workers=0,
             generator=torch.Generator(device=device),
         )
         model = CHGNet(element_types=element_types, is_intensive=False)
-        lit_model = PotentialLightningModule(
-            model=model, stress_weight=0.1, site_wise_weight=0.1, include_line_graph=True
-        )
+        lit_model = PotentialLightningModule(model=model, stress_weight=0.1, magmom_weight=0.1, include_line_graph=True)
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
         trainer.test(lit_model, dataloaders=test_loader)
 
-        pred_LFP_energy = model.predict_structure(LiFePO4)[0]
-        pred_BNO_energy = model.predict_structure(BaNiO3)[0]
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
 
         assert torch.any(pred_LFP_energy < 0)
         assert torch.any(pred_BNO_energy < 0)
@@ -696,7 +694,7 @@ class TestModelTrainer:
         lit_model = PotentialLightningModule(
             model=model,
             stress_weight=0.1,
-            site_wise_weight=0.1,
+            magmom_weight=0.1,
             include_line_graph=True,
             loss="huber_loss",
             optimizer=optimizer,
@@ -707,8 +705,8 @@ class TestModelTrainer:
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
         trainer.test(lit_model, dataloaders=test_loader)
 
-        pred_LFP_energy = model.predict_structure(LiFePO4)[0]
-        pred_BNO_energy = model.predict_structure(BaNiO3)[0]
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
 
         assert pred_LFP_energy < 0
         assert pred_BNO_energy < 0
@@ -743,7 +741,7 @@ class TestModelTrainer:
             shuffle=True,
             random_state=42,
         )
-        my_collate_fn = partial(collate_fn_efs, include_line_graph=True)
+        my_collate_fn = partial(collate_fn_pes, include_line_graph=True)
         train_loader, val_loader, test_loader = MGLDataLoader(
             train_data=train_data,
             val_data=val_data,
@@ -761,8 +759,8 @@ class TestModelTrainer:
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
         trainer.test(lit_model, dataloaders=test_loader)
 
-        pred_LFP_energy = model.predict_structure(LiFePO4)[0]
-        pred_BNO_energy = model.predict_structure(BaNiO3)[0]
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
 
         assert torch.any(pred_LFP_energy < 0)
         assert torch.any(pred_BNO_energy < 0)

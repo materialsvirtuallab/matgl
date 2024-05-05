@@ -43,7 +43,7 @@ def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_pe
     return g, lat, state_attr, labels
 
 
-def collate_fn_efs(batch, include_stress: bool = True, include_line_graph: bool = False):
+def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False):
     """Merge a list of dgl graphs to form a batch."""
     l_g = None
     if include_line_graph:
@@ -59,29 +59,20 @@ def collate_fn_efs(batch, include_stress: bool = True, include_line_graph: bool 
         if include_stress is True
         else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
     )
+    m = (
+        torch.vstack([d["magmoms"] for d in labels])
+        if include_magmom is True
+        else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
+    )
     state_attr = torch.stack(state_attr)
     lat = torch.stack(lattices)
     if include_line_graph:
+        if include_magmom:
+            return g, torch.squeeze(lat), l_g, state_attr, e, f, s, m
         return g, torch.squeeze(lat), l_g, state_attr, e, f, s
+    if include_magmom:
+        return g, torch.squeeze(lat), state_attr, e, f, s, m
     return g, torch.squeeze(lat), state_attr, e, f, s
-
-
-def collate_fn_efsm(batch):
-    """Merge a list of dgl graphs to form a batch."""
-    graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
-    g = dgl.batch(graphs)
-    l_g = dgl.batch(line_graphs)
-    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float32)
-    f = torch.vstack([d["forces"] for d in labels])
-    s = (
-        torch.vstack([d["stresses"] for d in labels])  # type: ignore
-        if "stresses" in labels[0]
-        else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
-    )
-    m = torch.vstack([d["magmoms"] for d in labels])
-    state_attr = torch.stack(state_attr)
-    lat = torch.stack(lattices)
-    return g, torch.squeeze(lat), l_g, state_attr, e, f, s, m
 
 
 def MGLDataLoader(
@@ -110,12 +101,12 @@ def MGLDataLoader(
             collate_fn = collate_fn_graph
         else:
             if "stresses" not in train_data.dataset.labels:
-                collate_fn = partial(collate_fn_efs, include_stress=False)
+                collate_fn = partial(collate_fn_pes, include_stress=False)
             else:
-                if "magmoms" not in train_data.dataset.labels:  # noqa: SIM108
-                    collate_fn = collate_fn_efs
+                if "magmoms" not in train_data.dataset.labels:
+                    collate_fn = collate_fn_pes
                 else:
-                    collate_fn = collate_fn_efsm
+                    collate_fn = partial(collate_fn_pes, include_stress=True, include_magmom=True)
 
     train_loader = GraphDataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
     val_loader = GraphDataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)

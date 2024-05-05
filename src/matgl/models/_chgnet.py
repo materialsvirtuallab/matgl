@@ -372,7 +372,7 @@ class CHGNet(nn.Module, IOMixIn):
             )
 
         # site wise target readout
-        site_properties = self.sitewise_readout(atom_features)
+        g.ndata["magmom"] = self.sitewise_readout(atom_features)
 
         # last atom graph message passing layer
         atom_features, bond_features, state_attr = self.atom_graph_layers[-1](
@@ -396,7 +396,7 @@ class CHGNet(nn.Module, IOMixIn):
             structure_properties = readout_edges(bond_graph, "angle_feat", op=self.readout_operation)
 
         structure_properties = torch.squeeze(structure_properties)
-        return structure_properties, site_properties
+        return structure_properties
 
     def predict_structure(
         self,
@@ -424,5 +424,4 @@ class CHGNet(nn.Module, IOMixIn):
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lattice[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        output = self(g=graph, state_attr=state_feats)
-        return [out.detach() for out in output]
+        return self(g=graph, state_attr=state_feats)

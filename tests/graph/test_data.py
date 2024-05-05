@@ -9,7 +9,7 @@ from functools import partial
 import numpy as np
 from dgl.data.utils import split_dataset
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_efs, collate_fn_graph
+from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes
 from pymatgen.core import Molecule
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -357,7 +357,7 @@ class TestDataset:
             shuffle=True,
             random_state=42,
         )
-        my_collate_fn = partial(collate_fn_efs, include_stress=False)
+        my_collate_fn = partial(collate_fn_pes, include_stress=False)
         train_loader, val_loader, test_loader = MGLDataLoader(
             train_data=train_data,
             val_data=val_data,
@@ -403,7 +403,7 @@ class TestDataset:
         assert len(val_loader) == 1
         assert len(test_loader) == 1
 
-    def test_mgl_property_dataset_with_site_wise_label(self, LiFePO4, BaNiO3):
+    def test_mgl_dataset_with_magmom(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
         energies = [0 for s in structures]
         forces = [np.zeros((len(s), 3)).tolist() for s in structures]
@@ -430,3 +430,54 @@ class TestDataset:
         g2, lat2, l_g2, state2, label2 = dataset[1]
         assert np.allclose(label1["magmoms"].detach().numpy(), [1] * len(LiFePO4))
         assert np.allclose(label2["magmoms"].detach().numpy(), [2] * len(BaNiO3))
+
+    def test_mgl_dataloader_with_magmom(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3] * 10
+        energies = np.zeros(20).tolist()
+        f1 = np.zeros((28, 3)).tolist()
+        f2 = np.zeros((10, 3)).tolist()
+        s = np.zeros((3, 3)).tolist()
+        m1 = np.zeros(28).tolist()
+        m2 = np.zeros(10).tolist()
+        np.zeros((3, 3)).tolist()
+        forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
+        stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
+        magmoms = [m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2]
+
+        labels = {
+            "energies": energies,
+            "forces": forces,
+            "stresses": stresses,
+            "magmoms": magmoms,
+        }
+        element_types = get_element_list(structures)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=5.0)
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=cry_graph,
+            labels=labels,
+            include_line_graph=True,
+            clear_processed=True,
+            save_cache=False,
+        )
+
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        my_collate_fn = partial(collate_fn_pes, include_line_graph=True, include_magmom=True)
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=my_collate_fn,
+            batch_size=2,
+            num_workers=1,
+        )
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1

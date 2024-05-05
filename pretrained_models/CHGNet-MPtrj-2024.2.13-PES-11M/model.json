@@ -61,7 +61,7 @@
         "calc_forces": true,
         "calc_stresses": true,
         "calc_hessian": false,
-        "calc_site_wise": true,
+        "calc_magmom": true,
         "debug_mode": false
     }
 }

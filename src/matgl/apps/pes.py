@@ -31,7 +31,7 @@ class Potential(nn.Module, IOMixIn):
         calc_forces: bool = True,
         calc_stresses: bool = True,
         calc_hessian: bool = False,
-        calc_site_wise: bool = False,
+        calc_magmom: bool = False,
         calc_repuls: bool = False,
         zbl_trainable: bool = False,
         debug_mode: bool = False,
@@ -46,7 +46,7 @@ class Potential(nn.Module, IOMixIn):
             calc_forces: Enable force calculations.
             calc_stresses: Enable stress calculations.
             calc_hessian: Enable hessian calculations.
-            calc_site_wise: Enable site-wise property calculation.
+            calc_magmom: Enable site-wise property calculation.
             calc_repuls: Whether the ZBL repulsion is included
             zbl_trainable: Whether zbl repulsion is trainable
             debug_mode: Return gradient of total energy with respect to atomic positions and lattices for checking
@@ -57,7 +57,7 @@ class Potential(nn.Module, IOMixIn):
         self.calc_forces = calc_forces
         self.calc_stresses = calc_stresses
         self.calc_hessian = calc_hessian
-        self.calc_site_wise = calc_site_wise
+        self.calc_magmom = calc_magmom
         self.element_refs: AtomRef | None
         self.debug_mode = debug_mode
         self.calc_repuls = calc_repuls
@@ -104,12 +104,7 @@ class Potential(nn.Module, IOMixIn):
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
 
-        predictions = self.model(g=g, state_attr=state_attr, l_g=l_g)
-        if isinstance(predictions, tuple) and len(predictions) > 1:
-            total_energies, site_wise = predictions
-        else:
-            total_energies = predictions
-            site_wise = None
+        total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
 
         total_energies = self.data_std * total_energies + self.data_mean
 
@@ -159,7 +154,7 @@ class Potential(nn.Module, IOMixIn):
         if self.debug_mode:
             return total_energies, grads[0], grads[1]
 
-        if self.calc_site_wise:
-            return total_energies, forces, stresses, hessian, site_wise
+        if self.calc_magmom:
+            return total_energies, forces, stresses, hessian, g.ndata["magmom"]
 
         return total_energies, forces, stresses, hessian

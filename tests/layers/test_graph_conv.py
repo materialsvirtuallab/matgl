@@ -5,9 +5,20 @@ from typing import NamedTuple
 import dgl
 import matgl
 import torch
-from matgl.layers import BondExpansion, EmbeddingBlock, TensorEmbedding
+from matgl.graph.compute import compute_theta, create_line_graph
+from matgl.layers import (
+    BondExpansion,
+    EmbeddingBlock,
+    FourierExpansion,
+    MLP_norm,
+    RadialBesselFunction,
+    TensorEmbedding,
+)
 from matgl.layers._graph_convolution import (
     MLP,
+    CHGNetAtomGraphBlock,
+    CHGNetBondGraphBlock,
+    CHGNetGraphConv,
     M3GNetBlock,
     M3GNetGraphConv,
     MEGNetBlock,
@@ -81,7 +92,6 @@ class TestGraphConv:
     def test_m3gnet_graph_conv(self, graph_MoS):
         s, g1, state = graph_MoS
         bond_dist = g1.edata["bond_dist"]
-        polynomial_cutoff(bond_dist, 4.0)
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
         bond_basis = bond_expansion(bond_dist)
         g1.edata["rbf"] = bond_basis
@@ -126,7 +136,6 @@ class TestGraphConv:
 
     def test_m3gnet_block(self, graph_MoS):
         s, g1, state = graph_MoS
-        polynomial_cutoff(g1.edata["bond_dist"], 4.0)
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         g1.edata["rbf"] = bond_basis
@@ -200,3 +209,76 @@ class TestGraphConv:
         X = interaction(g1, X)
 
         assert [X.shape[0], X.shape[1], X.shape[2], X.shape[3]] == [2, 64, 3, 3]
+
+    def test_chgnet_graph_conv(self, graph_MoS):
+        s, g1, state = graph_MoS
+        bond_dist = g1.edata["bond_dist"]
+        bond_expansion = RadialBesselFunction(max_n=9, cutoff=5.0, learnable=True)
+        threebody_expansion = RadialBesselFunction(max_n=9, cutoff=5.0, learnable=True)
+        angle_expansion = FourierExpansion(max_f=3, learnable=True)
+        atom_embedding = nn.Embedding(2, 64)
+        bond_embedding = MLP_norm([9, 64], activation=nn.SiLU(), activate_last=False, bias_last=False)
+        angle_embedding = MLP_norm(
+            [2 * 3 + 1, 64],
+            activation=nn.SiLU(),
+            activate_last=False,
+            bias_last=False,
+        )
+
+        rbf = bond_expansion(bond_dist)
+        smooth_cutoff = polynomial_cutoff(rbf, 5.0)
+        g1.edata["bond_expansion"] = smooth_cutoff * rbf
+        l_g1 = create_line_graph(g1, 4.0, directed=True)
+        l_g1.ndata["bond_index"] = l_g1.ndata["edge_ids"]
+        abf = threebody_expansion(l_g1.ndata["bond_dist"])
+        smooth_cutoff = polynomial_cutoff(abf, 4.0)
+        l_g1.ndata["bond_expansion"] = smooth_cutoff * abf
+        bond_indices = l_g1.ndata["bond_index"][l_g1.edges()[0]]
+        l_g1.edata["center_atom_index"] = g1.edges()[1][bond_indices]
+        l_g1.apply_edges(compute_theta)
+        l_g1.edata["angle_expansion"] = angle_expansion(l_g1.edata["theta"])
+
+        atom_feat = atom_embedding(g1.ndata["node_type"])
+        bond_feat = bond_embedding(g1.edata["bond_expansion"])
+        angle_feat = angle_embedding(l_g1.edata["angle_expansion"])
+
+        atom_bond_weights = None
+        bond_bond_weights = None
+        threebody_bond_weights = None
+        state_attr = None
+
+        gc = CHGNetGraphConv.from_dims(activation=nn.SiLU(), node_dims=(192, 64), edge_dims=(192, 64))
+
+        node_feat_new, edge_feat_new, state_attr = gc(
+            g1, atom_feat, bond_feat, state_attr, atom_bond_weights, bond_bond_weights
+        )
+
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 64]
+        assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 64]
+
+        # chgnet atom conv block
+        gc = CHGNetAtomGraphBlock(
+            num_atom_feats=64, num_bond_feats=64, activation=nn.SiLU(), atom_hidden_dims=(64,), bond_hidden_dims=(64,)
+        )
+
+        node_feat_new, edge_feat_new, state_attr = gc(
+            g1, atom_feat, bond_feat, state_attr, atom_bond_weights, bond_bond_weights
+        )
+
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 64]
+        assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 64]
+
+        # chgnet bond conv block
+        gc = CHGNetBondGraphBlock(
+            num_atom_feats=64,
+            num_bond_feats=64,
+            num_angle_feats=64,
+            activation=nn.SiLU(),
+            bond_hidden_dims=(64,),
+            angle_hidden_dims=(64,),
+        )
+
+        edge_feat_new, angle_feat_new = gc(l_g1, atom_feat, bond_feat, angle_feat, threebody_bond_weights)
+
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 64]
+        assert [angle_feat_new.size(dim=0), angle_feat_new.size(dim=1)] == [364, 64]

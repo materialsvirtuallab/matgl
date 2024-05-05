@@ -145,7 +145,7 @@ class PESCalculator(Calculator):
         self.potential = potential
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
-        self.compute_magmoms = potential.calc_site_wise
+        self.compute_magmom = potential.calc_magmom
         self.stress_weight = stress_weight
         self.state_attr = state_attr
         self.element_types = potential.model.element_types  # type: ignore
@@ -185,7 +185,7 @@ class PESCalculator(Calculator):
             self.results.update(stress=calc_result[2].detach().cpu().numpy() * self.stress_weight)
         if self.compute_hessian:
             self.results.update(hessian=calc_result[3].detach().cpu().numpy())
-        if self.compute_magmoms:
+        if self.compute_magmom:
             self.results.update(magmoms=calc_result[4].detach().cpu().numpy())
 
 
@@ -418,7 +418,9 @@ class MolecularDynamics:
         if isinstance(atoms, (Structure, Molecule)):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
-        self.atoms.set_calculator(PESCalculator(potential=potential, state_attr=state_attr))
+        self.atoms.set_calculator(
+            PESCalculator(potential=potential, state_attr=state_attr, stress_weight=stress_weight)
+        )
 
         if taut is None:
             taut = 100 * timestep * units.fs
@@ -512,6 +514,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "npt_nose_hoover":
+            self.upper_triangular_cell()
             self.dyn = NPT(
                 self.atoms,
                 timestep * units.fs,
@@ -554,3 +557,31 @@ class MolecularDynamics:
         self.atoms = atoms
         self.dyn.atoms = atoms
         self.dyn.atoms.set_calculator(calculator)
+
+    def upper_triangular_cell(self, verbose: bool | None = False) -> None:
+        """Transform to upper-triangular cell.
+        ASE Nose-Hoover implementation only supports upper-triangular cell
+        while ASE's canonical description is lower-triangular cell.
+
+        Args:
+            verbose (bool): Whether to notify user about upper-triangular cell
+                transformation. Default = False
+        """
+        if not NPT._isuppertriangular(self.atoms.get_cell()):
+            a, b, c, alpha, beta, gamma = self.atoms.cell.cellpar()
+            angles = np.radians((alpha, beta, gamma))
+            sin_a, sin_b, _sin_g = np.sin(angles)
+            cos_a, cos_b, cos_g = np.cos(angles)
+            cos_p = (cos_g - cos_a * cos_b) / (sin_a * sin_b)
+            cos_p = np.clip(cos_p, -1, 1)
+            sin_p = (1 - cos_p**2) ** 0.5
+
+            new_basis = [
+                (a * sin_b * sin_p, a * sin_b * cos_p, a * cos_b),
+                (0, b * sin_a, b * cos_a),
+                (0, 0, c),
+            ]
+
+            self.atoms.set_cell(new_basis, scale_atoms=True)
+            if verbose:
+                print("Transformed to upper triangular unit cell.", flush=True)
