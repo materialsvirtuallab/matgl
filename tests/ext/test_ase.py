@@ -115,14 +115,14 @@ def test_get_graph_from_atoms_mol():
     assert np.allclose(state, [0.0, 0.0])
 
 
-def test_molecular_dynamics(MoS):
+def test_molecular_dynamics(MoS2):
     pot = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     for ensemble in ["nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"]:
-        md = MolecularDynamics(MoS, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
+        md = MolecularDynamics(MoS2, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
         md.run(10)
         assert md.dyn is not None
-        md.set_atoms(MoS)
-    md = MolecularDynamics(MoS, potential=pot, ensemble=ensemble, taut=None, taup=None, compressibility_au=10)
+        md.set_atoms(MoS2)
+    md = MolecularDynamics(MoS2, potential=pot, ensemble=ensemble, taut=None, taup=None, compressibility_au=10)
     md.run(10)
     with pytest.raises(ValueError, match="Ensemble not supported"):
-        MolecularDynamics(MoS, potential=pot, ensemble="notanensemble")
+        MolecularDynamics(MoS2, potential=pot, ensemble="notanensemble")
