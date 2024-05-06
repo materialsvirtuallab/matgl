@@ -70,8 +70,6 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
         if include_magmom:
             return g, torch.squeeze(lat), l_g, state_attr, e, f, s, m
         return g, torch.squeeze(lat), l_g, state_attr, e, f, s
-    if include_magmom:
-        return g, torch.squeeze(lat), state_attr, e, f, s, m
     return g, torch.squeeze(lat), state_attr, e, f, s
 
 

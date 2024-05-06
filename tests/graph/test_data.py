@@ -481,3 +481,142 @@ class TestDataset:
         assert len(train_loader) == 8
         assert len(val_loader) == 1
         assert len(test_loader) == 1
+
+    def test_mgl_dataloader_without_collate_fn(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3] * 10
+        energies = np.zeros(20).tolist()
+        f1 = np.zeros((28, 3)).tolist()
+        f2 = np.zeros((10, 3)).tolist()
+        s = np.zeros((3, 3)).tolist()
+        m1 = np.zeros(28).tolist()
+        m2 = np.zeros(10).tolist()
+        np.zeros((3, 3)).tolist()
+        forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
+        stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
+        magmoms = [m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2, m1, m2]
+
+        labels = {
+            "energies": energies,
+            "forces": forces,
+            "stresses": stresses,
+            "magmoms": magmoms,
+        }
+        element_types = get_element_list(structures)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=5.0)
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=cry_graph,
+            labels=labels,
+            include_line_graph=True,
+            clear_processed=True,
+            save_cache=False,
+        )
+
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            batch_size=2,
+            num_workers=1,
+        )
+
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
+
+        labels.pop("magmoms")
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=cry_graph,
+            labels=labels,
+            include_line_graph=True,
+            clear_processed=True,
+            save_cache=False,
+        )
+
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            batch_size=2,
+            num_workers=1,
+        )
+
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
+
+        labels.pop("stresses")
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=cry_graph,
+            labels=labels,
+            include_line_graph=True,
+            clear_processed=True,
+            save_cache=False,
+        )
+
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            batch_size=2,
+            num_workers=1,
+        )
+
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
+        labels.pop("forces")
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=cry_graph,
+            labels=labels,
+            include_line_graph=True,
+            clear_processed=True,
+            save_cache=False,
+        )
+
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        # This modification is required for M3GNet property dataset
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            batch_size=2,
+            num_workers=1,
+        )
+
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
