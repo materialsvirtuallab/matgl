@@ -6,7 +6,7 @@ import pytest
 import torch
 from matgl.apps.pes import Potential
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.models import M3GNet, SO3Net, TensorNet
+from matgl.models import CHGNet, M3GNet, SO3Net, TensorNet
 from pymatgen.core import Lattice, Structure
 
 
@@ -27,6 +27,11 @@ def model_tensornet():
     )
 
 
+@pytest.fixture()
+def model_chgnet():
+    return CHGNet(element_types=["Mo", "S"], is_intensive=False)
+
+
 class TestPotential:
     def test_potential_efsh(self, graph_MoS, model, model_tensornet, model_so3net):
         structure, graph, state = graph_MoS
@@ -38,6 +43,17 @@ class TestPotential:
             assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
             assert [s.size(dim=0), s.size(dim=1)] == [3, 3]
             assert [h.size(dim=0), h.size(dim=1)] == [6, 6]
+
+    def test_potential_efshm(self, graph_MoS, model_chgnet):
+        structure, graph, state = graph_MoS
+        lat = torch.tensor(structure.lattice.matrix, dtype=matgl.float_th)
+        ff = Potential(model=model_chgnet, calc_hessian=True, calc_magmom=True)
+        e, f, s, h, m = ff(graph, lat, state)
+        assert [torch.numel(e)] == [1]
+        assert [f.size(dim=0), f.size(dim=1)] == [2, 3]
+        assert [s.size(dim=0), s.size(dim=1)] == [3, 3]
+        assert [h.size(dim=0), h.size(dim=1)] == [6, 6]
+        assert [m.size(dim=0), m.size(dim=1)] == [2, 1]
 
     def test_potential_efs(self, graph_MoS, model):
         structure, graph, state = graph_MoS

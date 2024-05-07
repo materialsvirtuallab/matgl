@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import pytorch_lightning as pl
 import torch
@@ -119,7 +119,6 @@ class MatglLightningModuleMixin:
             **kwargs: Pass-through.
         """
         super().on_test_model_eval(*args, **kwargs)
-        torch.set_grad_enabled(True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         """
@@ -265,16 +264,19 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         energy_weight: float = 1.0,
         force_weight: float = 1.0,
         stress_weight: float = 0.0,
-        site_wise_weight: float = 0.0,
+        magmom_weight: float = 0.0,
         data_mean: float = 0.0,
         data_std: float = 1.0,
         loss: str = "mse_loss",
+        loss_params: dict | None = None,
         optimizer: Optimizer | None = None,
         scheduler=None,
         lr: float = 0.001,
         decay_steps: int = 1000,
         decay_alpha: float = 0.01,
         sync_dist: bool = False,
+        allow_missing_labels: bool = False,
+        magmom_target: Literal["absolute", "symbreak"] | None = "absolute",
         **kwargs,
     ):
         """
@@ -287,22 +289,27 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             energy_weight: relative importance of energy
             force_weight: relative importance of force
             stress_weight: relative importance of stress
-            site_wise_weight: relative importance of additional site-wise predictions.
+            magmom_weight: relative importance of additional magmom predictions.
             data_mean: average of training data
             data_std: standard deviation of training data
             loss: loss function used for training
+            loss_params: parameters for loss function
             optimizer: optimizer for training
             scheduler: scheduler for training
             lr: learning rate for training
             decay_steps: number of steps for decaying learning rate
             decay_alpha: parameter determines the minimum learning rate.
             sync_dist: whether sync logging across all GPU workers or not
+            allow_missing_labels: Whether to allow missing labels or not.
+                These should be present in the dataset as torch.nans and will be skipped in computing the loss.
+            magmom_target: Whether to predict the absolute site-wise value of magmoms or adapt the loss function
+                to predict the signed value breaking symmetry. If None given the loss function will be adapted.
             **kwargs: Passthrough to parent init.
         """
         assert energy_weight >= 0, f"energy_weight has to be >=0. Got {energy_weight}!"
         assert force_weight >= 0, f"force_weight has to be >=0. Got {force_weight}!"
         assert stress_weight >= 0, f"stress_weight has to be >=0. Got {stress_weight}!"
-        assert site_wise_weight >= 0, f"site_wise_weight has to be >=0. Got {site_wise_weight}!"
+        assert magmom_weight >= 0, f"magmom_weight has to be >=0. Got {magmom_weight}!"
 
         super().__init__(**kwargs)
 
@@ -314,7 +321,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.energy_weight = energy_weight
         self.force_weight = force_weight
         self.stress_weight = stress_weight
-        self.site_wise_weight = site_wise_weight
+        self.magmom_weight = magmom_weight
         self.lr = lr
         self.decay_steps = decay_steps
         self.decay_alpha = decay_alpha
@@ -324,18 +331,31 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             model=model,
             element_refs=element_refs,
             calc_stresses=stress_weight != 0,
-            calc_site_wise=site_wise_weight != 0,
+            calc_magmom=magmom_weight != 0,
             data_std=self.data_std,
             data_mean=self.data_mean,
         )
         if loss == "mse_loss":
             self.loss = F.mse_loss
+        elif loss == "huber_loss":
+            self.loss = F.huber_loss
         else:
             self.loss = F.l1_loss
+        self.loss_params = loss_params if loss_params is not None else {}
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
+        self.allow_missing_labels = allow_missing_labels
+        self.magmom_target = magmom_target
         self.save_hyperparameters(ignore=["model"])
+
+    def on_load_checkpoint(self, checkpoint: dict[str, Any]):
+        """# noqa: D200
+        hacky hacky hack to add missing keys to the state dict when changes are made.
+        """
+        for key in self.state_dict():
+            if key not in checkpoint["state_dict"]:
+                checkpoint["state_dict"][key] = self.state_dict()[key]
 
     def forward(
         self,
@@ -354,13 +374,14 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             energy, force, stress, hessian and optional site_wise
         """
         if self.include_line_graph:
-            if self.model.calc_site_wise:
+            if self.model.calc_magmom:
                 e, f, s, h, m = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
                 return e, f, s, h, m
             e, f, s, h = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
             return e, f, s, h
-        e, f, s, h = self.model(g=g, lat=lat, state_attr=state_attr)
-        return e, f, s, h
+        else:  # noqa: RET505
+            e, f, s, h = self.model(g=g, lat=lat, state_attr=state_attr)
+            return e, f, s, h
 
     def step(self, batch: tuple):
         """Args:
@@ -374,11 +395,11 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         torch.set_grad_enabled(True)
         if self.include_line_graph:
-            if self.model.calc_site_wise:
-                g, lat, l_g, state_attr, energies, forces, stresses, site_wise = batch
+            if self.model.calc_magmom:
+                g, lat, l_g, state_attr, energies, forces, stresses, magmoms = batch
                 e, f, s, _, m = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
                 preds = (e, f, s, m)
-                labels = (energies, forces, stresses, site_wise)
+                labels = (energies, forces, stresses, magmoms)
             else:
                 g, lat, l_g, state_attr, energies, forces, stresses = batch
                 e, f, s, _ = self(g=g, lat=lat, state_attr=state_attr, l_g=l_g)
@@ -423,15 +444,17 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                 "Energy_MAE": e_mae,
                 "Force_MAE": f_mae,
                 "Stress_MAE": s_mae,
+                "Magmom_MAE": m_mae,
                 "Energy_RMSE": e_rmse,
                 "Force_RMSE": f_rmse,
                 "Stress_RMSE": s_rmse,
+                "Magmom_RMSE": m_rmse
             }
 
         """
         # labels and preds are (energy, force, stress, (optional) site_wise)
-        e_loss = self.loss(labels[0] / num_atoms, preds[0] / num_atoms)
-        f_loss = self.loss(labels[1], preds[1])
+        e_loss = self.loss(labels[0] / num_atoms, preds[0] / num_atoms, **self.loss_params)
+        f_loss = self.loss(labels[1], preds[1], **self.loss_params)
 
         e_mae = self.mae(labels[0] / num_atoms, preds[0] / num_atoms)
         f_mae = self.mae(labels[1], preds[1])
@@ -448,27 +471,50 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         total_loss = self.energy_weight * e_loss + self.force_weight * f_loss
 
         if self.model.calc_stresses:
-            s_loss = loss(labels[2], preds[2])
+            s_loss = loss(labels[2], preds[2], **self.loss_params)
             s_mae = self.mae(labels[2], preds[2])
             s_rmse = self.rmse(labels[2], preds[2])
             total_loss = total_loss + self.stress_weight * s_loss
 
-        if self.model.calc_site_wise:
-            m_loss = loss(labels[3], preds[3])
-            m_mae = self.mae(labels[3], preds[3])
-            m_rmse = self.rmse(labels[3], preds[3])
-            total_loss = total_loss + self.site_wise_weight * m_loss
+        if self.model.calc_magmom:
+            if self.allow_missing_labels:
+                valid_values = ~torch.isnan(labels[3])
+                labels_3 = labels[3][valid_values]
+                preds_3 = preds[3][valid_values]
+            else:
+                labels_3 = labels[3]
+                preds_3 = preds[3]
+
+            if len(labels_3) > 0:
+                if self.magmom_target == "symbreak":
+                    m_loss = torch.min(
+                        loss(labels_3, preds_3, **self.loss_params), loss(labels_3, -preds_3, **self.loss_params)
+                    )
+                    m_mae = torch.min(self.mae(labels_3, preds_3), self.mae(labels_3, -preds_3))
+                    m_rmse = torch.min(self.rmse(labels_3, preds_3), self.rmse(labels_3, -preds_3))
+                else:
+                    if self.magmom_target == "absolute":
+                        labels_3 = torch.abs(labels_3)
+
+                    m_loss = loss(labels_3, preds_3, **self.loss_params)
+                    m_mae = self.mae(labels_3, preds_3)
+                    m_rmse = self.rmse(labels_3, preds_3)
+
+                total_loss = total_loss + self.magmom_weight * m_loss
+            else:
+                m_mae = torch.zeros(1)
+                m_rmse = torch.zeros(1)
 
         return {
             "Total_Loss": total_loss,
             "Energy_MAE": e_mae,
             "Force_MAE": f_mae,
             "Stress_MAE": s_mae,
-            "Site_Wise_MAE": m_mae,
+            "Magmom_MAE": m_mae,
             "Energy_RMSE": e_rmse,
             "Force_RMSE": f_rmse,
             "Stress_RMSE": s_rmse,
-            "Site_Wise_RMSE": m_rmse,
+            "Magmom_RMSE": m_rmse,
         }
 
 

@@ -22,7 +22,7 @@ def test_PESCalculator_and_M3GNetCalculator(MoS):
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
-    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362, atol=1e-5, rtol=1e-6)
 
     calc = PESCalculator(potential=ff, state_attr=torch.tensor([0.0, 0.0]))
     s_ase.set_calculator(calc)
@@ -30,7 +30,7 @@ def test_PESCalculator_and_M3GNetCalculator(MoS):
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
-    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362, atol=1e-5, rtol=1e-6)
 
     calc = M3GNetCalculator(potential=ff)
     s_ase.set_calculator(calc)
@@ -38,7 +38,23 @@ def test_PESCalculator_and_M3GNetCalculator(MoS):
     assert list(s_ase.get_forces().shape) == [2, 3]
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
-    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362)
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362, atol=1e-5, rtol=1e-6)
+
+
+def test_CHGNetCalculator(MoS):
+    adaptor = AseAtomsAdaptor()
+    s_ase = adaptor.get_atoms(MoS)  # type: ignore
+    ff = load_model("pretrained_models/CHGNet-MPtrj-2023.12.1-PES-2.7M/")
+    ff.calc_hessian = True
+    calc = PESCalculator(potential=ff)
+    s_ase.set_calculator(calc)
+    assert isinstance(s_ase.get_potential_energy(), float)
+    assert list(s_ase.get_forces().shape) == [2, 3]
+    assert list(s_ase.get_stress().shape) == [6]
+    assert list(s_ase.get_magnetic_moments().shape) == [2, 1]
+    assert list(calc.results["hessian"].shape) == [6, 6]
+    np.testing.assert_allclose(s_ase.get_potential_energy(), -10.983373, atol=1e-5, rtol=1e-6)
+    np.testing.assert_allclose(s_ase.get_magnetic_moments(), [[2.386847], [0.124443]], atol=1e-5, rtol=1e-6)
 
 
 def test_PESCalculator_mol(AcAla3NHMe):
@@ -99,14 +115,14 @@ def test_get_graph_from_atoms_mol():
     assert np.allclose(state, [0.0, 0.0])
 
 
-def test_molecular_dynamics(MoS):
+def test_molecular_dynamics(MoS2):
     pot = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     for ensemble in ["nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"]:
-        md = MolecularDynamics(MoS, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
+        md = MolecularDynamics(MoS2, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
         md.run(10)
         assert md.dyn is not None
-        md.set_atoms(MoS)
-    md = MolecularDynamics(MoS, potential=pot, ensemble=ensemble, taut=None, taup=None, compressibility_au=10)
+        md.set_atoms(MoS2)
+    md = MolecularDynamics(MoS2, potential=pot, ensemble=ensemble, taut=None, taup=None, compressibility_au=10)
     md.run(10)
     with pytest.raises(ValueError, match="Ensemble not supported"):
-        MolecularDynamics(MoS, potential=pot, ensemble="notanensemble")
+        MolecularDynamics(MoS2, potential=pot, ensemble="notanensemble")

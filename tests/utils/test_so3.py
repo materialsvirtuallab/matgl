@@ -317,6 +317,12 @@ def test_generate_clebsch_gordan_rsh():
     expected_cg_rsh_0 = torch.eye(1).unsqueeze(0)  # Expected cg_rsh result
     assert torch.allclose(cg_rsh_0, expected_cg_rsh_0, atol=1e-4)  # Use torch.allclose for numerical comparisons
 
+    cg_rsh_0_without_pi = generate_clebsch_gordan_rsh(lmax_0, False)
+    expected_cg_rsh_0_without_pi = torch.eye(1).unsqueeze(0)  # Expected cg_rsh without parity invariance result
+    assert torch.allclose(
+        cg_rsh_0_without_pi, expected_cg_rsh_0_without_pi, atol=1e-4
+    )  # Use torch.allclose for numerical comparisons
+
     # Test case 2: lmax = 1
     lmax_1 = 1
     cg_rsh_1 = generate_clebsch_gordan_rsh(lmax_1)
