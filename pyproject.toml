@@ -50,10 +50,11 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl",
+    "dgl>=2.0.0",
     "pymatgen",
     "pytorch_lightning",
-    "torch",
+    "torch<=2.2.1",
+    "pydantic"
 ]
 version = "1.0.0"
 
