@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 1.1.1
+- Pin dependencies to support latest DGL 2.x. @kenko911
+
 ## 1.1.0
 - Implementation of CHGnet + pre-trained models. (@BowenD-UCB)
 
