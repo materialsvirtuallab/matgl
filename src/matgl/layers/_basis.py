@@ -118,7 +118,7 @@ class SphericalBesselFunction(nn.Module):
         factor = torch.tensor(sqrt(2.0 / self.cutoff**3))
         factor = factor.to(r_c.device)
         for i in range(self.max_l):
-            root = torch.tensor(roots[i])
+            root = roots[i].clone()
             func = self.funcs[i]
             func_add1 = self.funcs[i + 1]
             results.append(

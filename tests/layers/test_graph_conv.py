@@ -210,6 +210,18 @@ class TestGraphConv:
 
         assert [X.shape[0], X.shape[1], X.shape[2], X.shape[3]] == [2, 64, 3, 3]
 
+        interaction_so3 = TensorNetInteraction(
+            num_rbf=3,
+            units=64,
+            activation=nn.SiLU(),
+            equivariance_invariance_group="SO3",
+            dtype=matgl.float_th,
+            cutoff=5.0,
+        )
+        X = interaction_so3(g1, X)
+
+        assert [X.shape[0], X.shape[1], X.shape[2], X.shape[3]] == [2, 64, 3, 3]
+
     def test_chgnet_graph_conv(self, graph_MoS):
         s, g1, state = graph_MoS
         bond_dist = g1.edata["bond_dist"]
@@ -256,9 +268,35 @@ class TestGraphConv:
         assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 64]
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 64]
 
+        gc = CHGNetGraphConv.from_dims(activation=nn.SiLU(), node_dims=(192, 64))
+
+        node_feat_new, edge_feat_new, state_attr = gc(
+            g1, atom_feat, bond_feat, state_attr, atom_bond_weights, bond_bond_weights
+        )
+
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 64]
+        assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 64]
+
         # chgnet atom conv block
         gc = CHGNetAtomGraphBlock(
             num_atom_feats=64, num_bond_feats=64, activation=nn.SiLU(), atom_hidden_dims=(64,), bond_hidden_dims=(64,)
+        )
+
+        node_feat_new, edge_feat_new, state_attr = gc(
+            g1, atom_feat, bond_feat, state_attr, atom_bond_weights, bond_bond_weights
+        )
+
+        assert [edge_feat_new.size(dim=0), edge_feat_new.size(dim=1)] == [28, 64]
+        assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 64]
+
+        # chgnet atom conv block
+        gc = CHGNetAtomGraphBlock(
+            num_atom_feats=64,
+            num_bond_feats=64,
+            activation=nn.SiLU(),
+            atom_hidden_dims=(64,),
+            bond_hidden_dims=(64,),
+            normalization="graph",
         )
 
         node_feat_new, edge_feat_new, state_attr = gc(
