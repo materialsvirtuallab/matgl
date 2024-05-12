@@ -21,22 +21,30 @@ class TestCHGNet:
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
-        model = CHGNet(
-            element_types=["Mo", "S"],
-            activation_type=activation,
-            bond_update_hidden_dims=bond_dim,
-            learn_basis=learn_basis,
-            angle_update_hidden_dims=angle_dim,
-            conv_dropout=dropout,
-        )
-        global_out = model(g=graph)
-        assert torch.numel(global_out) == 1
-        assert torch.numel(graph.ndata["magmom"]) == graph.num_nodes()
-        model.save(".")
-        CHGNet.load(".")
-        os.remove("model.pt")
-        os.remove("model.json")
-        os.remove("state.pt")
+        for readout_field in ["atom_feat", "bond_feat", "angle_feat"]:
+            for final_mlp_type in ["gated", "mlp"]:
+                model = CHGNet(
+                    element_types=["Mo", "S"],
+                    activation_type=activation,
+                    bond_update_hidden_dims=bond_dim,
+                    learn_basis=learn_basis,
+                    angle_update_hidden_dims=angle_dim,
+                    conv_dropout=dropout,
+                    readout_field=readout_field,
+                    final_mlp_type=final_mlp_type,
+                )
+                global_out = model(g=graph)
+                assert torch.numel(global_out) == 1
+                assert torch.numel(graph.ndata["magmom"]) == graph.num_nodes()
+                model.save(".")
+                CHGNet.load(".")
+                os.remove("model.pt")
+                os.remove("model.json")
+                os.remove("state.pt")
+
+    def test_exceptions(self):
+        with pytest.raises(ValueError, match="Invalid activation type"):
+            _ = CHGNet(element_types=None, is_intensive=False, activation_type="whatever")
 
     @pytest.mark.parametrize("structure", ["LiFePO4", "BaNiO3", "MoS"])
     def test_prediction_validity(self, structure, request):
