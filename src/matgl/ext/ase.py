@@ -178,7 +178,7 @@ class PESCalculator(Calculator):
             calc_result = self.potential(graph, lattice, state_attr_default)
         self.results.update(
             energy=calc_result[0].detach().cpu().numpy().item(),
-            free_energy=calc_result[0].detach().cpu().numpy(),
+            free_energy=calc_result[0].detach().cpu().numpy().item(),
             forces=calc_result[1].detach().cpu().numpy(),
         )
         if self.compute_stress:
