@@ -183,6 +183,15 @@ torch.hub.list("materialsvirtuallab/matgl", force_reload=True)
 # To load a model
 model = torch.hub.load("materialsvirtuallab/matgl", 'm3gnet_universal_potential')
 ```
+## Model Training
+
+In the PES training, the units of energies, forces and stresses (optional) in the training, validation and test sets are extremely important to be consistent with the units used in MatGL.
+
+- energies: a list of energies with unit eV.
+- forces: a list of nx3 force matrix with unit eV/Å, where n is the number of atom in each structure. n does not need to be the same for all structures.
+- stresses: a list of 3x3 stress matrices with unit GPa (optional)
+  
+Note: For stresses, we use the convention that compressive stress gives negative values. Stresses obtained from VASP calculations (default unit is kBar) should be multiplied by -0.1 to work directly with the model.
 
 ## Tutorials
 
