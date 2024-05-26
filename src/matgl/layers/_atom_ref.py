@@ -41,7 +41,7 @@ class AtomRef(nn.Module):
         for i, graph in enumerate(graphs):
             atomic_numbers = graph.ndata["node_type"]
             features[i] = torch.bincount(atomic_numbers, minlength=self.max_z)
-        return features
+        return features.numpy()
 
     def fit(self, graphs: list[dgl.DGLGraph], properties: torch.Tensor) -> None:
         """Fit the elemental reference values for the properties.
@@ -51,7 +51,9 @@ class AtomRef(nn.Module):
             properties (torch.Tensor): tensor of extensive properties
         """
         features = self.get_feature_matrix(graphs)
-        self.property_offset = torch.linalg.lstsq(features, properties).solution
+        self.property_offset = torch.tensor(
+            np.linalg.pinv(features.T @ features) @ features.T @ np.array(properties), dtype=matgl.float_th
+        )
 
     def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None):
         """Get the total property offset for a system.
