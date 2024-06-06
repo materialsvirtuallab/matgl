@@ -22,6 +22,7 @@ from ase.md.andersen import Andersen
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
+from ase.md.verlet import VelocityVerlet
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
@@ -178,7 +179,7 @@ class PESCalculator(Calculator):
             calc_result = self.potential(graph, lattice, state_attr_default)
         self.results.update(
             energy=calc_result[0].detach().cpu().numpy().item(),
-            free_energy=calc_result[0].detach().cpu().numpy(),
+            free_energy=calc_result[0].detach().cpu().numpy().item(),
             forces=calc_result[1].detach().cpu().numpy(),
         )
         if self.compute_stress:
@@ -367,7 +368,9 @@ class MolecularDynamics:
         potential: Potential,
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1 / 160.21766208,
-        ensemble: Literal["nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"] = "nvt",
+        ensemble: Literal[
+            "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"
+        ] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
         pressure: float = 1.01325 * units.bar,
@@ -394,8 +397,8 @@ class MolecularDynamics:
             stress of the atoms
             state_attr (torch.Tensor): State attr.
             stress_weight (float): conversion factor from GPa to eV/A^3
-            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
-            use with extra caution
+            ensemble (str): choose from "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen",
+            "npt_nose_hoover"
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
@@ -437,6 +440,16 @@ class MolecularDynamics:
                 timestep * units.fs,
                 temperature_K=temperature,
                 taut=taut,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+            )
+
+        elif ensemble.lower() == "nve":
+            self.dyn = VelocityVerlet(
+                self.atoms,
+                timestep * units.fs,
                 trajectory=trajectory,
                 logfile=logfile,
                 loginterval=loginterval,

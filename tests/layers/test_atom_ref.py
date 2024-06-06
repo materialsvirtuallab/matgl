@@ -14,6 +14,20 @@ class TestAtomRef:
         atom_ref = element_ref(g1)
         assert atom_ref == 3.5
 
+    def test_atom_ref_without_property_offset(self, graph_MoSH):
+        _, g1, _ = graph_MoSH
+        element_ref = AtomRef()
+
+        atom_ref = element_ref(g1)
+        assert atom_ref == 0.0
+
+    def test_atom_ref_property_offset_as_list(self, graph_MoSH):
+        _, g1, _ = graph_MoSH
+        element_ref = AtomRef([0.5, 1.0, 2.0])
+
+        atom_ref = element_ref(g1)
+        assert atom_ref == 3.5
+
     def test_atom_ref_fit(self, graph_MoSH):
         _, g1, _ = graph_MoSH
         element_ref = AtomRef(torch.tensor([0.5, 1.0, 2.0]))
