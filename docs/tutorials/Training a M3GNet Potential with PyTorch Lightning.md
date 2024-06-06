@@ -18,15 +18,17 @@ import warnings
 
 import numpy as np
 import pytorch_lightning as pl
+from functools import partial
 from dgl.data.utils import split_dataset
 from mp_api.client import MPRester
 from pytorch_lightning.loggers import CSVLogger
 
 import matgl
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn_efs
+from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn_pes
 from matgl.models import M3GNet
 from matgl.utils.training import PotentialLightningModule
+from matgl.config import DEFAULT_ELEMENTS
 
 # To suppress warnings for clearer output
 warnings.simplefilter("ignore")
@@ -37,8 +39,7 @@ For the purposes of demonstration, we will download all Si-O compounds in the Ma
 
 ```python
 # Obtain your API key here: https://next-gen.materialsproject.org/api
-# mpr = MPRester(api_key="YOUR_API_KEY")
-mpr = MPRester("FwTXcju8unkI2VbInEgZDTN8coDB6S6U")
+mpr = MPRester(api_key="YOUR_API_KEY")
 entries = mpr.get_entries_in_chemsys(["Si", "O"])
 structures = [e.structure for e in entries]
 energies = [e.energy for e in entries]
@@ -57,13 +58,10 @@ We will first setup the M3GNet model and the LightningModule.
 
 
 ```python
-element_types = get_element_list(structures)
+element_types = DEFAULT_ELEMENTS
 converter = Structure2Graph(element_types=element_types, cutoff=5.0)
 dataset = MGLDataset(
-    threebody_cutoff=4.0,
-    structures=structures,
-    converter=converter,
-    labels=labels,
+    threebody_cutoff=4.0, structures=structures, converter=converter, labels=labels, include_line_graph=True
 )
 train_data, val_data, test_data = split_dataset(
     dataset,
@@ -71,11 +69,12 @@ train_data, val_data, test_data = split_dataset(
     shuffle=True,
     random_state=42,
 )
+my_collate_fn = partial(collate_fn_pes, include_line_graph=True)
 train_loader, val_loader, test_loader = MGLDataLoader(
     train_data=train_data,
     val_data=val_data,
     test_data=test_data,
-    collate_fn=collate_fn_efs,
+    collate_fn=my_collate_fn,
     batch_size=2,
     num_workers=0,
 )
@@ -83,7 +82,7 @@ model = M3GNet(
     element_types=element_types,
     is_intensive=False,
 )
-lit_module = PotentialLightningModule(model=model)
+lit_module = PotentialLightningModule(model=model, include_line_graph=True)
 ```
 
 Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training.
@@ -107,7 +106,7 @@ trainer.test(dataloaders=test_loader)
 ```python
 # save trained model
 model_export_path = "./trained_model/"
-model.save(model_export_path)
+lit_module.model.save(model_export_path)
 
 # load trained model
 model = matgl.load_model(path=model_export_path)
@@ -121,7 +120,7 @@ In the previous cells, we demonstrated the process of training an M3GNet from sc
 # download a pre-trained M3GNet
 m3gnet_nnp = matgl.load_model("M3GNet-MP-2021.2.8-PES")
 model_pretrained = m3gnet_nnp.model
-lit_module_finetune = PotentialLightningModule(model=model_pretrained, lr=1e-4)
+lit_module_finetune = PotentialLightningModule(model=model_pretrained, lr=1e-4, include_line_graph=True)
 ```
 
 
@@ -136,7 +135,7 @@ trainer.fit(model=lit_module_finetune, train_dataloaders=train_loader, val_datal
 ```python
 # save trained model
 model_save_path = "./finetuned_model/"
-model_pretrained.save(model_save_path)
+lit_module_finetune.model.save(model_save_path)
 # load trained model
 trained_model = matgl.load_model(path=model_save_path)
 ```

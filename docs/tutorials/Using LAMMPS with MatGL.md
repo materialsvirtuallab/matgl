@@ -88,10 +88,10 @@ pair_style    m3gnet {HOME_DIR}/.local/share/lammps/potentials/M3GNET
 
 read_data     ./dat.lammps
 replicate     {x} 1 1
-pair_coeff    * *  M3GNet-MP-2021.2.8-DIRECT-PES  Zr O  # MatGL will be called
+pair_coeff    * *  M3GNet-MP-2021.2.8-DIRECT-PES  Mg O  # MatGL will be called
 
 dump          myDump all custom 10 xyz.lammpstrj id element x y z
-dump_modify   myDump sort id element Zr O
+dump_modify   myDump sort id element Mg O
 
 thermo_style  custom step time cpu pe ke etotal temp press vol density
 thermo        10
