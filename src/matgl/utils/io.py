@@ -171,7 +171,7 @@ class RemoteFile:
         Returns:
             Stream on local path.
         """
-        self.stream = open(self.local_path, "rb")  # noqa
+        self.stream = open(self.local_path, "rb")
         return self.stream
 
     def __exit__(self, exc_type, exc_val, exc_tb):
