@@ -6,6 +6,11 @@ nav_order: 3
 
 # Change Log
 
+## 1.1.2
+- Move AtomRef Fitting to numpy to avoid bug (@BowenD-UCB)
+- NVE ensemble added (@kenko911)
+- Migrate from pytorch_lightning to lightning.
+
 ## 1.1.1
 - Pin dependencies to support latest DGL 2.x. @kenko911
 
