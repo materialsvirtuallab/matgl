@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, Any, Literal
 
-import pytorch_lightning as pl
+import lightning as pl
 import torch
 import torch.nn.functional as F
 import torchmetrics

@@ -6,9 +6,9 @@ import shutil
 # This function is used for M3GNet property dataset
 from functools import partial
 
+import lightning as pl
 import numpy as np
 import pytest
-import pytorch_lightning as pl
 import torch.backends.mps
 from dgl.data.utils import split_dataset
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
