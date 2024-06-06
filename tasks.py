@@ -11,11 +11,10 @@ import re
 import shutil
 from pprint import pprint
 
+import matgl
 import requests
 from invoke import task
 from monty.os import cd
-
-import matgl
 
 NEW_VER = matgl.__version__
 
