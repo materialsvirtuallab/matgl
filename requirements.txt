@@ -1,4 +1,4 @@
-dgl==2.2.0
+dgl==2.1.0
 torch==2.3.1
 lightning==2.2.5
 pymatgen==2024.5.1
