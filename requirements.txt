@@ -1,5 +1,5 @@
 dgl==2.1.0
-torch==2.3.1
+torch==2.2.1
 lightning==2.2.5
 pymatgen==2024.5.1
 ase==3.23.0
