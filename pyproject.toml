@@ -52,11 +52,11 @@ dependencies = [
     "ase",
     "dgl>=2.0.0",
     "pymatgen",
-    "pytorch_lightning",
+    "lightning",
     "torch<=2.2.1",
     "pydantic"
 ]
-version = "1.1.1"
+version = "1.1.2"
 
 [project.scripts]
 mgl = "matgl.cli:main"
@@ -93,7 +93,7 @@ exclude = '''
 [tool.ruff]
 target-version = "py39"
 line-length = 120
-select = [
+lint.select = [
     "B", # flake8-bugbear
     "C4", # flake8-comprehensions
     "D", # pydocstyle
@@ -122,7 +122,7 @@ select = [
     "W", # pycodestyle warning
     "YTT", # flake8-2020
 ]
-ignore = [
+lint.ignore = [
     "B019", # functools.lru_cache on methods can lead to memory leaks
     "D105", # Missing docstring in magic method
     "D205", # 1 blank line required between summary line and description
@@ -135,10 +135,10 @@ ignore = [
     "RET504", # unnecessary-assign
     "SIM105", # Use contextlib.suppress(OSError) instead of try-except-pass
 ]
-pydocstyle.convention = "google"
-isort.required-imports = ["from __future__ import annotations"]
+lint.pydocstyle.convention = "google"
+lint.isort.required-imports = ["from __future__ import annotations"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "setup.py" = ["D"]
 "tasks.py" = ["D"]

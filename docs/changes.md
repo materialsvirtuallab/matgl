@@ -6,6 +6,17 @@ nav_order: 3
 
 # Change Log
 
+## 1.1.2
+- Move AtomRef Fitting to numpy to avoid bug (@BowenD-UCB)
+- NVE ensemble added (@kenko911)
+- Migrate from pytorch_lightning to lightning.
+
+## 1.1.1
+- Pin dependencies to support latest DGL 2.x. @kenko911
+
+## 1.1.0
+- Implementation of CHGnet + pre-trained models. (@BowenD-UCB)
+
 ## 1.0.0
 - First 1.0.0 release to reflect the maturity of the matgl code! All changes below are the efforts of @kenko911.
 - Equivariant TensorNet and SO3Net are now implemented in MatGL.

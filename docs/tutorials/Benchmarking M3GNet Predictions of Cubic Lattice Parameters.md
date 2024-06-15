@@ -105,7 +105,7 @@ In the next cell, we generate an initial structure for all the phases. The cubic
 predicted = []
 mp = []
 os.environ["MPRESTER_MUTE_PROGRESS_BARS"] = "true"
-mpr = MPRester("FwTXcju8unkI2VbInEgZDTN8coDB6S6U")
+mpr = MPRester("YOUR_API_KEY")
 
 # Load the pre-trained M3GNet Potential
 pot = matgl.load_model("M3GNet-MP-2021.2.8-PES")

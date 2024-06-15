@@ -85,9 +85,13 @@ Here, we set up the dataset.
 elem_list = get_element_list(structures)
 # setup a graph converter
 converter = Structure2Graph(element_types=elem_list, cutoff=4.0)
-# convert the raw dataset into MEGNetDataset
+# convert the raw dataset into M3GNetDataset
 mp_dataset = MGLDataset(
-    threebody_cutoff=4.0, structures=structures, converter=converter, labels={"eform": eform_per_atom}
+    threebody_cutoff=4.0,
+    structures=structures,
+    converter=converter,
+    labels={"eform": eform_per_atom},
+    include_line_graph=True,
 )
 ```
 
@@ -114,18 +118,18 @@ train_loader, val_loader, test_loader = MGLDataLoader(
 
 # Model setup
 
-In the next step, we setup the model and the ModelLightningModule. Here, we have initialized a MEGNet model from scratch. Alternatively, you can also load one of the pre-trained models for transfer learning, which may speed up the training.
+In the next step, we setup the model and the ModelLightningModule. Here, we have initialized a M3GNet model from scratch. Alternatively, you can also load one of the pre-trained models for transfer learning, which may speed up the training.
 
 
 ```python
-# setup the architecture of MEGNet model
+# setup the architecture of M3GNet model
 model = M3GNet(
     element_types=elem_list,
     is_intensive=True,
     readout_type="set2set",
 )
-# setup the MEGNetTrainer
-lit_module = ModelLightningModule(model=model)
+# setup the M3GNetTrainer
+lit_module = ModelLightningModule(model=model, include_line_graph=True)
 ```
 
 # Training
@@ -143,7 +147,7 @@ trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=va
 
 # Visualizing the convergence
 
-Finally, we can plot the convergence plot for the loss metrics. You can see that the MAE is already going down nicely with 20 epochs. Obviously, this is nowhere state of the art performance for the formation energies, but a longer training time should lead to results consistent with what was reported in the original MEGNet work.
+Finally, we can plot the convergence plot for the loss metrics. You can see that the MAE is already going down nicely with 20 epochs. Obviously, this is nowhere state of the art performance for the formation energies, but a longer training time should lead to results consistent with what was reported in the original M3GNet work.
 
 
 ```python
