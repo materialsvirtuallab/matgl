@@ -17,6 +17,7 @@ import scipy.sparse as sp
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
+from ase.filters import FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
 from ase.md.npt import NPT
@@ -253,7 +254,8 @@ class Relaxer:
         traj_file: str | None = None,
         interval: int = 1,
         verbose: bool = False,
-        params_expcellfilter: dict | None = None,
+        ase_cellfilter: Literal["Frechet", "Exp"] = "Frechet",
+        params_asecellfilter: dict | None = None,
         **kwargs,
     ):
         """
@@ -267,27 +269,34 @@ class Relaxer:
             traj_file (str): the trajectory file for saving
             interval (int): the step interval for saving the trajectories
             verbose (bool): Whether to have verbose output.
-            params_expcellfilter (dict): Parameters to be passed to ExpCellFilter. Allows
+            ase_cellfilter (literal): which filter is used for variable cell relaxation. Default is Frechet.
+            params_asecellfilter (dict): Parameters to be passed to ExpCellFilter or FrechetCellFilter. Allows
                 setting of constant pressure or constant volume relaxations, for example. Refer to
-                https://wiki.fysik.dtu.dk/ase/ase/filters.html#the-expcellfilter-class for more information.
+                https://wiki.fysik.dtu.dk/ase/ase/filters.html#FrechetCellFilter for more information.
             **kwargs: Kwargs pass-through to optimizer.
         """
         if isinstance(atoms, (Structure, Molecule)):
             atoms = self.ase_adaptor.get_atoms(atoms)
         atoms.set_calculator(self.calculator)
         stream = sys.stdout if verbose else io.StringIO()
-        params_expcellfilter = params_expcellfilter or {}
+        params_asecellfilter = params_asecellfilter or {}
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
-                atoms = ExpCellFilter(atoms, **params_expcellfilter)
+                atoms = (
+                    FrechetCellFilter(atoms, **params_asecellfilter)
+                    if ase_cellfilter == "Frechet"
+                    else ExpCellFilter(atoms, **params_asecellfilter)
+                )
+
             optimizer = self.optimizer(atoms, **kwargs)
             optimizer.attach(obs, interval=interval)
             optimizer.run(fmax=fmax, steps=steps)
             obs()
         if traj_file is not None:
             obs.save(traj_file)
-        if isinstance(atoms, ExpCellFilter):
+
+        if isinstance(atoms, (FrechetCellFilter, ExpCellFilter)):
             atoms = atoms.atoms
 
         return {
