@@ -110,7 +110,7 @@ and DGL. The basic instructions are given below, but it is recommended that you 
 run into any problems.
 
 ```shell
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.2.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html
 pip install dglgo -f https://data.dgl.ai/wheels-test/repo.html
 ```
