@@ -21,6 +21,7 @@ class TestTensorNet:
         os.remove("model.pt")
         os.remove("model.json")
         os.remove("state.pt")
+        model = TensorNet(is_intensive=False, equivariance_invariance_group="SO(3)")
 
     def test_exceptions(self):
         with pytest.raises(ValueError, match="Invalid activation type"):
