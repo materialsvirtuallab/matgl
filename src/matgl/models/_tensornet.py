@@ -123,10 +123,7 @@ class TensorNet(nn.Module, IOMixIn):
                 f"Invalid activation type, please try using one of {[af.name for af in ActivationFunction]}"
             ) from None
 
-        if element_types is None:
-            self.element_types = DEFAULT_ELEMENTS
-        else:
-            self.element_types = element_types  # type: ignore
+        self.element_types = element_types  # type: ignore
 
         self.bond_expansion = BondExpansion(
             cutoff=cutoff,
