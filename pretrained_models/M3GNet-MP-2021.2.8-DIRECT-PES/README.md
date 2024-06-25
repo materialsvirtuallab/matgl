@@ -119,6 +119,5 @@ to 1 %
 # References
 
 ```txt
-Chen, C., Ong, S.P. A universal graph deep learning interatomic potential for the periodic table. Nat Comput Sci,
-2, 718–728 (2022). https://doi.org/10.1038/s43588-022-00349-3.
+Qi, J., Ko, T.W., Wood, B.C. et al. Robust training of machine learning interatomic potentials with dimensionality reduction and stratified sampling. npj Comput Mater 10, 43 (2024). https://doi.org/10.1038/s41524-024-01227-4
 ```

@@ -48,7 +48,7 @@ class TestCoreAndEmbedding:
 
     @pytest.mark.parametrize("normalization", ["layer", "graph"])
     def test_mlp_norm(self, x, graph, normalization):
-        layer = MLP_norm(dims=[10, 3], normalization=normalization, normalize_hidden=True)
+        layer = MLP_norm(dims=[10, 10, 3], normalization=normalization, normalize_hidden=True)
         out = layer(x, g=graph).double()
         assert [out.size()[0], out.size()[1]] == [4, 3]
         assert out.mean().item() == pytest.approx(0, abs=1e-6)
