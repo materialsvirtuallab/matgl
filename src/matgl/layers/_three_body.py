@@ -32,13 +32,13 @@ class ThreeBodyInteractions(nn.Module):
         self.update_network_bond = update_network_bond
 
     def forward(
-            self,
-            graph: dgl.DGLGraph,
-            line_graph: dgl.DGLGraph,
-            three_basis: torch.Tensor,
-            three_cutoff: torch.Tensor,
-            node_feat: torch.Tensor,
-            edge_feat: torch.Tensor,
+        self,
+        graph: dgl.DGLGraph,
+        line_graph: dgl.DGLGraph,
+        three_basis: torch.Tensor,
+        three_cutoff: torch.Tensor,
+        node_feat: torch.Tensor,
+        edge_feat: torch.Tensor,
     ):
         """
         Forward function for ThreeBodyInteractions.
@@ -89,6 +89,7 @@ class ThreeBodyInteractions(nn.Module):
         updated_edge_feat = edge_feat + self.update_network_bond(new_bonds)
 
         return updated_edge_feat
+
 
 def combine_sbf_shf(sbf, shf, max_n: int, max_l: int, use_phi: bool):
     """Combine the spherical Bessel function and the spherical Harmonics function.
