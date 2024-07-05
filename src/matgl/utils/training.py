@@ -137,7 +137,7 @@ class MatglLightningModuleMixin:
 
 
 class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
-    """A PyTorch.LightningModule for training MEGNet and M3GNet models."""
+    """A PyTorch.LightningModule for training MatGL structure-wise property models."""
 
     def __init__(
         self,
