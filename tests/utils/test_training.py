@@ -192,7 +192,9 @@ class TestModelTrainer:
             generator=torch.Generator(device=device),
         )
         model = SO3Net(element_types=element_types, lmax=2, is_intensive=False)
-        lit_model = PotentialLightningModule(model=model, stress_weight=0.0001)
+        lit_model = PotentialLightningModule(
+            model=model, stress_weight=0.0001, loss="huber_loss", loss_params={"delta": 1.0}
+        )
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
 
@@ -264,7 +266,9 @@ class TestModelTrainer:
             generator=torch.Generator(device=device),
         )
         model = TensorNet(element_types=element_types, is_intensive=False)
-        lit_model = PotentialLightningModule(model=model, stress_weight=0.0001)
+        lit_model = PotentialLightningModule(
+            model=model, stress_weight=0.0001, loss="smooth_l1_loss", loss_params={"beta": 1.0}
+        )
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
 
@@ -387,7 +391,9 @@ class TestModelTrainer:
             is_intensive=True,
             readout_type="set2set",
         )
-        lit_model = ModelLightningModule(model=model, include_line_graph=True)
+        lit_model = ModelLightningModule(
+            model=model, include_line_graph=True, loss="huber_loss", loss_params={"delta": 1.0}
+        )
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=2, accelerator=device)
 
@@ -458,7 +464,7 @@ class TestModelTrainer:
             target_property="graph",
             readout_type="set2set",
         )
-        lit_model = ModelLightningModule(model=model)
+        lit_model = ModelLightningModule(model=model, loss="smooth_l1_loss", loss_params={"beta": 1.0})
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=2, accelerator=device)
 
