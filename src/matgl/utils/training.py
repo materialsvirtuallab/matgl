@@ -146,6 +146,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         data_mean: float = 0.0,
         data_std: float = 1.0,
         loss: str = "mse_loss",
+        loss_params: dict | None = None,
         optimizer: Optimizer | None = None,
         scheduler: LRScheduler | None = None,
         lr: float = 0.001,
@@ -163,6 +164,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             data_mean: average of training data
             data_std: standard deviation of training data
             loss: loss function used for training
+            loss_params: parameters for loss function
             optimizer: optimizer for training
             scheduler: scheduler for training
             lr: learning rate for training
@@ -184,11 +186,16 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.decay_alpha = decay_alpha
         if loss == "mse_loss":
             self.loss = F.mse_loss
+        elif loss == "huber_loss":
+            self.loss = F.huber_loss
+        elif loss == "smooth_l1_loss":
+            self.loss = F.smooth_l1_loss
         else:
             self.loss = F.l1_loss
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.sync_dist = sync_dist
+        self.loss_params = loss_params if loss_params is not None else {}
         self.save_hyperparameters(ignore=["model"])
 
     def forward(
@@ -243,7 +250,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
         """
         scaled_pred = torch.reshape(preds * self.data_std + self.data_mean, labels.size())
-        total_loss = loss(labels, scaled_pred)
+        total_loss = loss(labels, scaled_pred, **self.loss_params)
         mae = self.mae(labels, scaled_pred)
         rmse = self.rmse(labels, scaled_pred)
         return {"Total_Loss": total_loss, "MAE": mae, "RMSE": rmse}
@@ -339,6 +346,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             self.loss = F.mse_loss
         elif loss == "huber_loss":
             self.loss = F.huber_loss
+        elif loss == "smooth_l1_loss":
+            self.loss = F.smooth_l1_loss
         else:
             self.loss = F.l1_loss
         self.loss_params = loss_params if loss_params is not None else {}
