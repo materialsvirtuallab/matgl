@@ -82,8 +82,8 @@ class TestM3GNet:
         model_extensive = M3GNet(is_intensive=False)
         for model in [model_extensive, model_intensive]:
             with pytest.raises(ValueError, match="Invalid output_layers"):
-                model.featurize_structure(structure, output_layers=["whatever"])
-            features = model.featurize_structure(structure)
+                model.predict_structure(structure, output_layers=["whatever"], return_features=True)
+            features = model.predict_structure(structure, return_features=True)
             assert torch.numel(features["bond_expansion"]) == 252
             assert torch.numel(features["three_body_basis"]) == 3276
             for output_layer in ["embedding", "gc_1", "gc_2", "gc_3"]:
@@ -95,4 +95,6 @@ class TestM3GNet:
             else:
                 assert torch.numel(features["readout"]) == 2
             assert torch.numel(features["final"]) == 1
-            assert list(model.featurize_structure(structure, output_layers=["gc_1"]).keys()) == ["gc_1"]
+            assert list(model.predict_structure(structure, output_layers=["gc_1"], return_features=True).keys()) == [
+                "gc_1"
+            ]
