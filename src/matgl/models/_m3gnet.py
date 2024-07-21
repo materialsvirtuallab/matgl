@@ -294,14 +294,15 @@ class M3GNet(nn.Module, IOMixIn):
             return fea_dict
         return torch.squeeze(output)
 
-    def featurize_structure(
+    def predict_structure(
         self,
         structure,
         state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
         output_layers: list | None = None,
+        return_features: bool = False,
     ):
-        """Convenience method to featurize a structure with M3GNet model.
+        """Convenience method to featurize or predict properties of a structure with M3GNet model.
 
         Args:
             structure: An input crystal/molecule.
@@ -309,10 +310,12 @@ class M3GNet(nn.Module, IOMixIn):
             graph_converter: Object that implements a get_graph_from_structure.
             output_layers: List of names for the layer of GNN as output. Choose from "bond_expansion", "embedding",
                 "three_body_basis", "gc_1", "gc_2", "gc_3", "readout", and "final". By default, all M3GNet layer
-                outputs are returned.
+                outputs are returned. Ignored if `return_features` is False.
+            return_features (bool): If True, return specified layer outputs. If False, only return final output.
 
         Returns:
-            output (dict): M3GNet intermediate and final layer outputs for a structure.
+            output (dict or torch.tensor): M3GNet intermediate and final layer outputs for a structure, or final
+                predicted property if `return_features` is False.
         """
         allowed_output_layers = [
             "bond_expansion",
@@ -321,7 +324,10 @@ class M3GNet(nn.Module, IOMixIn):
             "readout",
             "final",
         ] + [f"gc_{i + 1}" for i in range(self.n_blocks)]
-        if output_layers is None:
+
+        if not return_features:
+            output_layers = ["final"]
+        elif output_layers is None:
             output_layers = allowed_output_layers
         elif not isinstance(output_layers, list) or set(output_layers).difference(allowed_output_layers):
             raise ValueError(f"Invalid output_layers, it must be a sublist of {allowed_output_layers}.")
@@ -330,33 +336,17 @@ class M3GNet(nn.Module, IOMixIn):
             from matgl.ext.pymatgen import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+
         g, lat, state_feats_default = graph_converter.get_graph(structure)
         g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
         g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
+
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        if output_layers == ["final"]:
-            return self(g=g, state_attr=state_feats).detach()
-        return {
-            k: v
-            for k, v in self(g=g, state_attr=state_feats, return_all_layer_output=True).items()
-            if k in output_layers
-        }
 
-    def predict_structure(
-        self,
-        structure,
-        state_feats: torch.Tensor | None = None,
-        graph_converter: GraphConverter | None = None,
-    ):
-        """Convenient method to directly predict property from structure.
+        model_output = self(g=g, state_attr=state_feats, return_all_layer_output=True)
 
-        Args:
-            structure: An input crystal/molecule.
-            state_feats (torch.tensor): Graph attributes
-            graph_converter: Object that implements a get_graph_from_structure.
+        if not return_features:
+            return model_output["final"].detach()
 
-        Returns:
-            output(torch.tensor): output property for a structure
-        """
-        return self.featurize_structure(structure, state_feats, graph_converter, ["final"])
+        return {k: v for k, v in model_output.items() if k in output_layers}
