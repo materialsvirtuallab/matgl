@@ -510,9 +510,6 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                     m_rmse = self.rmse(labels_3, preds_3)
 
                 total_loss = total_loss + self.magmom_weight * m_loss
-            else:
-                m_mae = torch.zeros(1)
-                m_rmse = torch.zeros(1)
 
         return {
             "Total_Loss": total_loss,
