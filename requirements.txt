@@ -4,6 +4,7 @@ lightning==2.2.5
 pymatgen==2024.5.1
 ase==3.23.0
 pydantic==2.7.1
+torchdata==0.7.1
 boto3==1.34.101
 numpy==1.26.4
 sympy==1.12.1
