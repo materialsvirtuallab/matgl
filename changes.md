@@ -6,6 +6,11 @@ nav_order: 3
 
 # Change Log
 
+## 1.1.3
+- Improve the memory efficiency and speed of three-body interactions. (@kenko911)
+- FrechetCellFilter is added for variable cell relaxation in Relaxer class. (@kenko911)
+- Smooth l1 loss function is added for training. (@kenko911)
+  
 ## 1.1.2
 - Move AtomRef Fitting to numpy to avoid bug (@BowenD-UCB)
 - NVE ensemble added (@kenko911)
