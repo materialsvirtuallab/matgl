@@ -55,7 +55,7 @@ dependencies = [
     "lightning",
     "torch",
     "pydantic",
-    "torchdata<0.8.0"
+    "torchdata<0.9.0"
 ]
 version = "1.1.3"
 
