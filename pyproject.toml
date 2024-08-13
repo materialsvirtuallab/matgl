@@ -53,7 +53,7 @@ dependencies = [
     "dgl>=2.0.0",
     "pymatgen",
     "lightning",
-    "torch",
+    "torch<=2.2.1",
     "pydantic",
     "torchdata",
     "boto3",
