@@ -72,7 +72,7 @@ def generate_clebsch_gordan(lmax: int) -> torch.Tensor:
                     m2 - m1,
                     -m1 - m2,
                 }:
-                    coeff = clebsch_gordan(l1, l2, l3, m1, m2, m3)
+                    coeff = clebsch_gordan(l1.item(), l2.item(), l3.item(), m1.item(), m2.item(), m3.item())
                     cg[c1, c2, c3] = float(coeff)
     return cg
 
