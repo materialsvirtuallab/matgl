@@ -23,7 +23,7 @@ jobs:
         python-version: ["3.10"]
         os: [ "ubuntu-latest", "macos-latest" ]
 
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.os }}
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
