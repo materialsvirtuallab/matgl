@@ -62,14 +62,14 @@ def test_remote_file():
     assert not os.path.exists("bad_name")  # Ensure that the bad_name folder is not created.
 
 
-@pytest.mark.skipif(os.getenv("CI"), reason="Unreliable in CI environments.")
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
 def test_get_available_pretrained_models():
     model_names = get_available_pretrained_models()
     assert len(model_names) > 1
     assert "M3GNet-MP-2021.2.8-PES" in model_names
 
 
-@pytest.mark.skipif(os.getenv("CI"), reason="Unreliable in CI environments.")
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
 def test_load_model():
     # Load model from name.
     model = load_model("M3GNet-MP-2021.2.8-DIRECT-PES")

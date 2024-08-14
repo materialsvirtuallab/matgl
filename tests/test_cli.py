@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 
-@pytest.mark.skipif(os.getenv("CI"), reason="Unreliable in CI environments.")
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
 def test_entrypoint(Mo):
     Mo.to(filename="Mo.cif")
     exit_status = os.system("mgl relax -i Mo.cif -o Mo_relaxed.cif")
