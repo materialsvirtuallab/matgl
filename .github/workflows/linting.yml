@@ -20,7 +20,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          pip install --quiet -r requirements-ci.txt
+          pip install --quiet ruff mypy black
       - name: ruff
         run: |
           ruff --version

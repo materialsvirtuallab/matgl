@@ -26,6 +26,7 @@ jobs:
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
+      DGLBACKEND: "pytorch"
 
     steps:
       - uses: actions/checkout@v3
@@ -37,8 +38,7 @@ jobs:
           cache-dependency-path: '**/requirements.txt'
       - name: Install dependencies
         run: |
-          pip install --quiet -r requirements.txt -r requirements-ci.txt
-          pip install -e .
+          pip install -e '.[ci]'
       - name: pytest
         run: |
           pytest --cov=matgl tests --color=yes
