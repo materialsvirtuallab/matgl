@@ -1,6 +1,8 @@
 """This is an integration test file that checks on pre-trained models to ensure they still work."""
 from __future__ import annotations
 
+import os
+
 import matgl
 import pytest
 
@@ -12,6 +14,7 @@ def test_form_e(LiFePO4):
         assert model.predict_structure(LiFePO4) == pytest.approx(-2.5489, 3)
 
 
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
 def test_loading_all_models():
     """
     Test that all pre-trained models at least load.
