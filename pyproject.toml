@@ -71,6 +71,7 @@ mgl = "matgl.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
+matgl = ["py.typed"]
 "matgl.utils" = ["sb_roots.npy"]
 
 
