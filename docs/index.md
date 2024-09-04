@@ -304,3 +304,4 @@ ACI-1548562.
 [tutorials]: https://matgl.ai/tutorials "Tutorials"
 [tensornet]: https://arxiv.org/abs/2306.06482 "TensorNet"
 [so3net]: https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for "SO3Net"
+[chgnet]: https://www.nature.com/articles/s42256-023-00716-3 "CHGNet"
