@@ -28,6 +28,7 @@ Nassar, Carmelo Gonzales).
 
 Major milestones are summarized below. Please refer to the [changelog] for details.
 
+- v1.1.0 (May 7 2024): Implementation of [CHGNet] + pre-trained models. 
 - v1.0.0 (Feb 14 2024): Implementation of [TensorNet] and [SO3Net].
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
@@ -87,6 +88,8 @@ We have implemented other models in matgl as well. A non-exhaustive list is give
 - [TensorNet], an O(3)-equivariant message-passing neural network architecture that
   leverages Cartesian tensor representations.
 - [SO3Net],  a minimalist SO(3)-equivariant neural network.
+- [CHGNet],  an invariant message-passing neural network architecture that can predict
+  PES properties and magmoms. 
 
 ## Installation
 
@@ -225,6 +228,21 @@ information. If you are using any of the pretrained models, please cite the rele
 >
 > Chen, C., Ong, S.P. *A universal graph deep learning interatomic potential for the periodic table.* Nature
 > Computational Science, 2023, 2, 718–728. DOI: [10.1038/s43588-022-00349-3][m3gnet].
+
+>**CHGNet**
+>
+> Deng, B., Zhong, P., Jun, K. et al. *CHGNet: as a pretrained universal neural network potential for charge-informed atomistic modelling.*
+> Nat Mach Intell 5, 1031–1041 (2023). DOI:[10.1038/s42256-023-00716-3][chgnet]
+
+>**TensorNet**
+>
+> Simeon, G.  De Fabritiis, G. *Tensornet: Cartesian tensor representations for efficient learning of molecular potentials.*
+> Adv. Neural Info. Process. Syst. 36, (2024). DOI: [10.48550/arXiv.2306.06482][tensornet]
+
+>**SO3Net**
+>
+> Schütt, K. T., Hessmann, S. S. P., Gebauer, N. W. A., Lederer, J., Gastegger, M. *SchNetPack 2.0: A neural network toolbox for atomistic machine learning.*
+> J. Chem. Phys. 158, 144801 (2023). DOI: [10.1063/5.0138367][so3net]
 
 ## FAQs
 
