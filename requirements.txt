@@ -1,10 +1,10 @@
-dgl==2.1.0
+dgl==2.2.1
 torch==2.4.0
 lightning==2.4.0
 pymatgen==2024.8.9
 ase==3.23.0
 pydantic==2.8.2
 torchdata==0.8.0
-boto3==1.34.160
+boto3==1.35.10
 numpy==1.26.4
 sympy==1.13.2
