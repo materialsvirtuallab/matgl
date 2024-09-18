@@ -31,3 +31,5 @@ def test_entrypoint(Mo):
     os.remove("Mo.cif")
     os.remove("Mo_relaxed.cif")
     os.remove("Mo_hello.cif")
+    os.remove("Mo.traj")
+    os.remove("Mo.log")
