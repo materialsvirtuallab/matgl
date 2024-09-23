@@ -398,12 +398,6 @@ class ExpNormalFunction(nn.Module):
         betas = torch.tensor([(2 / self.num_rbf * (1 - start_value)) ** -2] * self.num_rbf)
         return means, betas
 
-    def reset_parameters(self):
-        """Reset the means and betas to their initial values."""
-        means, betas = self._initial_params()
-        self.means.data.copy_(means)
-        self.betas.data.copy_(betas)
-
     def forward(self, r: torch.Tensor):
         """
         Compute the radial basis function for the input distances.
