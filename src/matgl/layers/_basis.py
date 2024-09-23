@@ -393,7 +393,7 @@ class ExpNormalFunction(nn.Module):
 
     def _initial_params(self):
         """Initialize the means and betas parameters."""
-        start_value = torch.exp(-self.cutoff)
+        start_value = torch.exp(torch.tensor(-self.cutoff, dtype=matgl.float_th))
         means = torch.linspace(start_value, 1, self.num_rbf)
         betas = torch.tensor([(2 / self.num_rbf * (1 - start_value)) ** -2] * self.num_rbf)
         return means, betas
