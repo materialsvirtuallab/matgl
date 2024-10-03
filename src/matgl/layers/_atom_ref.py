@@ -41,7 +41,7 @@ class AtomRef(nn.Module):
         for i, graph in enumerate(graphs):
             atomic_numbers = graph.ndata["node_type"]
             features[i] = torch.bincount(atomic_numbers, minlength=self.max_z)
-        return features.numpy()
+        return features.cpu().numpy()
 
     def fit(self, graphs: list[dgl.DGLGraph], properties: torch.Tensor) -> None:
         """Fit the elemental reference values for the properties.
