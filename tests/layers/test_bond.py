@@ -40,7 +40,10 @@ class TestBondExpansion:
         _, g2, _ = graph_CO
         bond_expansion = BondExpansion(rbf_type="ExpNorm", cutoff=4.0, num_centers=9)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
-        assert bond_basis.shape == (27, 9)
+        assert bond_basis.shape == (28, 9)
+
+        bond_basis = bond_expansion(g2.edata["bond_dist"])
+        assert bond_basis.shape == (2, 9)
 
     def test_exception(self):
         with pytest.raises(ValueError, match="Undefined rbf_type"):
