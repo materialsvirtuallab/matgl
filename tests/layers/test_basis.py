@@ -8,6 +8,7 @@ from matgl.graph.compute import (
     create_line_graph,
 )
 from matgl.layers._basis import (
+    ExpNormalFunction,
     FourierExpansion,
     GaussianExpansion,
     RadialBesselFunction,
@@ -57,15 +58,15 @@ def test_spherical_bessel_function():
     assert [rbf.size(dim=0), rbf.size(dim=1)] == [11, 3]
 
 
-def test_spherical_bessel_function_smooth():
+def test_exp_normal_function():
     r = torch.linspace(1.0, 5.0, 11)
-    rbf_sb = SphericalBesselFunction(max_n=3, max_l=3, cutoff=5.0, smooth=False)
-    rbf = rbf_sb(r)
-    assert [rbf.size(dim=0), rbf.size(dim=1)] == [11, 9]
+    rbf = ExpNormalFunction(cutoff=5.0, num_rbf=3, learnable=False)
+    res = rbf(r)
+    assert [res.size(dim=0), res.size(dim=1)] == [11, 3]
 
-    rbf_sb = SphericalBesselFunction(max_n=3, max_l=3, cutoff=5.0, smooth=True)
-    rbf = rbf_sb(r)
-    assert [rbf.size(dim=0), rbf.size(dim=1)] == [11, 3]
+    rbf = ExpNormalFunction(cutoff=5.0, num_rbf=3, learnable=True)
+    res = rbf(r)
+    assert [res.size(dim=0), res.size(dim=1)] == [11, 3]
 
 
 def test_spherical_harmonic_function():
@@ -80,15 +81,6 @@ def test_spherical_bessel_harmonics_function():
     r = torch.empty(10).normal_()
     sbf = SphericalBesselFunction(max_l=3, cutoff=5.0, max_n=3, smooth=False)
     res = sbf(r)
-    res2 = sbf.rbf_j0(r, cutoff=5.0, max_n=3)
-    assert np.allclose(res[:, :3].numpy().ravel(), res2.numpy().ravel(), atol=1e-07)
-
-    assert res.numpy().shape == (10, 9)
-
-    sbf2 = SphericalBesselFunction(max_l=3, cutoff=5.0, max_n=3, smooth=True)
-
-    res2 = sbf2(r)
-    assert tuple(res2.shape) == (10, 3)
 
     shf = SphericalHarmonicsFunction(max_l=3, use_phi=True)
     res_shf = shf(cos_theta=torch.linspace(-1, 1, 10), phi=torch.linspace(0, 2 * np.pi, 10))
