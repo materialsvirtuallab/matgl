@@ -9,6 +9,7 @@ from torch import Tensor, nn
 
 import matgl
 from matgl.layers._three_body import combine_sbf_shf
+from matgl.utils.cutoff import cosine_cutoff
 from matgl.utils.maths import SPHERICAL_BESSEL_ROOTS, _get_lambda_func
 
 
@@ -360,3 +361,52 @@ class SphericalBesselWithHarmonics(nn.Module):
         sbf = self.sbf(line_graph.edata["triple_bond_lengths"])
         shf = self.shf(line_graph.edata["cos_theta"], line_graph.edata["phi"])
         return combine_sbf_shf(sbf, shf, max_n=self.max_n, max_l=self.max_l, use_phi=self.use_phi)
+
+
+class ExpNormalFunction(nn.Module):
+    """Implementation of radial basis function using exponential normal smearing."""
+
+    def __init__(self, cutoff: float = 5.0, num_rbf: int = 50, learnable: bool = True):
+        """
+        Initialize ExpNormalSmearing.
+
+        Args:
+            cutoff (float): The cutoff distance beyond which interactions are considered negligible. Default is 5.0.
+            num_rbf (int): The number of radial basis functions (RBF) to use. Default is 50.
+            learnable (bool): If True, the means and betas parameters are learnable.
+                              If False, they are fixed. Default is True.
+        """
+        super().__init__()
+        self.cutoff = cutoff
+        self.num_rbf = num_rbf
+        self.learnable = learnable
+
+        self.alpha = 5.0 / cutoff
+
+        means, betas = self._initial_params()
+        if learnable:
+            self.register_parameter("means", nn.Parameter(means))
+            self.register_parameter("betas", nn.Parameter(betas))
+        else:
+            self.register_buffer("means", means)
+            self.register_buffer("betas", betas)
+
+    def _initial_params(self):
+        """Initialize the means and betas parameters."""
+        start_value = torch.exp(torch.tensor(-self.cutoff, dtype=matgl.float_th))
+        means = torch.linspace(start_value, 1, self.num_rbf)
+        betas = torch.tensor([(2 / self.num_rbf * (1 - start_value)) ** -2] * self.num_rbf)
+        return means, betas
+
+    def forward(self, r: torch.Tensor):
+        """
+        Compute the radial basis function for the input distances.
+
+        Args:
+            r (torch.Tensor): Input distances.
+
+        Returns:
+            torch.Tensor: Smearing function applied to the input distances.
+        """
+        r = r.unsqueeze(-1)
+        return cosine_cutoff(r, self.cutoff) * torch.exp(-self.betas * (torch.exp(self.alpha * (-r)) - self.means) ** 2)

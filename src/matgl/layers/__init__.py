@@ -1,4 +1,4 @@
-"""This package implements the layers for M*GNet."""
+"""This package implements the layers for different Graph Neural Networks."""
 
 from __future__ import annotations
 
