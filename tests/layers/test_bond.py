@@ -42,6 +42,9 @@ class TestBondExpansion:
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         assert bond_basis.shape == (28, 9)
 
+        bond_basis = bond_expansion(g2.edata["bond_dist"])
+        assert bond_basis.shape == (2, 9)
+
     def test_exception(self):
         with pytest.raises(ValueError, match="Undefined rbf_type"):
             BondExpansion(rbf_type="nonsense")
