@@ -135,17 +135,18 @@ class MLP_norm(nn.Module):
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
-                if normalize_hidden:
+                if normalize_hidden and self.norm_layers is not None:
                     if normalization == "graph":
                         self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
                     elif normalization == "layer":
                         self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
-                if normalization == "graph":
-                    self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
-                elif normalization == "layer":
-                    self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
+                if self.norm_layers is not None:
+                    if normalization == "graph":
+                        self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
+                    elif normalization == "layer":
+                        self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
 
     def forward(self, inputs: torch.Tensor, g: dgl.Graph | None = None) -> torch.Tensor:
         """Applies all layers in turn.
