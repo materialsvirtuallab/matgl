@@ -4,7 +4,7 @@ lightning==2.4.0
 pymatgen==2024.10.3
 ase==3.23.0
 pydantic==2.9.2
-torchdata==0.8.0
-boto3==1.35.37
+torchdata==0.7.1
+boto3==1.35.40
 numpy==1.26.4
 sympy==1.13.3

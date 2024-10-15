@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, cast
 
 import dgl
 import torch
@@ -130,21 +130,23 @@ class MLP_norm(nn.Module):
         self.activate_last = activate_last
         self.normalize_hidden = normalize_hidden
         norm_kwargs = norm_kwargs or {}
+        norm_kwargs = cast(dict, norm_kwargs)
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
-                if normalize_hidden:
+                if normalize_hidden and self.norm_layers is not None:
                     if normalization == "graph":
                         self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
                     elif normalization == "layer":
                         self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
             else:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias and bias_last))
-                if normalization == "graph":
-                    self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
-                elif normalization == "layer":
-                    self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
+                if self.norm_layers is not None:
+                    if normalization == "graph":
+                        self.norm_layers.append(GraphNorm(out_dim, **norm_kwargs))
+                    elif normalization == "layer":
+                        self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
 
     def forward(self, inputs: torch.Tensor, g: dgl.Graph | None = None) -> torch.Tensor:
         """Applies all layers in turn.
