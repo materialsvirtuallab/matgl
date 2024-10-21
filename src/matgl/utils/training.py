@@ -462,6 +462,12 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
         """
         # labels and preds are (energy, force, stress, (optional) site_wise)
+        if self.allow_missing_labels:
+            for i, label in enumerate(labels):
+                valid_value_indices = ~torch.isnan(label)
+                labels[i] = labels[i][valid_value_indices]
+                preds[i] = preds[i][valid_value_indices]
+
         e_loss = self.loss(labels[0] / num_atoms, preds[0] / num_atoms, **self.loss_params)
         f_loss = self.loss(labels[1], preds[1], **self.loss_params)
 
@@ -486,28 +492,20 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             total_loss = total_loss + self.stress_weight * s_loss
 
         if self.model.calc_magmom:
-            if self.allow_missing_labels:
-                valid_values = ~torch.isnan(labels[3])
-                labels_3 = labels[3][valid_values]
-                preds_3 = preds[3][valid_values]
-            else:
-                labels_3 = labels[3]
-                preds_3 = preds[3]
-
-            if len(labels_3) > 0:
+            if len(labels[3]) > 0:
                 if self.magmom_target == "symbreak":
                     m_loss = torch.min(
-                        loss(labels_3, preds_3, **self.loss_params), loss(labels_3, -preds_3, **self.loss_params)
+                        loss(labels[3], preds[3], **self.loss_params), loss(labels[3], -preds[3], **self.loss_params)
                     )
-                    m_mae = torch.min(self.mae(labels_3, preds_3), self.mae(labels_3, -preds_3))
-                    m_rmse = torch.min(self.rmse(labels_3, preds_3), self.rmse(labels_3, -preds_3))
+                    m_mae = torch.min(self.mae(labels[3], preds[3]), self.mae(labels[3], -preds[3]))
+                    m_rmse = torch.min(self.rmse(labels[3], preds[3]), self.rmse(labels[3], -preds[3]))
                 else:
                     if self.magmom_target == "absolute":
-                        labels_3 = torch.abs(labels_3)
+                        labels_3 = torch.abs(labels[3])
 
-                    m_loss = loss(labels_3, preds_3, **self.loss_params)
-                    m_mae = self.mae(labels_3, preds_3)
-                    m_rmse = self.rmse(labels_3, preds_3)
+                    m_loss = loss(labels_3, preds[3], **self.loss_params)
+                    m_mae = self.mae(labels_3, preds[3])
+                    m_rmse = self.rmse(labels_3, preds[3])
 
                 total_loss = total_loss + self.magmom_weight * m_loss
 

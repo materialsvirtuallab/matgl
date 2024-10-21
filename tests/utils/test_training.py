@@ -773,6 +773,97 @@ class TestModelTrainer:
 
         self.teardown_class()
 
+    def test_chgnet_training_with_missing_label(self, LiFePO4, BaNiO3):
+        isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
+        two_body = Structure(Lattice.cubic(10.0), ["Li", "Li"], [[0, 0, 0], [0.5, 0, 0]])
+        structures = [LiFePO4, BaNiO3] * 5 + [isolated_atom, two_body]
+        energies = [-2.0, -3.0] * 5 + [-1.0, -1.5]
+        forces = [np.zeros((len(s), 3)).tolist() for s in structures]
+        stresses = [np.zeros((3, 3)).tolist()] * len(structures)
+        magmoms = [np.zeros((len(s), 1)).tolist() for s in structures]
+        # Create some missing labels
+        energies[2] = None
+        forces[4] = None
+        stresses[6] = None
+        magmoms[8] = None
+
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        converter = Structure2Graph(element_types=element_types, cutoff=6.0)
+        dataset = MGLDataset(
+            threebody_cutoff=3.0,
+            structures=structures,
+            converter=converter,
+            include_line_graph=True,
+            directed_line_graph=True,
+            labels={
+                "energies": energies,
+                "forces": forces,
+                "stresses": stresses,
+                "magmoms": magmoms,
+            },
+            save_cache=False,
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=partial(collate_fn_pes, include_magmom=True, include_line_graph=True),
+            batch_size=2,
+            num_workers=0,
+            generator=torch.Generator(device=device),
+        )
+        model = CHGNet(element_types=element_types, is_intensive=False)
+        lit_model = PotentialLightningModule(
+            model=model,
+            stress_weight=0.1,
+            magmom_weight=0.1,
+            include_line_graph=True,
+            allow_missing_labels=True,
+        )
+        # We will use CPU if MPS is available since there is a serious bug.
+        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer.test(lit_model, dataloaders=test_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
+
+        assert torch.any(pred_LFP_energy < 0)
+        assert torch.any(pred_BNO_energy < 0)
+        # specify customize optimizer and scheduler
+        from torch.optim.lr_scheduler import CosineAnnealingLR
+
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1.0e-3, weight_decay=1.0e-5, amsgrad=True)
+        scheduler = CosineAnnealingLR(optimizer, T_max=1000 * 10, eta_min=1.0e-2 * 1.0e-3)
+        lit_model = PotentialLightningModule(
+            model=model,
+            stress_weight=0.1,
+            magmom_weight=0.1,
+            include_line_graph=True,
+            loss="huber_loss",
+            optimizer=optimizer,
+            scheduler=scheduler,
+        )
+        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+
+        trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer.test(lit_model, dataloaders=test_loader)
+
+        pred_LFP_energy = model.predict_structure(LiFePO4)
+        pred_BNO_energy = model.predict_structure(BaNiO3)
+
+        assert pred_LFP_energy < 0
+        assert pred_BNO_energy < 0
+
+        self.teardown_class()
+
     @classmethod
     def teardown_class(cls):
         try:
