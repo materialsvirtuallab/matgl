@@ -502,7 +502,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             s_rmse = self.rmse(valid_labels[2], valid_preds[2])
             total_loss = total_loss + self.stress_weight * s_loss
 
-        if self.model.calc_magmom and len(labels[3]) > 0:
+        if self.model.calc_magmom and labels[3].numel() > 0:
             if self.magmom_target == "symbreak":
                 m_loss = torch.min(
                     loss(valid_labels[3], valid_preds[3], **self.loss_params),

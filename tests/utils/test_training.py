@@ -775,7 +775,7 @@ class TestModelTrainer:
 
     def test_chgnet_training_with_missing_label(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 5
-        energies = [-2.0, -3.0] * 5 + [-1.0, -1.5]
+        energies = [-2.0, -3.0] * 5
         forces = [np.ones((len(s), 3)).tolist() for s in structures]
         stresses = [np.zeros((3, 3)).tolist()] * len(structures)
         magmoms = [np.ones((len(s), 1)).tolist() for s in structures]
