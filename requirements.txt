@@ -1,7 +1,7 @@
 dgl==2.2.1
 torch==2.2.1
 lightning==2.4.0
-pymatgen==2024.10.3
+pymatgen==2024.10.22
 ase==3.23.0
 pydantic==2.9.2
 torchdata==0.7.1
