@@ -243,7 +243,6 @@ class Relaxer:
             stress_weight=stress_weight,  # type: ignore
         )
         self.relax_cell = relax_cell
-        self.potential = potential
         self.ase_adaptor = AseAtomsAdaptor()
 
     def relax(
