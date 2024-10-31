@@ -50,7 +50,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
             DGLGraph object, state_attr
 
         """
-        u, v = torch.tensor(src_id), torch.tensor(dst_id)
+        u, v = torch.tensor(src_id, dtype=matgl.int_th), torch.tensor(dst_id, dtype=matgl.int_th)
         g = dgl.graph((u, v), num_nodes=len(structure))
         # TODO: Need to check if the variable needs to be double or float, now use float
         pbc_offset = torch.tensor(images, dtype=matgl.float_th)
