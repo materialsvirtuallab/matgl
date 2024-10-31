@@ -680,7 +680,9 @@ class TestModelTrainer:
             generator=torch.Generator(device=device),
         )
         model = CHGNet(element_types=element_types, is_intensive=False)
-        lit_model = PotentialLightningModule(model=model, stress_weight=0.1, magmom_weight=0.1, include_line_graph=True)
+        lit_model = PotentialLightningModule(
+            model=model, stress_weight=0.1, magmom_weight=0.1, include_line_graph=True, magmom_target="symbreak"
+        )
         # We will use CPU if MPS is available since there is a serious bug.
         trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
 
