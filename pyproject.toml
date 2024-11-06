@@ -50,14 +50,14 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.1.0",
+    "dgl<=2.2.1",
     "pymatgen",
     "lightning<=2.4.0",
     "torch<=2.2.1",
     "pydantic",
     "torchdata<=0.7.1",
     "boto3",
-    "numpy<2.0.0"
+    "numpy<3.0.0"
 ]
 version = "1.1.3"
 
@@ -71,6 +71,7 @@ mgl = "matgl.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
+matgl = ["py.typed"]
 "matgl.utils" = ["sb_roots.npy"]
 
 

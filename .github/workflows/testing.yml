@@ -20,7 +20,7 @@ jobs:
     strategy:
       max-parallel: 20
       matrix:
-        python-version: ["3.9", "3.11"]
+        python-version: ["3.10", "3.12"]
         os: [ "ubuntu-latest", "macos-latest" ]
 
     runs-on: ${{ matrix.os }}

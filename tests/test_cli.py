@@ -20,7 +20,8 @@ def test_entrypoint(Mo):
     assert exit_status == 0
     exit_status = os.system("mgl predict -i Mo.cif -m MEGNet-MP-2018.6.1-Eform")
     assert exit_status == 0
-
+    exit_status = os.system("mgl md -i Mo.cif -e nve -t 300.0 -n 10 --stepsize=1.0")
+    assert exit_status == 0
     # if "PMG_MAPI_KEY" in SETTINGS:
     #     exit_status = os.system("mgl predict -p mp-19017 -m MEGNet-MP-2018.6.1-Eform")
     #     assert exit_status == 0
@@ -30,3 +31,5 @@ def test_entrypoint(Mo):
     os.remove("Mo.cif")
     os.remove("Mo_relaxed.cif")
     os.remove("Mo_hello.cif")
+    os.remove("Mo.traj")
+    os.remove("Mo.log")

@@ -9,11 +9,13 @@ import warnings
 
 import numpy as np
 import torch
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from pymatgen.core.structure import Structure
 from pymatgen.ext.matproj import MPRester
+from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
-from matgl.ext.ase import Relaxer
+from matgl.ext.ase import MolecularDynamics, Relaxer
 
 warnings.simplefilter("ignore")
 logger = logging.getLogger("MGL")
@@ -93,6 +95,49 @@ def predict_structure(args):
             structure = mpr.get_structure_by_material_id(mid)
             val = model.predict_structure(structure)
             print(f"{args.model} prediction for {mid} ({structure.composition.reduced_formula}): {val}.")
+
+
+def molecular_dynamics(args):
+    """
+    Use MaGL models to perform MD simulations on structures.
+
+    Args:
+        args: Args from CLI.
+    """
+    for file in args.infile:
+        name = file.split(".")[0]
+        structure = Structure.from_file(file)
+        adaptor = AseAtomsAdaptor()
+        atoms = adaptor.get_atoms(structure)
+
+        logger.info(f"Initial structure\n{structure}")
+        logger.info("Loading model...")
+        pot = matgl.load_model(args.model)
+        logger.info("Running MD...")
+        MaxwellBoltzmannDistribution(atoms, temperature_K=args.temp)
+        md = MolecularDynamics(
+            atoms,
+            potential=pot,
+            ensemble=args.ensemble,
+            pressure=args.pressure,
+            timestep=args.stepsize,
+            trajectory=name + ".traj",
+            logfile=name + ".log",
+            temperature=args.temp,
+            taut=args.taut,
+            taup=args.taup,
+            friction=args.friction,
+            andersen_prob=args.andersen_prob,
+            ttime=args.ttime,
+            pfactor=args.pfactor,
+            external_stress=args.external_stress,
+            compressibility_au=args.compressibility_au,
+            loginterval=args.loginterval,
+            append_trajectory=args.append_trajectory,
+            mask=args.mask,
+        )
+        md.run(args.nsteps)
+    return 0
 
 
 def clear_cache(args):
@@ -199,6 +244,161 @@ def main():
     )
 
     p_predict.set_defaults(func=predict_structure)
+
+    # MD simulations
+    p_md = subparsers.add_parser("md", help="Perform MD simulations with pre-trained and customized models.")
+
+    p_md.add_argument(
+        "-i",
+        "--infile",
+        nargs="+",
+        dest="infile",
+        required=True,
+        help="Input files containing structure. Any format supported by pymatgen Structure.from_file method.",
+    )
+
+    p_md.add_argument(
+        "-m",
+        "--model",
+        dest="model",
+        #        choices=[m for m in matgl.get_available_pretrained_models() if m.endswith("PES")],
+        default="M3GNet-MP-2021.2.8-DIRECT-PES",
+        help="Path for loading MLIPs trained from MatGL. Default='M3GNet-MP-2021.2.8-DIRECT-PES'.",
+    )
+
+    p_md.add_argument(
+        "-e",
+        "--ensemble",
+        dest="ensemble",
+        choices=["nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"],
+        default="nve",
+        help="Ensemble used for MD simulation. Default='nve'.",
+    )
+
+    p_md.add_argument(
+        "-n",
+        "--nsteps",
+        dest="nsteps",
+        type=int,
+        default=100,
+        help="Number of steps used for MD simulation. Default=100.",
+    )
+
+    p_md.add_argument(
+        "--stepsize",
+        dest="stepsize",
+        type=float,
+        default=1.0,
+        help="Step size used for MD simulation. Default=1.0 fs.",
+    )
+
+    p_md.add_argument(
+        "-t",
+        "--temp",
+        dest="temp",
+        type=float,
+        default=300.0,
+        help="Temperature used for MD simulation. Default=300.0 in K.",
+    )
+
+    p_md.add_argument(
+        "-p",
+        "--pressure",
+        dest="pressure",
+        type=float,
+        default=1.01325,
+        help="Pressure used for MD simulation. Default=1.01325 in Bar.",
+    )
+
+    p_md.add_argument(
+        "--taut",
+        dest="taut",
+        type=float,
+        default=None,
+        help="Time constant for Berendsen temperature coupling. Default is None.",
+    )
+
+    p_md.add_argument(
+        "--taup",
+        dest="taup",
+        type=float,
+        default=None,
+        help="Time constant for Berendsen pressure coupling. Default is None.",
+    )
+
+    p_md.add_argument(
+        "--andersen_prob",
+        dest="andersen_prob",
+        type=float,
+        default=0.01,
+        help="Random collision probability for nvt_andersen. Default is 0.01.",
+    )
+
+    p_md.add_argument(
+        "--friction",
+        dest="friction",
+        type=float,
+        default=0.001,
+        help="Friction coefficient for nvt_langevin. Default is 0.001.",
+    )
+
+    p_md.add_argument(
+        "--ttime",
+        dest="ttime",
+        type=float,
+        default=25.0,
+        help="Characteristic timescale of the thermostat in ASE internal units. Default is 25.0.",
+    )
+
+    p_md.add_argument(
+        "--pfactor",
+        dest="pfactor",
+        type=float,
+        default=75.0**2.0,
+        help="A constant in the barostat differential equation. Default is 25.0 in eV/A$^{3}$.",
+    )
+
+    p_md.add_argument(
+        "--external_stress",
+        dest="external_stress",
+        type=float,
+        default=None,
+        help="The external stress either 3x3 tensor, 6-vector or a scalar in eV/A$^{3}$. Default is None.",
+    )
+
+    p_md.add_argument(
+        "--compressibility_au",
+        dest="compressibility_au",
+        type=float,
+        default=None,
+        help="Compressibility of the material in eV/A^{3}. Default is None.",
+    )
+
+    p_md.add_argument(
+        "--loginterval",
+        dest="loginterval",
+        type=int,
+        default=1,
+        help="Write to log file every interval steps. Default is 1.",
+    )
+
+    p_md.add_argument(
+        "--append_trajectory",
+        dest="append_trajectory",
+        type=bool,
+        default=False,
+        help="Whether to append to prev trajectory. Default is False.",
+    )
+
+    p_md.add_argument(
+        "--mask",
+        dest="mask",
+        type=np.array,
+        default=None,
+        help="a symmetric 3x3 array indicating, which strain values may change for NPT simulations",
+    )
+
+    p_md.set_defaults(func=molecular_dynamics)
 
     p_clear = subparsers.add_parser("clear", help="Clear cache.")
 
