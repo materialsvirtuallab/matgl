@@ -16,10 +16,10 @@ from matgl.utils.so3 import generate_clebsch_gordan_rsh, sh_indices, sparsify_cl
 
 __all__ = [
     "RealSphericalHarmonics",
-    "SO3TensorProduct",
     "SO3Convolution",
     "SO3GatedNonlinearity",
     "SO3ParametricGatedNonlinearity",
+    "SO3TensorProduct",
 ]
 
 
