@@ -23,6 +23,7 @@ from ase.md.andersen import Andersen
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
+from ase.md.bussi import Bussi
 from ase.md.verlet import VelocityVerlet
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -377,7 +378,7 @@ class MolecularDynamics:
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1 / 160.21766208,
         ensemble: Literal[
-            "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"
+            "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", "npt_berendsen", "npt_nose_hoover"
         ] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
@@ -405,8 +406,8 @@ class MolecularDynamics:
             stress of the atoms
             state_attr (torch.Tensor): State attr.
             stress_weight (float): conversion factor from GPa to eV/A^3
-            ensemble (str): choose from "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen",
-            "npt_nose_hoover"
+            ensemble (str): choose from "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", 
+            "npt_berendsen", "npt_nose_hoover"
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
@@ -482,6 +483,19 @@ class MolecularDynamics:
                 timestep * units.fs,
                 temperature_K=temperature,
                 andersen_prob=andersen_prob,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+            )
+
+
+        elif ensemble.lower() == "nvt_bussi":
+            self.dyn = Bussi(
+                self.atoms,
+                timestep * units.fs,
+                temperature_K=temperature,
+                taut=taut,
                 trajectory=trajectory,
                 logfile=logfile,
                 loginterval=loginterval,
