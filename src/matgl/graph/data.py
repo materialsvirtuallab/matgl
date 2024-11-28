@@ -270,7 +270,7 @@ class MGLDataset(DGLDataset):
             {
                 k: torch.tensor(v[idx], dtype=matgl.float_th)
                 for k, v in self.labels.items()
-                if isinstance(v[idx], float)
+                if not isinstance(v[idx], str)
             },
         ]
         if self.include_line_graph:
