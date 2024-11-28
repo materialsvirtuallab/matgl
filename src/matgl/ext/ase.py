@@ -405,8 +405,8 @@ class MolecularDynamics:
             stress of the atoms
             state_attr (torch.Tensor): State attr.
             stress_weight (float): conversion factor from GPa to eV/A^3
-            ensemble (str): choose from "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen",
-            "npt_nose_hoover"
+            ensemble (str): choose from "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt",
+            "npt_berendsen", "npt_nose_hoover"
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
