@@ -53,11 +53,11 @@ dependencies = [
     "dgl<=2.2.1",
     "pymatgen",
     "lightning<=2.4.0",
-    "torch<=2.2.1",
+    "torch<=2.2.2",
     "pydantic",
     "torchdata<=0.7.1",
     "boto3",
-    "numpy<3.0.0"
+    "numpy<2.0.0"
 ]
 version = "1.1.3"
 
