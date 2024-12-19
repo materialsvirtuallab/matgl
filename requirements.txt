@@ -6,6 +6,6 @@ ase==3.23.0
 pydantic==2.10.4
 numpy==1.26.4
 torchdata==0.7.1
-boto3==1.35.83
+boto3==1.35.85
 sympy==1.13.3
 
