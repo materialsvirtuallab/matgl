@@ -94,7 +94,7 @@ def create_line_graph(g: dgl.DGLGraph, threebody_cutoff: float, directed: bool =
 
 
 def ensure_line_graph_compatibility(
-    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, directed: bool = False, tol: float = 5e-7
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, directed: bool = False, tol: float = 5e-6
 ) -> dgl.DGLGraph:
     """Ensure that line graph is compatible with graph.
 
@@ -306,7 +306,7 @@ def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.
 
 
 def _ensure_directed_line_graph_compatibility(
-    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, tol: float = 5e-7
+    graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float, tol: float = 5e-6
 ) -> dgl.DGLGraph:
     """Ensure that line graph is compatible with graph.
 
