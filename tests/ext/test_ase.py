@@ -117,7 +117,16 @@ def test_get_graph_from_atoms_mol():
 
 def test_molecular_dynamics(MoS2):
     pot = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
-    for ensemble in ["nvt", "nve", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"]:
+    for ensemble in [
+        "nvt",
+        "nve",
+        "nvt_langevin",
+        "nvt_andersen",
+        "nvt_bussi",
+        "npt",
+        "npt_berendsen",
+        "npt_nose_hoover",
+    ]:
         md = MolecularDynamics(MoS2, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
         md.run(10)
         assert md.dyn is not None
