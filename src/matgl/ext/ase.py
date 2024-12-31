@@ -379,7 +379,7 @@ class MolecularDynamics:
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1 / 160.21766208,
         ensemble: Literal[
-            "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"
+            "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", "npt_berendsen", "npt_nose_hoover"
         ] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
