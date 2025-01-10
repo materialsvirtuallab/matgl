@@ -267,7 +267,11 @@ class MGLDataset(DGLDataset):
             self.graphs[idx],
             self.lattices[idx],
             self.state_attr[idx],
-            {k: torch.tensor(v[idx], dtype=matgl.float_th) for k, v in self.labels.items()},
+            {
+                k: torch.tensor(v[idx], dtype=matgl.float_th)
+                for k, v in self.labels.items()
+                if not isinstance(v[idx], str)
+            },
         ]
         if self.include_line_graph:
             items.insert(2, self.line_graphs[idx])

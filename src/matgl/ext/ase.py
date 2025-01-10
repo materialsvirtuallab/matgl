@@ -20,9 +20,11 @@ from ase.constraints import ExpCellFilter
 from ase.filters import FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
+from ase.md.bussi import Bussi
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -377,7 +379,7 @@ class MolecularDynamics:
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1 / 160.21766208,
         ensemble: Literal[
-            "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen", "npt_nose_hoover"
+            "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", "npt_berendsen", "npt_nose_hoover"
         ] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
@@ -405,8 +407,8 @@ class MolecularDynamics:
             stress of the atoms
             state_attr (torch.Tensor): State attr.
             stress_weight (float): conversion factor from GPa to eV/A^3
-            ensemble (str): choose from "nve", "nvt", "nvt_langevin", "nvt_andersen", "npt", "npt_berendsen",
-            "npt_nose_hoover"
+            ensemble (str): choose from "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi",
+            "npt", "npt_berendsen", "npt_nose_hoover"
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
@@ -488,6 +490,20 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
+        elif ensemble.lower() == "nvt_bussi":
+            if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
+                MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
+            self.dyn = Bussi(
+                self.atoms,
+                timestep * units.fs,
+                temperature_K=temperature,
+                taut=taut,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+            )
+
         elif ensemble.lower() == "npt":
             """
             NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
@@ -506,8 +522,7 @@ class MolecularDynamics:
                 trajectory=trajectory,
                 logfile=logfile,
                 loginterval=loginterval,
-                # append_trajectory=append_trajectory,
-                # this option is not supported in ASE at this point (I have sent merge request there)
+                append_trajectory=append_trajectory,
             )
 
         elif ensemble.lower() == "npt_berendsen":
