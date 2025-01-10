@@ -40,7 +40,8 @@ from matgl.layers import (
     WeightedReadOut,
 )
 from matgl.utils.cutoff import polynomial_cutoff
-from matgl.utils.io import IOMixIn
+
+from ._core import MatGLModel
 
 if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
@@ -48,7 +49,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class M3GNet(nn.Module, IOMixIn):
+class M3GNet(MatGLModel):
     """The main M3GNet model."""
 
     __version__ = 2
@@ -271,7 +272,7 @@ class M3GNet(nn.Module, IOMixIn):
                 edge_feat,
             )
             edge_feat, node_feat, state_feat = self.graph_layers[i](g, edge_feat, node_feat, state_feat)
-            fea_dict[f"gc_{i+1}"] = {
+            fea_dict[f"gc_{i + 1}"] = {
                 "node_feat": node_feat,
                 "edge_feat": edge_feat,
                 "state_feat": state_feat,

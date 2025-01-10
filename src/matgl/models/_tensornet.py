@@ -33,8 +33,9 @@ from matgl.layers import (
 )
 from matgl.layers._embedding import TensorEmbedding
 from matgl.layers._graph_convolution import TensorNetInteraction
-from matgl.utils.io import IOMixIn
 from matgl.utils.maths import decompose_tensor, tensor_norm
+
+from ._core import MatGLModel
 
 if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
@@ -42,7 +43,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class TensorNet(nn.Module, IOMixIn):
+class TensorNet(MatGLModel):
     """The main TensorNet model. The official implementation can be found in https://github.com/torchmd/torchmd-net."""
 
     __version__ = 1

@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from torch import nn
-
-from matgl.utils.io import IOMixIn
+from ._core import MatGLModel
 
 if TYPE_CHECKING:
+    from torch import nn
+
     from matgl.data.transformer import Transformer
 
 
-class TransformedTargetModel(nn.Module, IOMixIn):
+class TransformedTargetModel(MatGLModel):
     """A model where the target is first transformed prior to training and the reverse transformation is performed for
     predictions. This is modelled after scikit-learn's TransformedTargetRegressor. It should be noted that this model
     is almost never used for training since the general idea is to use the transformed target for loss computation.
