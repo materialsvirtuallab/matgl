@@ -26,6 +26,7 @@ from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from ase.md.verlet import VelocityVerlet
+from ase.stress import full_3x3_to_voigt_6_stress
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
@@ -133,6 +134,7 @@ class PESCalculator(Calculator):
         potential: Potential,
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1.0,
+        use_voigt: bool = False,
         **kwargs,
     ):
         """
@@ -143,6 +145,7 @@ class PESCalculator(Calculator):
             state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
             stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
+            use_voigt (bool): whether the voigt notation is used for stress output
             **kwargs: Kwargs pass through to super().__init__().
         """
         super().__init__(**kwargs)
@@ -154,6 +157,7 @@ class PESCalculator(Calculator):
         self.state_attr = state_attr
         self.element_types = potential.model.element_types  # type: ignore
         self.cutoff = potential.model.cutoff
+        self.use_voigt = use_voigt
 
     def calculate(
         self,
@@ -186,7 +190,12 @@ class PESCalculator(Calculator):
             forces=calc_result[1].detach().cpu().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=calc_result[2].detach().cpu().numpy() * self.stress_weight)
+            stresses_np = (
+                full_3x3_to_voigt_6_stress(calc_result[2].detach().cpu().numpy())
+                if self.use_voigt
+                else calc_result[2].detach().cpu().numpy()
+            )
+            self.results.update(stress=stresses_np * self.stress_weight)
         if self.compute_hessian:
             self.results.update(hessian=calc_result[3].detach().cpu().numpy())
         if self.compute_magmom:

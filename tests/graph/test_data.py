@@ -72,7 +72,7 @@ class TestDataset:
             labels={"label": label},
             clear_processed=True,
             graph_labels=graph_label,
-            name="MGLDataset_megnet",
+            directory_name="MGLDataset_megnet",
         )
         g1, lat1, state1, label1 = dataset_with_graph_label[0]
         g2, lat2, state2, label2 = dataset_with_graph_label[1]
@@ -85,7 +85,7 @@ class TestDataset:
         label = [-1.0, 2.0]
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
-        dataset = MGLDataset(name="MGLDataset_megnet")
+        dataset = MGLDataset(directory_name="MGLDataset_megnet")
         g1, lat1, state1, label1 = dataset[0]
         assert label1["label"] == label[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
@@ -127,7 +127,7 @@ class TestDataset:
             include_line_graph=True,
             labels={"energies": energies, "forces": forces, "stresses": stresses},
             clear_processed=True,
-            name="MGLDataset_pes",
+            directory_name="MGLDataset_pes",
         )
         g1, lat1, l_g1, state1, pes1 = dataset[0]
         g2, lat2, l_g2, state2, pes2 = dataset[1]
@@ -148,7 +148,7 @@ class TestDataset:
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
-            name="MGLDataset_pes",
+            directory_name="MGLDataset_pes",
             include_line_graph=True,
         )
         dataset.load()
