@@ -30,7 +30,8 @@ from matgl.layers import (
 )
 from matgl.layers._basis import RadialBesselFunction
 from matgl.utils.cutoff import polynomial_cutoff
-from matgl.utils.io import IOMixIn
+
+from ._core import MatGLModel
 
 if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class SO3Net(nn.Module, IOMixIn):
+class SO3Net(MatGLModel):
     """
     A simple SO3-equivariant representation using spherical harmonics and
     Clebsch-Gordon tensor products. The official implementation can be found in https://github.com/atomistic-machine-learning/schnetpack.

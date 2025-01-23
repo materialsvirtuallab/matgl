@@ -19,7 +19,8 @@ from torch import nn
 from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph.compute import compute_pair_vector_and_distance
 from matgl.layers import MLP, ActivationFunction, BondExpansion, EdgeSet2Set, EmbeddingBlock, MEGNetBlock
-from matgl.utils.io import IOMixIn
+
+from ._core import MatGLModel
 
 if TYPE_CHECKING:
     import dgl
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__file__)
 
 
-class MEGNet(nn.Module, IOMixIn):
+class MEGNet(MatGLModel):
     """DGL implementation of MEGNet."""
 
     __version__ = 1
