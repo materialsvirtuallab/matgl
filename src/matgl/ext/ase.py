@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 from ase import Atoms, units
+from ase.stress import full_3x3_to_voigt_6_stress
 from ase.calculators.calculator import Calculator, all_changes
 from ase.constraints import ExpCellFilter
 from ase.filters import FrechetCellFilter
@@ -133,6 +134,7 @@ class PESCalculator(Calculator):
         potential: Potential,
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1.0,
+        use_voigt: bool = False,
         **kwargs,
     ):
         """
@@ -154,6 +156,7 @@ class PESCalculator(Calculator):
         self.state_attr = state_attr
         self.element_types = potential.model.element_types  # type: ignore
         self.cutoff = potential.model.cutoff
+        self.use_voigt = use_voigt
 
     def calculate(
         self,
@@ -186,7 +189,12 @@ class PESCalculator(Calculator):
             forces=calc_result[1].detach().cpu().numpy(),
         )
         if self.compute_stress:
-            self.results.update(stress=calc_result[2].detach().cpu().numpy() * self.stress_weight)
+            stresses_np = (
+                full_3x3_to_voigt_6_stress(calc_result[2].detach().cpu().numpy())
+                if self.use_voigt
+                else calc_result[2].detach().cpu().numpy()
+            )
+            self.results.update(stress=stresses_np * self.stress_weight)
         if self.compute_hessian:
             self.results.update(hessian=calc_result[3].detach().cpu().numpy())
         if self.compute_magmom:
