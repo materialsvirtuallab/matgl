@@ -3,8 +3,8 @@ torch==2.2.2
 lightning==2.5.0.post0
 pymatgen==2025.1.24
 ase==3.24.0
-pydantic==2.10.5
+pydantic==2.10.6
 numpy==1.26.4
 torchdata==0.7.1
-boto3==1.35.96
+boto3==1.37.6
 sympy==1.13.3

@@ -62,8 +62,8 @@ class MEGNetGraphConv(Module):
         # TODO(marcel): Should we activate last?
         edge_update = MLP(edge_dims, activation, activate_last=True)
         node_update = MLP(node_dims, activation, activate_last=True)
-        attr_update = MLP(state_dims, activation, activate_last=True)
-        return MEGNetGraphConv(edge_update, node_update, attr_update)
+        state_update = MLP(state_dims, activation, activate_last=True)
+        return MEGNetGraphConv(edge_update, node_update, state_update)
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
         vi = edges.src["v"]
@@ -188,11 +188,11 @@ class MEGNetBlock(Module):
         # compute input sizes
         edge_in = 2 * conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM
         node_in = out_dim + conv_dim + conv_dim  # EDIM+NDIM+GDIM
-        attr_in = out_dim + out_dim + conv_dim  # EDIM+NDIM+GDIM
+        state_in = out_dim + out_dim + conv_dim  # EDIM+NDIM+GDIM
         self.conv = MEGNetGraphConv.from_dims(
             edge_dims=[edge_in, *conv_hiddens],
             node_dims=[node_in, *conv_hiddens],
-            state_dims=[attr_in, *conv_hiddens],
+            state_dims=[state_in, *conv_hiddens],
             activation=self.activation,
         )
 
@@ -294,9 +294,9 @@ class M3GNetGraphConv(Module):
 
         node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
         node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
-        attr_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None  # type: ignore
+        state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None  # type: ignore
         return M3GNetGraphConv(
-            include_state, edge_update_func, edge_weight_func, node_update_func, node_weight_func, attr_update_func
+            include_state, edge_update_func, edge_weight_func, node_update_func, node_weight_func, state_update_func
         )
 
     def _edge_udf(self, edges: dgl.udf.EdgeBatch):
@@ -444,13 +444,13 @@ class M3GNetBlock(Module):
         if include_state:
             edge_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
             node_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
-            attr_in = dim_node_feats + dim_state_feats  # type: ignore
+            state_in = dim_node_feats + dim_state_feats  # type: ignore
             self.conv = M3GNetGraphConv.from_dims(
                 degree,
                 include_state,
                 edge_dims=[edge_in, *conv_hiddens, dim_edge_feats],
                 node_dims=[node_in, *conv_hiddens, dim_node_feats],
-                state_dims=[attr_in, *conv_hiddens, dim_state_feats],  # type: ignore
+                state_dims=[state_in, *conv_hiddens, dim_state_feats],  # type: ignore
                 activation=self.activation,
             )
         else:

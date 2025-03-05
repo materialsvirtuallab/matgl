@@ -130,12 +130,12 @@ class MGLDataset(DGLDataset):
         directed_line_graph: bool = False,
         structures: list | None = None,
         labels: dict[str, list] | None = None,
-        name: str = "MGLDataset",
+        directory_name: str = "MGLDataset",
         graph_labels: list[int | float] | None = None,
         clear_processed: bool = False,
         save_cache: bool = True,
-        raw_dir: str | None = None,
-        save_dir: str | None = None,
+        raw_dir: str = "./",
+        save_dir: str = "./",
     ):
         """
         Args:
@@ -152,7 +152,7 @@ class MGLDataset(DGLDataset):
                 Default: False (for M3GNet)
             structures: Pymatgen structure.
             labels: targets, as a dict of {name: list of values}.
-            name: name of dataset.
+            directory_name: name of the generated directory that stores the dataset.
             graph_labels: state attributes.
             clear_processed: Whether to clear the stored structures after processing into graphs. Structures
                 are not really needed after the conversion to DGL graphs and can take a significant amount of memory.
@@ -161,7 +161,7 @@ class MGLDataset(DGLDataset):
                 Default: True
             raw_dir : str specifying the directory that will store the downloaded data or the directory that already
                 stores the input data.
-                Default: ~/.dgl/
+                Default: current working directory
             save_dir : directory to save the processed dataset. Default: same as raw_dir.
         """
         self.filename = filename
@@ -180,7 +180,7 @@ class MGLDataset(DGLDataset):
         self.graph_labels = graph_labels
         self.clear_processed = clear_processed
         self.save_cache = save_cache
-        super().__init__(name=name, raw_dir=raw_dir, save_dir=save_dir)
+        super().__init__(name=directory_name, raw_dir=raw_dir, save_dir=save_dir)
 
     def has_cache(self) -> bool:
         """Check if the dgl_graph.bin exists or not."""
