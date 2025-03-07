@@ -31,6 +31,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - if: matrix.os == 'macos-latest'
+        run: |
+          git clone --recurse-submodules https://github.com/dmlc/dgl.git
+          cd dgl
+          mkdir build
+          cd build
+          cmake -DUSE_OPENMP=off -DUSE_LIBXSMM=OFF ..
+          make
+          cd ../python
+          python setup.py install
+          python setup.py build_ext --inplace
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
