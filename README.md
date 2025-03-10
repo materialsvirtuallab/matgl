@@ -207,12 +207,17 @@ We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter not
 - [Developer Guide](developer.md) outlines the key design elements of `matgl`, especially for developers wishing to
   train and contribute matgl models.
 - AdvancedSoft has implemented a [LAMMPS interface](https://github.com/advancesoftcorp/lammps/tree/based-on-lammps_2Jun2022/src/ML-M3GNET)
-  to both the TF and MatGL version of M3Gnet.
+  to both the TF and MatGL version of M3GNet.
 
 ## References
 
-A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
-information. If you are using any of the pretrained models, please cite the relevant works below:
+A manuscript for MatGL has been submitted and is under review. For now, please cite the following preprint:
+> **MatGL**
+> 
+> Ko, T. W.; Deng, B.; Nassar, M.; Barroso-Luque, L.; Liu, R.; Qi, J.; Liu, E.; Ceder, G.; Miret, S.; Ong, S. P.
+> Materials Graph Library (MatGL), an Open-Source Graph Deep Learning Library for Materials Science and Chemistry. arXiv 2025, arXiv:2503.03837.
+
+If you are using any of the pretrained models, please cite the relevant works below:
 
 > **MEGNet**
 >
