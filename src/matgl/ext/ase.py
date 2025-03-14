@@ -155,8 +155,15 @@ class PESCalculator(Calculator):
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
-        if stress_units == "eV/A3":
-            stress_weight == units.GPa / (units.eV / units.Angstrom**3)
+
+        # Handle stress unit conversion
+        if stress_unit == "eV/A3":
+            stress_weight = units.GPa / (units.eV / units.Angstrom**3)  # Conversion factor from eV/Å³ to GPa
+        elif stress_unit == "GPa":
+            stress_weight = 1.0  # No conversion needed if stress is already in GPa
+        else:
+            raise ValueError(f"Unsupported stress_unit: {stress_unit}. Must be 'GPa' or 'eV/A3'.")
+
         self.stress_weight = stress_weight
         self.state_attr = state_attr
         self.element_types = potential.model.element_types  # type: ignore
