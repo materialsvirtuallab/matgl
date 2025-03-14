@@ -158,7 +158,7 @@ class PESCalculator(Calculator):
 
         # Handle stress unit conversion
         if stress_unit == "eV/A3":
-            stress_weight = units.GPa / (units.eV / units.Angstrom**3)  # Conversion factor from eV/Å³ to GPa
+            stress_weight = units.GPa / (units.eV / units.Angstrom**3)  # Conversion factor from GPa to eV/A^3
         elif stress_unit == "GPa":
             stress_weight = 1.0  # No conversion needed if stress is already in GPa
         else:
