@@ -397,7 +397,7 @@ class MolecularDynamics:
         atoms: Atoms,
         potential: Potential,
         state_attr: torch.Tensor | None = None,
-        stress_weight: float = 1 / 160.21766208,
+        stress_weight: float = 1.0,
         ensemble: Literal[
             "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", "npt_berendsen", "npt_nose_hoover"
         ] = "nvt",
@@ -452,7 +452,7 @@ class MolecularDynamics:
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
         self.atoms.set_calculator(
-            PESCalculator(potential=potential, state_attr=state_attr, stress_weight=stress_weight)
+            PESCalculator(potential=potential, state_attr=state_attr, stress_unit="eV/A3", stress_weight=stress_weight)
         )
 
         if taut is None:
