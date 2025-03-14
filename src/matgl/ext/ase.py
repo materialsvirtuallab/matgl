@@ -133,6 +133,7 @@ class PESCalculator(Calculator):
         self,
         potential: Potential,
         state_attr: torch.Tensor | None = None,
+        stress_unit: Literal["eV/A3", "GPa"] = "GPa",
         stress_weight: float = 1.0,
         use_voigt: bool = False,
         **kwargs,
@@ -144,6 +145,7 @@ class PESCalculator(Calculator):
             potential (Potential): matgl.apps.pes.Potential
             state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
+            stress_unit (str): stress unit. Default: "GPa"
             stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
             use_voigt (bool): whether the voigt notation is used for stress output
             **kwargs: Kwargs pass through to super().__init__().
@@ -153,7 +155,16 @@ class PESCalculator(Calculator):
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
-        self.stress_weight = stress_weight
+
+        # Handle stress unit conversion
+        if stress_unit == "eV/A3":
+            conversion_factor = units.GPa / (units.eV / units.Angstrom**3)  # Conversion factor from GPa to eV/A^3
+        elif stress_unit == "GPa":
+            conversion_factor = 1.0  # No conversion needed if stress is already in GPa
+        else:
+            raise ValueError(f"Unsupported stress_unit: {stress_unit}. Must be 'GPa' or 'eV/A3'.")
+
+        self.stress_weight = stress_weight * conversion_factor
         self.state_attr = state_attr
         self.element_types = potential.model.element_types  # type: ignore
         self.cutoff = potential.model.cutoff
@@ -386,7 +397,7 @@ class MolecularDynamics:
         atoms: Atoms,
         potential: Potential,
         state_attr: torch.Tensor | None = None,
-        stress_weight: float = 1 / 160.21766208,
+        stress_weight: float = 1.0,
         ensemble: Literal[
             "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", "npt_berendsen", "npt_nose_hoover"
         ] = "nvt",
@@ -441,7 +452,7 @@ class MolecularDynamics:
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
         self.atoms.set_calculator(
-            PESCalculator(potential=potential, state_attr=state_attr, stress_weight=stress_weight)
+            PESCalculator(potential=potential, state_attr=state_attr, stress_unit="eV/A3", stress_weight=stress_weight)
         )
 
         if taut is None:
