@@ -133,6 +133,7 @@ class PESCalculator(Calculator):
         self,
         potential: Potential,
         state_attr: torch.Tensor | None = None,
+        stress_unit: Literal["eV/A3", "GPa"] = "GPa",
         stress_weight: float = 1.0,
         use_voigt: bool = False,
         **kwargs,
@@ -144,6 +145,7 @@ class PESCalculator(Calculator):
             potential (Potential): matgl.apps.pes.Potential
             state_attr (tensor): State attribute
             compute_stress (bool): whether to calculate the stress
+            stress_unit (str): stress unit. Default: "GPa"
             stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
             use_voigt (bool): whether the voigt notation is used for stress output
             **kwargs: Kwargs pass through to super().__init__().
@@ -153,6 +155,8 @@ class PESCalculator(Calculator):
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
+        if stress_units == "eV/A3":
+            stress_weight == units.GPa / (units.eV / units.Angstrom**3)
         self.stress_weight = stress_weight
         self.state_attr = state_attr
         self.element_types = potential.model.element_types  # type: ignore

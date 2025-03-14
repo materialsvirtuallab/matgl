@@ -16,7 +16,7 @@ def test_PESCalculator_and_M3GNetCalculator(MoS):
     s_ase = adaptor.get_atoms(MoS)  # type: ignore
     ff = load_model("pretrained_models/M3GNet-MP-2021.2.8-PES/")
     ff.calc_hessian = True
-    calc = PESCalculator(potential=ff)
+    calc = PESCalculator(potential=ff, state_attr=None, stress_unit="eV/A3")
     s_ase.set_calculator(calc)
     assert isinstance(s_ase.get_potential_energy(), float)
     assert list(s_ase.get_forces().shape) == [2, 3]
