@@ -130,7 +130,7 @@ class MLP_norm(nn.Module):
         self.activate_last = activate_last
         self.normalize_hidden = normalize_hidden
         norm_kwargs = norm_kwargs or {}
-        norm_kwargs = cast(dict, norm_kwargs)
+        norm_kwargs = cast("dict", norm_kwargs)
 
         for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
             if i < self._depth - 1:
