@@ -6,9 +6,10 @@ import numpy as np
 import pytest
 import torch
 from ase.build import molecule
+from pymatgen.io.ase import AseAtomsAdaptor
+
 from matgl import load_model
 from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, PESCalculator, Relaxer
-from pymatgen.io.ase import AseAtomsAdaptor
 
 
 def test_PESCalculator_and_M3GNetCalculator(MoS):
@@ -39,6 +40,8 @@ def test_PESCalculator_and_M3GNetCalculator(MoS):
     assert list(s_ase.get_stress().shape) == [6]
     assert list(calc.results["hessian"].shape) == [6, 6]
     np.testing.assert_allclose(s_ase.get_potential_energy(), -10.824362, atol=1e-5, rtol=1e-6)
+    with pytest.raises(ValueError, match="Unsupported stress_unit: Pa. Must be 'GPa' or 'eV/A3'."):
+        PESCalculator(potential=ff, stress_unit="Pa")
 
 
 def test_CHGNetCalculator(MoS):
