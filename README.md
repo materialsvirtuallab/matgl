@@ -72,6 +72,13 @@ improvements over the TF implementations are:
 - A more intuitive API and class structure based on DGL.
 - Multi-GPU support via PyTorch Lightning.
 
+### CHGNet
+
+[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based ML interatomic potential. 
+CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in 
+capturing the atomic charges through learning and predicting DFT atomic magnetic moments. 
+See [original implementation][chgnetrepo]
+
 ### MEGNet
 
 [MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
@@ -88,8 +95,7 @@ We have implemented other models in matgl as well. A non-exhaustive list is give
 - [TensorNet], an O(3)-equivariant message-passing neural network architecture that
   leverages Cartesian tensor representations.
 - [SO3Net],  a minimalist SO(3)-equivariant neural network.
-- [CHGNet],  an invariant message-passing neural network architecture that can predict
-  PES properties and magmoms.
+
 
 ## Installation
 
@@ -320,3 +326,4 @@ ACI-1548562.
 [tensornet]: https://arxiv.org/abs/2306.06482 "TensorNet"
 [so3net]: https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for "SO3Net"
 [chgnet]: https://www.nature.com/articles/s42256-023-00716-3 "CHGNet"
+[chgnetrepo]: https://github.com/CederGroupHub/chgnet "CHGNet repo"
