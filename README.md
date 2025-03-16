@@ -48,6 +48,15 @@ in future.
 <p>Figure: Schematic of M3GNet/MEGNet</p>
 </div>
 
+### MEGNet
+
+[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
+machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
+array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
+[multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
+network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an
+output graph.
+
 ### M3GNet
 
 [Materials 3-body Graph Network (M3GNet)][m3gnet] is a new materials graph neural network architecture that
@@ -78,15 +87,6 @@ improvements over the TF implementations are:
 CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in 
 capturing the atomic charges through learning and predicting DFT atomic magnetic moments. 
 See [original implementation][chgnetrepo]
-
-### MEGNet
-
-[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
-machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
-array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
-[multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
-network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an
-output graph.
 
 ### Other models
 
