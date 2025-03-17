@@ -6,6 +6,10 @@ nav_order: 3
 
 # Change Log
 
+## 1.2.0
+- Release of MatPES-based models.
+- Pin DGL and PyTorch dependencies to 2.2.0 to ensure compatibility with Mac.
+
 ## 1.1.3
 - Improve the memory efficiency and speed of three-body interactions. (@kenko911)
 - FrechetCellFilter is added for variable cell relaxation in Relaxer class. (@kenko911)
