@@ -20,8 +20,16 @@ jobs:
     strategy:
       max-parallel: 20
       matrix:
-        python-version: ["3.10", "3.12"]
-        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
+        config:
+          - os: windows-latest
+            python: "3.10"
+            resolution: highest
+          - os: ubuntu-latest
+            python: "3.12"
+            resolution: lowest-direct
+          - os: macos-latest
+            python: "3.11"
+            resolution: lowest-direct
 
     runs-on: ${{ matrix.os }}
     env:
