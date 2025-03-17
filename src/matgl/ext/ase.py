@@ -84,6 +84,8 @@ class Atoms2Graph(GraphConverter):
             state_attr: state features
         """
         numerical_tol = 1.0e-8
+        # Note this needs to be specified as np.int64 or the code will fail on Windows systems as it will default to
+        # long.
         pbc = np.array([1, 1, 1], dtype=np.int64)
         element_types = self.element_types
         lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.expand_dims(np.identity(3), axis=0)
