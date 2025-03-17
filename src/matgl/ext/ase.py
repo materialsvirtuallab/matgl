@@ -84,7 +84,7 @@ class Atoms2Graph(GraphConverter):
             state_attr: state features
         """
         numerical_tol = 1.0e-8
-        pbc = np.array([1, 1, 1], dtype=np.int64_t)
+        pbc = np.array([1, 1, 1], dtype=np.int64)
         element_types = self.element_types
         lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.expand_dims(np.identity(3), axis=0)
         cart_coords = atoms.get_positions()

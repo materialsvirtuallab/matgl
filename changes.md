@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 1.2.1
+- Bug fix for pbc dtype on Windows systems.
+
 ## 1.2.0
 - Release of MatPES-based models.
 - Pin DGL and PyTorch dependencies to 2.2.0 to ensure compatibility with Mac.
