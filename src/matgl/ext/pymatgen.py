@@ -107,7 +107,7 @@ class Structure2Graph(GraphConverter):
             state_attr: state features
         """
         numerical_tol = 1.0e-8
-        pbc = np.array([1, 1, 1], dtype=int)
+        pbc = np.array([1, 1, 1], dtype=np.int64)
         element_types = self.element_types
         lattice_matrix = structure.lattice.matrix
         cart_coords = structure.cart_coords
