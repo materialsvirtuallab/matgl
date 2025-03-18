@@ -31,7 +31,7 @@ jobs:
             python: "3.11"
             resolution: lowest-direct
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.config.os }}
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.config.python }}
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.config.python }}
           cache: pip
           cache-dependency-path: '**/pyproject.toml'
       - name: Install dependencies
