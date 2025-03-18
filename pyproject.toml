@@ -50,7 +50,7 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.2.0",
+    "dgl<=2.2.1",
     "pymatgen",
     "lightning<=2.5.0.post0",
     "torch<=2.2.0",
