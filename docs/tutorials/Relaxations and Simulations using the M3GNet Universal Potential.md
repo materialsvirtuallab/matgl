@@ -6,7 +6,7 @@ nav_exclude: true
 
 # Introduction
 
-This notebook demonstrates the use of the pre-trained M3GNet model to perform structural relaxations, molecular dynamics simulations and single-point calculations.
+This notebook demonstrates the use of the pre-trained universal potentials to perform structural relaxations, molecular dynamics simulations and single-point calculations.
 
 Author: Tsz Wai Ko (Kenko)
 Email: t1ko@ucsd.edu
@@ -30,10 +30,12 @@ warnings.simplefilter("ignore")
 
 # Loading the pre-trained M3GNet PES model
 
-We will first load the M3GNet PES model, which is trained on the MP-2021.2.8 dataset. This can be done with a single line of code.
+We will first load the M3GNet PES model, which is trained on the MP-2021.2.8 dataset. This can be done with a single line of code. Here we only use M3GNet for demonstration and users can choose other available models.
 
 
 ```python
+# You can load any pretrained potentials such as CHGNet ('CHGNet-MPtrj-2023.12.1-PES-2.7M', 'CHGNet-MPtrj-2024.2.13-PES-11M')
+# To see available models, use get_available_pretrained_models()
 pot = matgl.load_model("M3GNet-MP-2021.2.8-PES")
 ```
 
@@ -75,7 +77,7 @@ print(f"The potential energy of CsCl at 300 K after 100 steps is {float(atoms.ge
 
 # Single point energy calculation
 
-Perform a single-point calculation for final structure using M3GNetCalculator.
+Perform a single-point calculation for final structure using PESCalculator.
 
 
 ```python

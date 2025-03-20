@@ -24,6 +24,10 @@ learning models, including the [MatErials 3-body Graph Network (M3GNet)][m3gnet]
 This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
 Nassar, Carmelo Gonzales).
 
+MatGL is part of the MatML ecosystem, which includes the [MatGL] (Materials Graph Library) and [maml] (MAterials
+Machine Learning) packages, the [MatPES] (Materials Potential Energy Surface) dataset, and the [MatCalc] (Materials
+Calculator).
+
 ## Status
 
 Major milestones are summarized below. Please refer to the [changelog] for details.
@@ -83,9 +87,9 @@ improvements over the TF implementations are:
 
 ### CHGNet
 
-[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based ML interatomic potential. 
-CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in 
-capturing the atomic charges through learning and predicting DFT atomic magnetic moments. 
+[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based ML interatomic potential.
+CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in
+capturing the atomic charges through learning and predicting DFT atomic magnetic moments.
 See [original implementation][chgnetrepo]
 
 ### Other models
@@ -219,7 +223,7 @@ We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter not
 
 A manuscript for MatGL has been submitted and is under review. For now, please cite the following preprint:
 > **MatGL**
-> 
+>
 > Ko, T. W.; Deng, B.; Nassar, M.; Barroso-Luque, L.; Liu, R.; Qi, J.; Liu, E.; Ceder, G.; Miret, S.; Ong, S. P.
 > Materials Graph Library (MatGL), an Open-Source Graph Deep Learning Library for Materials Science and Chemistry. arXiv 2025, arXiv:2503.03837.
 
@@ -327,3 +331,7 @@ ACI-1548562.
 [so3net]: https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for "SO3Net"
 [chgnet]: https://www.nature.com/articles/s42256-023-00716-3 "CHGNet"
 [chgnetrepo]: https://github.com/CederGroupHub/chgnet "CHGNet repo"
+[maml]: https://materialsvirtuallab.github.io/maml/
+[MatGL]: https://matgl.ai
+[MatPES]: https://matpes.ai
+[MatCalc]: https://matcalc.ai
