@@ -32,10 +32,15 @@ learning models, including the [MatErials 3-body Graph Network (M3GNet)][m3gnet]
 This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
 Nassar, Carmelo Gonzales).
 
+MatGL is part of the MatML ecosystem, which includes the [MatGL] (Materials Graph Library) and [maml] (MAterials
+Machine Learning) packages, the [MatPES] (Materials Potential Energy Surface) dataset, and the [MatCalc] (Materials
+Calculator).
+
 ## Status
 
 Major milestones are summarized below. Please refer to the [changelog] for details.
 
+- v1.1.0 (May 7 2024): Implementation of [CHGNet] + pre-trained models.
 - v1.0.0 (Feb 14 2024): Implementation of [TensorNet] and [SO3Net].
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
 - v0.5.0 (Jun 8 2023): Simplified saving and loading of models. Now models can be loaded with one line of code!
@@ -54,6 +59,15 @@ in future.
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic">
 <p>Figure: Schematic of M3GNet/MEGNet</p>
 </div>
+
+### MEGNet
+
+[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
+machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
+array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
+[multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
+network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an
+output graph.
 
 ### M3GNet
 
@@ -79,14 +93,12 @@ improvements over the TF implementations are:
 - A more intuitive API and class structure based on DGL.
 - Multi-GPU support via PyTorch Lightning.
 
-### MEGNet
+### CHGNet
 
-[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
-machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
-array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
-[multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
-network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an
-output graph.
+[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based ML interatomic potential. 
+CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in 
+capturing the atomic charges through learning and predicting DFT atomic magnetic moments. 
+See [original implementation][chgnetrepo]
 
 ### Other models
 
@@ -95,6 +107,7 @@ We have implemented other models in matgl as well. A non-exhaustive list is give
 - [TensorNet], an O(3)-equivariant message-passing neural network architecture that
   leverages Cartesian tensor representations.
 - [SO3Net],  a minimalist SO(3)-equivariant neural network.
+
 
 ## Installation
 
@@ -118,7 +131,7 @@ and DGL. The basic instructions are given below, but it is recommended that you 
 run into any problems.
 
 ```shell
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.2.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html
 pip install dglgo -f https://data.dgl.ai/wheels-test/repo.html
 ```
@@ -212,12 +225,17 @@ We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter not
 - [Developer Guide](developer.md) outlines the key design elements of `matgl`, especially for developers wishing to
   train and contribute matgl models.
 - AdvancedSoft has implemented a [LAMMPS interface](https://github.com/advancesoftcorp/lammps/tree/based-on-lammps_2Jun2022/src/ML-M3GNET)
-  to both the TF and MatGL version of M3Gnet.
+  to both the TF and MatGL version of M3GNet.
 
 ## References
 
-A MatGL publication is currently being written. For now, pls refer to the CITATION.cff file for the citation
-information. If you are using any of the pretrained models, please cite the relevant works below:
+A manuscript for MatGL has been submitted and is under review. For now, please cite the following preprint:
+> **MatGL**
+> 
+> Ko, T. W.; Deng, B.; Nassar, M.; Barroso-Luque, L.; Liu, R.; Qi, J.; Liu, E.; Ceder, G.; Miret, S.; Ong, S. P.
+> Materials Graph Library (MatGL), an Open-Source Graph Deep Learning Library for Materials Science and Chemistry. arXiv 2025, arXiv:2503.03837.
+
+If you are using any of the pretrained models, please cite the relevant works below:
 
 > **MEGNet**
 >
@@ -233,6 +251,21 @@ information. If you are using any of the pretrained models, please cite the rele
 >
 > Chen, C., Ong, S.P. *A universal graph deep learning interatomic potential for the periodic table.* Nature
 > Computational Science, 2023, 2, 718–728. DOI: [10.1038/s43588-022-00349-3][m3gnet].
+
+>**CHGNet**
+>
+> Deng, B., Zhong, P., Jun, K. et al. *CHGNet: as a pretrained universal neural network potential for charge-informed atomistic modelling.*
+> Nat Mach Intell 5, 1031–1041 (2023). DOI:[10.1038/s42256-023-00716-3][chgnet]
+
+>**TensorNet**
+>
+> Simeon, G.  De Fabritiis, G. *Tensornet: Cartesian tensor representations for efficient learning of molecular potentials.*
+> Adv. Neural Info. Process. Syst. 36, (2024). DOI: [10.48550/arXiv.2306.06482][tensornet]
+
+>**SO3Net**
+>
+> Schütt, K. T., Hessmann, S. S. P., Gebauer, N. W. A., Lederer, J., Gastegger, M. *SchNetPack 2.0: A neural network toolbox for atomistic machine learning.*
+> J. Chem. Phys. 158, 144801 (2023). DOI: [10.1063/5.0138367][so3net]
 
 ## FAQs
 
@@ -305,3 +338,8 @@ ACI-1548562.
 [tensornet]: https://arxiv.org/abs/2306.06482 "TensorNet"
 [so3net]: https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for "SO3Net"
 [chgnet]: https://www.nature.com/articles/s42256-023-00716-3 "CHGNet"
+[chgnetrepo]: https://github.com/CederGroupHub/chgnet "CHGNet repo"
+[maml]: https://materialsvirtuallab.github.io/maml/
+[MatGL]: https://matgl.ai
+[MatPES]: https://matpes.ai
+[MatCalc]: https://matcalc.ai

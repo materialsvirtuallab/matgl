@@ -359,7 +359,7 @@ class GatedEquivariantBlock(nn.Module):
             dims=[n_vin, 2 * n_vout],
             activation=None,
             activate_last=False,  # No activation in the last layer
-            bias_last=True,
+            bias_last=False,
         )
         self.scalar_net = MLP(
             dims=[n_sin + n_vout, n_hidden, n_sout + n_vout], activation=activation, activate_last=False, bias_last=True

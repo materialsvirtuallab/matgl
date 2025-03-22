@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 import requests
 import torch
+
 from matgl.utils.io import IOMixIn, RemoteFile, get_available_pretrained_models, load_model
 
 this_dir = Path(os.path.abspath(os.path.dirname(__file__)))
@@ -78,7 +79,7 @@ def test_load_model():
     # Load model from a full path.
     model = load_model(this_dir / ".." / ".." / "pretrained_models" / "MEGNet-MP-2018.6.1-Eform")
     assert issubclass(model.__class__, torch.nn.Module)
-    model = load_model(this_dir / ".." / ".." / "pretrained_models" / "CHGNet-MPtrj-2024.2.13-PES-11M")
+    model = load_model(this_dir / ".." / ".." / "pretrained_models" / "CHGNet-MPtrj-2024.2.13-11M-PES")
     assert issubclass(model.__class__, torch.nn.Module)
 
     with pytest.raises(ValueError, match="No valid model found in pre-trained_models"):

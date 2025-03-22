@@ -6,20 +6,20 @@ This Matgl implementation has slight modification from original pytorch implemen
 
 # Training dataset
 
-MatPES-r2SCAN-2024.11: Materials Energy Surface dataset that contains off-equilibrium r2SCAN static calculations.
+MatPES-PBE-2024.11: Materials Energy Surface dataset that contains off-equilibrium PBE static calculations.
 - Train-Val-Test splitting with mp-id: 0.9 - 0.5 - 0.5
-- Train set size: 349107
-- Validation set size: 19395
-- Test set size: 19395
+- Train set size: 391241
+- Validation set size: 21736
+- Test set size: 21735
 
 # Performance metrics
 ## Training and validation errors
 
 | partition  | Energy (meV/atom) | Force (meV/A) | stress (GPa) | magmom (muB) |
 | ---------- |-------------------|---------------|--------------|--------------|
-| Train      | 26.36             | 85.7          | 0.359        | 0.067        |
-| Validation | 27.51             | 150.5         | 0.705        | 0.066        |
-| Test       | 30.45             | 156.5         | 0.735        | 0.072        |
+| Train      | 26.54             | 81.4          | 0.375        | 0.066        |
+| Validation | 32.02             | 123.8         | 0.617        | 0.067        |
+| Test       | 30.70             | 136.0         | 0.642        | 0.066        |
 
 
 # References

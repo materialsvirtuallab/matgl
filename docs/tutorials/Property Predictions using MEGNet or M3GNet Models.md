@@ -59,6 +59,14 @@ eform = model.predict_structure(struct)
 print(f"The predicted formation energy for CsCl is {float(eform):.3f} eV/atom.")
 ```
 
+
+```python
+# Extract the structure features of a structure
+feat_dict = model.model.predict_structure(struct, return_features=True)
+# Print out structure-wise features, it should be the dimension of node_features * 2 from set2set layer
+print(feat_dict["readout"].shape)
+```
+
 # MP Band gap
 
 This is the multi-fidelity band gap model, discussed in Chen, C.; Zuo, Y.; Ye, W.; Li, X.; Ong, S. P. Learning Properties of Ordered and Disordered Materials from Multi-Fidelity Data. Nature Computational Science 2021, 1, 46–53. https://doi.org/10.1038/s43588-020-00002-x.

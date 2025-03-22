@@ -84,6 +84,7 @@ units         metal
 boundary      p p p
 atom_style    atomic
 
+# if you want to use CUDA GPU, please switch m3gnet to m3gnet/gpu in pair_style
 pair_style    m3gnet {HOME_DIR}/.local/share/lammps/potentials/M3GNET
 
 read_data     ./dat.lammps
