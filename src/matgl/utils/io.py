@@ -9,7 +9,6 @@ import os
 import warnings
 from pathlib import Path
 
-import fsspec
 import requests
 import torch
 
@@ -107,16 +106,15 @@ class IOMixIn:
         Returns: model_object.
         """
         fpaths = path if isinstance(path, dict) else _get_file_paths(Path(path), **kwargs)
-        with fsspec.open(fpaths["model.json"]) as f:
+
+        with open(fpaths["model.json"]) as f:
             model_data = json.load(f)
 
         _check_ver(cls, model_data)
 
         map_location = torch.device("cpu") if not torch.cuda.is_available() else None
-        with fsspec.open(fpaths["state.pt"]) as f:
-            state = torch.load(f, map_location=map_location)
-        with fsspec.open(fpaths["model.pt"]) as f:
-            d = torch.load(f, map_location=map_location)
+        state = torch.load(fpaths["state.pt"], map_location=map_location)
+        d = torch.load(fpaths["model.pt"], map_location=map_location)
 
         # Deserialize any args that are IOMixIn subclasses.
         for k, v in d.items():
@@ -132,6 +130,59 @@ class IOMixIn:
         model.load_state_dict(state, strict=False)  # type: ignore
 
         return model
+
+
+class RemoteFile:
+    """Handling of download of remote files to a local cache."""
+
+    def __init__(self, uri: str, cache_location: str | Path = MATGL_CACHE, force_download: bool = False):
+        """
+        Args:
+            uri: Uniform resource identifier.
+            cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
+            $HOME/.matgl.
+            force_download: To speed up access, a model with the same name in the cache location will be used if
+            present. If you want to force a re-download, set this to True.
+        """
+        self.uri = uri
+        toks = uri.split("/")
+        self.model_name = toks[-2]
+        self.fname = toks[-1]
+        self.cache_location = Path(cache_location)
+        self.local_path = self.cache_location / self.model_name / self.fname
+        if (not self.local_path.exists()) or force_download:
+            logger.info("Downloading from remote location...")
+            self._download()
+        else:
+            logger.info(f"Using cached local file at {self.local_path}...")
+
+    def _download(self):
+        r = requests.get(self.uri)
+        if r.status_code == 200:
+            os.makedirs(self.cache_location / self.model_name, exist_ok=True)
+            with open(self.local_path, "wb") as f:
+                f.write(r.content)
+        else:
+            raise requests.RequestException(f"Bad uri: {self.uri}")
+
+    def __enter__(self):
+        """Support with context.
+
+        Returns:
+            Stream on local path.
+        """
+        self.stream = open(self.local_path, "rb")
+        return self.stream
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the with context.
+
+        Args:
+            exc_type: Usual meaning in __exit__.
+            exc_val: Usual meaning in __exit__.
+            exc_tb: Usual meaning in __exit__.
+        """
+        self.stream.close()
 
 
 def load_model(path: Path, **kwargs):
@@ -151,14 +202,14 @@ def load_model(path: Path, **kwargs):
     fpaths = _get_file_paths(path, **kwargs)
 
     try:
-        with fsspec.open(fpaths["model.json"]) as f:
+        with open(fpaths["model.json"]) as f:
             d = json.load(f)
-        modname = d["@module"]
-        classname = d["@class"]
+            modname = d["@module"]
+            classname = d["@class"]
 
-        mod = __import__(modname, globals(), locals(), [classname], 0)
-        cls_ = getattr(mod, classname)
-        return cls_.load(fpaths, **kwargs)
+            mod = __import__(modname, globals(), locals(), [classname], 0)
+            cls_ = getattr(mod, classname)
+            return cls_.load(fpaths, **kwargs)
     except BaseException as err:
         raise ValueError(
             "Bad serialized model or bad model name. It is possible that you have an older model cached. Please "
@@ -166,7 +217,7 @@ def load_model(path: Path, **kwargs):
         ) from err
 
 
-def _get_file_paths(path: Path, cache_location: str | Path = MATGL_CACHE, force_download: bool = False, **kwargs):
+def _get_file_paths(path: Path, **kwargs):
     """Search path for files.
 
     Args:
@@ -186,14 +237,9 @@ def _get_file_paths(path: Path, cache_location: str | Path = MATGL_CACHE, force_
 
     if all((path / fn).exists() for fn in fnames):
         return {fn: path / fn for fn in fnames}
-    # fs = fsspec.filesystem(
-    #     "filecache",
-    #     target_protocol="https",
-    #     cache_dir=MATGL_CACHE,
-    #     expiry=0 if force_download else None
-    # )
+
     try:
-        return {fn: f"filecache::{PRETRAINED_MODELS_BASE_URL}{path}/{fn}" for fn in fnames}
+        return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
     except requests.RequestException:
         raise ValueError(f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}.") from None
 
