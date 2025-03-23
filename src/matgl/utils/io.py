@@ -9,6 +9,7 @@ import os
 import warnings
 from pathlib import Path
 
+import fsspec
 import requests
 import torch
 
@@ -107,14 +108,16 @@ class IOMixIn:
         """
         fpaths = path if isinstance(path, dict) else _get_file_paths(Path(path), **kwargs)
 
-        with open(fpaths["model.json"]) as f:
+        with fpaths["model.json"].open("rt") as f:
             model_data = json.load(f)
 
         _check_ver(cls, model_data)
 
         map_location = torch.device("cpu") if not torch.cuda.is_available() else None
-        state = torch.load(fpaths["state.pt"], map_location=map_location)
-        d = torch.load(fpaths["model.pt"], map_location=map_location)
+        with fpaths["state.pt"].open("rb") as f:
+            state = torch.load(f, map_location=map_location)
+        with fpaths["model.pt"].open("rb") as f:
+            d = torch.load(f, map_location=map_location)
 
         # Deserialize any args that are IOMixIn subclasses.
         for k, v in d.items():
@@ -149,29 +152,37 @@ class RemoteFile:
         self.model_name = toks[-2]
         self.fname = toks[-1]
         self.cache_location = Path(cache_location)
+
+        self.fs = fsspec.filesystem(
+            "filecache",
+            target_protocol="https",
+            cache_storage=str(self.cache_location / self.model_name),
+            same_names=True,
+            expiry_time=0 if force_download else None,
+        )
+
         self.local_path = self.cache_location / self.model_name / self.fname
-        if (not self.local_path.exists()) or force_download:
-            logger.info("Downloading from remote location...")
-            self._download()
-        else:
-            logger.info(f"Using cached local file at {self.local_path}...")
 
-    def _download(self):
-        r = requests.get(self.uri)
-        if r.status_code == 200:
-            os.makedirs(self.cache_location / self.model_name, exist_ok=True)
-            with open(self.local_path, "wb") as f:
-                f.write(r.content)
-        else:
-            raise requests.RequestException(f"Bad uri: {self.uri}")
+    def open(self, *args, **kwargs):
+        """
+        Pass-through to fs.open(uri, *args, **kwargs).
 
-    def __enter__(self):
+        Args:
+            *args: Pass-through to fs.open(uri, *args, **kwargs).
+            **kwargs: Pass-through to fs.open(uri, *args, **kwargs).
+
+        Returns: IO
+
+        """
+        return self.fs.open(self.uri, *args, **kwargs)
+
+    def __enter__(self, *args, **kwargs):
         """Support with context.
 
         Returns:
             Stream on local path.
         """
-        self.stream = open(self.local_path, "rb")
+        self.stream = self.fs.open(self.local_path, *args, **kwargs)
         return self.stream
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -202,7 +213,7 @@ def load_model(path: Path, **kwargs):
     fpaths = _get_file_paths(path, **kwargs)
 
     try:
-        with open(fpaths["model.json"]) as f:
+        with fpaths["model.json"].open("rt") as f:
             d = json.load(f)
             modname = d["@module"]
             classname = d["@class"]
@@ -239,7 +250,7 @@ def _get_file_paths(path: Path, **kwargs):
         return {fn: path / fn for fn in fnames}
 
     try:
-        return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
+        return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs) for fn in fnames}
     except requests.RequestException:
         raise ValueError(f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}.") from None
 
