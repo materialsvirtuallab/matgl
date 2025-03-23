@@ -57,7 +57,8 @@ dependencies = [
     "pydantic",
     "torchdata<=0.7.1",
     "boto3",
-    "numpy<2.0.0"
+    "numpy<2.0.0",
+    "fsspec"
 ]
 version = "1.2.1"
 
