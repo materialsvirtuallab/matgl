@@ -50,15 +50,19 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.2.1",
+
+    "dgl",
     "pymatgen",
     "lightning<=2.5.0.post0",
-    "torch<=2.2.0",
+    "torch",
+    "torchdata",
     "pydantic",
-    "torchdata<=0.7.1",
     "boto3",
     "numpy<2.0.0",
-    "fsspec"
+    "fsspec",
+    "dgl<=2.2.1; platform_system != 'Linux'",
+    "torch<=2.2.0; platform_system != 'Linux'",
+    "torchdata<=0.7.1; platform_system != 'Linux'",
 ]
 version = "1.2.1"
 
