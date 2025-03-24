@@ -54,7 +54,7 @@ dependencies = [
     "pymatgen",
     "lightning<=2.5.0.post0",
     "torch<=2.2.0",
-    "torchdata<=0.8.0",
+    "torchdata<=0.7.1",
     "pydantic",
     "boto3",
     "numpy<2.0",
