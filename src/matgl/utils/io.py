@@ -252,5 +252,9 @@ def get_available_pretrained_models() -> list[str]:
     Returns:
         List of available models.
     """
-    r = requests.get("https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
-    return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"]
+    try:
+        r = requests.get("https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
+        return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"]
+    except Exception:
+        print("Unable to access GitHub to check for pre-trained models.")
+        return []
