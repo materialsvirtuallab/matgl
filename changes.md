@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 1.2.3
+- Fix dependency issues with DGL. Pinning to DGL<=2.1.0 for now, which have versions for all OSes.
+
 ## 1.2.1
 - Bug fix for pbc dtype on Windows systems.
 

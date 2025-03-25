@@ -17,9 +17,9 @@ import shutil
 import warnings
 import zipfile
 
+import lightning as pl
 import matplotlib.pyplot as plt
 import pandas as pd
-import lightning as pl
 import torch
 from dgl.data.utils import split_dataset
 from pymatgen.core import Structure
@@ -27,7 +27,7 @@ from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn_graph
+from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_graph
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
 from matgl.utils.io import RemoteFile

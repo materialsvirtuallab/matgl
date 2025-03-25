@@ -22,7 +22,7 @@ from pymatgen.core import Lattice, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
-from matgl.ext.ase import PESCalculator, MolecularDynamics, Relaxer
+from matgl.ext.ase import MolecularDynamics, PESCalculator, Relaxer
 
 # To suppress warnings for clearer output
 warnings.simplefilter("ignore")
@@ -34,7 +34,7 @@ We will first load the M3GNet PES model, which is trained on the MP-2021.2.8 dat
 
 
 ```python
-# You can load any pretrained potentials such as CHGNet ('CHGNet-MPtrj-2023.12.1-2.7M-PES', 'CHGNet-MPtrj-2024.2.13-11M-PES')
+# You can load any pretrained potentials such as CHGNet ('CHGNet-MPtrj-2023.12.1-2.7M-PES', 'CHGNet-MPtrj-2024.2.13-PES-11M')
 # To see available models, use get_available_pretrained_models()
 pot = matgl.load_model("M3GNet-MP-2021.2.8-PES")
 ```

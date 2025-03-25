@@ -95,9 +95,9 @@ improvements over the TF implementations are:
 
 ### CHGNet
 
-[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based ML interatomic potential. 
-CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in 
-capturing the atomic charges through learning and predicting DFT atomic magnetic moments. 
+[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based ML interatomic potential.
+CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in
+capturing the atomic charges through learning and predicting DFT atomic magnetic moments.
 See [original implementation][chgnetrepo]
 
 ### Other models
@@ -231,7 +231,7 @@ We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter not
 
 A manuscript for MatGL has been submitted and is under review. For now, please cite the following preprint:
 > **MatGL**
-> 
+>
 > Ko, T. W.; Deng, B.; Nassar, M.; Barroso-Luque, L.; Liu, R.; Qi, J.; Liu, E.; Ceder, G.; Miret, S.; Ong, S. P.
 > Materials Graph Library (MatGL), an Open-Source Graph Deep Learning Library for Materials Science and Chemistry. arXiv 2025, arXiv:2503.03837.
 
