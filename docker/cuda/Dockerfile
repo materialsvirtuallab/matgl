@@ -1,5 +1,6 @@
-FROM python:3.9.17
+FROM python:3.11
 
+RUN pip install --upgrade pip
 RUN pip install matgl jupyter lxml
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 RUN pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html
