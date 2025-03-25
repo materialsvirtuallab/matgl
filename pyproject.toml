@@ -50,7 +50,7 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.2.1",
+    "dgl<=2.1.0",
     "pymatgen",
     "lightning<=2.5.0.post0",
     "torch<=2.2.0",
@@ -60,7 +60,7 @@ dependencies = [
     "numpy<2.0",
     "fsspec",
 ]
-version = "1.2.2"
+version = "1.2.3"
 
 [project.optional-dependencies]
 ci = ["pytest-cov", "pytest", "coverage"]
