@@ -1,8 +1,7 @@
-FROM python:3.11
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm
 
 ENV DGLBACKEND=pytorch
 
-RUN pip install --upgrade pip
-RUN pip install matgl jupyter lxml
+RUN uv pip install matgl jupyter lxml
 
 CMD ["jupyter", "notebook", "--allow-root", "--ip", "0.0.0.0", "--no-browser"]
