@@ -67,6 +67,7 @@ mgl = "matgl.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["matgl", "matgl.*"]
 
 [tool.setuptools.package-data]
 matgl = ["py.typed"]
