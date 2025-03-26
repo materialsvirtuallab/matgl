@@ -65,5 +65,5 @@ class GraphNorm(nn.Module):
 class LayerNorm(nn.LayerNorm):
     """Sames as nn.LayerNorm but allows arbitrary arguments to forward."""
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, inputs: torch.Tensor, *args, **kwargs) -> torch.Tensor:
         return super().forward(inputs)
