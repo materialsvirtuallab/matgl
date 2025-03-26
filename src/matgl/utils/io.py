@@ -168,7 +168,7 @@ class IOMixIn:
         return model
 
 
-def load_model(path: Path, **kwargs):
+def load_model(path: str | Path, **kwargs):
     r"""Convenience method to load a model from a directory or name.
 
     Args:
