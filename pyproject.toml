@@ -62,9 +62,6 @@ dependencies = [
 ]
 version = "1.2.3"
 
-[project.optional-dependencies]
-ci = ["pytest-cov", "pytest", "coverage"]
-
 [project.scripts]
 mgl = "matgl.cli:main"
 
@@ -190,4 +187,15 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
     "raise RuntimeError",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.7.1",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.0.0",
+]
+lint = [
+    "mypy>=1.15.0",
+    "ruff>=0.11.2",
 ]

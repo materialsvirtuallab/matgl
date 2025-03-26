@@ -1,4 +1,4 @@
-name: Testing
+name: Test
 
 on:
   push:
@@ -38,19 +38,19 @@ jobs:
       DGLBACKEND: "pytorch"
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.config.python }}
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - name: Install uv with python version.
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.config.python }}
-          cache: pip
-          cache-dependency-path: '**/pyproject.toml'
+          python-version: ${{ matrix.config.python-version }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - name: Install dependencies
         run: |
-          pip install -e '.[ci]'
+          uv sync
       - name: pytest
         run: |
-          pytest --cov=matgl tests --color=yes
+          uv run pytest --cov=matgl tests --color=yes
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         env:
