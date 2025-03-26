@@ -16,7 +16,8 @@ from matgl.apps.pes import Potential
 if TYPE_CHECKING:
     import dgl
     import numpy as np
-    from torch.optim import LRScheduler, Optimizer
+    from torch.optim import Optimizer
+    from torch.optim.lr_scheduler import LRScheduler
 
 
 class MatglLightningModuleMixin:
@@ -187,9 +188,9 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         if loss == "mse_loss":
             self.loss = F.mse_loss
         elif loss == "huber_loss":
-            self.loss = F.huber_loss
+            self.loss = F.huber_loss  # type:ignore[assignment]
         elif loss == "smooth_l1_loss":
-            self.loss = F.smooth_l1_loss
+            self.loss = F.smooth_l1_loss  # type:ignore[assignment]
         else:
             self.loss = F.l1_loss
         self.optimizer = optimizer
@@ -214,10 +215,10 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         Returns:
             Model prediction.
         """
-        g.edata["lattice"] = torch.repeat_interleave(lat, g.batch_num_edges(), dim=0)
+        g.edata["lattice"] = torch.repeat_interleave(lat, g.batch_num_edges(), dim=0)  # type:ignore[arg-type]
         g.edata["pbc_offshift"] = (g.edata["pbc_offset"].unsqueeze(dim=-1) * g.edata["lattice"]).sum(dim=1)
         g.ndata["pos"] = (
-            g.ndata["frac_coords"].unsqueeze(dim=-1) * torch.repeat_interleave(lat, g.batch_num_nodes(), dim=0)
+            g.ndata["frac_coords"].unsqueeze(dim=-1) * torch.repeat_interleave(lat, g.batch_num_nodes(), dim=0)  # type:ignore[arg-type]
         ).sum(dim=1)
         if self.include_line_graph:
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
@@ -345,7 +346,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         if loss == "mse_loss":
             self.loss = F.mse_loss
         elif loss == "huber_loss":
-            self.loss = F.huber_loss
+            self.loss = F.huber_loss  # type:ignore[assignment]
         elif loss == "smooth_l1_loss":
             self.loss = F.smooth_l1_loss
         else:

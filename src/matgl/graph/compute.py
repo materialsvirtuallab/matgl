@@ -202,14 +202,14 @@ def _compute_3body(g: dgl.DGLGraph):
     dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=matgl.int_th)
     l_g = dgl.graph((src_id, dst_id)).to(g.device)
     three_body_id = torch.cat(l_g.edges())
-    n_triple_ij = torch.tensor(n_triple_ij, dtype=matgl.int_th, device=g.device)
+    n_triple_ij = torch.tensor(n_triple_ij, dtype=matgl.int_th, device=g.device)  # type:ignore[assignment]
 
     max_three_body_id = three_body_id.max().item() + 1 if three_body_id.numel() > 0 else 0
 
-    l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]
-    l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]
-    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]
-    l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]
+    l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]  # type:ignore[misc]
+    l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]  # type:ignore[misc]
+    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]  # type:ignore[misc]
+    l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]  # type:ignore[misc]
 
     return l_g
 
@@ -231,8 +231,8 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
         all_indices = torch.arange(pg.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
         num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
         num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
-        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
-        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)
+        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
+        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
 
         incoming_edges = src_indices.unsqueeze(1) == dst_indices
         is_self_edge = src_indices == dst_indices
@@ -251,7 +251,7 @@ def _create_directed_line_graph(graph: dgl.DGLGraph, threebody_cutoff: float) ->
 
         # create line graph edges for bonds that are not self edges in atom graph
         shared_src = src_indices.unsqueeze(1) == src_indices
-        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
+        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)  # type:ignore[call-overload]
         incoming = incoming_edges & (shared_src | ~back_tracking)
 
         edge_inds_ns = not_self_edge.nonzero().squeeze()

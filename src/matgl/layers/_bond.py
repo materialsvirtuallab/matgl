@@ -50,11 +50,11 @@ class BondExpansion(nn.Module):
         self.rbf_type = rbf_type
 
         if rbf_type.lower() == "sphericalbessel":
-            self.rbf = SphericalBesselFunction(max_l, max_n, cutoff, smooth)  # type: ignore
+            self.rbf = SphericalBesselFunction(max_l, max_n, cutoff, smooth)  # type:ignore[assignment]
         elif rbf_type.lower() == "gaussian":
-            self.rbf = GaussianExpansion(initial, final, num_centers, width)  # type: ignore
+            self.rbf = GaussianExpansion(initial, final, num_centers, width)  # type:ignore[assignment]
         elif rbf_type.lower() == "expnorm":
-            self.rbf = ExpNormalFunction(cutoff, num_centers, True)
+            self.rbf = ExpNormalFunction(cutoff, num_centers, True)  # type:ignore[assignment]
         else:
             raise ValueError("Undefined rbf_type, please use SphericalBessel or Gaussian instead.")
 

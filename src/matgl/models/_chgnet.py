@@ -204,7 +204,7 @@ class CHGNet(MatGLModel):
 
         # embedding block for atom, bond, angle, and optional state features
         self.include_states = dim_state_feats is not None
-        self.state_embedding = nn.Embedding(dim_state_feats, dim_state_embedding) if self.include_states else None
+        self.state_embedding = nn.Embedding(dim_state_feats, dim_state_embedding) if self.include_states else None  # type: ignore[arg-type]
         self.atom_embedding = nn.Embedding(len(element_types), dim_atom_embedding)
         self.bond_embedding = MLP_norm(
             [max_n, dim_bond_embedding], activation=activation, activate_last=non_linear_bond_embedding, bias_last=False
@@ -278,7 +278,7 @@ class CHGNet(MatGLModel):
                 dims=[input_dim, *final_hidden_dims, num_targets], activation=activation, activate_last=False
             )
         elif final_mlp_type == "gated":
-            self.final_layer = GatedMLP_norm(
+            self.final_layer = GatedMLP_norm(  # type: ignore[assignment]
                 in_feats=input_dim, dims=[*final_hidden_dims, num_targets], activate_last=False
             )
         else:
