@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import scipy.sparse as sp
-from pymatgen.core import Element, Molecule, Structure
+from pymatgen.core.periodic_table import Element, Molecule, Structure
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 from matgl.graph.converters import GraphConverter

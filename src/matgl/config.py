@@ -6,7 +6,7 @@ import os
 import shutil
 from pathlib import Path
 
-from pymatgen.core import Element
+from pymatgen.core.periodic_table import Element
 
 # Default set of elements supported by universal matgl models. Excludes radioactive and most artificial elements.
 DEFAULT_ELEMENTS = tuple(el.symbol for el in Element if el.symbol not in ["Po", "At", "Rn", "Fr", "Ra"] and el.Z < 95)

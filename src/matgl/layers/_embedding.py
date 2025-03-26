@@ -57,14 +57,14 @@ class EmbeddingBlock(nn.Module):
         if ntypes_state and dim_state_embedding is not None:
             self.layer_state_embedding = nn.Embedding(ntypes_state, dim_state_embedding)  # type: ignore
         elif dim_state_feats is not None:
-            self.layer_state_embedding = nn.Sequential(
+            self.layer_state_embedding = nn.Sequential(  # type:ignore[assignment]
                 nn.LazyLinear(dim_state_feats, bias=False, dtype=matgl.float_th),
                 activation,
             )
         if ntypes_node is not None:
             self.layer_node_embedding = nn.Embedding(ntypes_node, dim_node_embedding)
         else:
-            self.layer_node_embedding = nn.Sequential(
+            self.layer_node_embedding = nn.Sequential(  # type:ignore[assignment]
                 nn.LazyLinear(dim_node_embedding, bias=False, dtype=matgl.float_th),
                 activation,
             )
@@ -203,7 +203,7 @@ class TensorEmbedding(nn.Module):
         u = None
         if self.include_state:
             u = edges.src["u"]
-        zij = torch.hstack([vi, vj, u]) if self.include_state else torch.hstack([vi, vj])
+        zij = torch.hstack([vi, vj, u]) if self.include_state else torch.hstack([vi, vj])  # type:ignore[list-item]
         Zij = self.emb2(zij)
         scalars = Zij[..., None, None] * edges.data.pop("Iij")
         skew_matrices = Zij[..., None, None] * edges.data.pop("Aij")
@@ -272,7 +272,7 @@ class TensorEmbedding(nn.Module):
             if self.ntypes_state and self.dim_state_embedding is not None:
                 state_feat = self.layer_state_embedding(state_attr)
             elif self.dim_state_feats is not None:
-                state_attr = torch.unsqueeze(state_attr, 0)
+                state_attr = torch.unsqueeze(state_attr, 0)  # type:ignore[arg-type]
                 state_feat = self.layer_state_mlp(state_attr.to(matgl.float_th))
 
         edge_feat = self.emb3(edge_attr)
