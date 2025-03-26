@@ -157,7 +157,6 @@ addopts = "--durations=30 --quiet -rXs --color=yes -p no:warnings"
 
 [tool.mypy]
 ignore_missing_imports = true
-explicit_package_bases = true
 no_implicit_optional = false
 exclude = ['examples', 'tests']
 

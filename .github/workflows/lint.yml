@@ -31,4 +31,4 @@ jobs:
         run: |
           uv run mypy --version
           uv run rm -rf .mypy_cache
-          uv run mypy src
+          uv run mypy --no-namespace-packages src
