@@ -31,11 +31,11 @@ def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_pe
         graphs, lattices, state_attr, labels = map(list, zip(*batch))
     g = dgl.batch(graphs)
     labels = (
-        torch.vstack([next(iter(d.values())) for d in labels])
+        torch.vstack([next(iter(d.values())) for d in labels])  # type:ignore[assignment]
         if multiple_values_per_target
-        else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)
+        else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)  # type:ignore[assignment]
     )
-    state_attr = torch.stack(state_attr)
+    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
     lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
     if include_line_graph:
         l_g = dgl.batch(line_graphs)
@@ -64,7 +64,7 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
         if include_magmom is True
         else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
     )
-    state_attr = torch.stack(state_attr)
+    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
     lat = torch.stack(lattices)
     if include_line_graph:
         if include_magmom:

@@ -972,8 +972,8 @@ class CHGNetAtomGraphBlock(nn.Module):
             self.atom_norm = LayerNorm(num_atom_feats)
             self.bond_norm = LayerNorm(num_bond_feats)
         else:
-            self.atom_norm = None
-            self.bond_norm = None
+            self.atom_norm = None  # type:ignore[assignment]
+            self.bond_norm = None  # type:ignore[assignment]
 
         self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
 

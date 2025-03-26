@@ -73,7 +73,7 @@ class Atoms2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
+    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
         """Get a DGL graph from an input Atoms.
 
         Args:

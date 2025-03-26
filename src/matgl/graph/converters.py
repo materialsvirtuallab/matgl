@@ -33,7 +33,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         element_types,
         frac_coords,
         is_atoms: bool = False,
-    ) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
+    ) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
         """Construct a dgl graph from processed structure and bond information.
 
         Args:
