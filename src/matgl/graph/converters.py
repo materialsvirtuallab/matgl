@@ -15,7 +15,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
     """Abstract base class for converters from input crystals/molecules to graphs."""
 
     @abc.abstractmethod
-    def get_graph(self, structure) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
+    def get_graph(self, structure) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
         """Args:
         structure: Input crystals or molecule.
 

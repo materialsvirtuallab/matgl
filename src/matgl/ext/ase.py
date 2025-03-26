@@ -34,9 +34,10 @@ from pymatgen.optimization.neighbors import find_points_in_spheres
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
+    from typing import Any
+
     import dgl
     import torch
-    from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
 
     from matgl.apps.pes import Potential
@@ -129,7 +130,7 @@ class Atoms2Graph(GraphConverter):
 class PESCalculator(Calculator):
     """Potential calculator for ASE."""
 
-    implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian", "magmoms")
+    implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian", "magmoms"]  # noqa:RUF012
 
     def __init__(
         self,
@@ -172,9 +173,9 @@ class PESCalculator(Calculator):
         self.cutoff = potential.model.cutoff
         self.use_voigt = use_voigt
 
-    def calculate(
+    def calculate(  # type:ignore[override]
         self,
-        atoms: Atoms | None = None,
+        atoms: Atoms,
         properties: list | None = None,
         system_changes: list | None = None,
     ):
@@ -307,12 +308,12 @@ class Relaxer:
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
                 atoms = (
-                    FrechetCellFilter(atoms, **params_asecellfilter)
+                    FrechetCellFilter(atoms, **params_asecellfilter)  # type:ignore[assignment]
                     if ase_cellfilter == "Frechet"
                     else ExpCellFilter(atoms, **params_asecellfilter)
                 )
 
-            optimizer = self.optimizer(atoms, **kwargs)
+            optimizer = self.optimizer(atoms, **kwargs)  # type:ignore[operator]
             optimizer.attach(obs, interval=interval)
             optimizer.run(fmax=fmax, steps=steps)
             obs()
@@ -323,7 +324,7 @@ class Relaxer:
             atoms = atoms.atoms
 
         return {
-            "final_structure": self.ase_adaptor.get_structure(atoms),
+            "final_structure": self.ase_adaptor.get_structure(atoms),  # type:ignore[arg-type]
             "trajectory": obs,
         }
 
@@ -414,7 +415,7 @@ class MolecularDynamics:
         pfactor: float = 75.0**2.0,
         external_stress: float | np.ndarray | None = None,
         compressibility_au: float | None = None,
-        trajectory: str | Trajectory | None = None,
+        trajectory: Any = None,
         logfile: str | None = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
@@ -479,7 +480,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nve":
-            self.dyn = VelocityVerlet(
+            self.dyn = VelocityVerlet(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 trajectory=trajectory,
@@ -489,7 +490,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nvt_langevin":
-            self.dyn = Langevin(
+            self.dyn = Langevin(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -501,7 +502,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nvt_andersen":
-            self.dyn = Andersen(
+            self.dyn = Andersen(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -515,7 +516,7 @@ class MolecularDynamics:
         elif ensemble.lower() == "nvt_bussi":
             if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
                 MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
-            self.dyn = Bussi(
+            self.dyn = Bussi(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -533,7 +534,7 @@ class MolecularDynamics:
             cell but allows three lattice parameter to change independently.
             """
 
-            self.dyn = Inhomogeneous_NPTBerendsen(
+            self.dyn = Inhomogeneous_NPTBerendsen(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -573,11 +574,11 @@ class MolecularDynamics:
 
         elif ensemble.lower() == "npt_nose_hoover":
             self.upper_triangular_cell()
-            self.dyn = NPT(
+            self.dyn = NPT(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
-                externalstress=external_stress,
+                externalstress=external_stress,  # type:ignore[arg-type]
                 ttime=ttime * units.fs,
                 pfactor=pfactor * units.fs,
                 trajectory=trajectory,
