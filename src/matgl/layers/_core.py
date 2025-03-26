@@ -56,7 +56,7 @@ class MLP(nn.Module):
             else:
                 dims.append(layer.__class__.__name__)
 
-        return f'MLP({", ".join(dims)})'
+        return f"MLP({', '.join(dims)})"
 
     @property
     def last_linear(self) -> Linear | None:

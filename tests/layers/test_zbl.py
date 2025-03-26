@@ -1,14 +1,16 @@
 """United tests for ZBL repulsion"""
+
 from __future__ import annotations
 
 import dgl
-import matgl
 import pytest
 import torch
+
+import matgl
 from matgl.layers import NuclearRepulsion
 
 
-@pytest.fixture()
+@pytest.fixture
 def example_data():
     element_types = "H"
     g = dgl.graph(([0, 1], [1, 0]))
