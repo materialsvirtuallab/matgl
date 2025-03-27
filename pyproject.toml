@@ -52,7 +52,7 @@ dependencies = [
     "ase",
     "dgl<=2.1.0",
     "pymatgen",
-    "lightning<=2.5.0.post0",
+    "lightning<=2.5.1.dev20250323",
     "torch<=2.2.0",
     "torchdata<=0.7.1",
     "pydantic",
