@@ -178,6 +178,7 @@ exclude_lines = [
     "except PackageNotFoundError:",
     "if 0:",
     "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
     "if __name__ == .__main__.:",
     "if self.debug:",
     "if settings.DEBUG",
