@@ -193,6 +193,7 @@ exclude_lines = [
 [dependency-groups]
 dev = [
     "coverage>=7.7.1",
+    "jupyter>=1.1.1",
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
     "pytest-cov>=6.0.0",

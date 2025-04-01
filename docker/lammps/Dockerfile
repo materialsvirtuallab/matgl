@@ -1,4 +1,5 @@
-FROM ubuntu:latest
+# We start from a uv image to make life easier.
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y software-properties-common gpg gpg-agent && \
@@ -37,7 +38,6 @@ RUN apt-get update && \
         libpng-dev \
         libproj-dev \
         libreadline-dev \
-        libvtk9-dev \
         libyaml-dev \
         libzstd-dev \
         make \
@@ -48,11 +48,11 @@ RUN git clone https://github.com/advancesoftcorp/lammps.git
 
 RUN mkdir -p lammps/build-serial && \
     cd lammps/build-serial && \
-    cmake ../cmake && \
-    cmake --build . && \
+    cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-GNNP=on -D PKG_EXTRA-COMPUTE=on -D PKG_EXTRA-FIX=on -D PKG_MANYBODY=on -D PKG_EXTRA-DUMP=on -D PKG_MOLECULE=on ../cmake && \
     make -j 8 && \
-    make install
+    make install && \
+    cp lmp /usr/local/bin
 
-RUN pip install matgl
+ENV PATH="/usr/local/bin:${PATH}"
 
-CMD ["lmp"]
+RUN uv pip install matgl --system
