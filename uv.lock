@@ -916,9 +916,9 @@ maintain = [
 requires-dist = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", specifier = "<=2.1.0" },
+    { name = "dgl", specifier = "<=2.2.1" },
     { name = "fsspec" },
-    { name = "lightning", specifier = "<=2.5.0.post0" },
+    { name = "lightning", specifier = "<=2.5.1.dev20250323" },
     { name = "numpy", specifier = "<2.0" },
     { name = "pydantic" },
     { name = "pymatgen" },
