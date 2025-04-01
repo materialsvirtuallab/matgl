@@ -4,4 +4,4 @@ ENV DGLBACKEND=pytorch
 
 RUN uv pip install matgl jupyter lxml
 
-CMD ["jupyter", "notebook", "--allow-root", "--ip", "0.0.0.0", "--no-browser"]
+CMD [ "python", "-c", "import matgl; print(matgl.__version__)"]
