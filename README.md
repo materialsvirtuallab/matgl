@@ -128,6 +128,11 @@ pip install dgl -f https://data.dgl.ai/wheels/cu121/repo.html
 pip install dglgo -f https://data.dgl.ai/wheels-test/repo.html
 ```
 
+## Docker images
+
+Docker images have now been built for matgl, together with LAMMPS support. They are available at the
+[Materials Virtual Lab Docker Repository]. If you wish to use MatGL with LAMMPS, this is probably the easiest option.
+
 ## Usage
 
 Pre-trained M3GNet universal potential and MEGNet models for the Materials Project formation energy and
@@ -335,3 +340,4 @@ ACI-1548562.
 [MatGL]: https://matgl.ai
 [MatPES]: https://matpes.ai
 [MatCalc]: https://matcalc.ai
+[Materials Virtual Lab Docker Repository]: https://hub.docker.com/orgs/materialsvirtuallab/repositories
