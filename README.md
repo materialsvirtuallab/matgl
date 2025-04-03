@@ -103,16 +103,16 @@ We have implemented other models in matgl as well. A non-exhaustive list is give
 
 ## Installation
 
-Matgl can be installed via pip for the latest stable version:
+If you are on Linux, it is recommended you install the latest version of DGL before installing matgl.
+
+```bash
+pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+```
+
+Matgl can be installed via pip:
 
 ```bash
 pip install matgl
-```
-
-For the latest dev version, please clone this repo and install using:
-
-```bash
-pip install -e .
 ```
 
 ### CUDA (GPU) installation

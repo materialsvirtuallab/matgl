@@ -61,9 +61,8 @@ dependencies = [
     "boto3",
     "numpy<2.0",
     "fsspec",
-    "dgl ; sys_platform == 'linux'",
 ]
-version = "1.2.3"
+version = "1.2.4"
 
 [project.scripts]
 mgl = "matgl.cli:main"
