@@ -32,17 +32,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv with python version.
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.config.python }}
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          uv pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
-          uv pip install -e . --system
-          uv pip install pytest pytest-cov --system
+          pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+          pip install -e .
+          pip install pytest pytest-cov
       - name: pytest
         run: |
           pytest --cov=matgl tests --color=yes
