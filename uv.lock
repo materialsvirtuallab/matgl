@@ -1571,7 +1571,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "pymatgen" },
     { name = "torch" },
-    { name = "torchdata" },
 ]
 
 [package.dev-dependencies]
@@ -1599,12 +1598,11 @@ requires-dist = [
     { name = "boto3" },
     { name = "dgl", specifier = "<=2.4" },
     { name = "fsspec" },
-    { name = "lightning", specifier = "<=2.5.1.dev20250323" },
+    { name = "lightning", specifier = "<=2.5.1" },
     { name = "numpy", specifier = "<2.0" },
     { name = "pydantic" },
     { name = "pymatgen" },
     { name = "torch", specifier = "<=2.6.0" },
-    { name = "torchdata", specifier = "<=0.7.1" },
 ]
 
 [package.metadata.requires-dev]
