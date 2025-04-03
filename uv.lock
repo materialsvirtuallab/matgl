@@ -1603,6 +1603,7 @@ lint = [
 ]
 maintain = [
     { name = "invoke" },
+    { name = "requests" },
     { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "sphinx-markdown-builder" },
@@ -1638,6 +1639,7 @@ lint = [
 ]
 maintain = [
     { name = "invoke", specifier = ">=2.2.0" },
+    { name = "requests", specifier = ">=2.32.3" },
     { name = "sphinx", specifier = ">=8.1.3" },
     { name = "sphinx-markdown-builder", specifier = ">=0.6.8" },
 ]

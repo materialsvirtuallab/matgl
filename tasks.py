@@ -104,7 +104,7 @@ def publish(ctx):
 
 
 @task
-def release_github(ctx, version):
+def release(ctx, version):
     desc = get_changelog(version)
     payload = {
         "tag_name": "v" + version,
@@ -120,16 +120,6 @@ def release_github(ctx, version):
         headers={"Authorization": "token " + os.environ["GITHUB_RELEASES_TOKEN"]},
     )
     pprint(response.json())
-
-
-@task
-def release(ctx, notest=False):
-    ctx.run("rm -r dist build matgl.egg-info", warn=True)
-    if not notest:
-        ctx.run("pytest tests")
-    # publish(ctx)
-    release_github(ctx)
-
 
 def get_changelog(version):
     with open("changes.md") as f:
