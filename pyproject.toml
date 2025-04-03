@@ -62,7 +62,7 @@ dependencies = [
     "numpy<2.0",
     "fsspec",
 ]
-version = "1.2.4"
+version = "1.2.5"
 
 [project.scripts]
 mgl = "matgl.cli:main"

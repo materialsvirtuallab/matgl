@@ -6,7 +6,7 @@ nav_order: 3
 
 # Change Log
 
-## 1.2.4
+## 1.2.5
 - Dependency pinning now is platform specific. Linux based systems can now work with latest DGL and torch.
 
 ## 1.2.3
