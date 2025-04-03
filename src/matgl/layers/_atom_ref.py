@@ -28,7 +28,7 @@ class AtomRef(nn.Module):
         self.register_buffer("property_offset", property_offset)
         self.register_buffer("onehot", torch.eye(self.max_z))
 
-    def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> torch.Tensor:
+    def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> np.ndarray:
         """Get the number of atoms for different elements in the structure.
 
         Args:
@@ -41,7 +41,7 @@ class AtomRef(nn.Module):
         for i, graph in enumerate(graphs):
             atomic_numbers = graph.ndata["node_type"]
             features[i] = torch.bincount(atomic_numbers, minlength=self.max_z)
-        return features.cpu()
+        return features.cpu().numpy()
 
     def fit(self, graphs: list[dgl.DGLGraph], properties: torch.Tensor) -> None:
         """Fit the elemental reference values for the properties.

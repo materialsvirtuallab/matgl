@@ -61,6 +61,8 @@ def generate_clebsch_gordan(lmax: int) -> torch.Tensor:
     """
     lidx, midx = sh_indices(lmax)
     cg = torch.zeros((lidx.shape[0], lidx.shape[0], lidx.shape[0]))
+    lidx = lidx.numpy()  # type: ignore[assignment]
+    midx = midx.numpy()  # type: ignore[assignment]
     for c1, (l1, m1) in enumerate(zip(lidx, midx)):
         for c2, (l2, m2) in enumerate(zip(lidx, midx)):
             for c3, (l3, m3) in enumerate(zip(lidx, midx)):
