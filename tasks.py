@@ -11,13 +11,9 @@ import re
 import shutil
 from pprint import pprint
 
-import matgl
 import requests
 from invoke import task
 from monty.os import cd
-
-NEW_VER = matgl.__version__
-
 
 @task
 def make_tutorials(ctx):
@@ -108,12 +104,12 @@ def publish(ctx):
 
 
 @task
-def release_github(ctx):
-    desc = get_changelog()
+def release_github(ctx, version):
+    desc = get_changelog(version)
     payload = {
-        "tag_name": "v" + NEW_VER,
+        "tag_name": "v" + version,
         "target_commitish": "main",
-        "name": "v" + NEW_VER,
+        "name": "v" + version,
         "body": desc,
         "draft": False,
         "prerelease": False,
@@ -135,11 +131,11 @@ def release(ctx, notest=False):
     release_github(ctx)
 
 
-def get_changelog():
+def get_changelog(version):
     with open("changes.md") as f:
         contents = f.read()
-        print(NEW_VER)
-        m = re.search(f"## {NEW_VER}([^#]*)", contents)
+        print(version)
+        m = re.search(f"## {version}([^#]*)", contents)
         changes = m.group(1).strip()
         return changes
 
