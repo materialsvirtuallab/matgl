@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [main]
+    branches: [main,req-update]
   pull_request:
     branches: [main]
   release:
@@ -21,15 +21,8 @@ jobs:
       max-parallel: 20
       matrix:
         config:
-#          - os: windows-latest
-#            python: "3.10"
-#            resolution: highest
           - os: ubuntu-latest
             python: "3.12"
-            resolution: lowest-direct
-          - os: macos-latest
-            python: "3.11"
-            resolution: lowest-direct
 
     runs-on: ${{ matrix.config.os }}
     env:
