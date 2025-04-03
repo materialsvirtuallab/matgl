@@ -76,7 +76,9 @@ jobs:
         run: |
           pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Build
-        run: python -m build
+        run: |
+          pip install build
+          python -m build --sdist
       - name: Publish to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
