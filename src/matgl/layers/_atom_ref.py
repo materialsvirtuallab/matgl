@@ -35,7 +35,7 @@ class AtomRef(nn.Module):
             graphs (list): a list of dgl graph
 
         Returns:
-            features (torch.Tensor): a matrix (num_structures, num_elements)
+            features (np.ndarray): a matrix (num_structures, num_elements)
         """
         features = torch.zeros(len(graphs), self.max_z, dtype=matgl.float_th)
         for i, graph in enumerate(graphs):
