@@ -12,8 +12,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install latest DGL
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
+          pip install -e .
           pip install ruff mypy
 
       - name: ruff
@@ -25,4 +30,4 @@ jobs:
         run: |
           mypy --version
           rm -rf .mypy_cache
-          mypy src
+          mypy -p matgl
