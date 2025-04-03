@@ -21,8 +21,10 @@ jobs:
       max-parallel: 20
       matrix:
         config:
-          - os: [ ubuntu-latest, macos-latest ]
-            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: macos-latest
+            python: "3.10"
 
     runs-on: ${{ matrix.config.os }}
     env:
