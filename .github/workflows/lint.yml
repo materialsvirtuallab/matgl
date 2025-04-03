@@ -15,6 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install ruff mypy
+
       - name: ruff
         run: |
           ruff --version
@@ -24,4 +25,4 @@ jobs:
         run: |
           mypy --version
           rm -rf .mypy_cache
-          mypy -p matgl
+          mypy src
