@@ -10,12 +10,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install uv with python version.
         uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
       - name: Install dependencies
         run: |
-          uv sync --group lint
+          uv pip install ruff mypy --frozen
 
       - name: ruff
         run: |
