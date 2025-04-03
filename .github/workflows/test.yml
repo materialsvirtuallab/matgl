@@ -21,8 +21,8 @@ jobs:
       max-parallel: 20
       matrix:
         config:
-          - os: [ ubuntu-latest, mac-latest ]
-            python: "3.12"
+          - os: [ ubuntu-latest, macos-latest ]
+            python: "3.11"
 
     runs-on: ${{ matrix.config.os }}
     env:
@@ -37,7 +37,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install latest DGL
-        if: matrix.config.os == "ubuntu-latest"
+        if: matrix.config.os == 'ubuntu-latest'
         run: |
           pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
