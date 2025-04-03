@@ -670,14 +670,22 @@ name = "dgl"
 version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "networkx", marker = "sys_platform != 'darwin'" },
-    { name = "numpy", marker = "sys_platform != 'darwin'" },
-    { name = "pandas", marker = "sys_platform != 'darwin'" },
-    { name = "psutil", marker = "sys_platform != 'darwin'" },
-    { name = "requests", marker = "sys_platform != 'darwin'" },
-    { name = "scipy", marker = "sys_platform != 'darwin'" },
-    { name = "torchdata", marker = "sys_platform != 'darwin'" },
-    { name = "tqdm", marker = "sys_platform != 'darwin'" },
+    { name = "networkx" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "psutil" },
+    { name = "requests" },
+    { name = "scipy" },
+    { name = "torchdata" },
+    { name = "tqdm" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/09/522060351a971927ae5db1b265219055a836f0c2da81079fe4d68e2c8a45/dgl-2.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:eece51bbc2b7f951c78b2e53cb5ac7e645f30ea142729bb613a9c9e3ef9ca338", size = 7400188 },
+    { url = "https://files.pythonhosted.org/packages/ac/da/ee69624c1598c488e735dd9470869d377d4ae45291c404d1f54ed26f20bb/dgl-2.2.0-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:e5800d6321b259819c7b02db7dcc656d606d98bd3536ec8b3734f50ad5fd36e9", size = 7398182 },
+    { url = "https://files.pythonhosted.org/packages/30/a2/afbff76a1274168179aa979c174e94f9371e94ce4be1650f2e3b635d0936/dgl-2.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:5287d986ceda7e2472bede4a2ec957f23401c51c427e2baf610eb364aace54e1", size = 7382850 },
+    { url = "https://files.pythonhosted.org/packages/c0/59/d7d45b6c2274cb6dd75105453b377c79f9031109b0be9080d4176b74c127/dgl-2.2.0-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:974fe9d3f3ef794a047a8541e8f9d7600f2073c8301ab138e0d420cc908e8e1b", size = 7265550 },
+    { url = "https://files.pythonhosted.org/packages/e1/ec/19f86adc4d50c1a180e0e9d6181fb3b74421ed3ee4304e0fd47cd754b988/dgl-2.2.0-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:4d1c68f412d2b9ad075eb4876b5b76b5660569dd5f457b6da46ed8a21676cd65", size = 7265549 },
+    { url = "https://files.pythonhosted.org/packages/dc/82/a8857a5a86e7a0f8c12913e51c1dfecabe5a658ca43569ce26ddb0e7020d/dgl-2.2.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:b05d98c1dc8c8cd30de5aaffbca4905dd6426ba3bb17c967cc99317d0c2d5685", size = 7382847 },
 ]
 
 [[package]]
@@ -1571,14 +1579,14 @@ source = { editable = "." }
 dependencies = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", marker = "sys_platform != 'darwin'" },
+    { name = "dgl" },
     { name = "fsspec" },
     { name = "lightning" },
     { name = "numpy" },
     { name = "pydantic" },
     { name = "pymatgen" },
-    { name = "torch", marker = "sys_platform != 'darwin'" },
-    { name = "torchdata", marker = "sys_platform != 'darwin'" },
+    { name = "torch" },
+    { name = "torchdata", marker = "sys_platform != 'linux'" },
 ]
 
 [package.dev-dependencies]
@@ -1605,16 +1613,16 @@ maintain = [
 requires-dist = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", marker = "sys_platform != 'darwin'", specifier = "<=2.2.0" },
+    { name = "dgl", marker = "sys_platform != 'linux'", specifier = "<=2.2.0" },
     { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4" },
     { name = "fsspec" },
     { name = "lightning", specifier = "<=2.5.1" },
     { name = "numpy", specifier = "<2.0" },
     { name = "pydantic" },
     { name = "pymatgen" },
-    { name = "torch", marker = "sys_platform != 'darwin'", specifier = "<=2.2.0" },
+    { name = "torch", marker = "sys_platform != 'linux'", specifier = "<=2.2.0" },
     { name = "torch", marker = "sys_platform == 'linux'", specifier = "<=2.4.0" },
-    { name = "torchdata", marker = "sys_platform != 'darwin'", specifier = "<=0.7.1" },
+    { name = "torchdata", marker = "sys_platform != 'linux'", specifier = "<=0.7.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -3579,13 +3587,17 @@ name = "torchdata"
 version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "requests", marker = "sys_platform != 'darwin'" },
-    { name = "torch", marker = "sys_platform != 'darwin'" },
-    { name = "urllib3", marker = "sys_platform != 'darwin'" },
+    { name = "requests" },
+    { name = "torch" },
+    { name = "urllib3" },
 ]
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/97/6f8f2384d9efb2d1bb6966b5300852d704f4943656360e9352e3cc3358b8/torchdata-0.7.1-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:042db39edbc961c50a36c45b89aea4b099858140c13746c7cc7a87b1cc219d0c", size = 1801802 },
+    { url = "https://files.pythonhosted.org/packages/0f/45/7c4674a8a4ac83f0e130d0991d61ff96a231656112bb7c50618d77ab0a8f/torchdata-0.7.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2d2c8482313dd52652caff99dc530433d898a12bb80bc33a0a4d1680d63272e0", size = 4815667 },
     { url = "https://files.pythonhosted.org/packages/39/18/6f0d33df4b9fe4d44a779c2c7cc7cb042535a336f051bb0e5b5387844ee6/torchdata-0.7.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eed10b1f9265b30161a8cd129a96cfc7da202cfc70acf8b6a21fd29e18274ca3", size = 4657548 },
     { url = "https://files.pythonhosted.org/packages/0e/06/0c916f27ef9f5a566b555f07c82c94fb9277fcabe0fcbf4dfe4505dcb28a/torchdata-0.7.1-cp310-cp310-win_amd64.whl", hash = "sha256:36c591d0910ede6a496d4fccd389f27e7bccabf8b6a8722712ecf28b98bda8ae", size = 1330841 },
+    { url = "https://files.pythonhosted.org/packages/ad/9a/8b3c64a141b58228419110858acdd5eae7a1b54db9dd8f22a2af956ac53d/torchdata-0.7.1-cp311-cp311-macosx_10_13_x86_64.whl", hash = "sha256:91a78c677a3e4e2447d888587f7ea0b4ddde81ca95adf709ba0d3dc9a4e9542d", size = 1801812 },
+    { url = "https://files.pythonhosted.org/packages/35/b2/7ed3a80ae0673b940f2af14281dc02dee0f667c6094e6dcd399fa35249a7/torchdata-0.7.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:fa325d628aa6125c6b46b6fa27c94150ca9276edbba1042d3eb3cd9c1039b5a9", size = 4815618 },
     { url = "https://files.pythonhosted.org/packages/c1/8d/b17138a9ad7e47dd602587dbcc142bd98374e0c16c0806c2026d8db54242/torchdata-0.7.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d256535648dfb94d1226f233768c6798d1841edfdbf0a09b2115e6cbbda614f9", size = 4657579 },
     { url = "https://files.pythonhosted.org/packages/da/8d/e0413f91944f931cb5c685cbd6330ad450f9d5466c466822d25761ca772d/torchdata-0.7.1-cp311-cp311-win_amd64.whl", hash = "sha256:7460a5fa298e7cd5cef98e8e6455d481e5c73d39a462a89a38918389c8153e20", size = 1330404 },
     { url = "https://files.pythonhosted.org/packages/e2/c8/34eda2bd6beb8a11c06cf905db74092bdbc3dec51a48f4f22cc474866a0a/torchdata-0.7.1-py3-none-any.whl", hash = "sha256:9f9476a26987d90fa3f87cb09ec82b78ce6031ddcaa91851c9fa9f732a987ab8", size = 184418 },
