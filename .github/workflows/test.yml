@@ -44,13 +44,12 @@ jobs:
           pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
-          python -c "import dgl; print(dgl.__version__)"
-          python -c "import torch; print(torch.__version__)"
           pip install -e .
           pip install pytest pytest-cov
       - name: pytest
         run: |
-          python
+          python -c "import dgl; print(dgl.__version__)"
+          python -c "import torch; print(torch.__version__)"
           pytest --cov=matgl tests --color=yes
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
