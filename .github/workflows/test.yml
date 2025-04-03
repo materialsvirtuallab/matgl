@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [main,req-update]
+    branches: [main]
   pull_request:
     branches: [main]
   release:
@@ -65,16 +65,16 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv with python version.
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.config.python }}
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-      - name: Install dependencies
-        run: uv sync
-      - name: Build sdist
-        run: uv build
+          python-version: "3.11"
+      - name: Install latest DGL
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+      - name: Build
+        run: python -m build
       - name: Publish to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
