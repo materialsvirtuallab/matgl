@@ -1,10 +1,12 @@
 """This is an integration test file that checks on pre-trained models to ensure they still work."""
+
 from __future__ import annotations
 
 import os
 
-import matgl
 import pytest
+
+import matgl
 
 
 def test_form_e(LiFePO4):

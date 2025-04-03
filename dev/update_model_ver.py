@@ -1,4 +1,5 @@
 """This script is used to update model version numbers ex-post if the versions were updated manually."""
+
 from __future__ import annotations
 
 import json

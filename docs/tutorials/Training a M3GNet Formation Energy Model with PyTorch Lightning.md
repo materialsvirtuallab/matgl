@@ -20,14 +20,14 @@ from functools import partial
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import pytorch_lightning as pl
+import lightning as pl
 from dgl.data.utils import split_dataset
 from pymatgen.core import Structure
 from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn
+from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn_graph
 from matgl.models import M3GNet
 from matgl.utils.io import RemoteFile
 from matgl.utils.training import ModelLightningModule
@@ -105,7 +105,7 @@ train_data, val_data, test_data = split_dataset(
     shuffle=True,
     random_state=42,
 )
-my_collate_fn = partial(collate_fn, include_line_graph=True)
+my_collate_fn = partial(collate_fn_graph, include_line_graph=True)
 train_loader, val_loader, test_loader = MGLDataLoader(
     train_data=train_data,
     val_data=val_data,

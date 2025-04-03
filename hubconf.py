@@ -1,4 +1,5 @@
 """Entrypoints for Pytorch Hub."""
+
 from __future__ import annotations
 
 dependencies = ["torch", "matgl"]

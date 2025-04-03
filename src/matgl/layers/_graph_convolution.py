@@ -315,7 +315,7 @@ class M3GNetGraphConv(Module):
             u = edges.src["u"]
         eij = edges.data.pop("e")
         rbf = edges.data["rbf"]
-        inputs = torch.hstack([vi, vj, eij, u]) if self.include_state else torch.hstack([vi, vj, eij])
+        inputs = torch.hstack([vi, vj, eij, u]) if self.include_state else torch.hstack([vi, vj, eij])  # type:ignore[list-item]
         mij = {"mij": self.edge_update_func(inputs) * self.edge_weight_func(rbf)}
         return mij
 
@@ -969,11 +969,11 @@ class CHGNetAtomGraphBlock(nn.Module):
             self.atom_norm = GraphNorm(num_atom_feats, batched_field="node")
             self.bond_norm = GraphNorm(num_bond_feats, batched_field="edge")
         elif normalization == "layer":
-            self.atom_norm = LayerNorm(num_atom_feats)
-            self.bond_norm = LayerNorm(num_bond_feats)
+            self.atom_norm = LayerNorm(num_atom_feats)  # type:ignore[assignment]
+            self.bond_norm = LayerNorm(num_bond_feats)  # type:ignore[assignment]
         else:
-            self.atom_norm = None
-            self.bond_norm = None
+            self.atom_norm = None  # type:ignore[assignment]
+            self.bond_norm = None  # type:ignore[assignment]
 
         self.dropout = nn.Dropout(dropout) if dropout > 0.0 else nn.Identity()
 

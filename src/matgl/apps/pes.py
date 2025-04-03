@@ -27,7 +27,7 @@ class Potential(nn.Module, IOMixIn):
         model: nn.Module,
         data_mean: torch.Tensor | float = 0.0,
         data_std: torch.Tensor | float = 1.0,
-        element_refs: np.ndarray | None = None,
+        element_refs: torch.Tensor | np.ndarray | None = None,
         calc_forces: bool = True,
         calc_stresses: bool = True,
         calc_hessian: bool = False,
@@ -66,14 +66,21 @@ class Potential(nn.Module, IOMixIn):
             self.repuls = NuclearRepulsion(self.model.cutoff, trainable=zbl_trainable)
 
         if element_refs is not None:
-            self.element_refs = AtomRef(property_offset=torch.tensor(element_refs, dtype=matgl.float_th))
+            if not isinstance(element_refs, torch.Tensor):
+                element_refs = torch.tensor(element_refs, dtype=matgl.float_th)
+            self.element_refs = AtomRef(property_offset=element_refs)
         else:
             self.element_refs = None
         # for backward compatibility
         if data_mean is None:
             data_mean = 0.0
-        self.register_buffer("data_mean", torch.tensor(data_mean, dtype=matgl.float_th))
-        self.register_buffer("data_std", torch.tensor(data_std, dtype=matgl.float_th))
+        if not isinstance(data_mean, torch.Tensor):
+            data_mean = torch.tensor(data_mean, dtype=matgl.float_th)
+        if not isinstance(data_std, torch.Tensor):
+            data_std = torch.tensor(data_std, dtype=matgl.float_th)
+
+        self.register_buffer("data_mean", data_mean)
+        self.register_buffer("data_std", data_std)
 
     def forward(
         self,
@@ -148,8 +155,8 @@ class Potential(nn.Module, IOMixIn):
             )
             sts = -grads[1]
             scale = 1.0 / volume * -160.21766208
-            sts = [i * j for i, j in zip(sts, scale)] if sts.dim() == 3 else [sts * scale]
-            stresses = torch.cat(sts)
+            sts = [i * j for i, j in zip(sts, scale)] if sts.dim() == 3 else [sts * scale]  # type:ignore[assignment]
+            stresses = torch.cat(sts)  # type:ignore[call-overload]
 
         if self.debug_mode:
             return total_energies, grads[0], grads[1]

@@ -1,0 +1,29 @@
+name: Lint
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv with python version.
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Install dependencies
+        run: |
+          uv sync --group lint
+
+      - name: ruff
+        run: |
+          uv run ruff --version
+          uv run ruff check src
+          uv run ruff format src --check
+      - name: mypy
+        run: |
+          uv run mypy --version
+          uv run rm -rf .mypy_cache
+          uv run mypy -p matgl

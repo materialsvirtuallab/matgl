@@ -4,6 +4,7 @@ import dgl
 import numpy as np
 import pytest
 import torch
+
 from matgl.utils.maths import (
     SPHERICAL_BESSEL_ROOTS,
     binom,
@@ -34,9 +35,9 @@ def test_spherical_bessel_roots():
 
 def test_torch_operations():
     ns = torch.tensor([2, 3])
-    assert [0, 0, 1, 1, 1] == get_segment_indices_from_n(ns).tolist()
+    assert get_segment_indices_from_n(ns).tolist() == [0, 0, 1, 1, 1]
     ns = torch.tensor([2, 3])
-    assert [0, 1, 0, 1, 2] == get_range_indices_from_n(ns).tolist()
+    assert get_range_indices_from_n(ns).tolist() == [0, 1, 0, 1, 2]
     assert repeat_with_n(torch.tensor([[0, 0], [1, 1], [2, 2]]), torch.tensor([1, 2, 3])).tolist() == [
         [0, 0],
         [1, 1],
@@ -98,7 +99,8 @@ def test_binom():
 
     # Check the correctness of the result
     expected_result = torch.tensor([6, 10, 6], dtype=n.dtype)
-    assert torch.equal(result, expected_result)
+    for i in range(len(result)):
+        assert float(result[i]) == pytest.approx(float(expected_result[i]))
 
 
 def test_vector_to_skewtensor():

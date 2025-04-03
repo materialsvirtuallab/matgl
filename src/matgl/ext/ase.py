@@ -34,9 +34,10 @@ from pymatgen.optimization.neighbors import find_points_in_spheres
 from matgl.graph.converters import GraphConverter
 
 if TYPE_CHECKING:
+    from typing import Any
+
     import dgl
     import torch
-    from ase.io import Trajectory
     from ase.optimize.optimize import Optimizer
 
     from matgl.apps.pes import Potential
@@ -73,7 +74,7 @@ class Atoms2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
+    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
         """Get a DGL graph from an input Atoms.
 
         Args:
@@ -84,7 +85,9 @@ class Atoms2Graph(GraphConverter):
             state_attr: state features
         """
         numerical_tol = 1.0e-8
-        pbc = np.array([1, 1, 1], dtype=int)
+        # Note this needs to be specified as np.int64 or the code will fail on Windows systems as it will default to
+        # long.
+        pbc = np.array([1, 1, 1], dtype=np.int64)
         element_types = self.element_types
         lattice_matrix = np.array(atoms.get_cell()) if atoms.pbc.all() else np.expand_dims(np.identity(3), axis=0)
         cart_coords = atoms.get_positions()
@@ -127,7 +130,7 @@ class Atoms2Graph(GraphConverter):
 class PESCalculator(Calculator):
     """Potential calculator for ASE."""
 
-    implemented_properties = ("energy", "free_energy", "forces", "stress", "hessian", "magmoms")
+    implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian", "magmoms"]  # noqa:RUF012
 
     def __init__(
         self,
@@ -170,9 +173,9 @@ class PESCalculator(Calculator):
         self.cutoff = potential.model.cutoff
         self.use_voigt = use_voigt
 
-    def calculate(
+    def calculate(  # type:ignore[override]
         self,
-        atoms: Atoms | None = None,
+        atoms: Atoms,
         properties: list | None = None,
         system_changes: list | None = None,
     ):
@@ -305,12 +308,12 @@ class Relaxer:
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
                 atoms = (
-                    FrechetCellFilter(atoms, **params_asecellfilter)
+                    FrechetCellFilter(atoms, **params_asecellfilter)  # type:ignore[assignment]
                     if ase_cellfilter == "Frechet"
                     else ExpCellFilter(atoms, **params_asecellfilter)
                 )
 
-            optimizer = self.optimizer(atoms, **kwargs)
+            optimizer = self.optimizer(atoms, **kwargs)  # type:ignore[operator]
             optimizer.attach(obs, interval=interval)
             optimizer.run(fmax=fmax, steps=steps)
             obs()
@@ -321,7 +324,7 @@ class Relaxer:
             atoms = atoms.atoms
 
         return {
-            "final_structure": self.ase_adaptor.get_structure(atoms),
+            "final_structure": self.ase_adaptor.get_structure(atoms),  # type:ignore[arg-type]
             "trajectory": obs,
         }
 
@@ -412,7 +415,7 @@ class MolecularDynamics:
         pfactor: float = 75.0**2.0,
         external_stress: float | np.ndarray | None = None,
         compressibility_au: float | None = None,
-        trajectory: str | Trajectory | None = None,
+        trajectory: Any = None,
         logfile: str | None = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
@@ -477,7 +480,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nve":
-            self.dyn = VelocityVerlet(
+            self.dyn = VelocityVerlet(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 trajectory=trajectory,
@@ -487,7 +490,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nvt_langevin":
-            self.dyn = Langevin(
+            self.dyn = Langevin(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -499,7 +502,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nvt_andersen":
-            self.dyn = Andersen(
+            self.dyn = Andersen(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -513,7 +516,7 @@ class MolecularDynamics:
         elif ensemble.lower() == "nvt_bussi":
             if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
                 MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
-            self.dyn = Bussi(
+            self.dyn = Bussi(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -531,7 +534,7 @@ class MolecularDynamics:
             cell but allows three lattice parameter to change independently.
             """
 
-            self.dyn = Inhomogeneous_NPTBerendsen(
+            self.dyn = Inhomogeneous_NPTBerendsen(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -571,11 +574,11 @@ class MolecularDynamics:
 
         elif ensemble.lower() == "npt_nose_hoover":
             self.upper_triangular_cell()
-            self.dyn = NPT(
+            self.dyn = NPT(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
-                externalstress=external_stress,
+                externalstress=external_stress,  # type:ignore[arg-type]
                 ttime=ttime * units.fs,
                 pfactor=pfactor * units.fs,
                 trajectory=trajectory,

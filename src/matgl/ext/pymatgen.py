@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import scipy.sparse as sp
-from pymatgen.core import Element, Molecule, Structure
+from pymatgen.core.periodic_table import Element
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
 from matgl.graph.converters import GraphConverter
@@ -14,6 +14,7 @@ from matgl.graph.converters import GraphConverter
 if TYPE_CHECKING:
     import dgl
     import torch
+    from pymatgen.core.structure import Molecule, Structure
 
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str, ...]:
@@ -97,7 +98,7 @@ class Structure2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, torch.Tensor, list]:
+    def get_graph(self, structure: Structure) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
         """Get a DGL graph from an input Structure.
 
         :param structure: pymatgen structure object
@@ -107,7 +108,7 @@ class Structure2Graph(GraphConverter):
             state_attr: state features
         """
         numerical_tol = 1.0e-8
-        pbc = np.array([1, 1, 1], dtype=int)
+        pbc = np.array([1, 1, 1], dtype=np.int64)
         element_types = self.element_types
         lattice_matrix = structure.lattice.matrix
         cart_coords = structure.cart_coords
