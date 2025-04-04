@@ -51,7 +51,7 @@ classifiers = [
 dependencies = [
     "ase",
     "dgl<=2.2.1; sys.platform == 'windows'",
-    "dgl<=2.2.0; sys.platform != 'darwin'",
+    "dgl<=2.2.0; sys.platform == 'darwin'",
     "torch<=2.2.0; sys.platform != 'linux'",
     "torchdata<=0.7.1; sys.platform != 'linux'",
     "dgl<=2.4; sys.platform == 'linux'",

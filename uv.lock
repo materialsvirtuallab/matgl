@@ -5,6 +5,9 @@ resolution-markers = [
     "python_full_version >= '3.12' and sys_platform == 'windows'",
     "python_full_version == '3.11.*' and sys_platform == 'windows'",
     "python_full_version < '3.11' and sys_platform == 'windows'",
+    "python_full_version >= '3.12' and sys_platform == 'darwin'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
+    "python_full_version < '3.11' and sys_platform == 'darwin'",
     "python_full_version >= '3.12' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and sys_platform == 'linux'",
     "python_full_version < '3.11' and sys_platform == 'linux'",
@@ -14,9 +17,6 @@ resolution-markers = [
     "python_full_version >= '3.12' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
     "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
-    "python_full_version >= '3.12' and sys_platform == 'darwin'",
-    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
-    "python_full_version < '3.11' and sys_platform == 'darwin'",
 ]
 
 [[package]]
@@ -672,15 +672,51 @@ wheels = [
 name = "dgl"
 version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12' and sys_platform == 'darwin'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
+    "python_full_version < '3.11' and sys_platform == 'darwin'",
+]
 dependencies = [
-    { name = "networkx", marker = "sys_platform != 'darwin'" },
-    { name = "numpy", marker = "sys_platform != 'darwin'" },
-    { name = "pandas", marker = "sys_platform != 'darwin'" },
-    { name = "psutil", marker = "sys_platform != 'darwin'" },
-    { name = "requests", marker = "sys_platform != 'darwin'" },
-    { name = "scipy", marker = "sys_platform != 'darwin'" },
-    { name = "torchdata", marker = "sys_platform != 'darwin'" },
-    { name = "tqdm", marker = "sys_platform != 'darwin'" },
+    { name = "networkx", marker = "sys_platform == 'darwin'" },
+    { name = "numpy", marker = "sys_platform == 'darwin'" },
+    { name = "pandas", marker = "sys_platform == 'darwin'" },
+    { name = "psutil", marker = "sys_platform == 'darwin'" },
+    { name = "requests", marker = "sys_platform == 'darwin'" },
+    { name = "scipy", marker = "sys_platform == 'darwin'" },
+    { name = "torchdata", marker = "sys_platform == 'darwin'" },
+    { name = "tqdm", marker = "sys_platform == 'darwin'" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/09/522060351a971927ae5db1b265219055a836f0c2da81079fe4d68e2c8a45/dgl-2.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:eece51bbc2b7f951c78b2e53cb5ac7e645f30ea142729bb613a9c9e3ef9ca338", size = 7400188 },
+    { url = "https://files.pythonhosted.org/packages/ac/da/ee69624c1598c488e735dd9470869d377d4ae45291c404d1f54ed26f20bb/dgl-2.2.0-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:e5800d6321b259819c7b02db7dcc656d606d98bd3536ec8b3734f50ad5fd36e9", size = 7398182 },
+    { url = "https://files.pythonhosted.org/packages/30/a2/afbff76a1274168179aa979c174e94f9371e94ce4be1650f2e3b635d0936/dgl-2.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:5287d986ceda7e2472bede4a2ec957f23401c51c427e2baf610eb364aace54e1", size = 7382850 },
+    { url = "https://files.pythonhosted.org/packages/c0/59/d7d45b6c2274cb6dd75105453b377c79f9031109b0be9080d4176b74c127/dgl-2.2.0-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:974fe9d3f3ef794a047a8541e8f9d7600f2073c8301ab138e0d420cc908e8e1b", size = 7265550 },
+    { url = "https://files.pythonhosted.org/packages/e1/ec/19f86adc4d50c1a180e0e9d6181fb3b74421ed3ee4304e0fd47cd754b988/dgl-2.2.0-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:4d1c68f412d2b9ad075eb4876b5b76b5660569dd5f457b6da46ed8a21676cd65", size = 7265549 },
+    { url = "https://files.pythonhosted.org/packages/dc/82/a8857a5a86e7a0f8c12913e51c1dfecabe5a658ca43569ce26ddb0e7020d/dgl-2.2.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:b05d98c1dc8c8cd30de5aaffbca4905dd6426ba3bb17c967cc99317d0c2d5685", size = 7382847 },
+]
+
+[[package]]
+name = "dgl"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12' and sys_platform == 'windows'",
+    "python_full_version == '3.11.*' and sys_platform == 'windows'",
+    "python_full_version < '3.11' and sys_platform == 'windows'",
+    "python_full_version >= '3.12' and sys_platform == 'linux'",
+    "python_full_version == '3.11.*' and sys_platform == 'linux'",
+    "python_full_version < '3.11' and sys_platform == 'linux'",
+]
+dependencies = [
+    { name = "networkx", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
+    { name = "numpy", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
+    { name = "pandas", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
+    { name = "psutil", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
+    { name = "requests", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
+    { name = "scipy", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
+    { name = "torchdata", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
+    { name = "tqdm", marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
 ]
 
 [[package]]
@@ -983,10 +1019,10 @@ version = "8.34.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version < '3.11' and sys_platform == 'windows'",
+    "python_full_version < '3.11' and sys_platform == 'darwin'",
     "python_full_version < '3.11' and sys_platform == 'linux'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
-    "python_full_version < '3.11' and sys_platform == 'darwin'",
 ]
 dependencies = [
     { name = "colorama", marker = "python_full_version < '3.11' and sys_platform == 'win32'" },
@@ -1013,14 +1049,14 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.12' and sys_platform == 'windows'",
     "python_full_version == '3.11.*' and sys_platform == 'windows'",
+    "python_full_version >= '3.12' and sys_platform == 'darwin'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
     "python_full_version >= '3.12' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and sys_platform == 'linux'",
     "python_full_version >= '3.12' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
-    "python_full_version >= '3.12' and sys_platform == 'darwin'",
-    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
 ]
 dependencies = [
     { name = "colorama", marker = "python_full_version >= '3.11' and sys_platform == 'win32'" },
@@ -1577,7 +1613,8 @@ source = { editable = "." }
 dependencies = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", marker = "sys_platform != 'darwin'" },
+    { name = "dgl", version = "2.2.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin'" },
+    { name = "dgl", version = "2.2.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux' or sys_platform == 'windows'" },
     { name = "fsspec" },
     { name = "lightning" },
     { name = "numpy" },
@@ -1611,7 +1648,7 @@ maintain = [
 requires-dist = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", marker = "sys_platform != 'darwin'", specifier = "<=2.2.0" },
+    { name = "dgl", marker = "sys_platform == 'darwin'", specifier = "<=2.2.0" },
     { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4" },
     { name = "dgl", marker = "sys_platform == 'windows'", specifier = "<=2.2.1" },
     { name = "fsspec" },
@@ -3304,10 +3341,10 @@ version = "8.1.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version < '3.11' and sys_platform == 'windows'",
+    "python_full_version < '3.11' and sys_platform == 'darwin'",
     "python_full_version < '3.11' and sys_platform == 'linux'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
-    "python_full_version < '3.11' and sys_platform == 'darwin'",
 ]
 dependencies = [
     { name = "alabaster", marker = "python_full_version < '3.11'" },
@@ -3340,14 +3377,14 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.12' and sys_platform == 'windows'",
     "python_full_version == '3.11.*' and sys_platform == 'windows'",
+    "python_full_version >= '3.12' and sys_platform == 'darwin'",
+    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
     "python_full_version >= '3.12' and sys_platform == 'linux'",
     "python_full_version == '3.11.*' and sys_platform == 'linux'",
     "python_full_version >= '3.12' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
     "python_full_version == '3.11.*' and sys_platform != 'darwin' and sys_platform != 'linux' and sys_platform != 'win32' and sys_platform != 'windows'",
-    "python_full_version >= '3.12' and sys_platform == 'darwin'",
-    "python_full_version == '3.11.*' and sys_platform == 'darwin'",
 ]
 dependencies = [
     { name = "alabaster", marker = "python_full_version >= '3.11'" },
