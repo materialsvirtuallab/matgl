@@ -1592,7 +1592,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pymatgen" },
     { name = "torch" },
-    { name = "torchdata", marker = "sys_platform != 'linux'" },
+    { name = "torchdata" },
 ]
 
 [package.dev-dependencies]
@@ -1629,6 +1629,7 @@ requires-dist = [
     { name = "torch", marker = "sys_platform != 'linux'", specifier = "<=2.2.0" },
     { name = "torch", marker = "sys_platform == 'linux'", specifier = "<=2.4.0" },
     { name = "torchdata", marker = "sys_platform != 'linux'", specifier = "<=0.7.1" },
+    { name = "torchdata", marker = "sys_platform == 'linux'", specifier = "<=0.8.0" },
 ]
 
 [package.metadata.requires-dev]
