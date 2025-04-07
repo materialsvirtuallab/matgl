@@ -111,16 +111,16 @@ We have implemented other models in matgl as well. A non-exhaustive list is give
 
 ## Installation
 
-Matgl can be installed via pip for the latest stable version:
+If you are on Linux, it is recommended you install the latest version of DGL before installing matgl.
+
+```bash
+pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+```
+
+Matgl can be installed via pip:
 
 ```bash
 pip install matgl
-```
-
-For the latest dev version, please clone this repo and install using:
-
-```bash
-pip install -e .
 ```
 
 ### CUDA (GPU) installation
@@ -131,10 +131,15 @@ and DGL. The basic instructions are given below, but it is recommended that you 
 run into any problems.
 
 ```shell
-pip install torch==2.2.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install dgl -f https://data.dgl.ai/wheels/cu118/repo.html
+pip install torch==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+pip install dgl -f https://data.dgl.ai/wheels/cu121/repo.html
 pip install dglgo -f https://data.dgl.ai/wheels-test/repo.html
 ```
+
+## Docker images
+
+Docker images have now been built for matgl, together with LAMMPS support. They are available at the
+[Materials Virtual Lab Docker Repository]. If you wish to use MatGL with LAMMPS, this is probably the easiest option.
 
 ## Usage
 
@@ -343,3 +348,4 @@ ACI-1548562.
 [MatGL]: https://matgl.ai
 [MatPES]: https://matpes.ai
 [MatCalc]: https://matcalc.ai
+[Materials Virtual Lab Docker Repository]: https://hub.docker.com/orgs/materialsvirtuallab/repositories
