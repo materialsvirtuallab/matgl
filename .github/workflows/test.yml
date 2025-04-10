@@ -43,7 +43,7 @@ jobs:
       - name: Install latest DGL
         if: matrix.config.os == 'ubuntu-latest'
         run: |
-          pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+          pip install dgl<=2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
           pip install -e .
