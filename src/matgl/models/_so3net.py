@@ -239,7 +239,7 @@ class SO3Net(MatGLModel):
 
         x = so3.scalar2rsh(x0, int(self.lmax))
         for so3conv, mixing1, mixing2, gating, mixing3 in zip(
-            self.so3convs, self.mixings1, self.mixings2, self.gatings, self.mixings3
+            self.so3convs, self.mixings1, self.mixings2, self.gatings, self.mixings3, strict=False
         ):
             dx = so3conv(x, radial_ij, Yij, cutoff_ij, idx_i, idx_j)
             ddx = mixing1(dx)

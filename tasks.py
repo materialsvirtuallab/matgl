@@ -15,6 +15,7 @@ import requests
 from invoke import task
 from monty.os import cd
 
+
 @task
 def make_tutorials(ctx):
     ctx.run("rm -rf docs/tutorials")

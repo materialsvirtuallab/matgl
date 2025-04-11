@@ -3,10 +3,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import torch
+
 from matgl.layers._activations import SoftExponential, SoftPlus2, softplus_inverse
 
 
-@pytest.fixture()
+@pytest.fixture
 def x():
     return torch.tensor([1.0, 2.0])
 

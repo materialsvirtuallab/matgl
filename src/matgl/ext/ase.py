@@ -299,7 +299,7 @@ class Relaxer:
                 https://wiki.fysik.dtu.dk/ase/ase/filters.html#FrechetCellFilter for more information.
             **kwargs: Kwargs pass-through to optimizer.
         """
-        if isinstance(atoms, (Structure, Molecule)):
+        if isinstance(atoms, Structure | Molecule):
             atoms = self.ase_adaptor.get_atoms(atoms)
         atoms.set_calculator(self.calculator)
         stream = sys.stdout if verbose else io.StringIO()
@@ -320,7 +320,7 @@ class Relaxer:
         if traj_file is not None:
             obs.save(traj_file)
 
-        if isinstance(atoms, (FrechetCellFilter, ExpCellFilter)):
+        if isinstance(atoms, FrechetCellFilter | ExpCellFilter):
             atoms = atoms.atoms
 
         return {
@@ -451,7 +451,7 @@ class MolecularDynamics:
             mask (np.array): either a tuple of 3 numbers (0 or 1) or a symmetric 3x3 array indicating,
                 which strain values may change for NPT simulations.
         """
-        if isinstance(atoms, (Structure, Molecule)):
+        if isinstance(atoms, Structure | Molecule):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         self.atoms = atoms
         self.atoms.set_calculator(
@@ -610,7 +610,7 @@ class MolecularDynamics:
         Args:
             atoms (Atoms): new atoms for running MD.
         """
-        if isinstance(atoms, (Structure, Molecule)):
+        if isinstance(atoms, Structure | Molecule):
             atoms = AseAtomsAdaptor().get_atoms(atoms)
         calculator = self.atoms.calc
         self.atoms = atoms

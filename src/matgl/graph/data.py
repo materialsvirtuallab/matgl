@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 from functools import partial
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import dgl
 import numpy as np
@@ -19,6 +19,8 @@ import matgl
 from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from matgl.graph.converters import GraphConverter
 
 
@@ -26,9 +28,9 @@ def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_pe
     """Merge a list of dgl graphs to form a batch."""
     line_graphs = None
     if include_line_graph:
-        graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
+        graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch, strict=False))
     else:
-        graphs, lattices, state_attr, labels = map(list, zip(*batch))
+        graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
     g = dgl.batch(graphs)
     labels = (
         torch.vstack([next(iter(d.values())) for d in labels])  # type:ignore[assignment]
@@ -47,10 +49,10 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
     """Merge a list of dgl graphs to form a batch."""
     l_g = None
     if include_line_graph:
-        graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch))
+        graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch, strict=False))
         l_g = dgl.batch(line_graphs)
     else:
-        graphs, lattices, state_attr, labels = map(list, zip(*batch))
+        graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
     g = dgl.batch(graphs)
     e = torch.tensor([d["energies"] for d in labels])  # type: ignore
     f = torch.vstack([d["forces"] for d in labels])  # type: ignore

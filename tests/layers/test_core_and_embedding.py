@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-import matgl
 import pytest
 import torch
+from pymatgen.core import Lattice, Structure
+from torch import nn
+
+import matgl
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.layers import (
     BondExpansion,
@@ -13,16 +16,14 @@ from matgl.layers import (
     build_gated_equivariant_mlp,
 )
 from matgl.layers._core import MLP, GatedMLP, GatedMLP_norm, MLP_norm
-from pymatgen.core import Lattice, Structure
-from torch import nn
 
 
-@pytest.fixture()
+@pytest.fixture
 def x():
     return torch.randn(4, 10, requires_grad=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def graph():
     structure = Structure(Lattice.cubic(4.05), ["Al"] * 4, [(0, 0, 0), (0.5, 0.5, 0), (0.5, 0, 0.5), (0, 0.5, 0.5)])
     converter = Structure2Graph(element_types=get_element_list([structure]), cutoff=6.0)

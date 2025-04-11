@@ -63,9 +63,9 @@ def generate_clebsch_gordan(lmax: int) -> torch.Tensor:
     cg = torch.zeros((lidx.shape[0], lidx.shape[0], lidx.shape[0]))
     lidx = lidx.numpy()  # type: ignore[assignment]
     midx = midx.numpy()  # type: ignore[assignment]
-    for c1, (l1, m1) in enumerate(zip(lidx, midx)):
-        for c2, (l2, m2) in enumerate(zip(lidx, midx)):
-            for c3, (l3, m3) in enumerate(zip(lidx, midx)):
+    for c1, (l1, m1) in enumerate(zip(lidx, midx, strict=False)):
+        for c2, (l2, m2) in enumerate(zip(lidx, midx, strict=False)):
+            for c3, (l3, m3) in enumerate(zip(lidx, midx, strict=False)):
                 if abs(l1 - l2) <= l3 <= min(l1 + l2, lmax) and m3 in {
                     m1 + m2,
                     m1 - m2,
