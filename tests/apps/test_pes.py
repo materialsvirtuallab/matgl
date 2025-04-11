@@ -1,33 +1,34 @@
 from __future__ import annotations
 
-import matgl
 import numpy as np
 import pytest
 import torch
+from pymatgen.core import Lattice, Structure
+
+import matgl
 from matgl.apps.pes import Potential
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.models import CHGNet, M3GNet, SO3Net, TensorNet
-from pymatgen.core import Lattice, Structure
 
 
-@pytest.fixture()
+@pytest.fixture
 def model():
     return M3GNet(element_types=["Mo", "S"], is_intensive=False, use_smooth=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def model_so3net():
     return SO3Net(element_types=["Mo", "S"], is_intensive=False, lmax=2)
 
 
-@pytest.fixture()
+@pytest.fixture
 def model_tensornet():
     return TensorNet(
         elment_types=["Mo", "S"], is_intensive=False, units=64, use_smooth=True, max_n=5, rbf_type="SphericalBessel"
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def model_chgnet():
     return CHGNet(element_types=["Mo", "S"], is_intensive=False)
 

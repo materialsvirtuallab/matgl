@@ -3,6 +3,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import torch
+from torch.testing import assert_close
+
 from matgl.graph.compute import (
     compute_theta_and_phi,
     create_line_graph,
@@ -18,7 +20,6 @@ from matgl.layers._basis import (
     spherical_bessel_smooth,
 )
 from matgl.layers._three_body import combine_sbf_shf
-from torch.testing import assert_close
 
 
 def test_gaussian():

@@ -21,7 +21,7 @@ class AtomRef(nn.Module):
         super().__init__()
         if property_offset is None:
             property_offset = torch.zeros(max_z, dtype=matgl.float_th)
-        elif isinstance(property_offset, (np.ndarray, list)):  # for backward compatibility of saved models
+        elif isinstance(property_offset, np.ndarray | list):  # for backward compatibility of saved models
             property_offset = torch.tensor(property_offset, dtype=matgl.float_th)
 
         self.max_z = property_offset.shape[-1]
