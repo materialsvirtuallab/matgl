@@ -122,6 +122,7 @@ def release(ctx, version):
     )
     pprint(response.json())
 
+
 def get_changelog(version):
     with open("changes.md") as f:
         contents = f.read()

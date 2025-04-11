@@ -12,6 +12,8 @@ import matgl
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable
+
+
 def compute_pair_vector_and_distance(g: dgl.DGLGraph):
     """Calculate bond vectors and distances using dgl graphs.
 
