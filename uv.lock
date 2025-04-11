@@ -1465,16 +1465,16 @@ requires-dist = [
     { name = "ase" },
     { name = "boto3" },
     { name = "dgl", marker = "sys_platform != 'linux'", specifier = "<=2.2.0" },
-    { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4" },
+    { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.2.1" },
     { name = "fsspec" },
     { name = "lightning", specifier = "<=2.5.1" },
     { name = "numpy", specifier = "<2.0" },
     { name = "pydantic" },
     { name = "pymatgen" },
     { name = "torch", marker = "sys_platform != 'linux'", specifier = "<=2.2.0" },
-    { name = "torch", marker = "sys_platform == 'linux'", specifier = "<=2.4.0" },
+    { name = "torch", marker = "sys_platform == 'linux'", specifier = "<=2.2.0" },
     { name = "torchdata", marker = "sys_platform != 'linux'", specifier = "<=0.7.1" },
-    { name = "torchdata", marker = "sys_platform == 'linux'", specifier = "<=0.8.0" },
+    { name = "torchdata", marker = "sys_platform == 'linux'", specifier = "<=0.7.1" },
 ]
 
 [package.metadata.requires-dev]
