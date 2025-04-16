@@ -589,21 +589,21 @@ name = "dgl"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple/" }
 resolution-markers = [
-    "python_full_version >= '3.12' and sys_platform == 'windows'",
+    "python_full_version >= '3.12' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version < '3.11' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and sys_platform == 'darwin'",
-    "python_full_version == '3.11.*' and sys_platform == 'windows'",
     "python_full_version == '3.11.*' and sys_platform == 'darwin'",
-    "python_full_version < '3.11' and sys_platform == 'windows'",
     "python_full_version < '3.11' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "networkx", marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
-    { name = "numpy", marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
-    { name = "psutil", marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
-    { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
-    { name = "scipy", marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
-    { name = "torchdata", marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
-    { name = "tqdm", marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
+    { name = "networkx", marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
+    { name = "numpy", marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
+    { name = "psutil", marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
+    { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
+    { name = "scipy", marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
+    { name = "torchdata", marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
+    { name = "tqdm", marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/09/2d/c0a40c0d78a8e9c0c43e7f6e4aebebb39c8bf0f80380db2c1f1ba9f3bdfa/dgl-2.1.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:ff74c7119cb1e87c1b06293eba8c22725594517062e74659b1a8636134b16974", size = 6889468 },
@@ -1478,7 +1478,7 @@ source = { editable = "." }
 dependencies = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", version = "2.1.0", source = { registry = "https://pypi.org/simple/" }, marker = "sys_platform == 'darwin' or sys_platform == 'windows'" },
+    { name = "dgl", version = "2.1.0", source = { registry = "https://pypi.org/simple/" }, marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
     { name = "dgl", version = "2.4.0", source = { registry = "https://data.dgl.ai/wheels/torch-2.4/repo.html" }, marker = "sys_platform == 'linux'" },
     { name = "fsspec" },
     { name = "lightning" },
@@ -1516,7 +1516,7 @@ requires-dist = [
     { name = "boto3" },
     { name = "dgl", marker = "sys_platform == 'darwin'", specifier = "<=2.2.0", index = "https://pypi.org/simple/" },
     { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4.0", index = "https://data.dgl.ai/wheels/torch-2.4/repo.html" },
-    { name = "dgl", marker = "sys_platform == 'windows'", specifier = "<=2.2.1", index = "https://pypi.org/simple/" },
+    { name = "dgl", marker = "sys_platform == 'win32'", specifier = "<=2.2.1", index = "https://pypi.org/simple/" },
     { name = "fsspec" },
     { name = "lightning", specifier = "<=2.5.1" },
     { name = "numpy", specifier = "<2.0" },
