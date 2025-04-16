@@ -50,12 +50,9 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.2.0; sys.platform != 'linux'",
     "torch<=2.2.0; sys.platform != 'linux'",
     "torchdata<=0.7.1; sys.platform != 'linux'",
     "dgl<=2.2.1; sys.platform == 'linux'",
-    "torch<=2.2.0; sys.platform == 'linux'",
-    "torchdata<=0.7.1; sys.platform == 'linux'",
     "pymatgen",
     "lightning<=2.5.1",
     "pydantic",
