@@ -1465,7 +1465,7 @@ requires-dist = [
     { name = "ase" },
     { name = "boto3" },
     { name = "dgl", marker = "sys_platform != 'linux'", specifier = "<=2.2.0" },
-    { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.5.0" },
+    { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4.0" },
     { name = "fsspec" },
     { name = "lightning", specifier = "<=2.5.1" },
     { name = "numpy", specifier = "<2.0" },

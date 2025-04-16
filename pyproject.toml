@@ -53,7 +53,7 @@ dependencies = [
     "dgl<=2.2.0; sys.platform != 'linux'",
     "torch<=2.2.0; sys.platform != 'linux'",
     "torchdata<=0.7.1; sys.platform != 'linux'",
-    "dgl<=2.5.0; sys.platform == 'linux'",
+    "dgl<=2.4.0; sys.platform == 'linux'",
     "torch<=2.4.0; sys.platform == 'linux'",
     "torchdata<=0.8.0; sys.platform == 'linux'",
     "pymatgen",
