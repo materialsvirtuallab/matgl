@@ -41,9 +41,9 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.config.python-version }}
       - name: Virtual env
-        run: uv venv --python ${{ matrix.python-version }}
+        run: uv venv --python ${{ matrix.config.python-version }}
       - name: Install latest DGL for Linux
         if: matrix.config.os == 'ubuntu-latest'
         run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
