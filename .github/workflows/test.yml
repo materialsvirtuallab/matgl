@@ -1,19 +1,17 @@
 name: Test
 
 on:
-  push:
-    branches: ["*"]
-  pull_request:
-    branches: [main]
-  release:
+  - push
+  - pull_request
+  - release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      task:
-        type: choice
-        options: [tests, release]
-        default: tests
-        description: Only run tests or release a new version to PyPI after tests pass.
+  - workflow_dispatch:
+      inputs:
+        task:
+          type: choice
+          options: [tests, release]
+          default: tests
+          description: Only run tests or release a new version to PyPI after tests pass.
 
 jobs:
   test:
@@ -43,7 +41,7 @@ jobs:
       - name: Install latest DGL
         if: matrix.config.os == 'ubuntu-latest'
         run: |
-          pip install dgl==2.5.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+          pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
           pip install -e .
