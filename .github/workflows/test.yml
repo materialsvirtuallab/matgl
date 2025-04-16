@@ -1,17 +1,19 @@
 name: Test
 
 on:
-  - push
-  - pull_request
-  - release:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: [main]
+  release:
     types: [published]
-  - workflow_dispatch:
-      inputs:
-        task:
-          type: choice
-          options: [tests, release]
-          default: tests
-          description: Only run tests or release a new version to PyPI after tests pass.
+  workflow_dispatch:
+    inputs:
+      task:
+        type: choice
+        options: [tests, release]
+        default: tests
+        description: Only run tests or release a new version to PyPI after tests pass.
 
 jobs:
   test:
