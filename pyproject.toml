@@ -65,20 +65,20 @@ dependencies = [
 ]
 version = "1.2.6"
 
-#[tool.uv.sources]
-#dgl = [
-#  { index = "dgl-cpu", marker = "sys_platform == 'linux'" },
-#    { index = "dgl-simple", marker = "sys_platform != 'linux'" },
-#]
-#
-#[[tool.uv.index]]
-#name = "dgl-cpu"
-#url = "https://data.dgl.ai/wheels/torch-2.4/repo.html"
-#format = "flat"
-#
-#[[tool.uv.index]]
-#name = "dgl-simple"
-#url = "https://pypi.org/simple/"
+[tool.uv.sources]
+dgl = [
+  { index = "dgl-cpu", marker = "sys_platform == 'linux'" },
+    { index = "dgl-simple", marker = "sys_platform != 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "dgl-cpu"
+url = "https://data.dgl.ai/wheels/torch-2.4/repo.html"
+format = "flat"
+
+[[tool.uv.index]]
+name = "dgl-simple"
+url = "https://pypi.org/simple/"
 
 [project.scripts]
 mgl = "matgl.cli:main"
