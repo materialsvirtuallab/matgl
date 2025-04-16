@@ -1516,7 +1516,7 @@ requires-dist = [
     { name = "boto3" },
     { name = "dgl", marker = "sys_platform == 'darwin'", specifier = "<=2.2.0", index = "https://pypi.org/simple/" },
     { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4.0", index = "https://data.dgl.ai/wheels/torch-2.4/repo.html" },
-    { name = "dgl", marker = "sys_platform == 'win32'", specifier = "<=2.2.1", index = "https://pypi.org/simple/" },
+    { name = "dgl", marker = "sys_platform == 'win32'", specifier = "<=2.1.0", index = "https://pypi.org/simple/" },
     { name = "fsspec" },
     { name = "lightning", specifier = "<=2.5.1" },
     { name = "numpy", specifier = "<2.0" },

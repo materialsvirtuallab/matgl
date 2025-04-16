@@ -50,7 +50,7 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.2.1; sys.platform == 'win32'",
+    "dgl<=2.1.0; sys.platform == 'win32'",
     "dgl<=2.2.0; sys.platform == 'darwin'",
     "torch<=2.2.0; sys.platform != 'linux'",
     "torchdata<=0.7.1; sys.platform != 'linux'",
@@ -69,7 +69,7 @@ version = "1.2.6"
 [tool.uv.sources]
 dgl = [
   { index = "dgl-linux", marker = "sys_platform == 'linux'" },
-    { index = "dgl-non-linux", marker = "sys_platform != 'linux'" },
+  { index = "dgl-non-linux", marker = "sys_platform != 'linux'" },
 ]
 
 [[tool.uv.index]]
