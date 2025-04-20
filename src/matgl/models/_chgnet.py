@@ -194,13 +194,21 @@ class CHGNet(MatGLModel):
             ) from None
 
         element_types = element_types or DEFAULT_ELEMENTS
+        self.use_bond_graph = True if threebody_cutoff > 0 else False
+        if not self.use_bond_graph and readout_field == "angle_feat":
+            raise ValueError(
+                f"Angle Readout requires threebody_cutoff > 0, "
+                f"but CHGNet is initialized with threebody_cutoff={threebody_cutoff}"
+            )
 
         # basis expansions for bond lengths, triple interaction bond lengths and angles
         self.bond_expansion = RadialBesselFunction(max_n=max_n, cutoff=cutoff, learnable=learn_basis)
-        self.threebody_bond_expansion = RadialBesselFunction(
-            max_n=max_n, cutoff=threebody_cutoff, learnable=learn_basis
+        self.threebody_bond_expansion = (
+            RadialBesselFunction(max_n=max_n, cutoff=threebody_cutoff, learnable=learn_basis)
+            if self.use_bond_graph
+            else None
         )
-        self.angle_expansion = FourierExpansion(max_f=max_f, learnable=learn_basis)
+        self.angle_expansion = FourierExpansion(max_f=max_f, learnable=learn_basis) if self.use_bond_graph else None
 
         # embedding block for atom, bond, angle, and optional state features
         self.include_states = dim_state_feats is not None
@@ -209,11 +217,15 @@ class CHGNet(MatGLModel):
         self.bond_embedding = MLP_norm(
             [max_n, dim_bond_embedding], activation=activation, activate_last=non_linear_bond_embedding, bias_last=False
         )
-        self.angle_embedding = MLP_norm(
-            [2 * max_f + 1, dim_angle_embedding],
-            activation=activation,
-            activate_last=non_linear_angle_embedding,
-            bias_last=False,
+        self.angle_embedding = (
+            MLP_norm(
+                [2 * max_f + 1, dim_angle_embedding],
+                activation=activation,
+                activate_last=non_linear_angle_embedding,
+                bias_last=False,
+            )
+            if self.use_bond_graph
+            else None
         )
 
         # shared message bond distance smoothing weights
@@ -225,7 +237,7 @@ class CHGNet(MatGLModel):
         )
         self.threebody_bond_weights = (
             nn.Linear(max_n, dim_bond_embedding, bias=False)
-            if shared_bond_weights in ["three_body_bond", "both"]
+            if shared_bond_weights in ["three_body_bond", "both"] and self.use_bond_graph
             else None
         )
 
@@ -249,23 +261,27 @@ class CHGNet(MatGLModel):
         )
 
         # operations involving the line graph (i.e. bond graph) to update bond and angle features
-        self.bond_graph_layers = nn.ModuleList(
-            [
-                CHGNetBondGraphBlock(
-                    num_atom_feats=dim_atom_embedding,
-                    num_bond_feats=dim_bond_embedding,
-                    num_angle_feats=dim_angle_embedding,
-                    bond_hidden_dims=bond_conv_hidden_dims,
-                    angle_hidden_dims=angle_update_hidden_dims,
-                    activation=activation,
-                    normalization=normalization,
-                    normalize_hidden=normalize_hidden,
-                    bond_dropout=conv_dropout,
-                    angle_dropout=conv_dropout,
-                    rbf_order=max_n if layer_bond_weights in ["three_body_bond", "both"] else 0,
-                )
-                for _ in range(num_blocks - 1)
-            ]
+        self.bond_graph_layers = (
+            nn.ModuleList(
+                [
+                    CHGNetBondGraphBlock(
+                        num_atom_feats=dim_atom_embedding,
+                        num_bond_feats=dim_bond_embedding,
+                        num_angle_feats=dim_angle_embedding,
+                        bond_hidden_dims=bond_conv_hidden_dims,
+                        angle_hidden_dims=angle_update_hidden_dims,
+                        activation=activation,
+                        normalization=normalization,
+                        normalize_hidden=normalize_hidden,
+                        bond_dropout=conv_dropout,
+                        angle_dropout=conv_dropout,
+                        rbf_order=max_n if layer_bond_weights in ["three_body_bond", "both"] else 0,
+                    )
+                    for _ in range(num_blocks - 1)
+                ]
+            )
+            if self.use_bond_graph
+            else None
         )
 
         self.sitewise_readout = (
@@ -323,32 +339,36 @@ class CHGNet(MatGLModel):
         smooth_cutoff = polynomial_cutoff(bond_expansion, self.cutoff, self.cutoff_exponent)
         g.edata["bond_expansion"] = smooth_cutoff * bond_expansion
 
-        # create bond graph (line graoh) with necessary node and edge data
-        if l_g is None:
-            bond_graph = create_line_graph(g, self.three_body_cutoff, directed=True)
-        else:
-            # need to ensure the line graph matches the graph
-            bond_graph = ensure_line_graph_compatibility(g, l_g, self.three_body_cutoff, directed=True)
-
-        bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
-        threebody_bond_expansion = self.threebody_bond_expansion(bond_graph.ndata["bond_dist"])
-        smooth_cutoff = polynomial_cutoff(threebody_bond_expansion, self.three_body_cutoff, self.cutoff_exponent)
-        bond_graph.ndata["bond_expansion"] = smooth_cutoff * threebody_bond_expansion
-        # the center atom is the dst atom of the src bond or the reverse (the src atom of the dst bond)
-        # need to use "bond_index" just to be safe always
-        bond_indices = bond_graph.ndata["bond_index"][bond_graph.edges()[0]]
-        bond_graph.edata["center_atom_index"] = g.edges()[1][bond_indices]
-        bond_graph.apply_edges(compute_theta)
-        bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])
-
         # compute state, atom, bond and angle embeddings
         atom_features = self.atom_embedding(g.ndata["node_type"])
         bond_features = self.bond_embedding(g.edata["bond_expansion"])
-        angle_features = self.angle_embedding(bond_graph.edata["angle_expansion"])
         if self.state_embedding is not None and state_attr is not None:
             state_attr = self.state_embedding(state_attr)
         else:
             state_attr = None
+
+        # create bond graph (line graph) with necessary node and edge data
+        if self.use_bond_graph:
+            if l_g is None:
+                bond_graph = create_line_graph(g, self.three_body_cutoff, directed=True)
+            else:
+                # need to ensure the line graph matches the graph
+                bond_graph = ensure_line_graph_compatibility(g, l_g, self.three_body_cutoff, directed=True)
+
+            bond_graph.ndata["bond_index"] = bond_graph.ndata["edge_ids"]
+            threebody_bond_expansion = self.threebody_bond_expansion(bond_graph.ndata["bond_dist"])  # type: ignore[misc]
+            smooth_cutoff = polynomial_cutoff(threebody_bond_expansion, self.three_body_cutoff, self.cutoff_exponent)
+            bond_graph.ndata["bond_expansion"] = smooth_cutoff * threebody_bond_expansion
+            # the center atom is the dst atom of the src bond or the reverse (the src atom of the dst bond)
+            # need to use "bond_index" just to be safe always
+            bond_indices = bond_graph.ndata["bond_index"][bond_graph.edges()[0]]
+            bond_graph.edata["center_atom_index"] = g.edges()[1][bond_indices]
+            bond_graph.apply_edges(compute_theta)
+            bond_graph.edata["angle_expansion"] = self.angle_expansion(bond_graph.edata["theta"])  # type: ignore[misc]
+            angle_features = self.angle_embedding(bond_graph.edata["angle_expansion"])  # type: ignore[misc]
+        else:
+            bond_graph = None
+            angle_features = None
 
         # shared message weights
         atom_bond_weights = (
@@ -368,9 +388,10 @@ class CHGNet(MatGLModel):
             atom_features, bond_features, state_attr = self.atom_graph_layers[i](
                 g, atom_features, bond_features, state_attr, atom_bond_weights, bond_bond_weights
             )
-            bond_features, angle_features = self.bond_graph_layers[i](
-                bond_graph, atom_features, bond_features, angle_features, threebody_bond_weights
-            )
+            if self.use_bond_graph:
+                bond_features, angle_features = self.bond_graph_layers[i](  # type: ignore
+                    bond_graph, atom_features, bond_features, angle_features, threebody_bond_weights
+                )
 
         # site wise target readout
         g.ndata["magmom"] = self.sitewise_readout(atom_features)
