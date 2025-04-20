@@ -3,31 +3,32 @@ name: Lint
 on: [push, pull_request]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install latest DGL
-        if: matrix.config.os == 'ubuntu-latest'
-        run: |
-          pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - name: Virtual env
+        run: uv venv
+      - name: Install latest DGL for Linux
+        run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
-          pip install -e .
-          pip install ruff mypy
+          uv pip install -e .
+          uv pip install ruff mypy
 
       - name: ruff
         run: |
-          ruff --version
-          ruff check src
-          ruff format src --check
+          uv run ruff --version
+          uv run ruff check src
+          uv run ruff format src --check
       - name: mypy
         run: |
-          mypy --version
+          uv run mypy --version
           rm -rf .mypy_cache
-          mypy -p matgl
+          uv run mypy -p matgl

@@ -61,7 +61,7 @@ def relax_structure(args):
             def fmt_fcoords(fc):
                 return np.array2string(fc, formatter={"float_kind": lambda x: f"{x:.5f}"})
 
-            for old_site, new_site in zip(structure, final_structure):
+            for old_site, new_site in zip(structure, final_structure, strict=False):
                 print(f"{old_site.species}: {fmt_fcoords(old_site.frac_coords)} -> {fmt_fcoords(new_site.frac_coords)}")
 
     return 0

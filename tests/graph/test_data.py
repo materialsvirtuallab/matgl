@@ -8,9 +8,10 @@ from functools import partial
 
 import numpy as np
 from dgl.data.utils import split_dataset
+from pymatgen.core import Molecule
+
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes
-from pymatgen.core import Molecule
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -136,8 +137,8 @@ class TestDataset:
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
-        assert np.shape(pes1["forces"])[0], 28
-        assert np.shape(pes2["forces"])[0], 10
+        assert np.shape(pes1["forces"])[0] == 28
+        assert np.shape(pes2["forces"])[0] == 10
         assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
         assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
         # Check that structures are indeed cleared.
@@ -159,8 +160,8 @@ class TestDataset:
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
         assert g2.num_edges() == cry_graph.get_graph(BaNiO3)[0].num_edges()
         assert g2.num_nodes() == cry_graph.get_graph(BaNiO3)[0].num_nodes()
-        assert np.shape(pes1["forces"])[0], 28
-        assert np.shape(pes2["forces"])[0], 10
+        assert np.shape(pes1["forces"])[0] == 28
+        assert np.shape(pes2["forces"])[0] == 10
         assert np.allclose(lat1.detach().numpy(), structures[0].lattice.matrix)
         assert np.allclose(lat2.detach().numpy(), structures[1].lattice.matrix)
         shutil.rmtree(f"{dataset.save_path}")

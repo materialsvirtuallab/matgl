@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Literal, cast
+import itertools
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import dgl
 import torch
@@ -13,7 +14,7 @@ from torch.nn import LSTM, Linear, Module, ModuleList
 from matgl.layers._norm import GraphNorm, LayerNorm
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 
 class MLP(nn.Module):
@@ -35,7 +36,7 @@ class MLP(nn.Module):
         self._depth = len(dims) - 1
         self.layers = ModuleList()
 
-        for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
+        for i, (in_dim, out_dim) in enumerate(itertools.pairwise(dims)):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=True))
 
@@ -132,7 +133,7 @@ class MLP_norm(nn.Module):
         norm_kwargs = norm_kwargs or {}
         norm_kwargs = cast("dict", norm_kwargs)
 
-        for i, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:])):
+        for i, (in_dim, out_dim) in enumerate(itertools.pairwise(dims)):
             if i < self._depth - 1:
                 self.layers.append(Linear(in_dim, out_dim, bias=use_bias))
                 if normalize_hidden and self.norm_layers is not None:
@@ -190,7 +191,7 @@ class GatedMLP(nn.Module):
         self.gates = nn.Sequential()
         self.use_bias = use_bias
         self.activate_last = activate_last
-        for i, (in_dim, out_dim) in enumerate(zip(self.dims[:-1], self.dims[1:])):
+        for i, (in_dim, out_dim) in enumerate(zip(self.dims[:-1], self.dims[1:], strict=False)):
             if i < self._depth - 1:
                 self.layers.append(nn.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))

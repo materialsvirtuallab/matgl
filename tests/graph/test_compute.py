@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from functools import partial
 
-import matgl
 import numpy as np
 import pytest
 import torch
 import torch.testing as tt
+from pymatgen.core import Lattice, Structure
+
+import matgl
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
@@ -16,7 +18,6 @@ from matgl.graph.compute import (
     ensure_line_graph_compatibility,
     prune_edges_by_features,
 )
-from pymatgen.core import Lattice, Structure
 
 
 def _loop_indices(bond_atom_indices, pair_dist, cutoff=4.0):

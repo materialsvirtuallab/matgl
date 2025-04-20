@@ -15,6 +15,7 @@ import requests
 from invoke import task
 from monty.os import cd
 
+
 @task
 def make_tutorials(ctx):
     ctx.run("rm -rf docs/tutorials")
@@ -120,6 +121,7 @@ def release(ctx, version):
         headers={"Authorization": "token " + os.environ["GITHUB_RELEASES_TOKEN"]},
     )
     pprint(response.json())
+
 
 def get_changelog(version):
     with open("changes.md") as f:

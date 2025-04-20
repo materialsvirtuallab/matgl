@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import matgl
 import pytest
 import torch
+from torch import nn
+
+import matgl
 from matgl.layers import BondExpansion, EmbeddingBlock
 from matgl.layers._readout import (
     AttentiveFPReadout,
@@ -13,7 +15,6 @@ from matgl.layers._readout import (
     WeightedReadOut,
     WeightedReadOutPair,
 )
-from torch import nn
 
 
 class TestReadOut:

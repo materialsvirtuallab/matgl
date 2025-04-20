@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import matgl
 import torch
+
+import matgl
 from matgl.layers._so3 import (
     RealSphericalHarmonics,
     SO3Convolution,

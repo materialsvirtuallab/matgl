@@ -11,17 +11,17 @@ This notebook demonstrates the use of the LAMMPS interface to MatGL developed by
 ```
 git clone https://github.com/advancesoftcorp/lammps.git
 cd lammps
-git checkout based-on-lammps_2Jun2022
+git checkout based-on-lammps_2Aug2023
 mkdir build
 cd build
-cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-M3GNET=on -D PKG_EXTRA-COMPUTE=on -D PKG_EXTRA-FIX=on -D PKG_MANYBODY=on -D PKG_EXTRA-DUMP=on -D PKG_MOLECULE=on ../cmake
+cmake -C ../cmake/presets/basic.cmake -D BUILD_SHARED_LIBS=on -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on -D PKG_ML-GNNP=on -D PKG_EXTRA-COMPUTE=on -D PKG_EXTRA-FIX=on -D PKG_MANYBODY=on -D PKG_EXTRA-DUMP=on -D PKG_MOLECULE=on ../cmake
 cmake --build .
 make install
 ```
 
 After installation, your lmp executable should be in your `$HOME/.local/bin` directory. You will need to add that to your PATH if it is not already there. You may also need to adjust your library paths if needed.
 
-Upon running this notebook, if you encounter an error about DFTD3 and you do not need dispersion corrections, I recommend you simply comment out the `from dftd3.ase import DFTD3` line in your `$HOME/.local/share/potentials/M3GNET/matgl_driver.py` file. DFTD3 is a pain to install.
+Upon running this notebook, if you encounter an error about DFTD3 and you do not need dispersion corrections, I recommend you simply comment out the `from dftd3.ase import DFTD3` line in your `$HOME/.local/share/lammps/src/ML-GNNP/gnnp_driver.py` file. DFTD3 is a pain to install.
 
 
 ```python
@@ -85,11 +85,11 @@ boundary      p p p
 atom_style    atomic
 
 # if you want to use CUDA GPU, please switch m3gnet to m3gnet/gpu in pair_style
-pair_style    m3gnet {HOME_DIR}/.local/share/lammps/potentials/M3GNET
+pair_style    gnnp {HOME_DIR}/.local/share/lammps/src/ML-GNNP
 
 read_data     ./dat.lammps
 replicate     {x} 1 1
-pair_coeff    * *  M3GNet-MP-2021.2.8-DIRECT-PES  Mg O  # MatGL will be called
+pair_coeff    * *  matgl M3GNet-MP-2021.2.8-DIRECT-PES  Mg O  # MatGL will be called
 
 dump          myDump all custom 10 xyz.lammpstrj id element x y z
 dump_modify   myDump sort id element Mg O
