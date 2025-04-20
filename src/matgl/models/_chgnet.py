@@ -194,7 +194,7 @@ class CHGNet(MatGLModel):
             ) from None
 
         element_types = element_types or DEFAULT_ELEMENTS
-        self.use_bond_graph = True if threebody_cutoff > 0 else False
+        self.use_bond_graph = threebody_cutoff > 0
         if not self.use_bond_graph and readout_field == "angle_feat":
             raise ValueError(
                 f"Angle Readout requires threebody_cutoff > 0, "
