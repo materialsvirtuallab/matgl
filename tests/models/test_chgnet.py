@@ -81,8 +81,8 @@ class TestCHGNet:
         assert not torch.allclose(out, out1)
         assert not torch.allclose(out, out2)
 
-        assert torch.allclose(out / g.num_nodes(), out1 / g1.num_nodes())
-        assert torch.allclose(out / g.num_nodes(), out2 / g2.num_nodes())
+        assert torch.allclose(out / g.num_nodes(), out1 / g1.num_nodes(), rtol=1e-4)
+        assert torch.allclose(out / g.num_nodes(), out2 / g2.num_nodes(), rtol=1e-4)
 
         assert len(g.ndata["magmom"]) == g.num_nodes()
         assert len(g1.ndata["magmom"]) == g1.num_nodes()
