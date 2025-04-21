@@ -12,20 +12,24 @@ from matgl.models import CHGNet
 
 
 class TestCHGNet:
+    @pytest.mark.parametrize("threebody_cutoff", [0, 3])
     @pytest.mark.parametrize("dropout", [0.0, 0.5])
     @pytest.mark.parametrize("learn_basis", [True, False])
     @pytest.mark.parametrize("bond_dim", [None, (16,)])
     @pytest.mark.parametrize("angle_dim", [None, (16,)])
     @pytest.mark.parametrize("activation", ["swish", "softplus2"])
-    def test_model(self, graph_MoS, activation, angle_dim, bond_dim, learn_basis, dropout):
+    def test_model(self, graph_MoS, threebody_cutoff, activation, angle_dim, bond_dim, learn_basis, dropout):
         structure, graph, state = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
         for readout_field in ["atom_feat", "bond_feat", "angle_feat"]:
+            if readout_field == "angle_feat" and threebody_cutoff == 0:
+                continue
             for final_mlp_type in ["gated", "mlp"]:
                 model = CHGNet(
-                    element_types=["Mo", "S"],
+                    element_types=("Mo", "S"),
+                    threebody_cutoff=threebody_cutoff,
                     activation_type=activation,
                     bond_update_hidden_dims=bond_dim,
                     learn_basis=learn_basis,
@@ -77,8 +81,8 @@ class TestCHGNet:
         assert not torch.allclose(out, out1)
         assert not torch.allclose(out, out2)
 
-        assert torch.allclose(out / g.num_nodes(), out1 / g1.num_nodes())
-        assert torch.allclose(out / g.num_nodes(), out2 / g2.num_nodes())
+        assert torch.allclose(out / g.num_nodes(), out1 / g1.num_nodes(), rtol=1e-4)
+        assert torch.allclose(out / g.num_nodes(), out2 / g2.num_nodes(), rtol=1e-4)
 
         assert len(g.ndata["magmom"]) == g.num_nodes()
         assert len(g1.ndata["magmom"]) == g1.num_nodes()

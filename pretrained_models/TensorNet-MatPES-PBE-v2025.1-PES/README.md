@@ -1,7 +1,7 @@
 # Description
 
 This model is a TensorNet universal potential for 89 elements of the periodic table. It has broad applications in the
-dynamic simulations of materials.  
+dynamic simulations of materials.
 
 # Training dataset
 
