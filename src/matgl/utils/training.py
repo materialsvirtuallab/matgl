@@ -390,6 +390,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             e, f, s, h = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
             return e, f, s, h
         else:  # noqa: RET505
+            if self.model.calc_magmom:
+                e, f, s, h, m = self.model(g=g, lat=lat, state_attr=state_attr)
+                return e, f, s, h, m
             e, f, s, h = self.model(g=g, lat=lat, state_attr=state_attr)
             return e, f, s, h
 
