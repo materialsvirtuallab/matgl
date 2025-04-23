@@ -641,7 +641,8 @@ class TestModelTrainer:
         assert "MAE" in results[0][0]
         self.teardown_class()
 
-    def test_chgnet_training(self, LiFePO4, BaNiO3):
+    @pytest.mark.parametrize("threebody_cutoff", [0, 3])
+    def test_chgnet_training(self, LiFePO4, BaNiO3, threebody_cutoff):
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
         two_body = Structure(Lattice.cubic(10.0), ["Li", "Li"], [[0, 0, 0], [0.5, 0, 0]])
         structures = [LiFePO4, BaNiO3] * 5 + [isolated_atom, two_body]
@@ -652,7 +653,7 @@ class TestModelTrainer:
         element_types = get_element_list([LiFePO4, BaNiO3])
         converter = Structure2Graph(element_types=element_types, cutoff=6.0)
         dataset = MGLDataset(
-            threebody_cutoff=3.0,
+            threebody_cutoff=threebody_cutoff,
             structures=structures,
             converter=converter,
             include_line_graph=True,
@@ -680,7 +681,7 @@ class TestModelTrainer:
             num_workers=0,
             generator=torch.Generator(device=device),
         )
-        model = CHGNet(element_types=element_types, is_intensive=False)
+        model = CHGNet(element_types=element_types, threebody_cutoff=threebody_cutoff, is_intensive=False)
         lit_model = PotentialLightningModule(
             model=model, stress_weight=0.1, magmom_weight=0.1, include_line_graph=True, magmom_target="symbreak"
         )
