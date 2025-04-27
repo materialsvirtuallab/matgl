@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import os
 
-import matgl
 import numpy as np
 import pytest
 import torch
+
+import matgl
 from matgl.models import M3GNet
 
 

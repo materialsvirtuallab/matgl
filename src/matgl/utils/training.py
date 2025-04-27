@@ -390,6 +390,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             e, f, s, h = self.model(g=g, lat=lat, l_g=l_g, state_attr=state_attr)
             return e, f, s, h
         else:  # noqa: RET505
+            if self.model.calc_magmom:
+                e, f, s, h, m = self.model(g=g, lat=lat, state_attr=state_attr)
+                return e, f, s, h, m
             e, f, s, h = self.model(g=g, lat=lat, state_attr=state_attr)
             return e, f, s, h
 
@@ -416,10 +419,16 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                 preds = (e, f, s)
                 labels = (energies, forces, stresses)
         else:
-            g, lat, state_attr, energies, forces, stresses = batch
-            e, f, s, _ = self(g=g, lat=lat, state_attr=state_attr)
-            preds = (e, f, s)
-            labels = (energies, forces, stresses)
+            if self.model.calc_magmom:
+                g, lat, state_attr, energies, forces, stresses, magmoms = batch
+                e, f, s, _, m = self(g=g, lat=lat, state_attr=state_attr)
+                preds = (e, f, s, m)
+                labels = (energies, forces, stresses, magmoms)
+            else:
+                g, lat, state_attr, energies, forces, stresses = batch
+                e, f, s, _ = self(g=g, lat=lat, state_attr=state_attr)
+                preds = (e, f, s)
+                labels = (energies, forces, stresses)
 
         num_atoms = g.batch_num_nodes()
         results = self.loss_fn(

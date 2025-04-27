@@ -16,6 +16,7 @@ import os
 import shutil
 import warnings
 import zipfile
+import requests
 
 import lightning as pl
 import matplotlib.pyplot as plt
@@ -30,7 +31,6 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_graph
 from matgl.layers import BondExpansion
 from matgl.models import MEGNet
-from matgl.utils.io import RemoteFile
 from matgl.utils.training import ModelLightningModule
 
 # To suppress warnings for clearer output
@@ -43,17 +43,37 @@ We will download the original dataset used in the training of the MEGNet formati
 
 
 ```python
+# define a function to download the dataset
+def download_file(url: str, filename: str):
+    """Downloads a file from a URL and saves it locally."""
+    response = requests.get(url, stream=True)
+    response.raise_for_status()  # Raise an error if the request fails
+
+    with open(filename, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+# define a function to load the dataset
 def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
     """Raw data loading function.
 
     Returns:
         tuple[list[Structure], list[str], list[float]]: structures, mp_id, Eform_per_atom
     """
-    if not os.path.exists("mp.2018.6.1.json"):
-        f = RemoteFile("https://figshare.com/ndownloader/files/15087992")
-        with zipfile.ZipFile(f.local_path) as zf:
+    json_filename = "mp.2018.6.1.json"
+    zip_filename = "mp.2018.6.1.json.zip"
+
+    url = "https://figshare.com/ndownloader/files/15087992"
+
+    # Download and extract the dataset if it does not exist
+    if not os.path.exists(json_filename):
+        print(f"Downloading dataset from {url}...")
+        download_file(url, zip_filename)
+        with zipfile.ZipFile(zip_filename, "r") as zf:
             zf.extractall(".")
-    data = pd.read_json("mp.2018.6.1.json")
+        os.remove(zip_filename)  # Clean up the zip file
+
+        # Load the data
+    data = pd.read_json(json_filename)
     structures = []
     mp_ids = []
 

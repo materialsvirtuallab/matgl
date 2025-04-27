@@ -6,6 +6,12 @@ nav_order: 3
 
 # Change Log
 
+## 1.2.6
+- Fix missing torchdata dependency for Linux.
+
+## 1.2.5
+- Dependency pinning now is platform specific. Linux based systems can now work with latest DGL and torch.
+
 ## 1.2.3
 - Fix dependency issues with DGL. Pinning to DGL<=2.1.0 for now, which have versions for all OSes.
 

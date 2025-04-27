@@ -39,9 +39,9 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Information Analysis",
@@ -50,17 +50,36 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.2.1",
+    "dgl<=2.1.0; sys.platform == 'win32'",
+    "dgl<=2.2.0; sys.platform == 'darwin'",
+    "torch<=2.2.0; sys.platform != 'linux'",
+    "torchdata<=0.7.1; sys.platform != 'linux'",
+    "dgl<=2.4.0; sys.platform == 'linux'",
+    "torch<=2.4.0; sys.platform == 'linux'",
+    "torchdata<=0.8.0; sys.platform == 'linux'",
     "pymatgen",
-    "lightning<=2.5.1.dev20250323",
-    "torch<=2.2.0",
-    "torchdata<=0.7.1",
+    "lightning<=2.5.1",
     "pydantic",
     "boto3",
-    "numpy<2.0",
+    "numpy<3.0",
     "fsspec",
 ]
-version = "1.2.3"
+version = "1.2.6"
+
+[tool.uv.sources]
+dgl = [
+  { index = "dgl-linux", marker = "sys_platform == 'linux'" },
+  { index = "dgl-non-linux", marker = "sys_platform != 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "dgl-linux"
+url = "https://data.dgl.ai/wheels/torch-2.4/repo.html"
+format = "flat"
+
+[[tool.uv.index]]
+name = "dgl-non-linux"
+url = "https://pypi.org/simple/"
 
 [project.scripts]
 mgl = "matgl.cli:main"
@@ -97,7 +116,6 @@ exclude = '''
 '''
 
 [tool.ruff]
-target-version = "py39"
 line-length = 120
 lint.select = [
     "B", # flake8-bugbear
@@ -146,8 +164,6 @@ lint.isort.required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"setup.py" = ["D"]
-"tasks.py" = ["D"]
 "tests/**/*" = ["D", "PERF"]
 "docs/**/*" = ["D"]
 "examples/**/*" = ["D"]
@@ -163,10 +179,6 @@ exclude = ['examples', 'tests']
 [[tool.mypy.overrides]]
 module = ["requests.*", "tabulate.*"]
 ignore_missing_imports = true
-
-[tool.codespell]
-ignore-words-list = "mater,te,nd,bu"
-check-filenames = true
 
 [tool.coverage.run]
 relative_files = true
@@ -193,17 +205,18 @@ exclude_lines = [
 [dependency-groups]
 dev = [
     "coverage>=7.7.1",
+    "docutils>=0.21.2",
+    "invoke>=2.2.0",
     "jupyter>=1.1.1",
+    "myst-parser>=4.0.1",
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
     "pytest-cov>=6.0.0",
+    "requests>=2.32.3",
+    "sphinx>=8.1.3",
+    "sphinx-markdown-builder>=0.6.8",
 ]
 lint = [
     "mypy>=1.15.0",
     "ruff>=0.11.2",
-]
-maintain = [
-    "invoke>=2.2.0",
-    "sphinx>=8.1.3",
-    "sphinx-markdown-builder>=0.6.8",
 ]

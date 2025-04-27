@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [main]
+    branches: ["*"]
   pull_request:
     branches: [main]
   release:
@@ -21,15 +21,10 @@ jobs:
       max-parallel: 20
       matrix:
         config:
-#          - os: windows-latest
-#            python: "3.10"
-#            resolution: highest
           - os: ubuntu-latest
             python: "3.12"
-            resolution: lowest-direct
           - os: macos-latest
-            python: "3.11"
-            resolution: lowest-direct
+            python: "3.10"
 
     runs-on: ${{ matrix.config.os }}
     env:
@@ -39,18 +34,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv with python version.
+      - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.config.python }}
           enable-cache: true
           cache-dependency-glob: "uv.lock"
+          python-version: ${{ matrix.config.python }}
+      - name: Virtual env
+        run: uv venv --python ${{ matrix.config.python }}
+      - name: Install latest DGL for Linux
+        if: matrix.config.os == 'ubuntu-latest'
+        run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
-          uv sync
           uv pip install -e .
+          uv pip install pytest pytest-cov
       - name: pytest
         run: |
+          uv run python -c "import dgl; print(dgl.__version__)"
+          uv run python -c "import torch; print(torch.__version__)"
           uv run pytest --cov=matgl tests --color=yes
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
@@ -66,16 +68,18 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv with python version.
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.config.python }}
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-      - name: Install dependencies
-        run: uv sync
-      - name: Build sdist
-        run: uv build
+          python-version: "3.11"
+      - name: Install latest DGL
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
+      - name: Build
+        run: |
+          pip install build
+          python -m build --sdist
       - name: Publish to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

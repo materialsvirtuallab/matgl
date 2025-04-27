@@ -21,21 +21,21 @@ class AtomRef(nn.Module):
         super().__init__()
         if property_offset is None:
             property_offset = torch.zeros(max_z, dtype=matgl.float_th)
-        elif isinstance(property_offset, (np.ndarray, list)):  # for backward compatibility of saved models
+        elif isinstance(property_offset, np.ndarray | list):  # for backward compatibility of saved models
             property_offset = torch.tensor(property_offset, dtype=matgl.float_th)
 
         self.max_z = property_offset.shape[-1]
         self.register_buffer("property_offset", property_offset)
         self.register_buffer("onehot", torch.eye(self.max_z))
 
-    def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> torch.Tensor:
+    def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> np.ndarray:
         """Get the number of atoms for different elements in the structure.
 
         Args:
             graphs (list): a list of dgl graph
 
         Returns:
-            features (torch.Tensor): a matrix (num_structures, num_elements)
+            features (np.ndarray): a matrix (num_structures, num_elements)
         """
         features = torch.zeros(len(graphs), self.max_z, dtype=matgl.float_th)
         for i, graph in enumerate(graphs):
