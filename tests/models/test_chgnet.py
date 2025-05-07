@@ -5,8 +5,10 @@ import os
 import numpy as np
 import pytest
 import torch
+from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
+from matgl.ext.ase import PESCalculator
 from matgl.ext.pymatgen import Structure2Graph
 from matgl.models import CHGNet
 
@@ -96,3 +98,36 @@ class TestCHGNet:
             torch.unique(torch.round(g.ndata["magmom"], decimals=4), sorted=True),
             torch.unique(torch.round(g2.ndata["magmom"], decimals=4), sorted=True),
         )
+
+    @pytest.mark.parametrize("structure", ["Li3InCl6"])
+    def test_lg_error_handling(self, structure, request):
+        structure = request.getfixturevalue(structure)
+
+        dummy_chgnet = CHGNet(cutoff=6.0, threebody_cutoff=3.0)
+        # This structure triggers RuntimeError without error handling
+        with pytest.raises(RuntimeError):
+            dummy_chgnet.predict_structure(structure, error_handling=False)
+
+        # With error handling it only prints warning
+        with pytest.warns(RuntimeWarning):
+            out = dummy_chgnet.predict_structure(structure, error_handling=True)
+            assert isinstance(out, torch.Tensor)
+
+    @pytest.mark.parametrize("structure", ["Li3InCl6"])
+    @pytest.mark.parametrize("threebody_cutoff", [3, 2.8])
+    def test_prediction_stability_against_graph_cutoff_perturbation(self, structure, threebody_cutoff, request):
+        # This test ensure that energy and force predictions don't actually get modified after
+        # numerical perturbation to solve the RuntimeError
+        structure = request.getfixturevalue(structure)
+
+        potential1 = matgl.load_model("CHGNet-MatPES-PBE-2025.2.10-2.7M-PES")
+        potential1.threebody_cutoff = threebody_cutoff
+        calculator = PESCalculator(potential1)
+        forces1 = calculator.get_forces(AseAtomsAdaptor.get_atoms(structure))
+
+        potential2 = matgl.load_model("CHGNet-MatPES-PBE-2025.2.10-2.7M-PES")
+        potential2.model.threebody_cutoff = threebody_cutoff + 1e-6
+        assert potential2.model.threebody_cutoff > threebody_cutoff
+        calculator2 = PESCalculator(potential2)
+        forces2 = calculator2.get_forces(AseAtomsAdaptor.get_atoms(structure))
+        assert np.allclose(forces1, forces2, rtol=1e-4, atol=1e-7)
