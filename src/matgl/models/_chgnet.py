@@ -293,7 +293,7 @@ class CHGNet(MatGLModel):
             nn.Linear(dim_atom_embedding, num_site_targets) if num_site_targets > 0 else lambda x: None
         )
 
-        input_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
+        input_dim = dim_atom_embedding if readout_field == "atom_feat" else dim_bond_embedding
         if final_mlp_type == "mlp":
             self.final_layer = MLP_norm(
                 dims=[input_dim, *final_hidden_dims, num_targets], activation=activation, activate_last=False
@@ -408,11 +408,6 @@ class CHGNet(MatGLModel):
         atom_features, bond_features, state_attr = self.atom_graph_layers[-1](
             g, atom_features, bond_features, state_attr, atom_bond_weights, bond_bond_weights
         )
-
-        # really only needed if using the readout modules in _readout.py
-        # g.ndata["node_feat"] = atom_features
-        # g.edata["edge_feat"] = bond_features
-        # bond_graph.edata["angle_features"] = angle_features
 
         # readout
         if self.readout_field == "atom_feat":
