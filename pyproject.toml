@@ -21,7 +21,7 @@ authors = [
 ]
 description = "MatGL is a framework for graph deep learning for materials science."
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10"
 keywords = [
     "materials",
     "interatomic potential",
@@ -61,7 +61,7 @@ dependencies = [
     "lightning<=2.5.1",
     "pydantic",
     "boto3",
-    "numpy<2.0",
+    "numpy<3.0",
     "fsspec",
 ]
 version = "1.2.6"

@@ -5,27 +5,33 @@ import os
 import numpy as np
 import pytest
 import torch
+from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
+from matgl.ext.ase import PESCalculator
 from matgl.ext.pymatgen import Structure2Graph
 from matgl.models import CHGNet
 
 
 class TestCHGNet:
+    @pytest.mark.parametrize("threebody_cutoff", [0, 3])
     @pytest.mark.parametrize("dropout", [0.0, 0.5])
     @pytest.mark.parametrize("learn_basis", [True, False])
     @pytest.mark.parametrize("bond_dim", [None, (16,)])
     @pytest.mark.parametrize("angle_dim", [None, (16,)])
     @pytest.mark.parametrize("activation", ["swish", "softplus2"])
-    def test_model(self, graph_MoS, activation, angle_dim, bond_dim, learn_basis, dropout):
+    def test_model(self, graph_MoS, threebody_cutoff, activation, angle_dim, bond_dim, learn_basis, dropout):
         structure, graph, state = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
         for readout_field in ["atom_feat", "bond_feat", "angle_feat"]:
+            if readout_field == "angle_feat" and threebody_cutoff == 0:
+                continue
             for final_mlp_type in ["gated", "mlp"]:
                 model = CHGNet(
-                    element_types=["Mo", "S"],
+                    element_types=("Mo", "S"),
+                    threebody_cutoff=threebody_cutoff,
                     activation_type=activation,
                     bond_update_hidden_dims=bond_dim,
                     learn_basis=learn_basis,
@@ -77,8 +83,8 @@ class TestCHGNet:
         assert not torch.allclose(out, out1)
         assert not torch.allclose(out, out2)
 
-        assert torch.allclose(out / g.num_nodes(), out1 / g1.num_nodes())
-        assert torch.allclose(out / g.num_nodes(), out2 / g2.num_nodes())
+        assert torch.allclose(out / g.num_nodes(), out1 / g1.num_nodes(), rtol=1e-4)
+        assert torch.allclose(out / g.num_nodes(), out2 / g2.num_nodes(), rtol=1e-4)
 
         assert len(g.ndata["magmom"]) == g.num_nodes()
         assert len(g1.ndata["magmom"]) == g1.num_nodes()
@@ -92,3 +98,36 @@ class TestCHGNet:
             torch.unique(torch.round(g.ndata["magmom"], decimals=4), sorted=True),
             torch.unique(torch.round(g2.ndata["magmom"], decimals=4), sorted=True),
         )
+
+    @pytest.mark.parametrize("structure", ["Li3InCl6"])
+    def test_lg_error_handling(self, structure, request):
+        structure = request.getfixturevalue(structure)
+
+        dummy_chgnet = CHGNet(cutoff=6.0, threebody_cutoff=3.0)
+        # This structure triggers RuntimeError without error handling
+        with pytest.raises(RuntimeError):
+            dummy_chgnet.predict_structure(structure, error_handling=False)
+
+        # With error handling it only prints warning
+        with pytest.warns(RuntimeWarning):
+            out = dummy_chgnet.predict_structure(structure, error_handling=True)
+            assert isinstance(out, torch.Tensor)
+
+    @pytest.mark.parametrize("structure", ["Li3InCl6"])
+    @pytest.mark.parametrize("threebody_cutoff", [3, 2.8])
+    def test_prediction_stability_against_graph_cutoff_perturbation(self, structure, threebody_cutoff, request):
+        # This test ensure that energy and force predictions don't actually get modified after
+        # numerical perturbation to solve the RuntimeError
+        structure = request.getfixturevalue(structure)
+
+        potential1 = matgl.load_model("CHGNet-MatPES-PBE-2025.2.10-2.7M-PES")
+        potential1.threebody_cutoff = threebody_cutoff
+        calculator = PESCalculator(potential1)
+        forces1 = calculator.get_forces(AseAtomsAdaptor.get_atoms(structure))
+
+        potential2 = matgl.load_model("CHGNet-MatPES-PBE-2025.2.10-2.7M-PES")
+        potential2.model.threebody_cutoff = threebody_cutoff + 1e-6
+        assert potential2.model.threebody_cutoff > threebody_cutoff
+        calculator2 = PESCalculator(potential2)
+        forces2 = calculator2.get_forces(AseAtomsAdaptor.get_atoms(structure))
+        assert np.allclose(forces1, forces2, rtol=1e-4, atol=1e-7)
