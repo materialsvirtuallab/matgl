@@ -71,8 +71,8 @@ stresses via auto-differentiation. As a framework, M3GNet has diverse applicatio
 - **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
   machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
   flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
-  [*universal IP*][m3gnet] that can work across the entire periodic table of the elements by training on relaxations
-  performed in the [Materials Project][mp].
+  [*foundation potential*][m3gnet] that can work across the entire periodic table of the elements by training on
+  relaxations performed in the [Materials Project][mp].
 - **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
   surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
   state-of-the-art ML models.
@@ -87,8 +87,8 @@ improvements over the TF implementations are:
 
 ### CHGNet
 
-[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based ML interatomic potential.
-CHGNet involves atom graphs to capture atom bond relations and bond graph to capture angular information. It specializes in
+[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based MLIP. CHGNet involves atom
+graphs to capture atom bond relations and bond graph to capture angular information. It specializes in
 capturing the atomic charges through learning and predicting DFT atomic magnetic moments.
 See [original implementation][chgnetrepo]
 
