@@ -92,6 +92,7 @@ class CHGNet(MatGLModel):
         num_targets: int = 1,
         num_site_targets: int = 1,
         task_type: Literal["regression", "classification"] = "regression",
+        error_handling: bool = True,
         **kwargs,
     ):
         """
@@ -174,6 +175,10 @@ class CHGNet(MatGLModel):
                 Default = 1
             task_type (str): type of task to perform, either "regression" pr "classification"
                 Default = "regression"
+            error_handling (bool): whether enables numerical tolerance in the error
+                handling of line graph construction. When error handling is triggered
+                in very rare cases (<0.001%), a small amount (1e-6) of perturbation is
+                added to line graph cutoff to avoid inconsistent line graph.
             **kwargs: additional keyword arguments.
         """
         super().__init__()
@@ -288,7 +293,7 @@ class CHGNet(MatGLModel):
             nn.Linear(dim_atom_embedding, num_site_targets) if num_site_targets > 0 else lambda x: None
         )
 
-        input_dim = dim_atom_embedding if readout_field == "node_feat" else dim_bond_embedding
+        input_dim = dim_atom_embedding if readout_field == "atom_feat" else dim_bond_embedding
         if final_mlp_type == "mlp":
             self.final_layer = MLP_norm(
                 dims=[input_dim, *final_hidden_dims, num_targets], activation=activation, activate_last=False
@@ -320,6 +325,7 @@ class CHGNet(MatGLModel):
         g: dgl.DGLGraph,
         state_attr: torch.Tensor | None = None,
         l_g: dgl.DGLGraph | None = None,
+        error_handling: bool = True,
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
         """Forward pass of the model.
 
@@ -327,6 +333,8 @@ class CHGNet(MatGLModel):
             g (dgl.DGLGraph): Input g.
             state_attr (torch.Tensor, optional): State features. Defaults to None.
             l_g (dgl.DGLGraph, optional): Line graph. Defaults to None and is computed internally.
+            error_handling (bool, optional): Whether to allow numerical tolerance when an error occurs in
+                l_g construction. Defaults to True.
 
         Returns:
             torch.Tensor: Model output.
@@ -350,7 +358,7 @@ class CHGNet(MatGLModel):
         # create bond graph (line graph) with necessary node and edge data
         if self.use_bond_graph:
             if l_g is None:
-                bond_graph = create_line_graph(g, self.three_body_cutoff, directed=True)
+                bond_graph = create_line_graph(g, self.three_body_cutoff, directed=True, error_handling=error_handling)
             else:
                 # need to ensure the line graph matches the graph
                 bond_graph = ensure_line_graph_compatibility(g, l_g, self.three_body_cutoff, directed=True)
@@ -401,11 +409,6 @@ class CHGNet(MatGLModel):
             g, atom_features, bond_features, state_attr, atom_bond_weights, bond_bond_weights
         )
 
-        # really only needed if using the readout modules in _readout.py
-        # g.ndata["node_feat"] = atom_features
-        # g.edata["edge_feat"] = bond_features
-        # bond_graph.edata["angle_features"] = angle_features
-
         # readout
         if self.readout_field == "atom_feat":
             g.ndata["atom_feat"] = self.final_layer(atom_features)
@@ -425,6 +428,7 @@ class CHGNet(MatGLModel):
         structure,
         state_feats: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
+        error_handling: bool = True,
     ):
         """Convenience method to directly predict property from structure.
 
@@ -432,6 +436,8 @@ class CHGNet(MatGLModel):
             structure: An input crystal/molecule.
             state_feats (torch.tensor): Graph attributes
             graph_converter: Object that implements a get_graph_from_structure.
+            error_handling (bool, optional): Whether to allow numerical tolerance when an error occurs in
+                l_g construction. Defaults to True.
 
         Returns:
             output (torch.tensor): output property
@@ -446,4 +452,4 @@ class CHGNet(MatGLModel):
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lattice[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
-        return self(g=graph, state_attr=state_feats)
+        return self(g=graph, state_attr=state_feats, error_handling=error_handling)
