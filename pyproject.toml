@@ -63,6 +63,7 @@ dependencies = [
     "boto3",
     "numpy<2.0",
     "fsspec",
+    "torch-geometric>=2.6.1",
 ]
 version = "1.2.6"
 

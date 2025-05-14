@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import abc
 
-import dgl
 import numpy as np
 import torch
+from torch_geometric.data import Data
 
 import matgl
 
@@ -15,12 +15,12 @@ class GraphConverter(metaclass=abc.ABCMeta):
     """Abstract base class for converters from input crystals/molecules to graphs."""
 
     @abc.abstractmethod
-    def get_graph(self, structure) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
+    def get_graph(self, structure) -> tuple[Data, torch.Tensor, list | np.ndarray]:
         """Args:
         structure: Input crystals or molecule.
 
         Returns:
-        DGLGraph object, state_attr
+        Data object, state_attr
         """
 
     def get_graph_from_processed_structure(
@@ -33,7 +33,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         element_types,
         frac_coords,
         is_atoms: bool = False,
-    ) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
+    ) -> tuple[Data, torch.Tensor, list | np.ndarray]:
         """Construct a dgl graph from processed structure and bond information.
 
         Args:
@@ -47,14 +47,15 @@ class GraphConverter(metaclass=abc.ABCMeta):
             is_atoms: whether the input structure object is ASE atoms object or not.
 
         Returns:
-            DGLGraph object, state_attr
+            Data object, state_attr
 
         """
         u, v = torch.tensor(src_id, dtype=matgl.int_th), torch.tensor(dst_id, dtype=matgl.int_th)
-        g = dgl.graph((u, v), num_nodes=len(structure))
+        edge_index = torch.stack([u, v], dim=0)
+        data = Data(edge_index=edge_index, num_nodes=len(structure))
         # TODO: Need to check if the variable needs to be double or float, now use float
         pbc_offset = torch.tensor(images, dtype=matgl.float_th)
-        g.edata["pbc_offset"] = pbc_offset
+        data.pbc_offset = pbc_offset
         # TODO: Need to check if the variable needs to be double or float, now use float
         lattice = torch.tensor(np.array(lattice_matrix), dtype=matgl.float_th)
         # Note: pbc_ offshift and pos needs to be float64 to handle cases where bonds are exactly at cutoff
@@ -64,8 +65,8 @@ class GraphConverter(metaclass=abc.ABCMeta):
             if is_atoms is False
             else np.array([element_to_index[elem] for elem in structure.get_chemical_symbols()])
         )
-        g.ndata["node_type"] = torch.tensor(node_type, dtype=matgl.int_th)
+        data.node_type = torch.tensor(node_type, dtype=matgl.int_th)
         # TODO: Need to check if the variable needs to be double or float, now use float
-        g.ndata["frac_coords"] = torch.tensor(frac_coords, dtype=matgl.float_th)
+        data.frac_coords = torch.tensor(frac_coords, dtype=matgl.float_th)
         state_attr = np.array([0.0, 0.0]).astype(matgl.float_np)
-        return g, lattice, state_attr
+        return data, lattice, state_attr

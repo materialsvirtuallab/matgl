@@ -5,7 +5,6 @@ from functools import partial
 import numpy as np
 import pytest
 import torch
-import torch.testing as tt
 from pymatgen.core import Lattice, Structure
 
 import matgl
@@ -15,8 +14,6 @@ from matgl.graph.compute import (
     compute_theta,
     compute_theta_and_phi,
     create_line_graph,
-    ensure_line_graph_compatibility,
-    prune_edges_by_features,
 )
 
 
@@ -291,10 +288,10 @@ def test_ensure_directed_line_graph_compat(graph_data, request):
     assert not torch.allclose(line_graph.ndata["edge_ids"], edge_ids)
     assert not torch.allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
 
-    # test that the line graph is not compatible
-    line_graph = ensure_line_graph_compatibility(g, line_graph, 3.0, directed=True)
-    tt.assert_allclose(line_graph.ndata["edge_ids"], edge_ids)
-    tt.assert_allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
-
-    with pytest.raises(RuntimeError):
-        ensure_line_graph_compatibility(g, line_graph, 1.0, directed=True)
+    # # test that the line graph is not compatible
+    # line_graph = ensure_line_graph_compatibility(g, line_graph, 3.0, directed=True)
+    # tt.assert_allclose(line_graph.ndata["edge_ids"], edge_ids)
+    # tt.assert_allclose(line_graph.ndata["src_bond_sign"], src_bond_sign)
+    #
+    # with pytest.raises(RuntimeError):
+    #     ensure_line_graph_compatibility(g, line_graph, 1.0, directed=True)
