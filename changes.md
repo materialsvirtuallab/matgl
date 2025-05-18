@@ -6,6 +6,14 @@ nav_order: 3
 
 # Change Log
 
+## 1.2.7
+- Use original custom RemoteFile rather than fsspec, which is very finicky with SSL connections.
+- _create_directed_line_graph error handling (@bowen-bd)
+- Update Import Alias for lightning (@jcwang587)
+- Add nvt_nose_hoover to MD ensemble (@bowen-bd)
+- Allow training of magmom when no line graph presents (@bowen-bd)
+- Allow disable BondGraph in CHGNet (@bowen-bd)
+
 ## 1.2.6
 - Fix missing torchdata dependency for Linux.
 
@@ -77,7 +85,7 @@ nav_order: 3
 * Bump torch from 2.0.1 to 2.1.0 by @dependabot in https://github.com/materialsvirtuallab/matgl/pull/181
 * Bump pymatgen from 2023.10.4 to 2023.10.11 by @dependabot in https://github.com/materialsvirtuallab/matgl/pull/183
 * add testing to m3gnet potential training example by @lbluque in https://github.com/materialsvirtuallab/matgl/pull/179
-* Update Training a MEGNet Formation Energy Model with PyTorch Lightnin… by @1152041831 in https://github.com/materialsvirtuallab/matgl/pull/185
+* Update Training a MEGNet Formation Energy Model with PyTorch Lightning by @1152041831 in https://github.com/materialsvirtuallab/matgl/pull/185
 * Bump pymatgen from 2023.10.11 to 2023.11.12 by @dependabot in https://github.com/materialsvirtuallab/matgl/pull/187
 * dEdLat contribution for stress calculations is added and Universal Potentials are updated by @kenko911 in https://github.com/materialsvirtuallab/matgl/pull/189
 * Bump torch from 2.1.0 to 2.1.1 by @dependabot in https://github.com/materialsvirtuallab/matgl/pull/190
