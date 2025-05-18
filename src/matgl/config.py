@@ -17,7 +17,7 @@ MATGL_CACHE = Path(os.path.expanduser("~")) / ".cache/matgl"
 os.makedirs(MATGL_CACHE, exist_ok=True)
 
 # Download url for pre-trained models.
-PRETRAINED_MODELS_BASE_URL = "https://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
+PRETRAINED_MODELS_BASE_URL = "http://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 
 def clear_cache(confirm: bool = True):

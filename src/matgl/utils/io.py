@@ -270,6 +270,9 @@ def _get_file_paths(path: Path, **kwargs):
     try:
         return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
     except requests.RequestException:
+        import traceback
+
+        traceback.print_exc()
         raise ValueError(f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}.") from None
 
 
@@ -300,5 +303,5 @@ def get_available_pretrained_models() -> list[str]:
     Returns:
         List of available models.
     """
-    r = requests.get("https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
+    r = requests.get("http://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
     return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"]
