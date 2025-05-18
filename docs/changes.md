@@ -7,6 +7,7 @@ nav_order: 3
 # Change Log
 
 ## 1.2.7
+- Use original custom RemoteFile rather than fsspec, which is very finicky with SSL connections.
 - _create_directed_line_graph error handling (@bowen-bd)
 - Update Import Alias for lightning (@jcwang587)
 - Add nvt_nose_hoover to MD ensemble (@bowen-bd)
