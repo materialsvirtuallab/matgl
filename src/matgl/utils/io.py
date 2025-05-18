@@ -221,9 +221,8 @@ def load_model(path: Path, **kwargs):
     """
     path = Path(path)
 
-    fpaths = _get_file_paths(path, **kwargs)
-
     try:
+        fpaths = _get_file_paths(path, **kwargs)
         with open(fpaths["model.json"]) as f:
             d = json.load(f)
             modname = d["@module"]
