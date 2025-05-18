@@ -8,9 +8,7 @@ import logging
 import os
 import warnings
 from pathlib import Path
-from urllib.parse import urlparse
 
-import fsspec
 import requests
 import torch
 
@@ -19,57 +17,42 @@ from matgl.config import MATGL_CACHE, PRETRAINED_MODELS_BASE_URL
 logger = logging.getLogger(__file__)
 
 
-def ropen(uri: str | Path, mode="rb", *, cache_location=MATGL_CACHE, **kwargs):
-    """
-    Open a file with fsspec, using a cache for remote URLs, and local file access otherwise.
-
-    Args:
-        uri (str): The URI or local file path.
-        mode (str): File mode, e.g., "rb", "r".
-        cache_location (str): Local directory for caching remote files.
-        **kwargs: Extra arguments passed to fsspec.
-
-    Returns:
-        A file-like object.
-    """
-    parsed = urlparse(str(uri))
-    is_remote = parsed.scheme in ("http", "https", "s3", "ftp")
-
-    if is_remote:
-        # We implement a specialized cache naming system to make it easier for people to locate the model weights.
-        toks = str(uri).split("/")
-        model_name = toks[-2]
-        cache_location = Path(cache_location)
-
-        fs = fsspec.filesystem(
-            "filecache",
-            target_protocol=parsed.scheme,
-            cache_storage=str(cache_location / model_name),
-            same_names=True,
-        )
-        return fs.open(uri, mode, **kwargs)
-    return open(Path(uri), mode, **kwargs)
-
-
 class IOMixIn:
-    """Mixin class for model saving and loading.
+    """Mixin class for handling input/output operations for model saving and loading.
 
-    For proper usage, models should subclass nn.Module and IOMix and the `save_args` method should be called
-    immediately after the `super().__init__()` call::
+    This class provides methods to save initialization arguments and model states,
+    serialize the model into files, and load a model from specified paths. It helps
+    manage the lifecycle of model-related data, including initialization parameters,
+    state dictionaries, and metadata, in a structured and reusable manner.
 
-        super().__init__()
-        self.save_args(locals(), kwargs)
+    The functionality includes:
+    - Saving initialization arguments for reproducibility.
+    - Serializable save of model state and initialization arguments to disk.
+    - Support for saving and populating additional metadata.
+    - Loading models and their states from specified paths or pre-trained model sources.
 
+    Usage of this mixin is intended for models requiring serialization of their
+    initialization arguments and runtime states. It assumes the model class
+    implements and supports PyTorch's state_dict and load_state_dict methods.
     """
 
     def save_args(self, locals: dict, kwargs: dict | None = None) -> None:
-        r"""Method to save args into a private _init_args variable.
-
-        This should be called after super in the __init__ method, e.g., `self.save_args(locals(), kwargs)`.
+        """
+        This method saves the arguments passed to the class initializer. It collects the arguments
+        from the `__init__` method of the class, excluding `self` and `__class__`. If an additional
+        `kwargs` dictionary is provided, it is merged into the collected arguments. If any of the
+        collected arguments are instances of a subclass of `IOMixIn`, those arguments are serialized
+        into a dictionary representation that includes class metadata and initialization arguments.
+        Finally, the arguments are stored as an instance variable `_init_args`.
 
         Args:
-            locals: The result of locals().
-            kwargs: kwargs passed to the class.
+            locals (dict): A dictionary containing the local variables passed to the class
+                initializer.
+            kwargs (dict | None): An optional dictionary containing additional keyword
+                arguments to include in the initialization arguments.
+
+        Returns:
+            None
         """
         args = inspect.getfullargspec(self.__class__.__init__).args
         d = {k: v for k, v in locals.items() if k in args and k not in ("self", "__class__")}
@@ -88,19 +71,24 @@ class IOMixIn:
         self._init_args = d
 
     def save(self, path: str | Path = ".", metadata: dict | None = None, makedirs: bool = True):
-        """Save model to a directory.
+        """
+        Saves the state and configuration of the model to the specified path.
 
-        Three files will be saved.
-        - path/model.pt, which contains the torch serialized model args.
-        - path/state.pt, which contains the saved state_dict from the model.
-        - path/model.json, a txt version of model.pt that is purely meant for ease of reference.
+        This method saves the model's initialization arguments, model weights,
+        and additional metadata into the specified directory. It also creates
+        necessary directories if they don't exist when `makedirs` is True.
 
         Args:
-            path: String or Path object to directory for model saving. Defaults to current working directory (".").
-            metadata: Any additional metadata to be saved into the model.json file. For example, a good use would be
-                a description of model purpose, the training set used, etc.
-            makedirs: Whether to create the directory using os.makedirs(exist_ok=True). Note that if the directory
-                already exists, makedirs will not do anything.
+            path (str | Path, optional): Target path or directory where the model
+                data will be saved. Defaults to ".".
+            metadata (dict | None, optional): Additional metadata to save along
+                with the model. Defaults to None.
+            makedirs (bool, optional): Whether to create the necessary directories
+                if they do not exist. Defaults to True.
+
+        Raises:
+            OSError: Raised if the directory creation fails when `makedirs` is
+                set to True.
         """
         path = Path(path)
         if makedirs:
@@ -141,16 +129,14 @@ class IOMixIn:
         """
         fpaths = path if isinstance(path, dict) else _get_file_paths(Path(path), **kwargs)
 
-        with ropen(fpaths["model.json"], "rt") as f:
+        with open(fpaths["model.json"]) as f:
             model_data = json.load(f)
 
         _check_ver(cls, model_data)
 
         map_location = torch.device("cpu") if not torch.cuda.is_available() else None
-        with ropen(fpaths["state.pt"], "rb") as f:
-            state = torch.load(f, map_location=map_location)
-        with ropen(fpaths["model.pt"], "rb") as f:
-            d = torch.load(f, map_location=map_location)
+        state = torch.load(fpaths["state.pt"], map_location=map_location)
+        d = torch.load(fpaths["model.pt"], map_location=map_location)
 
         # Deserialize any args that are IOMixIn subclasses.
         for k, v in d.items():
@@ -168,7 +154,60 @@ class IOMixIn:
         return model
 
 
-def load_model(path: str | Path, **kwargs):
+class RemoteFile:
+    """Handling of download of remote files to a local cache."""
+
+    def __init__(self, uri: str, cache_location: str | Path = MATGL_CACHE, force_download: bool = False):
+        """
+        Args:
+            uri: Uniform resource identifier.
+            cache_location: Directory to cache downloaded RemoteFile. By default, downloaded models are saved at
+            $HOME/.matgl.
+            force_download: To speed up access, a model with the same name in the cache location will be used if
+            present. If you want to force a re-download, set this to True.
+        """
+        self.uri = uri
+        toks = uri.split("/")
+        self.model_name = toks[-2]
+        self.fname = toks[-1]
+        self.cache_location = Path(cache_location)
+        self.local_path = self.cache_location / self.model_name / self.fname
+        if (not self.local_path.exists()) or force_download:
+            logger.info("Downloading from remote location...")
+            self._download()
+        else:
+            logger.info(f"Using cached local file at {self.local_path}...")
+
+    def _download(self):
+        r = requests.get(self.uri)
+        if r.status_code == 200:
+            os.makedirs(self.cache_location / self.model_name, exist_ok=True)
+            with open(self.local_path, "wb") as f:
+                f.write(r.content)
+        else:
+            raise requests.RequestException(f"Bad uri: {self.uri}")
+
+    def __enter__(self):
+        """Support with context.
+
+        Returns:
+            Stream on local path.
+        """
+        self.stream = open(self.local_path, "rb")
+        return self.stream
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the with context.
+
+        Args:
+            exc_type: Usual meaning in __exit__.
+            exc_val: Usual meaning in __exit__.
+            exc_tb: Usual meaning in __exit__.
+        """
+        self.stream.close()
+
+
+def load_model(path: Path, **kwargs):
     r"""Convenience method to load a model from a directory or name.
 
     Args:
@@ -185,7 +224,7 @@ def load_model(path: str | Path, **kwargs):
     fpaths = _get_file_paths(path, **kwargs)
 
     try:
-        with ropen(fpaths["model.json"], "rt") as f:
+        with open(fpaths["model.json"]) as f:
             d = json.load(f)
             modname = d["@module"]
             classname = d["@class"]
@@ -200,12 +239,14 @@ def load_model(path: str | Path, **kwargs):
         ) from err
 
 
-def _get_file_paths(path: Path):
+def _get_file_paths(path: Path, **kwargs):
     """Search path for files.
 
     Args:
         path (Path): Path to saved model or name of pre-trained model. The search order is path, followed by
             download from PRETRAINED_MODELS_BASE_URL (with caching).
+        **kwargs: Additional kwargs passed to RemoteFile class. E.g., a useful one might be force_download if you
+            want to update the model.
 
     Returns:
         {
@@ -220,7 +261,7 @@ def _get_file_paths(path: Path):
         return {fn: path / fn for fn in fnames}
 
     try:
-        return {fn: f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}" for fn in fnames}
+        return {fn: RemoteFile(f"{PRETRAINED_MODELS_BASE_URL}{path}/{fn}", **kwargs).local_path for fn in fnames}
     except requests.RequestException:
         raise ValueError(f"No valid model found in pre-trained_models at {PRETRAINED_MODELS_BASE_URL}.") from None
 
@@ -252,9 +293,5 @@ def get_available_pretrained_models() -> list[str]:
     Returns:
         List of available models.
     """
-    try:
-        r = requests.get("https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
-        return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"]
-    except Exception:
-        print("Unable to access GitHub to check for pre-trained models.")
-        return []
+    r = requests.get("https://api.github.com/repos/materialsvirtuallab/matgl/contents/pretrained_models")
+    return [d["name"] for d in json.loads(r.content.decode("utf-8")) if d["type"] == "dir"]
