@@ -6,6 +6,13 @@ nav_order: 3
 
 # Change Log
 
+## 1.2.7
+- _create_directed_line_graph error handling (@bowen-bd)
+- Update Import Alias for lightning (@jcwang587)
+- Add nvt_nose_hoover to MD ensemble (@bowen-bd)
+- Allow training of magmom when no line graph presents (@bowen-bd)
+- Allow disable BondGraph in CHGNet (@bowen-bd)
+
 ## 1.2.6
 - Fix missing torchdata dependency for Linux.
 

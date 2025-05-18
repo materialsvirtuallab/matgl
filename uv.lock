@@ -1652,7 +1652,7 @@ wheels = [
 
 [[package]]
 name = "matgl"
-version = "1.2.6"
+version = "1.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "ase" },
