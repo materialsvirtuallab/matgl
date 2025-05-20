@@ -79,7 +79,7 @@ jobs:
       - name: Build
         run: |
           pip install build
-          python -m build --sdist
+          python -m build
       - name: Publish to PyPi
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
