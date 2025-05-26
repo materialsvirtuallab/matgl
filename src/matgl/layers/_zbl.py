@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import dgl
-import dgl.function as fn
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch_geometric
+import torch_geometric.function as fn
 from ase.data import atomic_numbers
 
 import matgl
@@ -47,7 +47,7 @@ class NuclearRepulsion(nn.Module):
         self.coefficients = nn.Parameter(coefficients, requires_grad=trainable)
         self.exponents = nn.Parameter(exponents, requires_grad=trainable)
 
-    def forward(self, element_types: tuple, graph: dgl.DGLGraph):
+    def forward(self, element_types: tuple, graph: torch_geometric.data.Data):
         """
 
         Args:

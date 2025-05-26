@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-import dgl
-import dgl.function as fn
+import torch_geometric
+import torch_geometric.function as fn
 import torch
 from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
@@ -74,7 +74,7 @@ class MEGNetGraphConv(Module):
         mij = {"mij": self.edge_func(inputs)}
         return mij
 
-    def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
+    def edge_update_(self, graph: torch_geometric.data.Data) -> Tensor:
         """Perform edge update.
 
         Args:
@@ -87,7 +87,7 @@ class MEGNetGraphConv(Module):
         graph.edata["e"] = graph.edata.pop("mij")
         return graph.edata["e"]
 
-    def node_update_(self, graph: dgl.DGLGraph) -> Tensor:
+    def node_update_(self, graph: torch_geometric.data.Data) -> Tensor:
         """Perform node update.
 
         Args:
@@ -104,7 +104,7 @@ class MEGNetGraphConv(Module):
         graph.ndata["v"] = self.node_func(inputs)
         return graph.ndata["v"]
 
-    def state_update_(self, graph: dgl.DGLGraph, state_feat: Tensor) -> Tensor:
+    def state_update_(self, graph: torch_geometric.data.Data, state_feat: Tensor) -> Tensor:
         """Perform attribute (global state) update.
 
         Args:
@@ -124,7 +124,7 @@ class MEGNetGraphConv(Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         edge_feat: Tensor,
         node_feat: Tensor,
         state_feat: Tensor,
@@ -202,7 +202,7 @@ class MEGNetBlock(Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         edge_feat: Tensor,
         node_feat: Tensor,
         state_feat: Tensor,
@@ -210,7 +210,7 @@ class MEGNetBlock(Module):
         """MEGNetBlock forward pass.
 
         Args:
-            graph (dgl.DGLGraph): A DGLGraph.
+            graph (torch_geometric.data.Data): A Data.
             edge_feat (Tensor): Edge features.
             node_feat (Tensor): Node features.
             state_feat (Tensor): Graph attributes (global state).
@@ -319,7 +319,7 @@ class M3GNetGraphConv(Module):
         mij = {"mij": self.edge_update_func(inputs) * self.edge_weight_func(rbf)}
         return mij
 
-    def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
+    def edge_update_(self, graph: torch_geometric.data.Data) -> Tensor:
         """Perform edge update.
 
         Args:
@@ -332,7 +332,7 @@ class M3GNetGraphConv(Module):
         edge_update = graph.edata.pop("mij")
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, state_feat: Tensor) -> Tensor:
+    def node_update_(self, graph: torch_geometric.data.Data, state_feat: Tensor) -> Tensor:
         """Perform node update.
 
         Args:
@@ -349,7 +349,7 @@ class M3GNetGraphConv(Module):
         vj = graph.ndata["v"][dst_id]
         rbf = graph.edata["rbf"]
         if self.include_state:
-            u = dgl.broadcast_edges(graph, state_feat)
+            u = dgl.# TODO: use torch_geometric.utils.scatter_(graph, state_feat)
             inputs = torch.hstack([vi, vj, eij, u])
         else:
             inputs = torch.hstack([vi, vj, eij])
@@ -358,7 +358,7 @@ class M3GNetGraphConv(Module):
         node_update = graph.ndata.pop("ve")
         return node_update
 
-    def state_update_(self, graph: dgl.DGLGraph, state_feat: Tensor) -> Tensor:
+    def state_update_(self, graph: torch_geometric.data.Data, state_feat: Tensor) -> Tensor:
         """Perform attribute (global state) update.
 
         Args:
@@ -376,7 +376,7 @@ class M3GNetGraphConv(Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         edge_feat: Tensor,
         node_feat: Tensor,
         state_feat: Tensor,
@@ -469,7 +469,7 @@ class M3GNetBlock(Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         edge_feat: Tensor,
         node_feat: Tensor,
         state_feat: Tensor,
@@ -558,7 +558,7 @@ class TensorNetInteraction(nn.Module):
         mij = {"I": scalars, "A": skew_metrices, "S": traceless_tensors}
         return mij
 
-    def edge_update_(self, graph: dgl.DGLGraph) -> dgl.DGLGraph:
+    def edge_update_(self, graph: torch_geometric.data.Data) -> torch_geometric.data.Data:
         """Perform edge update.
 
         Args:
@@ -570,7 +570,7 @@ class TensorNetInteraction(nn.Module):
         graph.apply_edges(self._edge_udf)
         return graph
 
-    def node_update_(self, graph: dgl.DGLGraph) -> tuple[Tensor, Tensor, Tensor]:
+    def node_update_(self, graph: torch_geometric.data.Data) -> tuple[Tensor, Tensor, Tensor]:
         """Perform node update.
 
         Args:
@@ -587,7 +587,7 @@ class TensorNetInteraction(nn.Module):
         traceless_tensors = graph.ndata.pop("Se")
         return scalars, skew_metrices, traceless_tensors
 
-    def forward(self, g: dgl.DGLGraph, X: Tensor):
+    def forward(self, g: torch_geometric.data.Data, X: Tensor):
         """
 
         Args:
@@ -785,7 +785,7 @@ class CHGNetGraphConv(nn.Module):
 
         return {"feat_update": edge_update}
 
-    def edge_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
+    def edge_update_(self, graph: torch_geometric.data.Data, shared_weights: Tensor | None) -> Tensor:
         """Perform edge update -> bond features.
 
         Args:
@@ -801,7 +801,7 @@ class CHGNetGraphConv(nn.Module):
             edge_update = edge_update * shared_weights
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
+    def node_update_(self, graph: torch_geometric.data.Data, shared_weights: Tensor | None) -> Tensor:
         """Perform node update -> atom features.
 
         Args:
@@ -843,7 +843,7 @@ class CHGNetGraphConv(nn.Module):
 
         return node_update
 
-    def state_update_(self, graph: dgl.DGLGraph, state_attr: Tensor) -> Tensor:
+    def state_update_(self, graph: torch_geometric.data.Data, state_attr: Tensor) -> Tensor:
         """Perform attribute (global state) update.
 
         Args:
@@ -860,7 +860,7 @@ class CHGNetGraphConv(nn.Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         node_features: Tensor,
         edge_features: Tensor,
         state_attr: Tensor,
@@ -885,7 +885,7 @@ class CHGNetGraphConv(nn.Module):
             graph.edata["features"] = edge_features
 
             if self.include_state:
-                graph.edata["global_state"] = dgl.broadcast_edges(graph, state_attr)
+                graph.edata["global_state"] = dgl.# TODO: use torch_geometric.utils.scatter_(graph, state_attr)
 
             if self.edge_update_func is not None:
                 edge_update = self.edge_update_(graph, shared_edge_weights)
@@ -979,7 +979,7 @@ class CHGNetAtomGraphBlock(nn.Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         atom_features: Tensor,
         bond_features: Tensor,
         state_attr: Tensor,
@@ -1127,7 +1127,7 @@ class CHGNetLineGraphConv(nn.Module):
         messages_ij = self.edge_update_func(inputs, edges._graph)  # type: ignore
         return {"feat_update": messages_ij}
 
-    def edge_update_(self, graph: dgl.DGLGraph) -> Tensor:
+    def edge_update_(self, graph: torch_geometric.data.Data) -> Tensor:
         """Perform edge update -> update angle features.
 
         Args:
@@ -1140,7 +1140,7 @@ class CHGNetLineGraphConv(nn.Module):
         edge_update = graph.edata["feat_update"]
         return edge_update
 
-    def node_update_(self, graph: dgl.DGLGraph, shared_weights: Tensor | None) -> Tensor:
+    def node_update_(self, graph: torch_geometric.data.Data, shared_weights: Tensor | None) -> Tensor:
         """Perform node update -> update bond features.
 
         Args:
@@ -1182,7 +1182,7 @@ class CHGNetLineGraphConv(nn.Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         node_features: Tensor,
         edge_features: Tensor,
         aux_edge_features: Tensor,
@@ -1283,7 +1283,7 @@ class CHGNetBondGraphBlock(nn.Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
         atom_features: Tensor,
         bond_features: Tensor,
         angle_features: Tensor,

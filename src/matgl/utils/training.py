@@ -14,8 +14,8 @@ from torch import nn
 from matgl.apps.pes import Potential
 
 if TYPE_CHECKING:
-    import dgl
     import numpy as np
+    import torch_geometric
     from torch.optim import Optimizer
     from torch.optim.lr_scheduler import LRScheduler
 
@@ -201,9 +201,9 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
     def forward(
         self,
-        g: dgl.DGLGraph,
+        g: torch_geometric.data.Data,
         lat: torch.Tensor | None = None,
-        l_g: dgl.DGLGraph | None = None,
+        l_g: torch_geometric.data.Data | None = None,
         state_attr: torch.Tensor | None = None,
     ):
         """Args:
@@ -369,9 +369,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
     def forward(
         self,
-        g: dgl.DGLGraph,
+        g: torch_geometric.data.Data,
         lat: torch.Tensor,
-        l_g: dgl.DGLGraph | None = None,
+        l_g: torch_geometric.data.Data | None = None,
         state_attr: torch.Tensor | None = None,
     ):
         """Args:

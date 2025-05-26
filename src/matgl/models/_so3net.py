@@ -3,7 +3,7 @@
 A simple spherical harmonic based equivariant GNNs. For more details on SO3Net,
 please refer to::
 
-    K.T. Schütt, S.S.P. Hessmann, N.W.A. Gebauer, J. Lederer, M. Gastegger. _SchNetPack 2.0: A neural network toolbox
+    K.T. SchÃ¼tt, S.S.P. Hessmann, N.W.A. Gebauer, J. Lederer, M. Gastegger. _SchNetPack 2.0: A neural network toolbox
     for atomistic machine learning. _J. Chem. Phys. 2023, 158 (14): 144801. 10.1063/5.0138367.
 """
 
@@ -12,9 +12,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Literal
 
-import dgl
 import torch
 import torch.nn as nn
+import torch_geometric
 
 import matgl.layers._so3 as so3
 from matgl.config import DEFAULT_ELEMENTS
@@ -210,11 +210,11 @@ class SO3Net(MatGLModel):
                         dims=dim_readout_layers, activation=activation, activate_last=True, bias_last=True
                     )
 
-    def forward(self, g: dgl.DGLGraph, total_charges: torch.Tensor | None = None, **kwargs):
+    def forward(self, g: torch_geometric.data.Data, total_charges: torch.Tensor | None = None, **kwargs):
         """Performs message passing and updates node representations.
 
         Args:
-            g : DGLGraph for a batch of graphs.
+            g : Data for a batch of graphs.
             total_charges: a list of total charges of systems
             **kwargs: For future flexibility. Not used at the moment.
 

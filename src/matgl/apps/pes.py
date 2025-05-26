@@ -13,8 +13,8 @@ from matgl.layers import AtomRef, NuclearRepulsion
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
-    import dgl
     import numpy as np
+    import torch_geometric
 
 
 class Potential(nn.Module, IOMixIn):
@@ -84,10 +84,10 @@ class Potential(nn.Module, IOMixIn):
 
     def forward(
         self,
-        g: dgl.DGLGraph,
+        g: torch_geometric.data.Data,
         lat: torch.Tensor,
         state_attr: torch.Tensor | None = None,
-        l_g: dgl.DGLGraph | None = None,
+        l_g: torch_geometric.data.Data | None = None,
     ) -> tuple[torch.Tensor, ...]:
         """Args:
             g: DGL graph

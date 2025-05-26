@@ -49,7 +49,6 @@ def test_get_available_pretrained_models():
     assert "M3GNet-MP-2021.2.8-PES" in model_names
 
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
 def test_load_model():
     # Load model from name.
     model = load_model("M3GNet-MP-2021.2.8-DIRECT-PES")

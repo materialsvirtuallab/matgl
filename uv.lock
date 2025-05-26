@@ -1652,14 +1652,13 @@ wheels = [
 
 [[package]]
 name = "matgl"
-version = "1.2.6"
+version = "1.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "ase" },
     { name = "boto3" },
     { name = "dgl", version = "2.1.0", source = { registry = "https://pypi.org/simple/" }, marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
     { name = "dgl", version = "2.4.0", source = { registry = "https://data.dgl.ai/wheels/torch-2.4/repo.html" }, marker = "sys_platform == 'linux'" },
-    { name = "fsspec" },
     { name = "lightning" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -1696,7 +1695,6 @@ requires-dist = [
     { name = "dgl", marker = "sys_platform == 'darwin'", specifier = "<=2.2.0", index = "https://pypi.org/simple/" },
     { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4.0", index = "https://data.dgl.ai/wheels/torch-2.4/repo.html" },
     { name = "dgl", marker = "sys_platform == 'win32'", specifier = "<=2.1.0", index = "https://pypi.org/simple/" },
-    { name = "fsspec" },
     { name = "lightning", specifier = "<=2.5.1" },
     { name = "numpy", specifier = "<2.0" },
     { name = "pydantic" },

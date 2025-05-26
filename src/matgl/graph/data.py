@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset
-from torch_geometric.data import Batch
-from torch_geometric.loader import DataLoader
+from dgl.data import DGLDataset
+from dgl.data.utils import load_graphs, save_graphs
+from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
 import matgl
@@ -30,16 +30,16 @@ def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_pe
         graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch, strict=False))
     else:
         graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
-    g = Batch.from_data_list(graphs)
+    g = dgl.batch(graphs)
     labels = (
         torch.vstack([next(iter(d.values())) for d in labels])  # type:ignore[assignment]
         if multiple_values_per_target
         else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)  # type:ignore[assignment]
     )
     state_attr = torch.stack(state_attr)  # type:ignore[assignment]
-    lat = lattices[0] if g.num_graphs == 1 else torch.squeeze(torch.stack(lattices))
+    lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
     if include_line_graph:
-        l_g = Batch.from_data_list(line_graphs)
+        l_g = dgl.batch(line_graphs)
         return g, lat, l_g, state_attr, labels
     return g, lat, state_attr, labels
 
@@ -49,10 +49,10 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
     l_g = None
     if include_line_graph:
         graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch, strict=False))
-        l_g = Batch.from_data_list(line_graphs)
+        l_g = dgl.batch(line_graphs)
     else:
         graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
-    g = Batch.from_data_list(graphs)
+    g = dgl.batch(graphs)
     e = torch.tensor([d["energies"] for d in labels])  # type: ignore
     f = torch.vstack([d["forces"] for d in labels])  # type: ignore
     s = (
@@ -77,24 +77,24 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
 
 
 def MGLDataLoader(
-    train_data: Dataset,
-    val_data: Dataset,
+    train_data: dgl.data.utils.Subset,
+    val_data: dgl.data.utils.Subset,
     collate_fn: Callable | None = None,
-    test_data: Dataset = None,
+    test_data: dgl.data.utils.Subset = None,
     **kwargs,
-) -> tuple[DataLoader, ...]:
+) -> tuple[GraphDataLoader, ...]:
     """Dataloader for MatGL training.
 
     Args:
-        train_data (Dataset): Training dataset.
-        val_data (Dataset): Validation dataset.
+        train_data (dgl.data.utils.Subset): Training dataset.
+        val_data (dgl.data.utils.Subset): Validation dataset.
         collate_fn (Callable): Collate function.
-        test_data (Dataset | None, optional): Test dataset. Defaults to None.
-        **kwargs: Pass-through kwargs to torch_geometric.loader.DataLoader. Common ones you may want to set are
-            batch_size, num_workers, pin_memory and generator.
+        test_data (dgl.data.utils.Subset | None, optional): Test dataset. Defaults to None.
+        **kwargs: Pass-through kwargs to dgl.dataloading.GraphDataLoader. Common ones you may want to set are
+            batch_size, num_workers, use_ddp, pin_memory and generator.
 
     Returns:
-        tuple[DataLoader, ...]: Train, validation and test data loaders. Test data
+        tuple[GraphDataLoader, ...]: Train, validation and test data loaders. Test data
             loader is None if test_data is None.
     """
     if collate_fn is None:
@@ -109,15 +109,15 @@ def MGLDataLoader(
                 else:
                     collate_fn = partial(collate_fn_pes, include_stress=True, include_magmom=True)
 
-    train_loader = DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
-    val_loader = DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+    train_loader = GraphDataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
+    val_loader = GraphDataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
     if test_data is not None:
-        test_loader = DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+        test_loader = GraphDataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
         return train_loader, val_loader, test_loader
     return train_loader, val_loader
 
 
-class MGLDataset(Dataset):
+class MGLDataset(DGLDataset):
     """Create a dataset including dgl graphs."""
 
     def __init__(
@@ -183,10 +183,7 @@ class MGLDataset(Dataset):
         self.graph_labels = graph_labels
         self.clear_processed = clear_processed
         self.save_cache = save_cache
-        self.raw_dir = raw_dir
-        self.save_dir = save_dir
-        self.name = directory_name
-        self.save_path = os.path.join(save_dir, directory_name)
+        super().__init__(name=directory_name, raw_dir=raw_dir, save_dir=save_dir)
 
     def has_cache(self) -> bool:
         """Check if the dgl_graph.bin exists or not."""
@@ -211,21 +208,18 @@ class MGLDataset(Dataset):
             graphs.append(graph)
             lattices.append(lattice)
             state_attrs.append(state_attr)
-            graph.pos = torch.tensor(structure.cart_coords)
-            graph.pbc_offshift = torch.matmul(graph.pbc_offset, lattice[0])
+            graph.ndata["pos"] = torch.tensor(structure.cart_coords)
+            graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lattice[0])
             bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-            graph.bond_vec = bond_vec
-            graph.bond_dist = bond_dist
+            graph.edata["bond_vec"] = bond_vec
+            graph.edata["bond_dist"] = bond_dist
             if self.include_line_graph:
                 line_graph = create_line_graph(graph, self.threebody_cutoff, directed=self.directed_line_graph)  # type: ignore
                 for name in ["bond_vec", "bond_dist", "pbc_offset"]:
-                    if hasattr(line_graph, name):
-                        delattr(line_graph, name)
+                    line_graph.ndata.pop(name)
                 line_graphs.append(line_graph)
-            if hasattr(graph, "pos"):
-                delattr(graph, "pos")
-            if hasattr(graph, "pbc_offshift"):
-                delattr(graph, "pbc_offshift")
+            graph.ndata.pop("pos")
+            graph.edata.pop("pbc_offshift")
         if self.graph_labels is not None:
             state_attrs = torch.tensor(self.graph_labels).long()
         else:
@@ -254,18 +248,18 @@ class MGLDataset(Dataset):
         if self.labels:
             with open(os.path.join(self.save_path, self.filename_labels), "w") as file:
                 json.dump(self.labels, file)
-        torch.save(self.graphs, os.path.join(self.save_path, self.filename))
+        save_graphs(os.path.join(self.save_path, self.filename), self.graphs)
         torch.save(self.lattices, os.path.join(self.save_path, self.filename_lattice))
         torch.save(self.state_attr, os.path.join(self.save_path, self.filename_state_attr))
         if self.include_line_graph:
-            torch.save(self.line_graphs, os.path.join(self.save_path, self.filename_line_graph))
+            save_graphs(os.path.join(self.save_path, self.filename_line_graph), self.line_graphs)
 
     def load(self):
         """Load dgl graphs from files."""
-        self.graphs = torch.load(os.path.join(self.save_path, self.filename))
+        self.graphs, _ = load_graphs(os.path.join(self.save_path, self.filename))
         self.lattices = torch.load(os.path.join(self.save_path, self.filename_lattice))
         if self.include_line_graph:
-            self.line_graphs = torch.load(os.path.join(self.save_path, self.filename_line_graph))
+            self.line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graph))
         self.state_attr = torch.load(os.path.join(self.save_path, self.filename_state_attr))
         with open(os.path.join(self.save_path, self.filename_labels)) as f:
             self.labels = json.load(f)

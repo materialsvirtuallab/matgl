@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import dgl
-import dgl.function as fn
 import torch
+import torch_geometric
+import torch_geometric.function as fn
 from torch import nn
 
 import matgl
@@ -211,7 +211,7 @@ class TensorEmbedding(nn.Module):
         mij = {"I": scalars, "A": skew_matrices, "S": traceless_tensors}
         return mij
 
-    def edge_update_(self, graph: dgl.DGLGraph) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def edge_update_(self, graph: torch_geometric.data.Data) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform edge update.
 
         :param graph: Input graph
@@ -223,7 +223,7 @@ class TensorEmbedding(nn.Module):
         traceless_tensors = graph.edata.pop("S")
         return scalars, skew_metrices, traceless_tensors
 
-    def node_update_(self, graph: dgl.DGLGraph) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def node_update_(self, graph: torch_geometric.data.Data) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform node update.
 
         :param graph: Input graph
@@ -238,7 +238,7 @@ class TensorEmbedding(nn.Module):
 
         return scalars, skew_metrices, traceless_tensors
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None):
+    def forward(self, g: torch_geometric.data.Data, state_attr: torch.Tensor | None = None):
         """
 
         Args:

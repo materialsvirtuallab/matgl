@@ -36,8 +36,8 @@ from matgl.graph.converters import GraphConverter
 if TYPE_CHECKING:
     from typing import Any
 
-    import dgl
     import torch
+    import torch_geometric
     from ase.optimize.optimize import Optimizer
 
     from matgl.apps.pes import Potential
@@ -74,7 +74,7 @@ class Atoms2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
+    def get_graph(self, atoms: Atoms) -> tuple[torch_geometric.data.Data, torch.Tensor, list | np.ndarray]:
         """Get a DGL graph from an input Atoms.
 
         Args:

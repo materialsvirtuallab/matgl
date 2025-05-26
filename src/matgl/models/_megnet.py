@@ -23,7 +23,7 @@ from matgl.layers import MLP, ActivationFunction, BondExpansion, EdgeSet2Set, Em
 from ._core import MatGLModel
 
 if TYPE_CHECKING:
-    import dgl
+    import torch_geometric
 
     from matgl.graph.converters import GraphConverter
 
@@ -151,11 +151,11 @@ class MEGNet(MatGLModel):
         self.is_classification = is_classification
         self.include_state_embedding = include_state
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, **kwargs):
+    def forward(self, g: torch_geometric.data.Data, state_attr: torch.Tensor | None = None, **kwargs):
         """Forward pass of MEGnet. Executes all blocks.
 
         Args:
-            g (dgl.DGLGraph): DGL graphs
+            g (torch_geometric.data.Data): DGL graphs
             state_attr (torch.Tensor): State attributes
             **kwargs: For future flexibility. Not used at the moment.
 

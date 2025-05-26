@@ -6,7 +6,7 @@ import abc
 
 import numpy as np
 import torch
-from torch_geometric.data import Data
+import torch_geometric
 
 import matgl
 
@@ -15,7 +15,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
     """Abstract base class for converters from input crystals/molecules to graphs."""
 
     @abc.abstractmethod
-    def get_graph(self, structure) -> tuple[Data, torch.Tensor, list | np.ndarray]:
+    def get_graph(self, structure) -> tuple[torch_geometric.data.Data, torch.Tensor, list | np.ndarray]:
         """Args:
         structure: Input crystals or molecule.
 
@@ -33,7 +33,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         element_types,
         frac_coords,
         is_atoms: bool = False,
-    ) -> tuple[Data, torch.Tensor, list | np.ndarray]:
+    ) -> tuple[torch_geometric.data.Data, torch.Tensor, list | np.ndarray]:
         """Construct a dgl graph from processed structure and bond information.
 
         Args:
@@ -51,11 +51,10 @@ class GraphConverter(metaclass=abc.ABCMeta):
 
         """
         u, v = torch.tensor(src_id, dtype=matgl.int_th), torch.tensor(dst_id, dtype=matgl.int_th)
-        edge_index = torch.stack([u, v], dim=0)
-        data = Data(edge_index=edge_index, num_nodes=len(structure))
+        g = dgl.graph((u, v), num_nodes=len(structure))
         # TODO: Need to check if the variable needs to be double or float, now use float
         pbc_offset = torch.tensor(images, dtype=matgl.float_th)
-        data.pbc_offset = pbc_offset
+        g.edata["pbc_offset"] = pbc_offset
         # TODO: Need to check if the variable needs to be double or float, now use float
         lattice = torch.tensor(np.array(lattice_matrix), dtype=matgl.float_th)
         # Note: pbc_ offshift and pos needs to be float64 to handle cases where bonds are exactly at cutoff
@@ -65,8 +64,8 @@ class GraphConverter(metaclass=abc.ABCMeta):
             if is_atoms is False
             else np.array([element_to_index[elem] for elem in structure.get_chemical_symbols()])
         )
-        data.node_type = torch.tensor(node_type, dtype=matgl.int_th)
+        g.ndata["node_type"] = torch.tensor(node_type, dtype=matgl.int_th)
         # TODO: Need to check if the variable needs to be double or float, now use float
-        data.frac_coords = torch.tensor(frac_coords, dtype=matgl.float_th)
+        g.ndata["frac_coords"] = torch.tensor(frac_coords, dtype=matgl.float_th)
         state_attr = np.array([0.0, 0.0]).astype(matgl.float_np)
-        return data, lattice, state_attr
+        return g, lattice, state_attr

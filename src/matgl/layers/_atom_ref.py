@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import dgl
 import numpy as np
 import torch
+import torch_geometric
 from torch import nn
 
 import matgl
@@ -28,7 +28,7 @@ class AtomRef(nn.Module):
         self.register_buffer("property_offset", property_offset)
         self.register_buffer("onehot", torch.eye(self.max_z))
 
-    def get_feature_matrix(self, graphs: list[dgl.DGLGraph]) -> np.ndarray:
+    def get_feature_matrix(self, graphs: list[torch_geometric.data.Data]) -> np.ndarray:
         """Get the number of atoms for different elements in the structure.
 
         Args:
@@ -43,7 +43,7 @@ class AtomRef(nn.Module):
             features[i] = torch.bincount(atomic_numbers, minlength=self.max_z)
         return features.cpu().numpy()
 
-    def fit(self, graphs: list[dgl.DGLGraph], properties: torch.Tensor) -> None:
+    def fit(self, graphs: list[torch_geometric.data.Data], properties: torch.Tensor) -> None:
         """Fit the elemental reference values for the properties.
 
         Args:
@@ -55,7 +55,7 @@ class AtomRef(nn.Module):
             np.linalg.pinv(features.T @ features) @ features.T @ np.array(properties), dtype=matgl.float_th
         )
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None):
+    def forward(self, g: torch_geometric.data.Data, state_attr: torch.Tensor | None = None):
         """Get the total property offset for a system.
 
         Args:

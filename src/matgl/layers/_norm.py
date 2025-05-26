@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 if TYPE_CHECKING:
-    import dgl
+    import torch_geometric
 
 
 class GraphNorm(nn.Module):
@@ -34,12 +34,12 @@ class GraphNorm(nn.Module):
         self.mean_scale = nn.Parameter(torch.ones(input_dim))
         self.batched_field = batched_field
 
-    def forward(self, features: torch.Tensor, graph: dgl.DGLGraph):
+    def forward(self, features: torch.Tensor, graph: torch_geometric.data.Data):
         """Forward pass.
 
         Args:
             features (torch.Tensor): features
-            graph (dgl.DGLGraph): g
+            graph (torch_geometric.data.Data): g
 
         Returns:
             torch.Tensor: normalized features

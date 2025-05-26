@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-import dgl
 import torch
 import torch.nn.functional as F
+import torch_geometric
 from dgl.nn import Set2Set
 from torch import nn
 
@@ -46,7 +46,7 @@ class Set2SetReadOut(nn.Module):
         else:
             raise ValueError("Field must be node_feat or edge_feat")
 
-    def forward(self, g: dgl.DGLGraph):
+    def forward(self, g: torch_geometric.data.Data):
         if self.field == "node_feat":
             return self.set2set(g, g.ndata["node_feat"])
         return self.set2set(g, g.edata["edge_feat"])
@@ -67,7 +67,7 @@ class ReduceReadOut(nn.Module):
         self.op = op
         self.field = field
 
-    def forward(self, g: dgl.DGLGraph):
+    def forward(self, g: torch_geometric.data.Data):
         """Args:
             g: DGL graph.
 
@@ -94,7 +94,7 @@ class WeightedReadOut(nn.Module):
         self.dims = [in_feats, *dims, num_targets]
         self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False)
 
-    def forward(self, g: dgl.DGLGraph):
+    def forward(self, g: torch_geometric.data.Data):
         """Args:
             g: DGL graph.
 
@@ -121,7 +121,7 @@ class WeightedAtomReadOut(nn.Module):
         self.mlp = MLP(dims=self.dims, activation=self.activation, activate_last=True)
         self.weight = nn.Sequential(nn.Linear(in_feats, 1), nn.Sigmoid())
 
-    def forward(self, g: dgl.DGLGraph):
+    def forward(self, g: torch_geometric.data.Data):
         """Args:
             g: DGL graph.
 
@@ -146,7 +146,7 @@ class WeightedReadOutPair(nn.Module):
         self.dims = [*dims, num_targets]
         self.gated = GatedMLP(in_feats=in_feats, dims=self.dims, activate_last=False)
 
-    def forward(self, g: dgl.DGLGraph):
+    def forward(self, g: torch_geometric.data.Data):
         num_nodes = g.ndata["node_feat"].size(dim=0)
         pair_properties = torch.zeros(num_nodes, num_nodes, self.num_targets)
         for i in range(num_nodes):
@@ -183,8 +183,8 @@ class GlobalPool(nn.Module):
 
         Args:
         ----------
-        g : DGLGraph
-            DGLGraph for a batch of graphs.
+        g : Data
+            Data for a batch of graphs.
         node_feats : float32 tensor of shape (V, node_feat_size)
             Input node features. V for the number of nodes.
         g_feats : float32 tensor of shape (G, graph_feat_size)
@@ -240,11 +240,11 @@ class AttentiveFPReadout(nn.Module):
         for _ in range(num_timesteps):
             self.readouts.append(GlobalPool(feat_size, dropout))
 
-    def forward(self, g: dgl.DGLGraph, node_feats: torch.Tensor, get_node_weight=False):
+    def forward(self, g: torch_geometric.data.Data, node_feats: torch.Tensor, get_node_weight=False):
         """Computes graph representations out of node features.
 
         Args:
-            g (dgl.DGLGraph): DGLGraph for a batch of graphs.
+            g (torch_geometric.data.Data): Data for a batch of graphs.
             node_feats (torch.Tenor): Input node features. V for the number of nodes.
             get_node_weight (bool):  Whether to get the weights of nodes in readout. Default to False.
 

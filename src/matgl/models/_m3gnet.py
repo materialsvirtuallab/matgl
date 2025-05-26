@@ -14,8 +14,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Literal
 
-import dgl
 import torch
+import torch_geometric
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENTS
@@ -221,17 +221,17 @@ class M3GNet(MatGLModel):
 
     def forward(
         self,
-        g: dgl.DGLGraph,
+        g: torch_geometric.data.Data,
         state_attr: torch.Tensor | None = None,
-        l_g: dgl.DGLGraph | None = None,
+        l_g: torch_geometric.data.Data | None = None,
         return_all_layer_output: bool = False,
     ):
         """Performs message passing and updates node representations.
 
         Args:
-            g : DGLGraph for a batch of graphs.
+            g : Data for a batch of graphs.
             state_attr: State attrs for a batch of graphs.
-            l_g : DGLGraph for a batch of line graphs.
+            l_g : Data for a batch of line graphs.
             return_all_layer_output: Whether to return outputs of all M3GNet layers. By default, only the final layer
                 output is returned.
 

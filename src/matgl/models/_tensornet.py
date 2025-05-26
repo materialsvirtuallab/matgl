@@ -13,8 +13,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Literal
 
-import dgl
 import torch
+import torch_geometric
 from torch import nn
 
 import matgl
@@ -216,11 +216,11 @@ class TensorNet(MatGLModel):
             layer.reset_parameters()
         self.out_norm.reset_parameters()
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, **kwargs):
+    def forward(self, g: torch_geometric.data.Data, state_attr: torch.Tensor | None = None, **kwargs):
         """
 
         Args:
-            g : DGLGraph for a batch of graphs.
+            g : Data for a batch of graphs.
             state_attr: State attrs for a batch of graphs.
             **kwargs: For future flexibility. Not used at the moment.
 

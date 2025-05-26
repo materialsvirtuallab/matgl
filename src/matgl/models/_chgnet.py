@@ -16,7 +16,6 @@ import logging
 from typing import TYPE_CHECKING, Literal
 
 import torch
-from dgl import readout_edges, readout_nodes
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENTS
@@ -42,7 +41,7 @@ from ._core import MatGLModel
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    import dgl
+    import torch_geometric
 
     from matgl.graph.converters import GraphConverter
 
@@ -322,17 +321,17 @@ class CHGNet(MatGLModel):
 
     def forward(
         self,
-        g: dgl.DGLGraph,
+        g: torch_geometric.data.Data,
         state_attr: torch.Tensor | None = None,
-        l_g: dgl.DGLGraph | None = None,
+        l_g: torch_geometric.data.Data | None = None,
         error_handling: bool = True,
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
         """Forward pass of the model.
 
         Args:
-            g (dgl.DGLGraph): Input g.
+            g (torch_geometric.data.Data): Input g.
             state_attr (torch.Tensor, optional): State features. Defaults to None.
-            l_g (dgl.DGLGraph, optional): Line graph. Defaults to None and is computed internally.
+            l_g (torch_geometric.data.Data, optional): Line graph. Defaults to None and is computed internally.
             error_handling (bool, optional): Whether to allow numerical tolerance when an error occurs in
                 l_g construction. Defaults to True.
 

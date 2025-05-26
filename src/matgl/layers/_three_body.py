@@ -12,7 +12,7 @@ import matgl
 from matgl.utils.maths import _block_repeat, get_segment_indices_from_n, scatter_sum
 
 if TYPE_CHECKING:
-    import dgl
+    import torch_geometric
 
 
 class ThreeBodyInteractions(nn.Module):
@@ -33,8 +33,8 @@ class ThreeBodyInteractions(nn.Module):
 
     def forward(
         self,
-        graph: dgl.DGLGraph,
-        line_graph: dgl.DGLGraph,
+        graph: torch_geometric.data.Data,
+        line_graph: torch_geometric.data.Data,
         three_basis: torch.Tensor,
         three_cutoff: torch.Tensor,
         node_feat: torch.Tensor,
