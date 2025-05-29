@@ -37,12 +37,15 @@ def get_graph(structure, cutoff):
         converter = Structure2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
     else:
         converter = Molecule2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
+
     graph, lattice, state = converter.get_graph(structure)
-    graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lattice[0])
-    graph.ndata["pos"] = graph.ndata["frac_coords"] @ lattice[0]
+
+    graph.pbc_offshift = torch.matmul(graph.pbc_offset, lattice[0])
+    graph.pos = graph.frac_coords @ lattice[0]
     bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-    graph.edata["bond_dist"] = bond_dist
-    graph.edata["bond_vec"] = bond_vec
+
+    graph.bond_vec = bond_vec
+    graph.bond_dist = bond_dist
     return structure, graph, state
 
 

@@ -7,7 +7,7 @@ import warnings
 
 import numpy as np
 import torch
-import torch_geometric
+from torch_geometric.data import Data
 
 import matgl
 
@@ -15,73 +15,133 @@ if typing.TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def compute_pair_vector_and_distance(g: torch_geometric.data.Data):
-    """Calculate bond vectors and distances using dgl graphs.
+def compute_pair_vector_and_distance(graph: Data) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Calculate bond vectors and distances using PyTorch Geometric Data object.
 
     Args:
-    g: DGL graph
+        graph: PyTorch Geometric Data object containing pos, edge_index, and pbc_offshift.
 
     Returns:
-    bond_vec (torch.tensor): bond distance between two atoms
-    bond_dist (torch.tensor): vector from src node to dst node
+        Tuple containing:
+        - bond_vec (torch.Tensor): Vector from source node to destination node.
+        - bond_dist (torch.Tensor): Bond distance between two atoms.
     """
-    dst_pos = g.ndata["pos"][g.edges()[1]] + g.edata["pbc_offshift"]
-    src_pos = g.ndata["pos"][g.edges()[0]]
+    # Get source and destination node indices from edge_index
+    src_idx, dst_idx = graph.edge_index
+
+    # Get positions of source and destination nodes
+    src_pos = graph.pos[src_idx]
+    dst_pos = graph.pos[dst_idx]
+
+    # Apply periodic boundary condition offsets
+    if hasattr(graph, "pbc_offshift") and graph.pbc_offshift is not None:
+        dst_pos = dst_pos + graph.pbc_offshift
+
+    # Compute bond vectors and distances
     bond_vec = dst_pos - src_pos
     bond_dist = torch.norm(bond_vec, dim=1)
 
     return bond_vec, bond_dist
 
 
-def compute_theta_and_phi(edges: dgl.udf.EdgeBatch):
-    """Calculate bond angle Theta and Phi using dgl graphs.
-
-    Args:
-    edges: DGL graph edges
-
-    Returns:
-    cos_theta: torch.Tensor
-    phi: torch.Tensor
-    triple_bond_lengths (torch.tensor):
-    """
-    angles = compute_theta(edges, cosine=True, directed=False)
-    angles["phi"] = torch.zeros_like(angles["cos_theta"])
-    return angles
-
-
 def compute_theta(
-    edges: dgl.udf.EdgeBatch, cosine: bool = False, directed: bool = True, eps=1e-7
+    graph: Data, cosine: bool = False, directed: bool = True, eps: float = 1e-7
 ) -> dict[str, torch.Tensor]:
-    """User defined dgl function to calculate bond angles from edges in a graph.
+    """
+    Calculate bond angles from edges in a PyTorch Geometric line graph.
 
     Args:
-        edges: DGL graph edges
-        cosine: Whether to return the cosine of the angle or the angle itself
-        directed: Whether to the line graph was created with create directed line graph.
-            In which case bonds (only those that are not self bonds) need to
-            have their bond vectors flipped.
-        eps: eps value used to clamp cosine values to avoid acos of values > 1.0
+        graph: PyTorch Geometric Data object representing a line graph, with bond_vec, bond_dist, and optional src_bond_sign.
+        cosine: Whether to return the cosine of the angle or the angle itself.
+        directed: Whether the line graph was created with directed edges. If True, bond vectors for source nodes are flipped using src_bond_sign.
+        eps: Small value to clamp cosine values for numerical stability (avoid acos of values > 1.0).
 
     Returns:
-        dict[str, torch.Tensor]: Dictionary containing bond angles and distances
+        Dict[str, torch.Tensor]: Dictionary containing:
+            - 'cos_theta' or 'theta': Cosine of bond angle or angle in radians.
+            - 'triple_bond_lengths': Bond distances for destination bonds.
     """
-    vec1 = edges.src["bond_vec"] * edges.src["src_bond_sign"] if directed else edges.src["bond_vec"]
-    vec2 = edges.dst["bond_vec"]
+    # Get source and destination bond vectors
+    src_idx, dst_idx = graph.edge_index
+    vec1 = graph.bond_vec[src_idx]
+    if directed and hasattr(graph, "src_bond_sign"):
+        vec1 = vec1 * graph.src_bond_sign[src_idx]
+    vec2 = graph.bond_vec[dst_idx]
+
+    # Compute cosine of the angle
     key = "cos_theta" if cosine else "theta"
     val = torch.sum(vec1 * vec2, dim=1) / (torch.norm(vec1, dim=1) * torch.norm(vec2, dim=1))
-    val = val.clamp_(min=-1 + eps, max=1 - eps)  # stability for floating point numbers > 1.0
+    val = val.clamp(min=-1 + eps, max=1 - eps)  # Numerical stability
+
     if not cosine:
         val = torch.acos(val)
-    return {key: val, "triple_bond_lengths": edges.dst["bond_dist"]}
+
+    graph[key] = val
+    graph.triple_bond_lengths = graph.bond_dist[dst_idx]
+    return graph, key
+
+
+def compute_theta_and_phi(graph: Data) -> dict[str, torch.Tensor]:
+    """
+    Calculate bond angles theta and phi using a PyTorch Geometric line graph.
+
+    Args:
+        data: PyTorch Geometric Data object representing a line graph.
+
+    Returns:
+        Dict[str, torch.Tensor]: Dictionary containing:
+            - cos_theta: Cosine of the bond angle.
+            - phi: Tensor of zeros (placeholder for phi angle).
+            - triple_bond_lengths: Bond distances for destination bonds.
+    """
+    graph, key = compute_theta(graph, cosine=True, directed=False)
+    graph.phi = torch.zeros_like(graph[key])
+    return graph
+
+
+def separate_node_edge_keys(graph: Data) -> tuple[list[str], list[str], list[str]]:
+    """Separates keys in a PyTorch Geometric Data object into node attributes, edge attributes, and other attributes.
+
+    Args:
+        data: PyTorch Geometric Data object.
+
+    Returns:
+        tuple: (node_keys, edge_keys, other_keys) where each is a list of attribute names.
+    """
+    node_keys = []
+    edge_keys = []
+    other_keys = []
+
+    num_nodes = graph.num_nodes
+    num_edges = graph.num_edges
+
+    for key in graph.keys():
+        value = graph[key]
+        if key == "edge_index":
+            other_keys.append(key)
+            continue
+        if isinstance(value, torch.Tensor) and value.dim() > 0:
+            first_dim = value.size(0)
+            if first_dim == num_nodes:
+                node_keys.append(key)
+            elif first_dim == num_edges:
+                edge_keys.append(key)
+            else:
+                other_keys.append(key)
+        else:
+            other_keys.append(key)
+
+    return node_keys, edge_keys, other_keys
 
 
 def create_line_graph(
-    g: torch_geometric.data.Data,
+    g: Data,
     threebody_cutoff: float,
     directed: bool = False,
     error_handling: bool = False,
     numerical_noise: float = 1e-6,
-) -> torch_geometric.data.Data:
+) -> Data:
     """
     Calculate the three body indices from pair atom indices.
 
@@ -135,12 +195,12 @@ def create_line_graph(
 
 
 def ensure_line_graph_compatibility(
-    graph: torch_geometric.data.Data,
-    line_graph: torch_geometric.data.Data,
+    graph: Data,
+    line_graph: Data,
     threebody_cutoff: float,
     directed: bool = False,
     tol: float = 5e-6,
-) -> torch_geometric.data.Data:
+) -> Data:
     """Ensure that line graph is compatible with graph.
 
     Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
@@ -161,14 +221,15 @@ def ensure_line_graph_compatibility(
 
 
 def prune_edges_by_features(
-    graph: torch_geometric.data.Data,
+    graph: Data,
     feat_name: str,
     condition: Callable[[torch.Tensor], torch.Tensor],
     keep_ndata: bool = False,
     keep_edata: bool = True,
+    return_keys: bool = False,
     *args,
     **kwargs,
-) -> torch_geometric.data.Data:
+) -> Data:
     """Removes edges graph that do satisfy given condition based on a specified feature value.
 
     Returns a new graph with edges removed.
@@ -185,51 +246,62 @@ def prune_edges_by_features(
 
     Returns: dgl.Graph with removed edges.
     """
-    if feat_name not in graph.edata:
+    if feat_name not in graph.keys():
         raise ValueError(f"Edge field {feat_name} not an edge feature in given graph.")
 
-    valid_edges = torch.logical_not(condition(graph.edata[feat_name], *args, **kwargs))
-    src, dst = graph.edges()
-    src, dst = src[valid_edges], dst[valid_edges]
-    e_ids = valid_edges.nonzero().squeeze()
-    new_g = dgl.graph((src, dst), device=graph.device)
-    new_g.edata["edge_ids"] = e_ids  # keep track of original edge ids
+    valid_edges = torch.logical_not(condition(graph[feat_name], *args, **kwargs))
+
+    edge_index = graph.edge_index[:, valid_edges]
+    e_ids = valid_edges.nonzero(as_tuple=False).squeeze()
+
+    new_graph = Data(edge_index=edge_index, num_nodes=graph.num_nodes, device=edge_index.device)
+    new_graph.edge_ids = e_ids
+
+    node_keys, edge_keys, _ = separate_node_edge_keys(graph)
 
     if keep_ndata:
-        for key, value in graph.ndata.items():
-            new_g.ndata[key] = value
+        for key in node_keys:
+            new_graph[key] = graph[key]
+
     if keep_edata:
-        for key, value in graph.edata.items():
-            new_g.edata[key] = value[valid_edges]
+        for key in edge_keys:
+            new_graph[key] = graph[key][valid_edges]
+    if return_keys:
+        return new_graph, node_keys, edge_keys
+    return new_graph
 
-    return new_g
 
-
-def _compute_3body(g: torch_geometric.data.Data):
-    """Calculate the three body indices from pair atom indices.
+def _compute_3body(graph: Data) -> Data:
+    """
+    Calculate the three-body indices from pair atom indices using a PyTorch Geometric Data object.
 
     Args:
-        g: DGL graph
+        graph: PyTorch Geometric Data object containing edge_index, bond_dist, bond_vec, and pbc_offset.
 
     Returns:
-        l_g: DGL graph containing three body information from graph
-        triple_bond_indices (np.ndarray): bond indices that form three-body
-        n_triple_ij (np.ndarray): number of three-body angles for each bond
-        n_triple_i (np.ndarray): number of three-body angles each atom
-        n_triple_s (np.ndarray): number of three-body angles for each structure
+        Tuple containing:
+        - l_graph: PyTorch Geometric Data object containing three-body information (line graph).
+        - triple_bond_indices: NumPy array of bond indices that form three-body interactions.
+        - n_triple_ij: NumPy array of number of three-body angles for each bond.
+        - n_triple_i: NumPy array of number of three-body angles for each atom.
+        - n_triple_s: NumPy array of number of three-body angles for each structure.
     """
-    n_atoms = g.num_nodes()
-    first_col = g.edges()[0].cpu().numpy()
+    # Number of atoms (nodes)
+    n_atoms = graph.num_nodes
 
-    # Count bonds per atom efficiently
+    # Get source node indices from edge_index
+    first_col = graph.edge_index[0].cpu().numpy()
+    # Count bonds per atom
     n_bond_per_atom = np.bincount(first_col, minlength=n_atoms)
 
-    n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)
-    n_triple = n_triple_i.sum()
-    n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
+    # Compute three-body statistics
+    n_triple_i = n_bond_per_atom * (n_bond_per_atom - 1)  # Three-body angles per atom
+    n_triple = n_triple_i.sum()  # Total three-body angles
+    n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)  # Three-body angles per bond
+    n_triple_s = np.array([n_triple])  # Total three-body angles per structure (single graph)
 
-    triple_bond_indices = np.empty((n_triple, 2), dtype=matgl.int_np)
-
+    # Compute triple bond indices
+    triple_bond_indices = np.empty((n_triple, 2), dtype=np.int64)
     start = 0
     cs = 0
     for n in n_bond_per_atom:
@@ -237,31 +309,40 @@ def _compute_3body(g: torch_geometric.data.Data):
             r = np.arange(n)
             x, y = np.meshgrid(r, r, indexing="xy")
             final = np.stack([y.ravel(), x.ravel()], axis=1)
-            mask = final[:, 0] != final[:, 1]
+            mask = final[:, 0] != final[:, 1]  # Exclude self-loops
             final = final[mask]
             triple_bond_indices[start : start + n * (n - 1)] = final + cs
             start += n * (n - 1)
             cs += n
 
-    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=matgl.int_th)
-    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=matgl.int_th)
-    l_g = dgl.graph((src_id, dst_id)).to(g.device)
-    three_body_id = torch.cat(l_g.edges())
-    n_triple_ij = torch.tensor(n_triple_ij, dtype=matgl.int_th, device=g.device)  # type:ignore[assignment]
+    # Create line graph edge_index
+    src_id = torch.tensor(triple_bond_indices[:, 0], dtype=torch.long, device=graph.edge_index.device)
+    dst_id = torch.tensor(triple_bond_indices[:, 1], dtype=torch.long, device=graph.edge_index.device)
+    l_edge_index = torch.stack([src_id, dst_id], dim=0)
 
+    # Create line graph Data object
+    l_graph = Data(
+        edge_index=l_edge_index,
+        num_nodes=max(src_id.max().item(), dst_id.max().item()) + 1 if src_id.numel() > 0 else 0,
+    )
+
+    # Transfer attributes from original graph to line graph
+    three_body_id = l_edge_index.view(-1)
     max_three_body_id = three_body_id.max().item() + 1 if three_body_id.numel() > 0 else 0
 
-    l_g.ndata["bond_dist"] = g.edata["bond_dist"][:max_three_body_id]  # type:ignore[misc]
-    l_g.ndata["bond_vec"] = g.edata["bond_vec"][:max_three_body_id]  # type:ignore[misc]
-    l_g.ndata["pbc_offset"] = g.edata["pbc_offset"][:max_three_body_id]  # type:ignore[misc]
-    l_g.ndata["n_triple_ij"] = n_triple_ij[:max_three_body_id]  # type:ignore[misc]
+    l_graph.bond_dist = graph.bond_dist[:max_three_body_id]
+    l_graph.bond_vec = graph.bond_vec[:max_three_body_id]
+    l_graph.pbc_offset = graph.pbc_offset[:max_three_body_id] if hasattr(graph, "pbc_offset") else None
+    l_graph.n_triple_ij = torch.tensor(
+        n_triple_ij[:max_three_body_id], dtype=torch.long, device=graph.edge_index.device
+    )
 
-    return l_g
+    return l_graph
 
 
 def _create_directed_line_graph(
-    graph: torch_geometric.data.Data,
-) -> torch_geometric.data.Data:
+    graph: Data,
+) -> Data:
     """Creates a line graph from a graph, considers periodic boundary conditions.
 
     Args:
@@ -325,9 +406,7 @@ def _create_directed_line_graph(
     return lg
 
 
-def _ensure_3body_line_graph_compatibility(
-    graph: torch_geometric.data.Data, line_graph: torch_geometric.data.Data, threebody_cutoff: float
-):
+def _ensure_3body_line_graph_compatibility(graph: Data, line_graph: Data, threebody_cutoff: float):
     """Ensure that 3body line graph is compatible with a given graph.
 
     Sets edge data in line graph to be consistent with graph. The line graph is updated in place.
@@ -353,8 +432,8 @@ def _ensure_3body_line_graph_compatibility(
 
 
 def _ensure_directed_line_graph_compatibility(
-    graph: torch_geometric.data.Data, line_graph: torch_geometric.data.Data, threebody_cutoff: float, tol: float = 5e-6
-) -> torch_geometric.data.Data:
+    graph: Data, line_graph: Data, threebody_cutoff: float, tol: float = 5e-6
+) -> Data:
     """Ensure that line graph is compatible with graph.
 
     Sets edge data in line graph to be consistent with graph. The line graph is updated in place.

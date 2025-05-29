@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import json
 import os
-from functools import partial
+import shutil
 from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
-from dgl.data import DGLDataset
-from dgl.data.utils import load_graphs, save_graphs
-from dgl.dataloading import GraphDataLoader
+import torch_geometric.loader as pyg_loader
+from torch.utils.data import Subset
+from torch_geometric.data import Data, Dataset
 from tqdm import trange
 
 import matgl
@@ -23,20 +23,66 @@ if TYPE_CHECKING:
     from matgl.graph.converters import GraphConverter
 
 
+def ensure_batch_attribute(data: Data) -> Data:
+    """
+    Ensure a PyG Data object has a batch attribute.
+
+    Args:
+        data: PyG Data object.
+
+    Returns:
+        Data object with batch attribute set.
+    """
+    if not hasattr(data, "batch") or data.batch is None:
+        data.batch = torch.zeros(data.num_nodes, dtype=torch.long, device=data.x.device)
+    return data
+
+
+def split_dataset(self, frac_list=[0.8, 0.1, 0.1], shuffle=False, random_state=None):
+    num_graphs = len(self)
+    num_train = int(frac_list[0] * num_graphs)
+    num_val = int(frac_list[1] * num_graphs)
+    num_test = num_graphs - num_train - num_val
+
+    indices = torch.randperm(num_graphs) if shuffle else torch.arange(num_graphs)
+    train_idx = indices[:num_train]
+    val_idx = indices[num_train : num_train + num_val]
+    test_idx = indices[num_train + num_val :]
+
+    return (Subset(self, train_idx), Subset(self, val_idx), Subset(self, test_idx))
+
+
 def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_per_target: bool = False):
-    """Merge a list of dgl graphs to form a batch."""
-    line_graphs = None
+    """
+    Merge a list of PyG graphs to form a batch.
+
+    Args:
+        batch: List of tuples, each containing (graph, lattice, [line_graph,] state_attr, labels).
+        include_line_graph: Whether to include line graphs.
+        multiple_values_per_target: Whether labels are tensors (True) or scalars (False).
+
+    Returns:
+        Tuple containing:
+        - g: PyG Data (single graph) or Batch (multiple graphs) object.
+        - lat: Lattice tensor (batch_size, 3, 3) or (3, 3) for single graph.
+        - l_g: Batched line graph (Batch object, if include_line_graph=True, else None).
+        - state_attr: Stacked state attributes (batch_size, state_dim).
+        - labels: Stacked or tensorized labels (batch_size, ...) or (batch_size,).
+    """
+    l_g = None
     if include_line_graph:
         graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch, strict=False))
+        l_g = Batch.from_data_list(line_graphs)  # Batch line graphs
     else:
         graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
-    g = dgl.batch(graphs)
+
+    g = Batch.from_data_list(graphs)  # Batch main graphs
     labels = (
-        torch.vstack([next(iter(d.values())) for d in labels])  # type:ignore[assignment]
+        torch.vstack([next(iter(d.values())) for d in labels])
         if multiple_values_per_target
-        else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)  # type:ignore[assignment]
+        else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)
     )
-    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
+    state_attr = torch.stack(state_attr)
     lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
     if include_line_graph:
         l_g = dgl.batch(line_graphs)
@@ -45,127 +91,124 @@ def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_pe
 
 
 def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False):
-    """Merge a list of dgl graphs to form a batch."""
+    """Merge a list of PyG Data objects to form a batch.
+
+    Args:
+        batch: List of tuples, each containing (graph, lattices, [line_graphs,] state_attr, labels)
+        include_stress (bool): Whether to include stress tensors in the output
+        include_line_graph (bool): Whether to include line graphs in the batch
+        include_magmom (bool): Whether to include magnetic moments in the output
+
+    Returns:
+        Tuple containing:
+        - g: Batched PyG graph (Batch object)
+        - lat: Stacked lattice tensors (batch_size, ...)
+        - l_g: Batched line graph (Batch object, if include_line_graph=True, else None)
+        - state_attr: Stacked state attributes (batch_size, state_dim)
+        - e: Energies (batch_size,)
+        - f: Forces (num_atoms, 3)
+        - s: Stresses (batch_size, 6) or zeros if include_stress=False
+        - m: Magnetic moments (batch_size, ...) or zeros if include_magmom=False
+    """
     l_g = None
     if include_line_graph:
         graphs, lattices, line_graphs, state_attr, labels = map(list, zip(*batch, strict=False))
-        l_g = dgl.batch(line_graphs)
+        l_g = Batch.from_data_list(line_graphs)  # Batch line graphs
     else:
         graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
-    g = dgl.batch(graphs)
-    e = torch.tensor([d["energies"] for d in labels])  # type: ignore
-    f = torch.vstack([d["forces"] for d in labels])  # type: ignore
+
+    g = Batch.from_data_list(graphs)  # Batch main graphs
+    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float)  # Energies
+    f = torch.vstack([d["forces"] for d in labels])  # Forces
     s = (
-        torch.vstack([d["stresses"] for d in labels])  # type: ignore
-        if include_stress is True
-        else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
+        torch.vstack([d["stresses"] for d in labels])  # Stresses
+        if include_stress
+        else torch.zeros(e.size(0), dtype=torch.float)
     )
     m = (
-        torch.vstack([d["magmoms"] for d in labels])
-        if include_magmom is True
-        else torch.tensor(np.zeros(e.size(dim=0)), dtype=matgl.float_th)
+        torch.vstack([d["magmoms"] for d in labels])  # Magnetic moments
+        if include_magmom
+        else torch.zeros(e.size(0), dtype=torch.float)
     )
-    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
-    lat = torch.stack(lattices)
+    state_attr = torch.stack(state_attr)  # State attributes
+    lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
+
     if include_line_graph:
         if include_magmom:
-            return g, torch.squeeze(lat), l_g, state_attr, e, f, s, m
-        return g, torch.squeeze(lat), l_g, state_attr, e, f, s
-    if include_magmom:
-        return g, torch.squeeze(lat), state_attr, e, f, s, m
-    return g, torch.squeeze(lat), state_attr, e, f, s
+            return g, lat.squeeze(), l_g, state_attr, e, f, s, m
+        return g, lat.squeeze(), l_g, state_attr, e, f, s
+    return g, lat.squeeze(), state_attr, e, f, s
 
 
 def MGLDataLoader(
-    train_data: dgl.data.utils.Subset,
-    val_data: dgl.data.utils.Subset,
+    train_data: MGLDataset,
+    val_data: MGLDataset,
     collate_fn: Callable | None = None,
-    test_data: dgl.data.utils.Subset = None,
+    test_data: MGLDataset | None = None,
     **kwargs,
-) -> tuple[GraphDataLoader, ...]:
-    """Dataloader for MatGL training.
+) -> tuple[pyg_loader.DataLoader, ...]:
+    """Dataloader for MatGL training in PyTorch Geometric.
 
     Args:
-        train_data (dgl.data.utils.Subset): Training dataset.
-        val_data (dgl.data.utils.Subset): Validation dataset.
-        collate_fn (Callable): Collate function.
-        test_data (dgl.data.utils.Subset | None, optional): Test dataset. Defaults to None.
-        **kwargs: Pass-through kwargs to dgl.dataloading.GraphDataLoader. Common ones you may want to set are
-            batch_size, num_workers, use_ddp, pin_memory and generator.
+        train_data (Dataset): Training dataset (PyG Dataset or subset).
+        val_data (Dataset): Validation dataset (PyG Dataset or subset).
+        collate_fn (Callable, optional): Collate function for batching.
+        test_data (Dataset, optional): Test dataset (PyG Dataset or subset). Defaults to None.
+        **kwargs: Pass-through kwargs to torch_geometric.loader.DataLoader. Common ones you may want to set are
+            batch_size, num_workers, pin_memory, and generator.
 
     Returns:
-        tuple[GraphDataLoader, ...]: Train, validation and test data loaders. Test data
-            loader is None if test_data is None.
+        Tuple[DataLoader, ...]: Train, validation, and test data loaders. Test data loader is None if test_data is None.
     """
-    if collate_fn is None:
-        if "forces" not in train_data.dataset.labels:
-            collate_fn = collate_fn_graph
-        else:
-            if "stresses" not in train_data.dataset.labels:
-                collate_fn = partial(collate_fn_pes, include_stress=False)
-            else:
-                if "magmoms" not in train_data.dataset.labels:
-                    collate_fn = collate_fn_pes
-                else:
-                    collate_fn = partial(collate_fn_pes, include_stress=True, include_magmom=True)
-
-    train_loader = GraphDataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
-    val_loader = GraphDataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+    train_loader = pyg_loader.DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
+    val_loader = pyg_loader.DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
     if test_data is not None:
-        test_loader = GraphDataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+        test_loader = pyg_loader.DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
         return train_loader, val_loader, test_loader
     return train_loader, val_loader
 
 
-class MGLDataset(DGLDataset):
-    """Create a dataset including dgl graphs."""
+class MGLDataset(Dataset):
+    """Create a dataset including PyTorch Geometric graphs."""
 
     def __init__(
         self,
-        filename: str = "dgl_graph.bin",
+        filename: str = "pyg_graph.pt",
         filename_lattice: str = "lattice.pt",
-        filename_line_graph: str = "dgl_line_graph.bin",
+        filename_line_graph: str = "pyg_line_graph.pt",
         filename_state_attr: str = "state_attr.pt",
         filename_labels: str = "labels.json",
         include_line_graph: bool = False,
         converter: GraphConverter | None = None,
         threebody_cutoff: float | None = None,
         directed_line_graph: bool = False,
-        structures: list | None = None,
-        labels: dict[str, list] | None = None,
-        directory_name: str = "MGLDataset",
-        graph_labels: list[int | float] | None = None,
+        structures: List | None = None,
+        labels: Dict[str, List] | None = None,
+        root: str = "MGLDataset",
+        graph_labels: List[int | float] | None = None,
         clear_processed: bool = False,
         save_cache: bool = True,
-        raw_dir: str = "./",
-        save_dir: str = "./",
+        transform=None,
+        pre_transform=None,
+        pre_filter=None,
     ):
         """
         Args:
-            filename: file name for storing dgl graphs.
-            filename_lattice: file name for storing lattice matrixs.
-            filename_line_graph: file name for storing dgl line graphs.
-            filename_state_attr: file name for storing state attributes.
-            filename_labels: file name for storing labels.
-            include_line_graph: whether to include line graphs.
-            converter: dgl graph converter.
-            threebody_cutoff: cutoff for three body.
-            directed_line_graph (bool): Whether to create a directed line graph (CHGNet), or an
-                undirected 3body line graph (M3GNet)
-                Default: False (for M3GNet)
-            structures: Pymatgen structure.
-            labels: targets, as a dict of {name: list of values}.
-            directory_name: name of the generated directory that stores the dataset.
-            graph_labels: state attributes.
-            clear_processed: Whether to clear the stored structures after processing into graphs. Structures
-                are not really needed after the conversion to DGL graphs and can take a significant amount of memory.
-                Setting this to True will delete the structures from memory.
-            save_cache: whether to save the processed dataset. The dataset can be reloaded from save_dir
-                Default: True
-            raw_dir : str specifying the directory that will store the downloaded data or the directory that already
-                stores the input data.
-                Default: current working directory
-            save_dir : directory to save the processed dataset. Default: same as raw_dir.
+            filename: File name for storing PyG graphs.
+            filename_lattice: File name for storing lattice matrices.
+            filename_line_graph: File name for storing PyG line graphs.
+            filename_state_attr: File name for storing state attributes.
+            filename_labels: File name for storing labels.
+            include_line_graph: Whether to include line graphs.
+            converter: Graph converter for PyG (converts structures to Data objects).
+            threebody_cutoff: Cutoff for three-body interactions.
+            directed_line_graph: Whether to create a directed line graph (CHGNet) or undirected (M3GNet).
+            structures: Pymatgen structures.
+            labels: Targets as a dict of {name: list of values}.
+            directory_name: Name of the directory to store the dataset.
+            graph_labels: State attributes.
+            clear_processed: Whether to clear stored structures after processing.
+            save_cache: Whether to save the processed dataset.
         """
         self.filename = filename
         self.filename_lattice = filename_lattice
@@ -183,10 +226,19 @@ class MGLDataset(DGLDataset):
         self.graph_labels = graph_labels
         self.clear_processed = clear_processed
         self.save_cache = save_cache
-        super().__init__(name=directory_name, raw_dir=raw_dir, save_dir=save_dir)
+        self.root = root
+
+        super().__init__(root, transform, pre_transform, pre_filter)
+
+        # Load or process data
+
+        if self.has_cache():
+            self.load()
+
+        shutil.rmtree(self.root + "/processed/")
 
     def has_cache(self) -> bool:
-        """Check if the dgl_graph.bin exists or not."""
+        """Check if the processed files exist."""
         files_to_check = [
             self.filename,
             self.filename_lattice,
@@ -195,91 +247,124 @@ class MGLDataset(DGLDataset):
         ]
         if self.include_line_graph:
             files_to_check.append(self.filename_line_graph)
-        return all(os.path.exists(os.path.join(self.save_path, f)) for f in files_to_check)
+        return all(os.path.exists(os.path.join(self.root, f)) for f in files_to_check)
 
     def process(self):
-        """Convert Pymatgen structure into dgl graphs."""
-        num_graphs = len(self.structures)  # type: ignore
-        graphs, lattices, line_graphs, state_attrs = [], [], [], []
-
-        for idx in trange(num_graphs):
-            structure = self.structures[idx]  # type: ignore
-            graph, lattice, state_attr = self.converter.get_graph(structure)  # type: ignore
-            graphs.append(graph)
-            lattices.append(lattice)
-            state_attrs.append(state_attr)
-            graph.ndata["pos"] = torch.tensor(structure.cart_coords)
-            graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lattice[0])
-            bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
-            graph.edata["bond_vec"] = bond_vec
-            graph.edata["bond_dist"] = bond_dist
-            if self.include_line_graph:
-                line_graph = create_line_graph(graph, self.threebody_cutoff, directed=self.directed_line_graph)  # type: ignore
-                for name in ["bond_vec", "bond_dist", "pbc_offset"]:
-                    line_graph.ndata.pop(name)
-                line_graphs.append(line_graph)
-            graph.ndata.pop("pos")
-            graph.edata.pop("pbc_offshift")
-        if self.graph_labels is not None:
-            state_attrs = torch.tensor(self.graph_labels).long()
+        """Convert Pymatgen structures into PyG Data objects."""
+        if self.has_cache():
+            pass
         else:
-            state_attrs = torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+            num_graphs = len(self.structures)
+            graphs, lattices, line_graphs, state_attrs = [], [], [], []
 
-        if self.clear_processed:
-            del self.structures
-            self.structures = []
+            for idx in trange(num_graphs):
+                structure = self.structures[idx]
+                # Converter returns (Data, lattice, state_attr)
+                data, lattice, state_attr = self.converter.get_graph(structure)
 
-        self.graphs = graphs
-        self.lattices = lattices
-        self.state_attr = state_attrs
-        if self.include_line_graph:
-            self.line_graphs = line_graphs
-            return self.graphs, self.lattices, self.line_graphs, self.state_attr
-        return self.graphs, self.lattices, self.state_attr
+                # Add position coordinates
+                data.pos = torch.tensor(structure.cart_coords, dtype=torch.float)
+
+                # Compute bond vectors and distances
+                bond_vec, bond_dist = compute_pair_vector_and_distance(data)
+                data.bond_vec = bond_vec
+                data.bond_dist = bond_dist
+
+                # Compute PBC offsets (if not already in edge_attr)
+                if not hasattr(data, "edge_attr") or data.edge_attr is None:
+                    data.pbc_offshift = torch.zeros_like(bond_vec)
+                else:
+                    data.pbc_offshift = torch.matmul(data.edge_attr, lattice[0])
+
+                graphs.append(data)
+                lattices.append(lattice)
+                state_attrs.append(state_attr)
+
+                if self.include_line_graph:
+                    line_graph = create_line_graph(data, self.threebody_cutoff, directed=self.directed_line_graph)
+                    # Remove unnecessary attributes from line graph
+                    for name in ["bond_vec", "bond_dist", "pbc_offset"]:
+                        if hasattr(line_graph, name):
+                            delattr(line_graph, name)
+                    line_graphs.append(line_graph)
+
+                # Remove temporary attributes
+                del data.pos
+                if hasattr(data, "pbc_offshift"):
+                    del data.pbc_offshift
+
+            if self.graph_labels is not None:
+                state_attrs = torch.tensor(self.graph_labels, dtype=torch.long)
+            else:
+                state_attrs = torch.tensor(np.array(state_attrs), dtype=torch.float)
+
+            if self.clear_processed:
+                del self.structures
+                self.structures = []
+            self.graphs = graphs
+            self.lattices = lattices
+            self.state_attr = state_attrs
+            self.line_graphs = line_graphs if self.include_line_graph else []
+
+            # Validate loaded or processed data
+            if not self.graphs:
+                raise ValueError("Dataset is empty after loading or processing")
+            self.save()
 
     def save(self):
-        """Save dgl graphs and labels to self.save_path."""
-        if self.save_cache is False:
+        """Save PyG graphs and labels to processed_dir."""
+        if not self.save_cache:
             return
 
-        if not os.path.exists(self.save_path):
-            os.makedirs(self.save_path)
+        if not os.path.exists(self.root):
+            os.makedirs(self.root)
 
         if self.labels:
-            with open(os.path.join(self.save_path, self.filename_labels), "w") as file:
+            with open(os.path.join(self.root, self.filename_labels), "w") as file:
                 json.dump(self.labels, file)
-        save_graphs(os.path.join(self.save_path, self.filename), self.graphs)
-        torch.save(self.lattices, os.path.join(self.save_path, self.filename_lattice))
-        torch.save(self.state_attr, os.path.join(self.save_path, self.filename_state_attr))
+
+        torch.save(self.graphs, os.path.join(self.root, self.filename))
+        torch.save(self.lattices, os.path.join(self.root, self.filename_lattice))
+        torch.save(self.state_attr, os.path.join(self.root, self.filename_state_attr))
         if self.include_line_graph:
-            save_graphs(os.path.join(self.save_path, self.filename_line_graph), self.line_graphs)
+            torch.save(self.line_graphs, os.path.join(self.root, self.filename_line_graph))
 
     def load(self):
-        """Load dgl graphs from files."""
-        self.graphs, _ = load_graphs(os.path.join(self.save_path, self.filename))
-        self.lattices = torch.load(os.path.join(self.save_path, self.filename_lattice))
+        """Load PyG graphs from files."""
+        self.graphs = torch.load(os.path.join(self.root, self.filename))
+        self.lattices = torch.load(os.path.join(self.root, self.filename_lattice))
+        self.state_attr = torch.load(os.path.join(self.root, self.filename_state_attr))
         if self.include_line_graph:
-            self.line_graphs, _ = load_graphs(os.path.join(self.save_path, self.filename_line_graph))
-        self.state_attr = torch.load(os.path.join(self.save_path, self.filename_state_attr))
-        with open(os.path.join(self.save_path, self.filename_labels)) as f:
+            self.line_graphs = torch.load(os.path.join(self.root, self.filename_line_graph))
+        else:
+            self.line_graphs = []
+        with open(os.path.join(self.root, self.filename_labels)) as f:
             self.labels = json.load(f)
 
-    def __getitem__(self, idx: int):
-        """Get graph and label with idx."""
+    def __getitem__(self, idx: int) -> tuple:
+        """Get graph and associated data with idx."""
+        if idx >= len(self.graphs):
+            raise IndexError(f"Index {idx} out of range for dataset with {len(self.graphs)} graphs")
         items = [
             self.graphs[idx],
             self.lattices[idx],
             self.state_attr[idx],
-            {
-                k: torch.tensor(v[idx], dtype=matgl.float_th)
-                for k, v in self.labels.items()
-                if not isinstance(v[idx], str)
-            },
+            {k: torch.tensor(v[idx], dtype=torch.float) for k, v in self.labels.items() if not isinstance(v[idx], str)},
         ]
         if self.include_line_graph:
             items.insert(2, self.line_graphs[idx])
         return tuple(items)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get size of dataset."""
         return len(self.graphs)
+
+    @property
+    def processed_file_names(self) -> List[str]:
+        """List of processed file names."""
+        return []
+
+    @property
+    def raw_file_names(self) -> List[str]:
+        """List of raw file names (not used in this case)."""
+        return []
