@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from functools import partial
-
 import numpy as np
 import pytest
 import torch
@@ -14,6 +12,8 @@ from matgl.graph.compute import (
     compute_theta,
     compute_theta_and_phi,
     create_line_graph,
+    prune_edges_by_features,
+    separate_node_edge_keys,
 )
 
 
@@ -40,7 +40,7 @@ def _calculate_cos_loop(graph, threebody_cutoff=4.0):
         graph: List
     Returns: a list of cosine theta values.
     """
-    _, _, n_sites = torch.unique(graph.edges()[0], return_inverse=True, return_counts=True)
+    _, _, n_sites = torch.unique(graph.edge_index[0], return_inverse=True, return_counts=True)
     start_index = 0
     cos = []
     for n_site in n_sites:
@@ -48,8 +48,8 @@ def _calculate_cos_loop(graph, threebody_cutoff=4.0):
             for j in range(n_site):
                 if i == j:
                     continue
-                vi = graph.edata["bond_vec"][i + start_index].detach().numpy()
-                vj = graph.edata["bond_vec"][j + start_index].detach().numpy()
+                vi = graph.bond_vec[i + start_index].detach().numpy()
+                vj = graph.bond_vec[j + start_index].detach().numpy()
                 di = np.linalg.norm(vi)
                 dj = np.linalg.norm(vj)
                 if (di <= threebody_cutoff) and (dj <= threebody_cutoff):
@@ -62,11 +62,11 @@ class TestCompute:
     def test_compute_pair_vector(self, graph_Mo):
         s1, g1, state1 = graph_Mo
         lattice = torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
-        g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
-        g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
+        g1.pbc_offshift = torch.matmul(g1.pbc_offset, lattice[0])
+        g1.pos = g1.frac_coords @ lattice[0]
         bv, bd = compute_pair_vector_and_distance(g1)
-        g1.edata["bond_vec"] = bv
-        d = torch.linalg.norm(g1.edata["bond_vec"], axis=1)
+        g1.bond_vec = bv
+        d = torch.linalg.norm(g1.bond_vec, axis=1)
 
         _, _, _, d2 = s1.get_neighbor_list(r=5.0)
 
@@ -75,11 +75,11 @@ class TestCompute:
     def test_compute_pair_vector_for_molecule(self, graph_CH4):
         s2, g2, state2 = graph_CH4
         lattice = torch.tensor(np.identity(3), dtype=matgl.float_th).unsqueeze(dim=0)
-        g2.edata["pbc_offshift"] = torch.matmul(g2.edata["pbc_offset"], lattice[0])
-        g2.ndata["pos"] = g2.ndata["frac_coords"] @ lattice[0]
+        g2.pbc_offshift = torch.matmul(g2.pbc_offset, lattice[0])
+        g2.pos = g2.frac_coords @ lattice[0]
         bv, bd = compute_pair_vector_and_distance(g2)
-        g2.edata["bond_vec"] = bv
-        d = torch.linalg.norm(g2.edata["bond_vec"], axis=1)
+        g2.bond_vec = bv
+        d = torch.linalg.norm(g2.bond_vec, axis=1)
 
         d2 = np.array(
             [
@@ -111,70 +111,60 @@ class TestCompute:
     def test_compute_angle(self, graph_Mo, graph_CH4):
         s1, g1, state1 = graph_Mo
         lattice = torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
-        g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
-        g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
+        g1.pbc_offshift = torch.matmul(g1.pbc_offset, lattice[0])
+        g1.pos = g1.frac_coords @ lattice[0]
         bv, bd = compute_pair_vector_and_distance(g1)
-        g1.edata["bond_vec"] = bv
-        g1.edata["bond_dist"] = bd
+        g1.bond_vec = bv
+        g1.bond_dist = bd
         cos_loop = _calculate_cos_loop(g1, 4.0)
 
         line_graph = create_line_graph(g1, 4.0)
-        line_graph.apply_edges(compute_theta_and_phi)
-        np.testing.assert_array_almost_equal(
-            np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
-        )
+        line_graph = compute_theta_and_phi(line_graph)
+        np.testing.assert_array_almost_equal(np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.cos_theta)))
 
         # test only compute theta
-        line_graph.apply_edges(partial(compute_theta, directed=False))
+        line_graph, key = compute_theta(line_graph, cosine=False, directed=False)
         theta = np.arccos(np.clip(cos_loop, -1.0 + 1e-7, 1.0 - 1e-7))
-        np.testing.assert_array_almost_equal(np.sort(theta), np.sort(np.array(line_graph.edata["theta"])), decimal=4)
+        np.testing.assert_array_almost_equal(np.sort(theta), np.sort(np.array(line_graph.theta)), decimal=4)
 
         # test only compute theta with cosine
-        _ = line_graph.edata.pop("cos_theta")
-        line_graph.apply_edges(partial(compute_theta, cosine=True, directed=False))
-        np.testing.assert_array_almost_equal(
-            np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
-        )
+        line_graph, key = compute_theta(line_graph, cosine=True, directed=False)
+        np.testing.assert_array_almost_equal(np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.cos_theta)))
 
         s2, g2, state2 = graph_CH4
         lattice = torch.tensor(np.identity(3), dtype=matgl.float_th).unsqueeze(dim=0)
-        g2.edata["pbc_offshift"] = torch.matmul(g2.edata["pbc_offset"], lattice[0])
-        g2.ndata["pos"] = g2.ndata["frac_coords"] @ lattice[0]
+        g2.pbc_offshift = torch.matmul(g2.pbc_offset, lattice[0])
+        g2.pos = g2.frac_coords @ lattice[0]
         bv, bd = compute_pair_vector_and_distance(g2)
-        g2.edata["bond_vec"] = bv
-        g2.edata["bond_dist"] = bd
+        g2.bond_vec = bv
+        g2.bond_dist = bd
         cos_loop = _calculate_cos_loop(g2, 2.0)
 
         line_graph = create_line_graph(g2, 2.0)
-        line_graph.apply_edges(compute_theta_and_phi)
-        np.testing.assert_array_almost_equal(
-            np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
-        )
+        line_graph = compute_theta_and_phi(line_graph)
+        np.testing.assert_array_almost_equal(np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.cos_theta)))
 
         # test only compute theta
-        line_graph.apply_edges(partial(compute_theta, directed=False))
+        line_graph, key = compute_theta(line_graph, directed=False)
         np.testing.assert_array_almost_equal(
-            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.edata["theta"]))
+            np.sort(np.arccos(np.array(cos_loop))), np.sort(np.array(line_graph.theta))
         )
 
         # test only compute theta with cosine
-        _ = line_graph.edata.pop("cos_theta")
-        line_graph.apply_edges(partial(compute_theta, cosine=True, directed=False))
-        np.testing.assert_array_almost_equal(
-            np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
-        )
+        line_graph, key = compute_theta(line_graph, cosine=True, directed=False)
+        np.testing.assert_array_almost_equal(np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.cos_theta)))
 
     def test_compute_three_body(self, graph_AcAla3NHMe):
         mol1, g1, _ = graph_AcAla3NHMe
         lattice = torch.tensor(np.identity(3), dtype=matgl.float_th).unsqueeze(dim=0)
-        g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
-        g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
+        g1.pbc_offshift = torch.matmul(g1.pbc_offset, lattice[0])
+        g1.pos = g1.frac_coords @ lattice[0]
         bv, bd = compute_pair_vector_and_distance(g1)
-        g1.edata["bond_vec"] = bv
-        g1.edata["bond_dist"] = bd
+        g1.bond_vec = bv
+        g1.bond_dist = bd
         line_graph = create_line_graph(g1, 5.0)
-        line_graph.apply_edges(compute_theta_and_phi)
-        np.testing.assert_allclose(line_graph.edata["triple_bond_lengths"].detach().numpy()[0], 1.777829)
+        line_graph = compute_theta_and_phi(line_graph)
+        np.testing.assert_allclose(line_graph.triple_bond_lengths.detach().numpy()[0], 1.777829)
 
 
 def test_line_graph_extensive():
@@ -183,28 +173,28 @@ def test_line_graph_extensive():
     element_types = get_element_list([structure])
     converter = Structure2Graph(element_types=element_types, cutoff=5.0)
     g1, lat1, _ = converter.get_graph(structure)
-    g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lat1[0])
-    g1.ndata["pos"] = g1.ndata["frac_coords"] @ lat1[0]
+    g1.pbc_offshift = torch.matmul(g1.pbc_offset, lat1[0])
+    g1.pos = g1.frac_coords @ lat1[0]
     bond_vec, bond_dist = compute_pair_vector_and_distance(g1)
-    g1.edata["bond_dist"] = bond_dist
-    g1.edata["bond_vec"] = bond_vec
+    g1.bond_dist = bond_dist
+    g1.bond_vec = bond_vec
 
     supercell = structure.copy()
     supercell.make_supercell([2, 1, 1])
     g2, lat2, _ = converter.get_graph(supercell)
-    g2.edata["pbc_offshift"] = torch.matmul(g2.edata["pbc_offset"], lat2[0])
-    g2.ndata["pos"] = g2.ndata["frac_coords"] @ lat2[0]
+    g2.pbc_offshift = torch.matmul(g2.pbc_offset, lat2[0])
+    g2.pos = g2.frac_coords @ lat2[0]
     bond_vec, bond_dist = compute_pair_vector_and_distance(g2)
-    g2.edata["bond_dist"] = bond_dist
-    g2.edata["bond_vec"] = bond_vec
+    g2.bond_dist = bond_dist
+    g2.bond_vec = bond_vec
 
     lg1 = create_line_graph(g1, 3.0)
     lg2 = create_line_graph(g2, 3.0)
 
-    assert 2 * g1.number_of_nodes() == g2.number_of_nodes()
-    assert 2 * g1.number_of_edges() == g2.number_of_edges()
-    assert 2 * lg1.number_of_nodes() == lg2.number_of_nodes()
-    assert 2 * lg1.number_of_edges() == lg2.number_of_edges()
+    assert 2 * g1.num_nodes == g2.num_nodes
+    assert 2 * g1.num_edges == g2.num_edges
+    assert 2 * lg1.num_nodes == lg2.num_nodes
+    assert 2 * lg1.num_edges == lg2.num_edges
 
 
 @pytest.mark.parametrize("keep_ndata", [True, False])
@@ -212,34 +202,39 @@ def test_line_graph_extensive():
 def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
     s1, g1, state1 = graph_Mo
     lattice = torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
-    g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
-    g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
+    g1.pbc_offshift = torch.matmul(g1.pbc_offset, lattice[0])
+    g1.pos = g1.frac_coords @ lattice[0]
     bv, bd = compute_pair_vector_and_distance(g1)
-    g1.edata["bond_vec"] = bv
-    g1.edata["bond_dist"] = bd
+    g1.bond_vec = bv
+    g1.bond_dist = bd
 
     new_cutoff = 3.0
     converter = Structure2Graph(element_types=get_element_list([s1]), cutoff=new_cutoff)
     g2, lat2, state2 = converter.get_graph(s1)
-    g2.edata["pbc_offshift"] = torch.matmul(g2.edata["pbc_offset"], lat2[0])
-    g2.ndata["pos"] = g2.ndata["frac_coords"] @ lat2[0]
+    g2.pbc_offshift = torch.matmul(g2.pbc_offset, lat2[0])
+    g2.pos = g2.frac_coords @ lat2[0]
     # remove edges by features
-    new_g = prune_edges_by_features(
-        g1, "bond_dist", condition=lambda x: x > new_cutoff, keep_ndata=keep_ndata, keep_edata=keep_edata
+    new_g, node_keys, edge_keys = prune_edges_by_features(
+        g1,
+        "bond_dist",
+        condition=lambda x: x > new_cutoff,
+        keep_ndata=keep_ndata,
+        keep_edata=keep_edata,
+        return_keys=True,
     )
-    valid_edges = g1.edata["bond_dist"] <= new_cutoff
-
-    assert new_g.num_edges() == g2.num_edges()
-    assert new_g.num_nodes() == g2.num_nodes()
-    assert torch.allclose(new_g.edata["edge_ids"], valid_edges.nonzero().squeeze())
+    valid_edges = g1.bond_dist <= new_cutoff
+    g1_node_keys, g1_edge_keys, _ = separate_node_edge_keys(g1)
+    assert new_g.num_edges == g2.num_edges
+    assert new_g.num_nodes == g2.num_nodes
+    assert torch.allclose(new_g.edge_ids, valid_edges.nonzero().squeeze())
 
     if keep_ndata:
-        assert new_g.ndata.keys() == g1.ndata.keys()
+        assert sorted(node_keys) == sorted(g1_node_keys)
 
     if keep_edata:
-        for key in g1.edata:
+        for key in edge_keys:
             if key != "edge_ids":
-                assert torch.allclose(new_g.edata[key], g1.edata[key][valid_edges])
+                assert torch.allclose(new_g[key], g1[key][valid_edges])
 
 
 @pytest.mark.parametrize("cutoff", [2.0, 3.0, 4.0])
