@@ -326,7 +326,7 @@ class CHGNet(MatGLModel):
         state_attr: torch.Tensor | None = None,
         l_g: dgl.DGLGraph | None = None,
         error_handling: bool = True,
-    ) -> tuple[torch.Tensor, torch.Tensor | None]:
+    ):
         """Forward pass of the model.
 
         Args:
