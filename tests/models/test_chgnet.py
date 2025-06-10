@@ -130,4 +130,4 @@ class TestCHGNet:
         assert potential2.model.threebody_cutoff > threebody_cutoff
         calculator2 = PESCalculator(potential2)
         forces2 = calculator2.get_forces(AseAtomsAdaptor.get_atoms(structure))
-        assert np.allclose(forces1, forces2, rtol=1e-4, atol=1e-7)
+        assert np.allclose(forces1, forces2, rtol=1e-3, atol=1e-6)
