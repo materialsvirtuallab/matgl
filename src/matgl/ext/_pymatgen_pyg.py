@@ -130,8 +130,8 @@ class Structure2GraphPYG(GraphConverter):
             src_id,
             dst_id,
             images,
-            [lattice_matrix],
-            element_types,  # type: ignore[arg-type]
+            [lattice_matrix],  # type: ignore[arg-type]
+            element_types,
             structure.frac_coords,
         )
         return g, lat, state_attr
