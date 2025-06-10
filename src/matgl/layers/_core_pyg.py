@@ -33,15 +33,15 @@ class Set2Set(nn.Module):
             Pooled features, shape (num_graphs, 2 * in_feats)
         """
         # Get batch size (number of graphs)
-        batch_size = batch.max().item() + 1 if batch.numel() > 0 else 1
+        batch_size = int(batch.max().item()) + 1 if batch.numel() > 0 else 1
         # Initialize LSTM hidden state
         h = (
-            torch.zeros(self.n_layers, batch_size, int(self.in_feats)).to(x.device),
-            torch.zeros(self.n_layers, batch_size, int(self.in_feats)).to(x.device),
+            torch.zeros(self.n_layers, batch_size, self.in_feats).to(x.device),
+            torch.zeros(self.n_layers, batch_size, self.in_feats).to(x.device),
         )
 
         # Initialize query vector q_star
-        q_star = torch.zeros(batch_size, int(self.in_feats)).to(x.device)
+        q_star = torch.zeros(batch_size, self.in_feats).to(x.device)
 
         for _ in range(self.n_iters):
             # Query vector for each graph
