@@ -298,7 +298,7 @@ def _compute_3body(graph: Data) -> Data:
 
     # Transfer attributes from original graph to line graph
     three_body_id = l_edge_index.view(-1)
-    max_three_body_id = three_body_id.max().item() + 1 if three_body_id.numel() > 0 else 0
+    max_three_body_id = int(three_body_id.max().item()) + 1 if three_body_id.numel() > 0 else 0
 
     l_graph.bond_dist = graph.bond_dist[:max_three_body_id]
     l_graph.bond_vec = graph.bond_vec[:max_three_body_id]

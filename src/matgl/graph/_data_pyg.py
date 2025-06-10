@@ -78,11 +78,11 @@ def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_pe
 
     g = Batch.from_data_list(graphs)  # Batch main graphs
     labels = (
-        torch.vstack([next(iter(d.values())) for d in labels])
+        torch.vstack([next(iter(d.values())) for d in labels])  # type:ignore[assignment]
         if multiple_values_per_target
         else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)
     )
-    state_attr = torch.stack(state_attr)
+    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
     lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
     if include_line_graph:
         l_g = Batch.from_data_list(line_graphs)  # Batch line graphs
@@ -118,19 +118,15 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
         graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
 
     g = Batch.from_data_list(graphs)  # Batch main graphs
-    e = torch.tensor([d["energies"] for d in labels], dtype=torch.float)  # Energies
-    f = torch.vstack([d["forces"] for d in labels])  # Forces
+    e = torch.tensor([d["energies"] for d in labels], dtype=matgl.float_th)
+    f = torch.vstack([d["forces"] for d in labels])
     s = (
-        torch.vstack([d["stresses"] for d in labels])  # Stresses
+        torch.vstack([d["stresses"] for d in labels])
         if include_stress
-        else torch.zeros(e.size(0), dtype=torch.float)
+        else torch.zeros(e.size(0), dtype=matgl.float_th)
     )
-    m = (
-        torch.vstack([d["magmoms"] for d in labels])  # Magnetic moments
-        if include_magmom
-        else torch.zeros(e.size(0), dtype=torch.float)
-    )
-    state_attr = torch.stack(state_attr)  # State attributes
+    m = torch.vstack([d["magmoms"] for d in labels]) if include_magmom else torch.zeros(e.size(0), dtype=matgl.float_th)
+    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
     lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
 
     if include_line_graph:
@@ -268,7 +264,7 @@ class MGLDataset(Dataset):
                 data, lattice, state_attr = self.converter.get_graph(structure)
 
                 # Add position coordinates
-                data.pos = torch.tensor(structure.cart_coords, dtype=torch.float)
+                data.pos = torch.tensor(structure.cart_coords, dtype=matgl.float_th)
 
                 # Compute bond vectors and distances
                 bond_vec, bond_dist = compute_pair_vector_and_distance_pyg(data)
@@ -301,7 +297,7 @@ class MGLDataset(Dataset):
             if self.graph_labels is not None:
                 state_attrs = torch.tensor(self.graph_labels, dtype=torch.long)
             else:
-                state_attrs = torch.tensor(np.array(state_attrs), dtype=torch.float)
+                state_attrs = torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
 
             if self.clear_processed:
                 del self.structures
@@ -354,7 +350,11 @@ class MGLDataset(Dataset):
             self.graphs[idx],
             self.lattices[idx],
             self.state_attr[idx],
-            {k: torch.tensor(v[idx], dtype=torch.float) for k, v in self.labels.items() if not isinstance(v[idx], str)},
+            {
+                k: torch.tensor(v[idx], dtype=matgl.float_th)
+                for k, v in self.labels.items()
+                if not isinstance(v[idx], str)
+            },
         ]
         if self.include_line_graph:
             items.insert(2, self.line_graphs[idx])

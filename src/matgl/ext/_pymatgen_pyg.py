@@ -12,9 +12,7 @@ from pymatgen.optimization.neighbors import find_points_in_spheres
 from matgl.graph._converters_pyg import GraphConverter
 
 if TYPE_CHECKING:
-    import torch
     from pymatgen.core.structure import Molecule, Structure
-    from torch_geometric.data import Data
 
 
 def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str, ...]:
@@ -49,7 +47,7 @@ class Molecule2GraphPYG(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, mol: Molecule) -> tuple[Data, torch.Tensor, np.ndarray]:
+    def get_graph(self, mol: Molecule):
         """Get a DGL graph from an input molecule.
 
         :param mol: pymatgen molecule object
@@ -72,7 +70,7 @@ class Molecule2GraphPYG(GraphConverter):
             mol,
             adj.row,
             adj.col,
-            np.zeros((len(adj.row), 3)),
+            np.zeros((len(adj.row), 3)),  # type: ignore[arg-type]
             np.expand_dims(np.identity(3), axis=0),
             element_types,
             R,
@@ -98,7 +96,7 @@ class Structure2GraphPYG(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, structure: Structure) -> tuple[Data, torch.Tensor, np.ndarray]:
+    def get_graph(self, structure: Structure):
         """Get a DGL graph from an input Structure.
 
         :param structure: pymatgen structure object
