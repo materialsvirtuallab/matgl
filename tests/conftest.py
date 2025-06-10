@@ -17,7 +17,11 @@ from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
 import matgl
+from matgl.ext._pymatgen_pyg import Molecule2GraphPYG, Structure2GraphPYG
 from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
+from matgl.graph._compute_pyg import (
+    compute_pair_vector_and_distance_pyg,
+)
 from matgl.graph.compute import (
     compute_pair_vector_and_distance,
 )
@@ -43,6 +47,30 @@ def get_graph(structure, cutoff):
     bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
     graph.edata["bond_dist"] = bond_dist
     graph.edata["bond_vec"] = bond_vec
+    return structure, graph, state
+
+
+def get_graph_pyg(structure, cutoff):
+    """
+    Helper class to generate DGL graph from an input Structure or Molecule.
+
+    Returns:
+        Structure/Molecule, Graph, State
+    """
+    element_types = get_element_list([structure])
+    if isinstance(structure, Structure):
+        converter = Structure2GraphPYG(element_types=element_types, cutoff=cutoff)  # type: ignore
+    else:
+        converter = Molecule2GraphPYG(element_types=element_types, cutoff=cutoff)  # type: ignore
+
+    graph, lattice, state = converter.get_graph(structure)
+
+    graph.pbc_offshift = torch.matmul(graph.pbc_offset, lattice[0])
+    graph.pos = graph.frac_coords @ lattice[0]
+    bond_vec, bond_dist = compute_pair_vector_and_distance_pyg(graph)
+
+    graph.bond_vec = bond_vec
+    graph.bond_dist = bond_dist
     return structure, graph, state
 
 
@@ -161,6 +189,11 @@ def AcAla3NHMe():
 @pytest.fixture(scope="session")
 def graph_AcAla3NHMe(AcAla3NHMe):
     return get_graph(AcAla3NHMe, 5.0)
+
+
+@pytest.fixture(scope="session")
+def graph_AcAla3NHMe_pyg(AcAla3NHMe):
+    return get_graph_pyg(AcAla3NHMe, 5.0)
 
 
 @pytest.fixture(scope="session")
@@ -433,12 +466,26 @@ def graph_Mo(Mo):
 
 
 @pytest.fixture(scope="session")
+def graph_Mo_pyg(Mo):
+    return get_graph_pyg(Mo, 5.0)
+
+
+@pytest.fixture(scope="session")
 def graph_CH4(CH4):
     """
     Returns:
         Molecule, Graph, State
     """
     return get_graph(CH4, 2.0)
+
+
+@pytest.fixture(scope="session")
+def graph_CH4_pyg(CH4):
+    """
+    Returns:
+        Molecule, Graph, State
+    """
+    return get_graph_pyg(CH4, 2.0)
 
 
 @pytest.fixture(scope="session")
@@ -451,8 +498,26 @@ def graph_LiFePO4(LiFePO4):
 
 
 @pytest.fixture(scope="session")
+def graph_LiFePO4_pyg(LiFePO4):
+    """
+    Returns:
+        Molecule, Graph, State
+    """
+    return get_graph_pyg(LiFePO4, 4.0)
+
+
+@pytest.fixture(scope="session")
 def graph_MoS(MoS):
     return get_graph(MoS, 5.0)
+
+
+@pytest.fixture(scope="session")
+def graph_MoS_pyg(MoS):
+    """
+    Returns:
+        Molecule, Graph, State
+    """
+    return get_graph_pyg(MoS, 5.0)
 
 
 @pytest.fixture(scope="session")
