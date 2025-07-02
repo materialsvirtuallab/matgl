@@ -158,6 +158,7 @@ lint.ignore = [
     "PLW2901", # redefined-loop-name
     "RET504", # unnecessary-assign
     "SIM105", # Use contextlib.suppress(OSError) instead of try-except-pass
+    "PLC0415", # `import` should be at the top-level of a file
 ]
 lint.pydocstyle.convention = "google"
 lint.isort.required-imports = ["from __future__ import annotations"]
