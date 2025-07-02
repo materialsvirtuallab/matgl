@@ -58,7 +58,7 @@ dependencies = [
     "torch<=2.4.0; sys.platform == 'linux'",
     "torchdata<=0.8.0; sys.platform == 'linux'",
     "pymatgen",
-    "lightning<=2.5.1",
+    "lightning<=2.6.0.dev20250629",
     "pydantic",
     "boto3",
     "numpy<2.0",
@@ -158,6 +158,7 @@ lint.ignore = [
     "PLW2901", # redefined-loop-name
     "RET504", # unnecessary-assign
     "SIM105", # Use contextlib.suppress(OSError) instead of try-except-pass
+    "PLC0415", # `import` should be at the top-level of a file
 ]
 lint.pydocstyle.convention = "google"
 lint.isort.required-imports = ["from __future__ import annotations"]
