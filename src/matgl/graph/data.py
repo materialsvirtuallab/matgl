@@ -185,12 +185,11 @@ class MGLDataset(DGLDataset):
         self.clear_processed = clear_processed
         self.save_cache = save_cache
         super().__init__(name=directory_name, raw_dir=raw_dir, save_dir=save_dir)
-        
+
         if self.has_cache():
             print(f"Warning! Loading graphs from processed cache at {self.save_path}.")
         else:
             print("Cache not found, processing graphs...")
-            
 
     def has_cache(self) -> bool:
         """Check if the dgl_graph.bin exists or not."""
