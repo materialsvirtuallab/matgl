@@ -111,7 +111,7 @@ class TestCHGNet:
         # With error handling it only prints warning
         with pytest.warns(RuntimeWarning):
             out = dummy_chgnet.predict_structure(structure, error_handling=True)
-            assert isinstance(out, torch.Tensor)
+        assert isinstance(out, torch.Tensor)
 
     @pytest.mark.parametrize("structure", ["Li3InCl6"])
     @pytest.mark.parametrize("threebody_cutoff", [3, 2.8])

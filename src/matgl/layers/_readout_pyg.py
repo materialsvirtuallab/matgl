@@ -8,9 +8,7 @@ import torch
 import torch.nn as nn
 from torch_geometric.nn import global_add_pool, global_max_pool, global_mean_pool
 
-from matgl.layers import GatedMLP
-
-from ._core_pyg import Set2Set
+from matgl.layers import MLP, GatedMLP
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -54,44 +52,6 @@ class ReduceReadOutPYG(nn.Module):
         return self.pool_fn(graph.node_feat, graph.batch)
 
 
-class Set2SetReadOutPYG(nn.Module):
-    """Set2Set readout function for PyTorch Geometric."""
-
-    def __init__(
-        self,
-        in_feats: int,
-        n_iters: int,
-        n_layers: int,
-        field: str,
-    ):
-        """
-        Args:
-            in_feats (int): Length of input feature vector.
-            n_iters (int): Number of LSTM steps.
-            n_layers (int): Number of LSTM layers.
-            field (str): Field to perform readout ('node_feat' or 'edge_feat').
-        """
-        super().__init__()
-        self.field = field
-        self.n_iters = n_iters
-        self.n_layers = n_layers
-        if field == "node_feat":
-            self.set2set = Set2Set(in_feats, n_iters, n_layers)
-        else:
-            raise ValueError("Field must be 'node_feat'")
-
-    def forward(self, graph: Data) -> torch.Tensor:
-        """Forward pass.
-
-        Args:
-            graph: PyG Data object containing x, edge_index, edge_attr, and batch.
-
-        Returns:
-            Pooled features, shape (num_graphs, 2 * in_feats).
-        """
-        return self.set2set(graph.node_feat, graph.batch)
-
-
 class WeightedReadOutPYG(nn.Module):
     """Feed node features into Gated MLP as readout for atomic properties."""
 
@@ -118,3 +78,42 @@ class WeightedReadOutPYG(nn.Module):
         """
         atomic_properties = self.gated(graph.node_feat)
         return atomic_properties
+
+
+class WeightedAtomReadOutPYG(nn.Module):
+    """Weighted atom readout for graph properties in PyTorch Geometric."""
+
+    def __init__(self, in_feats: int, dims: Sequence[int], activation: nn.Module):
+        """
+        Args:
+            in_feats: Input features (nodes).
+            dims: NN architecture for Gated MLP.
+            activation: Activation function for multi-layer perceptrons.
+        """
+        super().__init__()
+        self.dims = [in_feats, *dims]
+        self.activation = activation
+        self.mlp = MLP(dims=self.dims, activation=self.activation, activate_last=True)
+        self.weight = nn.Sequential(nn.Linear(in_feats, 1), nn.Sigmoid())
+
+    def forward(self, graph: Data) -> torch.Tensor:
+        """
+        Args:
+            graph: PyG graph Data object.
+
+        Returns:
+            atomic_properties: Tensor of shape (num_graphs, output_dim).
+        """
+        # Apply MLP to node features
+        h = self.mlp(graph.node_feat)  # Shape: (num_nodes, output_dim)
+
+        # Compute weights for each node
+        w = self.weight(graph.node_feat)  # Shape: (num_nodes, 1)
+
+        # Weighted node features
+        weighted_h = h * w  # Element-wise multiplication, shape: (num_nodes, output_dim)
+
+        # Aggregate weighted node features per graph using global_add_pool
+        h_g_sum = global_add_pool(weighted_h, graph.batch)  # Shape: (num_graphs, output_dim)
+
+        return h_g_sum
