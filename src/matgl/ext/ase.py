@@ -513,7 +513,6 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
-
         elif ensemble.lower() == "nvt_bussi":
             if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
                 MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
