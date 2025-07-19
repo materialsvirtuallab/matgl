@@ -513,21 +513,6 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
-        elif ensemble.lower() == "nvt_nose_hoover":
-            self.upper_triangular_cell()
-            self.dyn = NPT(  # type:ignore[assignment]
-                self.atoms,
-                timestep * units.fs,
-                temperature_K=temperature,
-                externalstress=external_stress,  # type:ignore[arg-type]
-                ttime=ttime * units.fs,
-                pfactor=None,
-                trajectory=trajectory,
-                logfile=logfile,
-                loginterval=loginterval,
-                append_trajectory=append_trajectory,
-                mask=mask,
-            )
 
         elif ensemble.lower() == "nvt_bussi":
             if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
