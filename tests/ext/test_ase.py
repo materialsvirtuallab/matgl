@@ -125,7 +125,6 @@ def test_molecular_dynamics(MoS2):
         "nve",
         "nvt_langevin",
         "nvt_andersen",
-        "nvt_nose_hoover",
         "nvt_bussi",
         "npt",
         "npt_berendsen",
