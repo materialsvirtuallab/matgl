@@ -226,11 +226,12 @@ We wrote [tutorials] on how to use MatGL. These were generated from [Jupyter not
 
 ## References
 
-A manuscript for MatGL has been submitted and is under review. For now, please cite the following preprint:
+A manuscript for MatGL has been published in npj Computational Materials. please cite the following:
 > **MatGL**
 >
-> Ko, T. W.; Deng, B.; Nassar, M.; Barroso-Luque, L.; Liu, R.; Qi, J.; Liu, E.; Ceder, G.; Miret, S.; Ong, S. P.
-> Materials Graph Library (MatGL), an Open-Source Graph Deep Learning Library for Materials Science and Chemistry. arXiv 2025, arXiv:2503.03837.
+> Ko, T. W.; Deng, B.; Nassar, M.; Barroso-Luque, L.; Liu, R.; Qi, J.; Thakur, A. C.; Mishra, A. R.; Liu, E.; Ceder, G.; Miret, S.; Ong, S. P.
+> *Materials Graph Library (MatGL), an Open-Source Graph Deep Learning Library for Materials Science and Chemistry.*
+> npj Comput Mater 11, 253 (2025). DOI: [https://doi.org/10.1038/s41524-025-01742-y][matgl].
 
 If you are using any of the pretrained models, please cite the relevant works below:
 
@@ -332,6 +333,7 @@ ACI-1548562.
 [ongemail]: mailto:ongsp@ucsd.edu "Email"
 [mqm]: https://materialsqm.com "MaterialsQM"
 [tutorials]: https://matgl.ai/tutorials "Tutorials"
+[matgl]: https://www.nature.com/articles/s41524-025-01742-y#citeas "MatGL"
 [tensornet]: https://arxiv.org/abs/2306.06482 "TensorNet"
 [so3net]: https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for "SO3Net"
 [chgnet]: https://www.nature.com/articles/s42256-023-00716-3 "CHGNet"

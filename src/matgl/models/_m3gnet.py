@@ -80,6 +80,7 @@ class M3GNet(MatGLModel):
         field: Literal["node_feat", "edge_feat"] = "node_feat",
         include_state: bool = False,
         activation_type: Literal["swish", "tanh", "sigmoid", "softplus2", "softexp"] = "swish",
+        dropout: float | None = None,
         **kwargs,
     ):
         """
@@ -108,6 +109,7 @@ class M3GNet(MatGLModel):
             nlayers_set2set (int): Number of set2set layers
             include_state (bool): Whether to include states features
             activation_type (str): Activation type. choose from 'swish', 'tanh', 'sigmoid', 'softplus2', 'softexp'
+            dropout (float): Dropout probability to apply in graph layers during training
             **kwargs: For future flexibility. Not used at the moment.
         """
         super().__init__()
@@ -174,6 +176,7 @@ class M3GNet(MatGLModel):
                     dim_edge_feats=dim_edge_embedding,
                     dim_state_feats=dim_state_feats,
                     include_state=include_state,
+                    dropout=dropout,
                 )
                 for _ in range(nblocks)
             }
