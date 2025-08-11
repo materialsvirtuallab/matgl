@@ -138,10 +138,10 @@ def MGLDataLoader(
     Returns:
         Tuple[DataLoader, ...]: Train, validation, and test data loaders. Test data loader is None if test_data is None.
     """
-    train_loader = DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
-    val_loader = DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+    train_loader: DataLoader = DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
+    val_loader: DataLoader = DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
     if test_data is not None:
-        test_loader = DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+        test_loader: DataLoader = DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
         return train_loader, val_loader, test_loader
     return train_loader, val_loader
 

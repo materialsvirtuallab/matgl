@@ -326,7 +326,9 @@ class Relaxer:
 
         return {
             "final_structure": (
-                self.ase_adaptor.get_structure(atoms) if atoms.pbc.any() else self.ase_adaptor.get_molecule(atoms)
+                self.ase_adaptor.get_structure(atoms)
+                if np.array(atoms.pbc).any()
+                else self.ase_adaptor.get_molecule(atoms)
             ),  # type:ignore[arg-type]
             "trajectory": obs,
         }
@@ -551,7 +553,7 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nvt_nose_hoover_chain":
-            self.dyn = NoseHooverChainNVT(
+            self.dyn = NoseHooverChainNVT(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
@@ -622,7 +624,7 @@ class MolecularDynamics:
                 mask=mask,
             )
         elif ensemble.lower() == "npt_nose_hoover_chain":
-            self.dyn = IsotropicMTKNPT(
+            self.dyn = IsotropicMTKNPT(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
