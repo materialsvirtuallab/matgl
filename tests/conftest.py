@@ -532,5 +532,11 @@ def graph_MoSH():
 
 
 @pytest.fixture(scope="session")
+def graph_MoSH_pyg():
+    s = Structure(Lattice.cubic(3.17), ["Mo", "S", "H"], [[0, 0, 0], [0.5, 0.5, 0.5], [0.75, 0.75, 0.75]])
+    return get_graph_pyg(s, 4.0)
+
+
+@pytest.fixture(scope="session")
 def graph_Li3InCl6(Li3InCl6):
     return get_graph(Li3InCl6, 6.0)

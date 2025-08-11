@@ -21,6 +21,7 @@ from ase.filters import FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
 from ase.md.bussi import Bussi
+from ase.md.nose_hoover_chain import IsotropicMTKNPT, NoseHooverChainNVT
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
@@ -324,7 +325,9 @@ class Relaxer:
             atoms = atoms.atoms
 
         return {
-            "final_structure": self.ase_adaptor.get_structure(atoms),  # type:ignore[arg-type]
+            "final_structure": (
+                self.ase_adaptor.get_structure(atoms) if atoms.pbc.any() else self.ase_adaptor.get_molecule(atoms)
+            ),  # type:ignore[arg-type]
             "trajectory": obs,
         }
 
@@ -352,9 +355,11 @@ class TrajectoryObserver(collections.abc.Sequence):
         """The logic for saving the properties of an Atoms during the relaxation."""
         self.energies.append(float(self.atoms.get_potential_energy()))
         self.forces.append(self.atoms.get_forces())
-        self.stresses.append(self.atoms.get_stress())
+        if self.atoms.calc.compute_stress:
+            self.stresses.append(self.atoms.get_stress())
         self.atom_positions.append(self.atoms.get_positions())
-        self.cells.append(self.atoms.get_cell()[:])
+        if self.atoms.pbc.any():
+            self.cells.append(self.atoms.get_cell()[:])
 
     def __getitem__(self, item):
         return self.energies[item], self.forces[item], self.stresses[item], self.cells[item], self.atom_positions[item]
@@ -402,17 +407,28 @@ class MolecularDynamics:
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1.0,
         ensemble: Literal[
-            "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", "npt_berendsen", "npt_nose_hoover"
+            "nve",
+            "nvt",
+            "nvt_langevin",
+            "nvt_andersen",
+            "nvt_bussi",
+            "nvt_nose_hoover_chain",
+            "npt",
+            "npt_berendsen",
+            "npt_nose_hoover",
+            "npt_nose_hoover_chain",
         ] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
         pressure: float = 1.01325 * units.bar,
         taut: float | None = None,
         taup: float | None = None,
+        tdamp: float | None = None,
         friction: float = 1.0e-3,
         andersen_prob: float = 1.0e-2,
         ttime: float = 25.0,
         pfactor: float = 75.0**2.0,
+        pdamp: float | None = None,
         external_stress: float | np.ndarray | None = None,
         compressibility_au: float | None = None,
         trajectory: Any = None,
@@ -437,10 +453,12 @@ class MolecularDynamics:
             pressure (float): pressure in eV/A^3
             taut (float): time constant for Berendsen temperature coupling
             taup (float): time constant for pressure coupling
+            tdamp (float): time constant for temperature damping
             friction (float): friction coefficient for nvt_langevin, typically set to 1e-4 to 1e-2
             andersen_prob (float): random collision probability for nvt_andersen, typically set to 1e-4 to 1e-1
             ttime (float): Characteristic timescale of the thermostat, in ASE internal units
             pfactor (float): A constant in the barostat differential equation.
+            pdamp (float): time constant for pressure damping
             external_stress (float): The external stress in eV/A^3.
                 Either 3x3 tensor,6-vector or a scalar representing pressure
             compressibility_au (float): compressibility of the material in A^3/eV
@@ -462,10 +480,17 @@ class MolecularDynamics:
             taut = 100 * timestep * units.fs
         if taup is None:
             taup = 1000 * timestep * units.fs
+        if tdamp is None:
+            tdamp = 100 * timestep * units.fs
+        if pdamp is None:
+            pdamp = 1000 * timestep * units.fs
         if mask is None:
             mask = np.array([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
         if external_stress is None:
             external_stress = 0.0
+
+        if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
+            MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
 
         if ensemble.lower() == "nvt":
             self.dyn = NVTBerendsen(
@@ -514,8 +539,6 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nvt_bussi":
-            if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
-                MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
             self.dyn = Bussi(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
@@ -527,6 +550,17 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
+        elif ensemble.lower() == "nvt_nose_hoover_chain":
+            self.dyn = NoseHooverChainNVT(
+                self.atoms,
+                timestep * units.fs,
+                temperature_K=temperature,
+                tdamp=tdamp,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
+            )
         elif ensemble.lower() == "npt":
             """
             NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
@@ -586,6 +620,19 @@ class MolecularDynamics:
                 loginterval=loginterval,
                 append_trajectory=append_trajectory,
                 mask=mask,
+            )
+        elif ensemble.lower() == "npt_nose_hoover_chain":
+            self.dyn = IsotropicMTKNPT(
+                self.atoms,
+                timestep * units.fs,
+                temperature_K=temperature,
+                tdamp=tdamp,
+                pdamp=pdamp,
+                pressure_au=pressure,
+                trajectory=trajectory,
+                logfile=logfile,
+                loginterval=loginterval,
+                append_trajectory=append_trajectory,
             )
 
         else:

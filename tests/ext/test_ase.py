@@ -126,9 +126,11 @@ def test_molecular_dynamics(MoS2):
         "nvt_langevin",
         "nvt_andersen",
         "nvt_bussi",
+        "nvt_nose_hoover_chain",
         "npt",
         "npt_berendsen",
         "npt_nose_hoover",
+        "npt_nose_hoover_chain",
     ]:
         md = MolecularDynamics(MoS2, potential=pot, ensemble=ensemble, taut=0.1, taup=0.1, compressibility_au=10)
         md.run(10)
