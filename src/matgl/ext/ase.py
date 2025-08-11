@@ -324,6 +324,7 @@ class Relaxer:
         if isinstance(atoms, FrechetCellFilter | ExpCellFilter):
             atoms = atoms.atoms
 
+        final_structure: Structure | Molecule
         if isinstance(atoms, Atoms):
             if np.array(atoms.pbc).any():
                 final_structure = self.ase_adaptor.get_structure(atoms)
