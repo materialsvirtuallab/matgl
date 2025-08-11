@@ -324,11 +324,15 @@ class Relaxer:
         if isinstance(atoms, FrechetCellFilter | ExpCellFilter):
             atoms = atoms.atoms
 
-        final_structure = (
-            self.ase_adaptor.get_structure(atoms)
-            if isinstance(atoms, Atoms) and np.array(atoms.pbc).any()
-            else self.ase_adaptor.get_molecule(atoms)
-        )
+        if isinstance(atoms, Atoms):
+            if np.array(atoms.pbc).any():
+                final_structure = self.ase_adaptor.get_structure(atoms)
+            else:
+                final_structure = self.ase_adaptor.get_molecule(atoms)
+        elif isinstance(atoms, Structure | Molecule):
+            final_structure = atoms
+        else:
+            raise TypeError(f"Unsupported atoms type: {type(atoms)}")
 
         return {
             "final_structure": final_structure,  # type:ignore[arg-type]
