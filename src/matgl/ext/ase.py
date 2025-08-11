@@ -324,12 +324,14 @@ class Relaxer:
         if isinstance(atoms, FrechetCellFilter | ExpCellFilter):
             atoms = atoms.atoms
 
+        final_structure = (
+            self.ase_adaptor.get_structure(atoms)
+            if isinstance(atoms, Atoms) and np.array(atoms.pbc).any()
+            else self.ase_adaptor.get_molecule(atoms)
+        )
+
         return {
-            "final_structure": (
-                self.ase_adaptor.get_structure(atoms)
-                if np.array(atoms.pbc).any()
-                else self.ase_adaptor.get_molecule(atoms)
-            ),  # type:ignore[arg-type]
+            "final_structure": final_structure,  # type:ignore[arg-type]
             "trajectory": obs,
         }
 
