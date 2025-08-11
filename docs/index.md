@@ -6,7 +6,7 @@ nav_order: 1
 
 [![GitHub license](https://img.shields.io/github/license/materialsvirtuallab/matgl)](https://github.com/materialsvirtuallab/matgl/blob/main/LICENSE)
 [![Linting](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)](https://github.com/materialsvirtuallab/matgl/workflows/Linting/badge.svg)
-[![Testing](https://github.com/materialsvirtuallab/matgl/actions/workflows/testing.yml/badge.svg)](https://github.com/materialsvirtuallab/matgl/actions/workflows/testing.yml)
+[![Test](https://github.com/materialsvirtuallab/matgl/actions/workflows/test.yml/badge.svg)](https://github.com/materialsvirtuallab/matgl/actions/workflows/test.yml)
 [![Downloads](https://static.pepy.tech/badge/matgl)](https://pepy.tech/project/matgl)
 [![codecov](https://codecov.io/gh/materialsvirtuallab/matgl/branch/main/graph/badge.svg?token=3V3O79GODQ)](https://codecov.io/gh/materialsvirtuallab/matgl)
 [![PyPI](https://img.shields.io/pypi/v/matgl?logo=pypi&logoColor=white)](https://pypi.org/project/matgl?logo=pypi&logoColor=white)
