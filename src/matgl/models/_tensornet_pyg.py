@@ -39,7 +39,7 @@ from matgl.utils.maths import decompose_tensor, scatter_add, tensor_norm
 from ._core import MatGLModel
 
 if TYPE_CHECKING:
-    from matgl.graph._converter_pyg import GraphConverter
+    from matgl.graph._converters_pyg import GraphConverter
 
 logger = logging.getLogger(__file__)
 
@@ -212,7 +212,7 @@ class TensorNet(MatGLModel):
         """
 
         Args:
-            g : DGLGraph for a batch of graphs.
+            g : PyG Graph for a batch of graphs.
             state_attr: State attrs for a batch of graphs.
             **kwargs: For future flexibility. Not used at the moment.
 
@@ -238,6 +238,7 @@ class TensorNet(MatGLModel):
         x = self.linear(x)
 
         g.node_feat = x
+
         if self.is_intensive:
             node_vec = self.readout(g)
             vec = node_vec  # type: ignore
@@ -247,8 +248,13 @@ class TensorNet(MatGLModel):
             return torch.squeeze(output)
         atomic_energies = self.final_layer(g)
         if isinstance(g, Batch) and hasattr(g, "batch") and g.batch is not None:
+            # edge case, if we do squeeze() directly, we will get torch.size([]) and it will crash in the training.
+            if atomic_energies.shape == (1, 1):
+                atomic_energies = atomic_energies.squeeze(-1)
+            else:
+                atomic_energies = atomic_energies.squeeze()
             # Batch case: Use scatter_add with batch tensor
-            return scatter_add(atomic_energies, g.batch, dim_size=g.num_graphs).squeeze()
+            return scatter_add(atomic_energies, g.batch, dim_size=g.num_graphs)
         # Single graph case: Sum all energies (equivalent to scatter_add with all nodes in one graph)
         return torch.sum(atomic_energies, dim=0, keepdim=True).squeeze()
 
@@ -269,12 +275,12 @@ class TensorNet(MatGLModel):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
+            from matgl.ext._pymatgen_pyg import Structure2GraphPYG
 
-            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+            graph_converter = Structure2GraphPYG(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
         g, lat, state_feats_default = graph_converter.get_graph(structure)
-        g.edata["pbc_offshift"] = torch.matmul(g.edata["pbc_offset"], lat[0])
-        g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
+        g.pbc_offshift = torch.matmul(g.pbc_offset, lat[0])
+        g.pos = g.frac_coords @ lat[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
         return self(g=g, state_attr=state_feats).detach()

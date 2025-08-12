@@ -58,7 +58,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
             - np.ndarray: State attributes.
         """
         # Create edge_index from src_id and dst_id
-        edge_index = torch.tensor([src_id, dst_id], dtype=matgl.int_th)
+        edge_index = torch.tensor(np.array([src_id, dst_id]), dtype=matgl.int_th)
 
         # Create Data object
         graph = Data(num_nodes=len(structure), edge_index=edge_index)
