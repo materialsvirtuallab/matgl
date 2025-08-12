@@ -432,12 +432,10 @@ class MolecularDynamics:
         pressure: float = 1.01325 * units.bar,
         taut: float | None = None,
         taup: float | None = None,
-        tdamp: float | None = None,
         friction: float = 1.0e-2,
         andersen_prob: float = 1.0e-2,
         ttime: float = 25.0,
         pfactor: float = 75.0**2.0,
-        pdamp: float | None = None,
         external_stress: float | np.ndarray | None = None,
         compressibility_au: float | None = None,
         trajectory: Any = None,
@@ -460,14 +458,12 @@ class MolecularDynamics:
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
-            taut (float): time constant for Berendsen temperature coupling
+            taut (float): time constant for temperature coupling
             taup (float): time constant for pressure coupling
-            tdamp (float): time constant for temperature damping
             friction (float): friction coefficient for nvt_langevin, typically set to 1e-4 to 1e-2
             andersen_prob (float): random collision probability for nvt_andersen, typically set to 1e-4 to 1e-1
             ttime (float): Characteristic timescale of the thermostat, in ASE internal units
             pfactor (float): A constant in the barostat differential equation.
-            pdamp (float): time constant for pressure damping
             external_stress (float): The external stress in eV/A^3.
                 Either 3x3 tensor,6-vector or a scalar representing pressure
             compressibility_au (float): compressibility of the material in A^3/eV
@@ -489,10 +485,7 @@ class MolecularDynamics:
             taut = 100 * timestep * units.fs
         if taup is None:
             taup = 1000 * timestep * units.fs
-        if tdamp is None:
-            tdamp = 100 * timestep * units.fs
-        if pdamp is None:
-            pdamp = 1000 * timestep * units.fs
+
         if mask is None:
             mask = np.array([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
         if external_stress is None:
@@ -564,7 +557,7 @@ class MolecularDynamics:
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
-                tdamp=tdamp,
+                tdamp=taut,
                 trajectory=trajectory,
                 logfile=logfile,
                 loginterval=loginterval,
@@ -635,8 +628,8 @@ class MolecularDynamics:
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
-                tdamp=tdamp,
-                pdamp=pdamp,
+                tdamp=taut,
+                pdamp=taup,
                 pressure_au=pressure,
                 trajectory=trajectory,
                 logfile=logfile,
