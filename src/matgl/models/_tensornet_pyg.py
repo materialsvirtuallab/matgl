@@ -227,7 +227,7 @@ class TensorNet(MatGLModel):
         # Expand distances with radial basis functions
         g.edge_attr = self.bond_expansion(g.bond_dist)
         # Embedding layer
-        X, edge_feat = self.tensor_embedding(g, state_attr)
+        X, state_feat = self.tensor_embedding(g, state_attr)
         # Interaction layers
         for layer in self.layers:
             X = layer(g, X)
