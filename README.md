@@ -32,6 +32,7 @@ Calculator).
 
 Major milestones are summarized below. Please refer to the [changelog] for details.
 
+- v1.3.0 (Aug 12 2025): Pretrained molecular potentials and PyG framework added.
 - v1.1.0 (May 7 2024): Implementation of [CHGNet] + pre-trained models.
 - v1.0.0 (Feb 14 2024): Implementation of [TensorNet] and [SO3Net].
 - v0.5.1 (Jun 9 2023): Model versioning implemented.
