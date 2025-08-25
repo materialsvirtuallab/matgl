@@ -318,7 +318,7 @@ class Relaxer:
         if traj_file is not None:
             obs.save(traj_file)
 
-        if isinstance(atoms, FrechetCellFilter | ExpCellFilter):
+        if isinstance(atoms, FrechetCellFilter):
             atoms = atoms.atoms
 
         final_structure: Structure | Molecule
