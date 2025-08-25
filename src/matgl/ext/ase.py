@@ -16,7 +16,6 @@ import pandas as pd
 import scipy.sparse as sp
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
-from ase.constraints import ExpCellFilter
 from ase.filters import FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
@@ -295,7 +294,7 @@ class Relaxer:
             interval (int): the step interval for saving the trajectories
             verbose (bool): Whether to have verbose output.
             ase_cellfilter (literal): which filter is used for variable cell relaxation. Default is Frechet.
-            params_asecellfilter (dict): Parameters to be passed to ExpCellFilter or FrechetCellFilter. Allows
+            params_asecellfilter (dict): Parameters to be passed to FrechetCellFilter. Allows
                 setting of constant pressure or constant volume relaxations, for example. Refer to
                 https://wiki.fysik.dtu.dk/ase/ase/filters.html#FrechetCellFilter for more information.
             **kwargs: Kwargs pass-through to optimizer.
@@ -310,8 +309,6 @@ class Relaxer:
             if self.relax_cell:
                 atoms = (
                     FrechetCellFilter(atoms, **params_asecellfilter)  # type:ignore[assignment]
-                    if ase_cellfilter == "Frechet"
-                    else ExpCellFilter(atoms, **params_asecellfilter)
                 )
 
             optimizer = self.optimizer(atoms, **kwargs)  # type:ignore[operator]
