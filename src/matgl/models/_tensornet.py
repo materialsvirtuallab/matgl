@@ -187,9 +187,7 @@ class TensorNet(MatGLModel):
                 )
                 readout_feats = 2 * input_feats  # type: ignore
             elif readout_type == "weighted_atom":
-                self.readout = WeightedAtomReadOut(
-                    in_feats=input_feats, dims=[units, units], activation=activation
-                )  # type:ignore[assignment]
+                self.readout = WeightedAtomReadOut(in_feats=input_feats, dims=[units, units], activation=activation)
                 readout_feats = units + dim_state_feats if include_state else units  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)  # type: ignore
