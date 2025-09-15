@@ -219,6 +219,6 @@ class MEGNet(MatGLModel):
         g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
         if state_attr is None:
             state_attr = torch.tensor(state_attr_default)
-        bond_vec, bond_dist = compute_pair_vector_and_distance(g)
+        _, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["edge_attr"] = self.bond_expansion(bond_dist)
         return self(g=g, state_attr=state_attr).detach()

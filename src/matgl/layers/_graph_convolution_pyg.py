@@ -135,7 +135,7 @@ class TensorNetInteractionPYG(MessagePassing):
 
     def message(self, edge_index, x_I: torch.Tensor, x_A: torch.Tensor, x_S: torch.Tensor, edge_attr: torch.Tensor):
         """Compute messages for each edge."""
-        src, dst = edge_index
+        _, dst = edge_index
         x_I_j = x_I[dst]
         x_A_j = x_A[dst]
         x_S_j = x_S[dst]
