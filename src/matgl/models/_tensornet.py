@@ -181,6 +181,7 @@ class TensorNet(MatGLModel):
         self.linear = nn.Linear(3 * units, units, dtype=dtype)
         if is_intensive:
             input_feats = units
+            self.readout: nn.Module
             if readout_type == "set2set":
                 self.readout = Set2SetReadOut(
                     in_feats=input_feats, n_iters=niters_set2set, n_layers=nlayers_set2set, field=field
