@@ -151,7 +151,6 @@ lint.ignore = [
     "D105", # Missing docstring in magic method
     "D205", # 1 blank line required between summary line and description
     "D212", # Multi-line docstring summary should start at the first line
-    "PD901", # df-bad-var-name
     "PERF203", # try-except-in-loop
     "PLR", # pylint refactor
     "PLW0603", # Using the global statement to update variables is discouraged
