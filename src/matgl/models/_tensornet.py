@@ -181,13 +181,14 @@ class TensorNet(MatGLModel):
         self.linear = nn.Linear(3 * units, units, dtype=dtype)
         if is_intensive:
             input_feats = units
+            self.readout: nn.Module
             if readout_type == "set2set":
                 self.readout = Set2SetReadOut(
                     in_feats=input_feats, n_iters=niters_set2set, n_layers=nlayers_set2set, field=field
                 )
                 readout_feats = 2 * input_feats  # type: ignore
             elif readout_type == "weighted_atom":
-                self.readout = WeightedAtomReadOut(in_feats=input_feats, dims=[units, units], activation=activation)  # type:ignore[assignment]
+                self.readout = WeightedAtomReadOut(in_feats=input_feats, dims=[units, units], activation=activation)
                 readout_feats = units + dim_state_feats if include_state else units  # type: ignore
             else:
                 self.readout = ReduceReadOut("mean", field=field)  # type: ignore
@@ -236,7 +237,7 @@ class TensorNet(MatGLModel):
         edge_attr = self.bond_expansion(g.edata["bond_dist"])
         g.edata["edge_attr"] = edge_attr
         # Embedding layer
-        X, edge_feat, state_feat = self.tensor_embedding(g, state_attr)
+        X, _, _ = self.tensor_embedding(g, state_attr)
         # Interaction layers
         for layer in self.layers:
             X = layer(g, X)
