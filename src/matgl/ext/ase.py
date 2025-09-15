@@ -159,7 +159,7 @@ class PESCalculator(Calculator):
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
 
-        self.graph_converter = Atoms2Graph(self.element_types, self.cutoff)
+        self.graph_converter = Atoms2Graph(potential.model.element_types, self.cutoff)
 
         # Handle stress unit conversion
         if stress_unit == "eV/A3":
