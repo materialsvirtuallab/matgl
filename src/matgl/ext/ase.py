@@ -159,6 +159,8 @@ class PESCalculator(Calculator):
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
 
+        self.graph_converter = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)
+
         # Handle stress unit conversion
         if stress_unit == "eV/A3":
             conversion_factor = units.GPa / (units.eV / units.Angstrom**3)  # Conversion factor from GPa to eV/A^3
@@ -192,7 +194,7 @@ class PESCalculator(Calculator):
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
-        graph, lattice, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)
+        graph, lattice, state_attr_default = self.graph_converter.get_graph(atoms)
         # type: ignore
         if self.state_attr is not None:
             calc_result = self.potential(graph, lattice, self.state_attr)
