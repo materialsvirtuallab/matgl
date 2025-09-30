@@ -269,36 +269,40 @@ def _create_directed_line_graph(
     with torch.no_grad():
         src_indices, dst_indices = graph.edges()
         images = graph.edata["pbc_offset"]
-        all_indices = torch.arange(graph.number_of_nodes(), device=graph.device).unsqueeze(dim=0)
-        num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
-        num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
-        lg_src = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
-        lg_dst = torch.empty(num_edges_per_bond.sum(), dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
 
         incoming_edges = src_indices.unsqueeze(1) == dst_indices
         is_self_edge = src_indices == dst_indices
         not_self_edge = ~is_self_edge
 
+        # New addition
+        shared_src = src_indices.unsqueeze(1) == src_indices
+        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(
+            -images.unsqueeze(1) == images, axis=2
+        )
+        incoming = incoming_edges & (shared_src | ~back_tracking)
+        num_edges_per_bond = incoming.sum(dim=1) # <-- Grab from after prune to avoid mismatch
+        total_edges = num_edges_per_bond.sum()  # <-- For clarity
+
+        lg_src = torch.empty(total_edges, dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
+        lg_dst = torch.empty(total_edges, dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
+
         n = 0
         # create line graph edges for bonds that are self edges in atom graph
         if is_self_edge.any():
-            edge_inds_s = is_self_edge.nonzero()
-            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge] + 1)
+            edge_inds_s = is_self_edge.nonzero().squeeze() # <-- Can remove dims=0 here
+            num_edges_self = incoming_edges[is_self_edge].sum(dim=1) # <-- Grab and save var
+            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_self) # <-- For clarity, separate
             lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1].squeeze()
-            lg_src_s = lg_src_s[lg_src_s != lg_dst_s]
-            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
             n = len(lg_dst_s)
             lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
 
-        # create line graph edges for bonds that are not self edges in atom graph
-        shared_src = src_indices.unsqueeze(1) == src_indices
-        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)  # type:ignore[call-overload]
-        incoming = incoming_edges & (shared_src | ~back_tracking)
-
+        # create line graph for eges which aren't self edges
         edge_inds_ns = not_self_edge.nonzero().squeeze()
         lg_src_ns = incoming[not_self_edge].nonzero()[:, 1].squeeze()
         lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
         lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
+
+        # build
         lg = dgl.graph((lg_src, lg_dst))
 
         for key in graph.edata:
