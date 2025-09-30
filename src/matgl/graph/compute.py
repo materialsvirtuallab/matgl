@@ -276,11 +276,9 @@ def _create_directed_line_graph(
 
         # New addition
         shared_src = src_indices.unsqueeze(1) == src_indices
-        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(
-            -images.unsqueeze(1) == images, axis=2
-        )
+        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
         incoming = incoming_edges & (shared_src | ~back_tracking)
-        num_edges_per_bond = incoming.sum(dim=1) # <-- Grab from after prune to avoid mismatch
+        num_edges_per_bond = incoming.sum(dim=1)  # <-- Grab from after prune to avoid mismatch
         total_edges = num_edges_per_bond.sum()  # <-- For clarity
 
         lg_src = torch.empty(total_edges, dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
@@ -289,9 +287,9 @@ def _create_directed_line_graph(
         n = 0
         # create line graph edges for bonds that are self edges in atom graph
         if is_self_edge.any():
-            edge_inds_s = is_self_edge.nonzero().squeeze() # <-- Can remove dims=0 here
-            num_edges_self = incoming_edges[is_self_edge].sum(dim=1) # <-- Grab and save var
-            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_self) # <-- For clarity, separate
+            edge_inds_s = is_self_edge.nonzero().squeeze()  # <-- Can remove dims=0 here
+            num_edges_self = incoming_edges[is_self_edge].sum(dim=1)  # <-- Grab and save var
+            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_self)  # <-- For clarity, separate
             lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1].squeeze()
             n = len(lg_dst_s)
             lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
