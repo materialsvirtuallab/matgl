@@ -294,7 +294,7 @@ def _create_directed_line_graph(
         # self edges
         if is_self_edge.any():
             edge_inds_s = is_self_edge.nonzero(as_tuple=False).squeeze()
-            edge_counts = num_edges_per_bond[is_self_edge] + 1 # original counting
+            edge_counts = num_edges_per_bond[is_self_edge] + 1  # original counting
             valid_mask = edge_counts > 0
             edge_inds_s = edge_inds_s[valid_mask]
             edge_counts = edge_counts[valid_mask]
