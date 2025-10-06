@@ -294,7 +294,7 @@ def _create_directed_line_graph(
         # self edges
         if is_self_edge.any():
             edge_inds_s = is_self_edge.nonzero(as_tuple=False).squeeze()
-            edge_counts = num_edges_per_bond[is_self_edge] + 1  # original counting
+            edge_counts = num_edges_per_bond[is_self_edge] + 1 # original counting
             valid_mask = edge_counts > 0
             edge_inds_s = edge_inds_s[valid_mask]
             edge_counts = edge_counts[valid_mask]
@@ -316,26 +316,25 @@ def _create_directed_line_graph(
         back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, dim=2)
         incoming = incoming_edges & (shared_src | ~back_tracking)
 
-        edge_inds_ns = not_self_edge.nonzero(as_tuple=False).squeeze()
+        # edge_inds_ns is 1D, even if it has one element (fixes potential squeeze issue)
+        edge_inds_ns = not_self_edge.nonzero(as_tuple=False).view(-1)
         if edge_inds_ns.numel() > 0:
-            edge_counts_ns = num_edges_per_bond[not_self_edge]
-
-            # keep positive counts
-            positive_mask = edge_counts_ns > 0
-            edge_counts_ns = edge_counts_ns[positive_mask]
-            edge_inds_ns = edge_inds_ns[positive_mask]
-
+            edge_counts_all_ns = num_edges_per_bond[not_self_edge]
+            
+            # apply the same mask to both indices and counts
+            valid_mask_ns = edge_counts_all_ns > 0
+            edge_inds_ns = edge_inds_ns[valid_mask_ns]
+            edge_counts_ns = edge_counts_all_ns[valid_mask_ns]
+            
             if edge_counts_ns.numel() > 0:
-                valid_mask_ns = lg_src_ns < total_edges  # or any safe logical check
-                lg_src_ns = lg_src_ns[valid_mask_ns]
-                lg_dst_ns = lg_dst_ns[valid_mask_ns]
-
-                # ensure lengths match for repeat_interleave
-                min_len = min(edge_counts_ns.numel(), edge_inds_ns.numel())
-                edge_counts_ns = edge_counts_ns[:min_len]
-                edge_inds_ns = edge_inds_ns[:min_len]
-                lg_src_ns = lg_src_ns[:min_len]
-
+                # The 'incoming' tensor is (num_edges, num_edges). We only want rows for non-self edges.
+                # The filtering of rows for 'incoming' must match the filtering of `edge_inds_ns`.
+                # Use the original 'not_self_edge' mask on 'incoming' first, then apply 'valid_mask_ns'.
+                
+                # filter rows of 'incoming' using 'not_self_edge' mask
+                incoming_ns_rows = incoming[not_self_edge]
+                # apply the second filter 'valid_mask_ns' to the rows of 'incoming'
+                lg_src_ns = incoming_ns_rows[valid_mask_ns].nonzero(as_tuple=False)[:, 1].view(-1)
                 lg_dst_ns = edge_inds_ns.repeat_interleave(edge_counts_ns)
 
                 n_edges_ns = min(lg_dst_ns.numel(), lg_src.size(0) - n)
@@ -354,21 +353,19 @@ def _create_directed_line_graph(
                 lg.ndata[key] = graph.edata[key][: lg.num_nodes()]
 
         # track bond sign for self edges
+        is_self_edge_lg_nodes = is_self_edge[: lg.num_nodes()]
         lg.ndata["src_bond_sign"] = torch.ones(
             (lg.num_nodes(), 1),
             dtype=lg.ndata["bond_vec"].dtype,
             device=device,
         )
 
-        if is_self_edge.any():
-            all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(
-                return_counts=True
-            )
-            lg_inds_ns = all_ns[torch.where(counts > 1)]
-            if lg_inds_ns.numel() > 0:
-                lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+        # apply is_self_edge to flip the sign directly
+        # This flips the sign for line graph nodes that represent self-edges in the original graph.
+        if is_self_edge_lg_nodes.any():
+            lg.ndata["src_bond_sign"][is_self_edge_lg_nodes] *= -1.0
 
-    return lg
+        return lg
 
 
 def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float):
