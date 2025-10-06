@@ -312,7 +312,7 @@ def _create_directed_line_graph(
 
         # Safely assign to preallocated tensor
         n_edges_ns = min(lg_dst_ns.numel(), lg_src.size(0) - n)
-        lg_src[n:n + n_edges_ns], lg_dst[n:n + n_edges_ns] = lg_src_ns[:n_edges_ns], lg_dst_ns[:n_edges_ns]
+        lg_src[n : n + n_edges_ns], lg_dst[n : n + n_edges_ns] = lg_src_ns[:n_edges_ns], lg_dst_ns[:n_edges_ns]
         n += n_edges_ns
 
         # Build line graph with exact number of edges used
@@ -323,17 +323,16 @@ def _create_directed_line_graph(
             lg.ndata[key] = graph.edata[key][: lg.num_nodes()]
 
         # --- Track bond sign for self edges ---
-        lg.ndata["src_bond_sign"] = torch.ones(
-            (lg.num_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=device
-        )
+        lg.ndata["src_bond_sign"] = torch.ones((lg.num_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=device)
 
         if is_self_edge.any():
-            all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(return_counts=True)
+            all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(
+                return_counts=True
+            )
             lg_inds_ns = all_ns[torch.where(counts > 1)]
             lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
     return lg
-
 
 
 def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float):
