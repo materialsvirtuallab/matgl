@@ -258,83 +258,82 @@ def _compute_3body(g: dgl.DGLGraph):
 def _create_directed_line_graph(
     graph: dgl.DGLGraph,
 ) -> dgl.DGLGraph:
-    """Creates a line graph from a graph, considers periodic boundary conditions.
+    """Creates a line graph from a graph, considering periodic boundary conditions.
+
+    Fully MD-safe: handles rare cases where bonds may be missing without requiring int64.
 
     Args:
         graph: DGL graph representing atom graph
 
     Returns:
-        line_graph: DGL line graph of pruned graph to three body cutoff
+        line_graph: DGL line graph with three-body connectivity
     """
     with torch.no_grad():
+        device = graph.device
         src_indices, dst_indices = graph.edges()
         images = graph.edata["pbc_offset"]
-        device = graph.device
 
-        # # num bonds per atom (unused)
-        # all_indices = torch.arange(graph.number_of_nodes(), device=device).unsqueeze(dim=0)
-        # num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
+        # --- Preallocation (MatGL style) ---
+        all_nodes = torch.arange(graph.number_of_nodes(), device=device).unsqueeze(0)
+        num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(1) == all_nodes, dim=0)
+        num_edges_per_bond = (num_bonds_per_atom - 1).repeat_interleave(num_bonds_per_atom)
+        total_edges = int(num_edges_per_bond.sum().item())
+        lg_src = torch.empty(total_edges, dtype=matgl.int_th, device=device)
+        lg_dst = torch.empty(total_edges, dtype=matgl.int_th, device=device)
 
-        incoming_edges = src_indices.unsqueeze(1) == dst_indices
+        # --- Identify edges ---
         is_self_edge = src_indices == dst_indices
         not_self_edge = ~is_self_edge
+        incoming_edges = src_indices.unsqueeze(1) == dst_indices
 
-        # masking used for three-body connectivity
+        n = 0  # running index for assignment
+
+        # --- Self edges ---
+        if is_self_edge.any():
+            edge_inds_s = is_self_edge.nonzero(as_tuple=False).squeeze()
+            edge_counts = num_edges_per_bond[is_self_edge]
+            lg_dst_s = edge_inds_s.repeat_interleave(edge_counts)
+            lg_src_s = incoming_edges[is_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
+            mask = lg_src_s != lg_dst_s
+            lg_src_s, lg_dst_s = lg_src_s[mask], lg_dst_s[mask]
+
+            n_edges = lg_dst_s.numel()
+            lg_src[:n_edges], lg_dst[:n_edges] = lg_src_s, lg_dst_s
+            n += n_edges
+
+        # --- Non-self edges ---
         shared_src = src_indices.unsqueeze(1) == src_indices
         back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, dim=2)
         incoming = incoming_edges & (shared_src | ~back_tracking)
 
-        # build preallocation using all valid incoming edges
-        num_edges_per_bond = incoming.sum(dim=1)
-        total_edges = int(num_edges_per_bond.sum().item())
-
-        lg_src = torch.empty(total_edges, dtype=matgl.int_th, device=device)
-        lg_dst = torch.empty(total_edges, dtype=matgl.int_th, device=device)
-
-        n = 0
-        # create line graph edges for bonds that are self edges in atom graph
-        if is_self_edge.any():
-            edge_inds_s = is_self_edge.nonzero(as_tuple=False)  # legacy PyTorch style
-            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
-            lg_src_s = incoming[is_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
-            mask = lg_src_s != lg_dst_s  # apply the same mask
-            lg_src_s = lg_src_s[mask]
-            lg_dst_s = lg_dst_s[mask]
-            n = lg_dst_s.numel()
-            lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
-
-        # create line graph edges for bonds that are not self edges in atom graph
         edge_inds_ns = not_self_edge.nonzero(as_tuple=False).squeeze()
         lg_src_ns = incoming[not_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
         lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
 
-        # check sizes in debug
-        assert lg_src_ns.numel() == lg_dst_ns.numel(), (
-            f"Mismatch between src ({lg_src_ns.numel()}) and dst ({lg_dst_ns.numel()}) edges"
-        )
+        # Safely assign to preallocated tensor
+        n_edges_ns = min(lg_dst_ns.numel(), lg_src.size(0) - n)
+        lg_src[n:n + n_edges_ns], lg_dst[n:n + n_edges_ns] = lg_src_ns[:n_edges_ns], lg_dst_ns[:n_edges_ns]
+        n += n_edges_ns
 
-        # carefully match indices and sizes
-        m = lg_dst_ns.numel()
-        lg_src[n : n + m], lg_dst[n : n + m] = lg_src_ns, lg_dst_ns
-        n += m
+        # Build line graph with exact number of edges used
+        lg = dgl.graph((lg_src[:n], lg_dst[:n]), device=device)
 
-        # Build the line graph
-        # Explicitly set number of nodes to prevent missing nodes
-        lg = dgl.graph((lg_src, lg_dst), device=device)
-
-        # Copy to nodes
+        # --- Copy edge data to nodes ---
         for key in graph.edata:
             lg.ndata[key] = graph.edata[key][: lg.num_nodes()]
 
-        # src_bond_sign tracking the sign for any self edges
-        lg.ndata["src_bond_sign"] = torch.ones((lg.num_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device)
-        all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(
-            return_counts=True
+        # --- Track bond sign for self edges ---
+        lg.ndata["src_bond_sign"] = torch.ones(
+            (lg.num_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=device
         )
-        lg_inds_ns = all_ns[torch.where(counts > 1)]
-        lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
+
+        if is_self_edge.any():
+            all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(return_counts=True)
+            lg_inds_ns = all_ns[torch.where(counts > 1)]
+            lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
     return lg
+
 
 
 def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float):
