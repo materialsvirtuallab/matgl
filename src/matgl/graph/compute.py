@@ -330,7 +330,6 @@ def _create_directed_line_graph(
                 lg_src_ns = lg_src_ns[valid_mask_ns]
                 lg_dst_ns = lg_dst_ns[valid_mask_ns]
 
-
                 # ensure lengths match for repeat_interleave
                 min_len = min(edge_counts_ns.numel(), edge_inds_ns.numel())
                 edge_counts_ns = edge_counts_ns[:min_len]
