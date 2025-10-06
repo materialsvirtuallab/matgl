@@ -269,54 +269,66 @@ def _create_directed_line_graph(
     with torch.no_grad():
         src_indices, dst_indices = graph.edges()
         images = graph.edata["pbc_offset"]
+        device = graph.device
 
+        # # num bonds per atom (unused)
+        # all_indices = torch.arange(graph.number_of_nodes(), device=device).unsqueeze(dim=0)
+        # num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
+        
         incoming_edges = src_indices.unsqueeze(1) == dst_indices
         is_self_edge = src_indices == dst_indices
         not_self_edge = ~is_self_edge
 
-        # New addition
+        # masking used for three-body connectivity
         shared_src = src_indices.unsqueeze(1) == src_indices
-        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, axis=2)
+        back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, dim=2)
         incoming = incoming_edges & (shared_src | ~back_tracking)
-        num_edges_per_bond = incoming.sum(dim=1)  # <-- Grab from after prune to avoid mismatch
-        total_edges = num_edges_per_bond.sum()  # <-- For clarity
 
-        lg_src = torch.empty(total_edges, dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
-        lg_dst = torch.empty(total_edges, dtype=matgl.int_th, device=graph.device)  # type:ignore[call-overload]
+        # build preallocation using all valid incoming edges
+        num_edges_per_bond = incoming.sum(dim=1)
+        total_edges = int(num_edges_per_bond.sum().item())
+
+        lg_src = torch.empty(total_edges, dtype=matgl.int_th, device=device)
+        lg_dst = torch.empty(total_edges, dtype=matgl.int_th, device=device)
 
         n = 0
         # create line graph edges for bonds that are self edges in atom graph
         if is_self_edge.any():
-            edge_inds_s = is_self_edge.nonzero().squeeze()  # <-- Can remove dims=0 here
-            num_edges_self = incoming_edges[is_self_edge].sum(dim=1)  # <-- Grab and save var
-            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_self)  # <-- For clarity, separate
-            lg_src_s = incoming_edges[is_self_edge].nonzero()[:, 1].squeeze()
-            n = len(lg_dst_s)
+            edge_inds_s = is_self_edge.nonzero(as_tuple=False)  # legacy PyTorch style
+            lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
+            lg_src_s = incoming[is_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
+            lg_src_s = lg_src_s[lg_src_s != lg_dst_s]  # remove degenerate self-links
+            n = lg_dst_s.numel()
             lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
 
-        # create line graph for eges which aren't self edges
-        edge_inds_ns = not_self_edge.nonzero().squeeze()
-        lg_src_ns = incoming[not_self_edge].nonzero()[:, 1].squeeze()
+        # create line graph edges for bonds that are not self edges in atom graph
+        edge_inds_ns = not_self_edge.nonzero(as_tuple=False).squeeze()
+        lg_src_ns = incoming[not_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
         lg_dst_ns = edge_inds_ns.repeat_interleave(num_edges_per_bond[not_self_edge])
-        lg_src[n:], lg_dst[n:] = lg_src_ns, lg_dst_ns
 
-        # build
-        lg = dgl.graph((lg_src, lg_dst))
+        # check sizes in debug
+        assert lg_src_ns.numel() == lg_dst_ns.numel(), (
+            f"Mismatch between src ({lg_src_ns.numel()}) and dst ({lg_dst_ns.numel()}) edges"
+        )
 
+        # carefully match indices and sizes
+        m = lg_dst_ns.numel()
+        lg_src[n:n + m], lg_dst[n:n + m] = lg_src_ns, lg_dst_ns
+        n += m
+
+        # Build the line graph
+        # Explicitly set number of nodes to prevent missing nodes
+        lg = dgl.graph((lg_src, lg_dst), num_nodes=graph.num_edges(), device=device)
+
+        # Copy to nodes
         for key in graph.edata:
-            lg.ndata[key] = graph.edata[key][: lg.number_of_nodes()]
+            lg.ndata[key] = graph.edata[key][: lg.num_nodes()]
 
-        # we need to store the sign of bond vector when a bond is a src node in the line
-        # graph in order to appropriately calculate angles when self edges are involved
+        # src_bond_sign tracking the sign for any self edges
         lg.ndata["src_bond_sign"] = torch.ones(
-            (lg.number_of_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
+            (lg.num_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
         )
-        # if we flip self edges then we need to correct computed angles by pi - angle
-        # lg.ndata["src_bond_sign"][edge_inds_s] = -lg.ndata["src_bond_sign"][edge_ind_s]
-        # find the intersection for the rare cases where not all edges end up as nodes in the line graph
-        all_ns, counts = torch.cat([torch.arange(lg.number_of_nodes(), device=graph.device), edge_inds_ns]).unique(
-            return_counts=True
-        )
+        all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(return_counts=True)
         lg_inds_ns = all_ns[torch.where(counts > 1)]
         lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
