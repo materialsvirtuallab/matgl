@@ -319,31 +319,30 @@ def _create_directed_line_graph(
         edge_inds_ns = not_self_edge.nonzero(as_tuple=False).squeeze()
         if edge_inds_ns.numel() > 0:
             edge_counts_ns = num_edges_per_bond[not_self_edge]
-        
+
             # keep positive counts
             positive_mask = edge_counts_ns > 0
             edge_counts_ns = edge_counts_ns[positive_mask]
             edge_inds_ns = edge_inds_ns[positive_mask]
-        
+
             if edge_counts_ns.numel() > 0:
                 lg_src_ns = incoming[not_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
                 lg_src_ns = lg_src_ns[positive_mask]  # Align with filtered indices
-        
+
                 # ensure lengths match for repeat_interleave
                 min_len = min(edge_counts_ns.numel(), edge_inds_ns.numel())
                 edge_counts_ns = edge_counts_ns[:min_len]
                 edge_inds_ns = edge_inds_ns[:min_len]
                 lg_src_ns = lg_src_ns[:min_len]
-        
+
                 lg_dst_ns = edge_inds_ns.repeat_interleave(edge_counts_ns)
-        
+
                 n_edges_ns = min(lg_dst_ns.numel(), lg_src.size(0) - n)
                 lg_src[n : n + n_edges_ns], lg_dst[n : n + n_edges_ns] = (
                     lg_src_ns[:n_edges_ns],
                     lg_dst_ns[:n_edges_ns],
                 )
                 n += n_edges_ns
-
 
         # line graph
         lg = dgl.graph((lg_src[:n], lg_dst[:n]), device=device)
