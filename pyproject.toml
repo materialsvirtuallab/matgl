@@ -58,7 +58,7 @@ dependencies = [
     "torch<=2.4.0; sys.platform == 'linux'",
     "torchdata<=0.8.0; sys.platform == 'linux'",
     "pymatgen",
-    "lightning<=2.6.0.dev20250928",
+    "lightning<=2.6.0.dev20251005",
     "pydantic",
     "boto3",
     "numpy<2.0",
