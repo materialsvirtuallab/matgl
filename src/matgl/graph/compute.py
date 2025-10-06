@@ -326,8 +326,10 @@ def _create_directed_line_graph(
             edge_inds_ns = edge_inds_ns[positive_mask]
 
             if edge_counts_ns.numel() > 0:
-                lg_src_ns = incoming[not_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
-                lg_src_ns = lg_src_ns[positive_mask]  # Align with filtered indices
+                valid_mask_ns = lg_src_ns < total_edges  # or any safe logical check
+                lg_src_ns = lg_src_ns[valid_mask_ns]
+                lg_dst_ns = lg_dst_ns[valid_mask_ns]
+
 
                 # ensure lengths match for repeat_interleave
                 min_len = min(edge_counts_ns.numel(), edge_inds_ns.numel())
