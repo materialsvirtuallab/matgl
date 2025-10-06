@@ -296,7 +296,7 @@ def _create_directed_line_graph(
             # Use .view(-1) for safety against single-element squeeze
             edge_inds_all_s = is_self_edge.nonzero(as_tuple=False).view(-1)
             edge_counts_all_s = num_edges_per_bond[is_self_edge] + 1  # original counting
-            
+
             # Filter indices and counts together (consistency with non-self block)
             valid_mask = edge_counts_all_s > 0
             edge_inds_s = edge_inds_all_s[valid_mask]
@@ -304,7 +304,7 @@ def _create_directed_line_graph(
 
             if edge_inds_s.numel() > 0:
                 lg_dst_s = edge_inds_s.repeat_interleave(edge_counts)
-                
+
                 # Filter incoming rows first with is_self_edge, then with valid_mask
                 incoming_s_rows = incoming_edges[is_self_edge][valid_mask]
                 # Use .view(-1) for safety
@@ -328,12 +328,12 @@ def _create_directed_line_graph(
         edge_inds_all_ns = not_self_edge.nonzero(as_tuple=False).view(-1)
         if edge_inds_all_ns.numel() > 0:
             edge_counts_all_ns = num_edges_per_bond[not_self_edge]
-            
+
             # apply the same mask to both indices and counts
             valid_mask_ns = edge_counts_all_ns > 0
             edge_inds_ns = edge_inds_all_ns[valid_mask_ns]
             edge_counts_ns = edge_counts_all_ns[valid_mask_ns]
-            
+
             if edge_counts_ns.numel() > 0:
                 # filter rows of 'incoming' using 'not_self_edge' mask
                 incoming_ns_rows = incoming[not_self_edge]
