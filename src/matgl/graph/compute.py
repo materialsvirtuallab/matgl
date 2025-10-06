@@ -304,7 +304,7 @@ def _create_directed_line_graph(
                 lg_src_s = incoming_edges[is_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
 
                 # filter invalid entries
-                mask = (lg_src_s != lg_dst_s[:lg_src_s.numel()])
+                mask = lg_src_s != lg_dst_s[: lg_src_s.numel()]
                 lg_src_s, lg_dst_s = lg_src_s[mask], lg_dst_s[mask]
 
                 n_edges = min(lg_dst_s.numel(), lg_src.size(0) - n)
@@ -347,15 +347,14 @@ def _create_directed_line_graph(
         )
 
         if is_self_edge.any():
-            all_ns, counts = torch.cat(
-                [torch.arange(lg.num_nodes(), device=device), edge_inds_ns]
-            ).unique(return_counts=True)
+            all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(
+                return_counts=True
+            )
             lg_inds_ns = all_ns[torch.where(counts > 1)]
             if lg_inds_ns.numel() > 0:
                 lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
     return lg
-
 
 
 def _ensure_3body_line_graph_compatibility(graph: dgl.DGLGraph, line_graph: dgl.DGLGraph, threebody_cutoff: float):
