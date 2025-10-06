@@ -294,7 +294,7 @@ def _create_directed_line_graph(
         # self edges
         if is_self_edge.any():
             edge_inds_s = is_self_edge.nonzero(as_tuple=False).squeeze()
-            edge_counts = num_edges_per_bond[is_self_edge] + 1 # original counting
+            edge_counts = num_edges_per_bond[is_self_edge] + 1  # original counting
             valid_mask = edge_counts > 0
             edge_inds_s = edge_inds_s[valid_mask]
             edge_counts = edge_counts[valid_mask]
@@ -320,17 +320,17 @@ def _create_directed_line_graph(
         edge_inds_ns = not_self_edge.nonzero(as_tuple=False).view(-1)
         if edge_inds_ns.numel() > 0:
             edge_counts_all_ns = num_edges_per_bond[not_self_edge]
-            
+
             # apply the same mask to both indices and counts
             valid_mask_ns = edge_counts_all_ns > 0
             edge_inds_ns = edge_inds_ns[valid_mask_ns]
             edge_counts_ns = edge_counts_all_ns[valid_mask_ns]
-            
+
             if edge_counts_ns.numel() > 0:
                 # The 'incoming' tensor is (num_edges, num_edges). We only want rows for non-self edges.
                 # The filtering of rows for 'incoming' must match the filtering of `edge_inds_ns`.
                 # Use the original 'not_self_edge' mask on 'incoming' first, then apply 'valid_mask_ns'.
-                
+
                 # filter rows of 'incoming' using 'not_self_edge' mask
                 incoming_ns_rows = incoming[not_self_edge]
                 # apply the second filter 'valid_mask_ns' to the rows of 'incoming'
