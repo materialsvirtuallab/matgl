@@ -274,7 +274,7 @@ def _create_directed_line_graph(
         # # num bonds per atom (unused)
         # all_indices = torch.arange(graph.number_of_nodes(), device=device).unsqueeze(dim=0)
         # num_bonds_per_atom = torch.count_nonzero(src_indices.unsqueeze(dim=1) == all_indices, dim=0)
-
+        
         incoming_edges = src_indices.unsqueeze(1) == dst_indices
         is_self_edge = src_indices == dst_indices
         not_self_edge = ~is_self_edge
@@ -297,7 +297,9 @@ def _create_directed_line_graph(
             edge_inds_s = is_self_edge.nonzero(as_tuple=False)  # legacy PyTorch style
             lg_dst_s = edge_inds_s.repeat_interleave(num_edges_per_bond[is_self_edge])
             lg_src_s = incoming[is_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
-            lg_src_s = lg_src_s[lg_src_s != lg_dst_s]  # remove degenerate self-links
+            mask = lg_src_s != lg_dst_s # apply the same mask
+            lg_src_s = lg_src_s[mask]
+            lg_dst_s = lg_dst_s[mask]
             n = lg_dst_s.numel()
             lg_src[:n], lg_dst[:n] = lg_src_s, lg_dst_s
 
@@ -313,7 +315,7 @@ def _create_directed_line_graph(
 
         # carefully match indices and sizes
         m = lg_dst_ns.numel()
-        lg_src[n : n + m], lg_dst[n : n + m] = lg_src_ns, lg_dst_ns
+        lg_src[n:n + m], lg_dst[n:n + m] = lg_src_ns, lg_dst_ns
         n += m
 
         # Build the line graph
@@ -325,10 +327,10 @@ def _create_directed_line_graph(
             lg.ndata[key] = graph.edata[key][: lg.num_nodes()]
 
         # src_bond_sign tracking the sign for any self edges
-        lg.ndata["src_bond_sign"] = torch.ones((lg.num_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device)
-        all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(
-            return_counts=True
+        lg.ndata["src_bond_sign"] = torch.ones(
+            (lg.num_nodes(), 1), dtype=lg.ndata["bond_vec"].dtype, device=lg.device
         )
+        all_ns, counts = torch.cat([torch.arange(lg.num_nodes(), device=device), edge_inds_ns]).unique(return_counts=True)
         lg_inds_ns = all_ns[torch.where(counts > 1)]
         lg.ndata["src_bond_sign"][lg_inds_ns] = -lg.ndata["src_bond_sign"][lg_inds_ns]
 
