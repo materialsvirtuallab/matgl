@@ -293,17 +293,25 @@ def _create_directed_line_graph(
 
         # self edges
         if is_self_edge.any():
-            edge_inds_s = is_self_edge.nonzero(as_tuple=False).squeeze()
-            edge_counts = num_edges_per_bond[is_self_edge] + 1  # original counting
-            valid_mask = edge_counts > 0
-            edge_inds_s = edge_inds_s[valid_mask]
-            edge_counts = edge_counts[valid_mask]
+            # Use .view(-1) for safety against single-element squeeze
+            edge_inds_all_s = is_self_edge.nonzero(as_tuple=False).view(-1)
+            edge_counts_all_s = num_edges_per_bond[is_self_edge] + 1  # original counting
+            
+            # Filter indices and counts together (consistency with non-self block)
+            valid_mask = edge_counts_all_s > 0
+            edge_inds_s = edge_inds_all_s[valid_mask]
+            edge_counts = edge_counts_all_s[valid_mask]
 
             if edge_inds_s.numel() > 0:
                 lg_dst_s = edge_inds_s.repeat_interleave(edge_counts)
-                lg_src_s = incoming_edges[is_self_edge].nonzero(as_tuple=False)[:, 1].squeeze()
+                
+                # Filter incoming rows first with is_self_edge, then with valid_mask
+                incoming_s_rows = incoming_edges[is_self_edge][valid_mask]
+                # Use .view(-1) for safety
+                lg_src_s = incoming_s_rows.nonzero(as_tuple=False)[:, 1].view(-1)
 
                 # filter invalid entries
+                # Check for correct sizing of slice before comparison
                 mask = lg_src_s != lg_dst_s[: lg_src_s.numel()]
                 lg_src_s, lg_dst_s = lg_src_s[mask], lg_dst_s[mask]
 
@@ -311,26 +319,22 @@ def _create_directed_line_graph(
                 lg_src[:n_edges], lg_dst[:n_edges] = lg_src_s[:n_edges], lg_dst_s[:n_edges]
                 n += n_edges
 
-        # non-self edges
+        # non-self edges (already corrected in the question and preserved here)
         shared_src = src_indices.unsqueeze(1) == src_indices
         back_tracking = (dst_indices.unsqueeze(1) == src_indices) & torch.all(-images.unsqueeze(1) == images, dim=2)
         incoming = incoming_edges & (shared_src | ~back_tracking)
 
         # edge_inds_ns is 1D, even if it has one element (fixes potential squeeze issue)
-        edge_inds_ns = not_self_edge.nonzero(as_tuple=False).view(-1)
-        if edge_inds_ns.numel() > 0:
+        edge_inds_all_ns = not_self_edge.nonzero(as_tuple=False).view(-1)
+        if edge_inds_all_ns.numel() > 0:
             edge_counts_all_ns = num_edges_per_bond[not_self_edge]
-
+            
             # apply the same mask to both indices and counts
             valid_mask_ns = edge_counts_all_ns > 0
-            edge_inds_ns = edge_inds_ns[valid_mask_ns]
+            edge_inds_ns = edge_inds_all_ns[valid_mask_ns]
             edge_counts_ns = edge_counts_all_ns[valid_mask_ns]
-
+            
             if edge_counts_ns.numel() > 0:
-                # The 'incoming' tensor is (num_edges, num_edges). We only want rows for non-self edges.
-                # The filtering of rows for 'incoming' must match the filtering of `edge_inds_ns`.
-                # Use the original 'not_self_edge' mask on 'incoming' first, then apply 'valid_mask_ns'.
-
                 # filter rows of 'incoming' using 'not_self_edge' mask
                 incoming_ns_rows = incoming[not_self_edge]
                 # apply the second filter 'valid_mask_ns' to the rows of 'incoming'
@@ -349,8 +353,8 @@ def _create_directed_line_graph(
 
         # copy edges to nodes
         for key in graph.edata:
-            if key in graph.edata:
-                lg.ndata[key] = graph.edata[key][: lg.num_nodes()]
+            # Removed redundant check if key in graph.edata
+            lg.ndata[key] = graph.edata[key][: lg.num_nodes()]
 
         # track bond sign for self edges
         is_self_edge_lg_nodes = is_self_edge[: lg.num_nodes()]
