@@ -10,7 +10,13 @@ from torch_geometric.nn import MessagePassing
 
 import matgl
 from matgl.utils.cutoff import cosine_cutoff
-from matgl.utils.maths import new_radial_tensor, scatter_add, tensor_norm, vector_to_skewtensor, vector_to_symtensor
+from matgl.utils.maths import (
+    new_radial_tensor,
+    scatter_add,
+    tensor_norm,
+    vector_to_skewtensor,
+    vector_to_symtensor,
+)
 
 if TYPE_CHECKING:
     from torch_geometric.data import Data

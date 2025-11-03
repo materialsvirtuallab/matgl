@@ -30,8 +30,8 @@ class TestDataset:
             clear_processed=True,
             root="MGLDataset_pes",
         )
-        g1, lat1, state1, pes1 = dataset[0]
-        g2, lat2, state2, pes2 = dataset[1]
+        g1, lat1, _, pes1 = dataset[0]
+        g2, lat2, _, pes2 = dataset[1]
         assert pes1["energies"] == energies[0]
         assert g1.num_edges == cry_graph.get_graph(LiFePO4)[0].num_edges
         assert g1.num_nodes == cry_graph.get_graph(LiFePO4)[0].num_nodes
@@ -52,8 +52,8 @@ class TestDataset:
             root="MGLDataset_pes",
         )
         dataset.load()
-        g1, lat1, state1, pes1 = dataset[0]
-        g2, lat2, state2, pes2 = dataset[1]
+        g1, lat1, _, pes1 = dataset[0]
+        g2, lat2, _, pes2 = dataset[1]
         assert pes1["energies"] == -1.0
         assert g1.num_edges == cry_graph.get_graph(LiFePO4)[0].num_edges
         assert g1.num_nodes == cry_graph.get_graph(LiFePO4)[0].num_nodes
@@ -76,8 +76,8 @@ class TestDataset:
             converter=cry_graph,
             labels={"Eform_per_atom": labels},
         )
-        g1, lat1, state1, label1 = dataset[0]
-        g2, lat2, state2, label2 = dataset[1]
+        g1, lat1, _, label1 = dataset[0]
+        g2, lat2, _, _ = dataset[1]
         assert label1["Eform_per_atom"] == labels[0]
         assert g1.num_edges == cry_graph.get_graph(LiFePO4)[0].num_edges
         assert g1.num_nodes == cry_graph.get_graph(LiFePO4)[0].num_nodes
@@ -88,9 +88,10 @@ class TestDataset:
 
         dataset = MGLDataset(
             filename_labels="eform.json",
+            include_line_graph=True,
         )
-        g1, lat1, state1, label1 = dataset[0]
-        g2, lat2, state2, label2 = dataset[1]
+        g1, lat1, _, label1 = dataset[0]
+        g2, lat2, _, _ = dataset[1]
         assert label1["Eform_per_atom"] == labels[0]
         assert g1.num_edges == cry_graph.get_graph(LiFePO4)[0].num_edges
         assert g1.num_nodes == cry_graph.get_graph(LiFePO4)[0].num_nodes
@@ -112,13 +113,12 @@ class TestDataset:
             graph_labels=graph_label,
             save_cache=False,
         )
-        g1, lat1, state1, label1 = dataset[0]
-        g2, lat2, state2, label2 = dataset[1]
+        _, _, state1, _ = dataset[0]
+        _, _, state2, _ = dataset[1]
         assert state1.detach().numpy() == graph_label[0]
         assert state2.detach().numpy() == graph_label[1]
-        shutil.rmtree(f"{dataset.root}")
 
-    def test_mgl_dataloader(self, LiFePO4, BaNiO3):
+    def test_megnet_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4] * 10 + [BaNiO3] * 10
         label = np.zeros(20).tolist()
         element_types = get_element_list([LiFePO4, BaNiO3])
@@ -156,9 +156,8 @@ class TestDataset:
         )
         assert len(train_loader_new) == 8
         assert len(val_loader_new) == 1
-        shutil.rmtree(f"{dataset.root}")
 
-    def test_mgl_dataloader_for_mol(self):
+    def test_megnet_dataloader_for_mol(self):
         coords = [
             [0.000000, 0.000000, 0.000000],
             [0.000000, 0.000000, 1.089000],
@@ -194,7 +193,40 @@ class TestDataset:
         assert len(train_loader) == 3
         assert len(val_loader) == 1
         assert len(test_loader) == 1
-        shutil.rmtree(f"{dataset.root}")
+
+    def test_mgl_dataloader(self, LiFePO4, BaNiO3):
+        structures = [LiFePO4, BaNiO3] * 10
+        energies = np.zeros(20).tolist()
+        f1 = np.zeros((28, 3)).tolist()
+        f2 = np.zeros((10, 3)).tolist()
+        s = np.zeros((3, 3)).tolist()
+        forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
+        stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
+        element_types = get_element_list([LiFePO4, BaNiO3])
+        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        dataset = MGLDataset(
+            structures=structures,
+            converter=cry_graph,
+            labels={"energies": energies, "forces": forces, "stresses": stresses},
+            save_cache=False,
+        )
+        train_data, val_data, test_data = split_dataset(
+            dataset,
+            frac_list=[0.8, 0.1, 0.1],
+            shuffle=True,
+            random_state=42,
+        )
+        train_loader, val_loader, test_loader = MGLDataLoader(
+            train_data=train_data,
+            val_data=val_data,
+            test_data=test_data,
+            collate_fn=collate_fn_graph,
+            batch_size=2,
+            num_workers=0,
+        )
+        assert len(train_loader) == 8
+        assert len(val_loader) == 1
+        assert len(test_loader) == 1
 
     def test_mgl_dataloader_without_stresses(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
@@ -229,7 +261,6 @@ class TestDataset:
         assert len(train_loader) == 8
         assert len(val_loader) == 1
         assert len(test_loader) == 1
-        shutil.rmtree(f"{dataset.root}")
 
     def test_mgl_property_dataloader(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10
@@ -261,7 +292,6 @@ class TestDataset:
         assert len(train_loader) == 8
         assert len(val_loader) == 1
         assert len(test_loader) == 1
-        shutil.rmtree(f"{dataset.root}")
 
     def test_mgl_dataset_with_magmom(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
@@ -284,11 +314,10 @@ class TestDataset:
             clear_processed=True,
             save_cache=False,
         )
-        g1, lat1, state1, label1 = dataset[0]
-        g2, lat2, state2, label2 = dataset[1]
+        _, _, _, label1 = dataset[0]
+        _, _, _, label2 = dataset[1]
         assert np.allclose(label1["magmoms"].detach().numpy(), [1] * len(LiFePO4))
         assert np.allclose(label2["magmoms"].detach().numpy(), [2] * len(BaNiO3))
-        shutil.rmtree(f"{dataset.root}")
 
     def test_mgl_dataloader_with_magmom(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3] * 10

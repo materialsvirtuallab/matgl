@@ -37,14 +37,18 @@ def ensure_batch_attribute(data: Data) -> Data:
     return data
 
 
-def split_dataset(self, frac_list=None, shuffle=False, random_state=None):
+def split_dataset(self, frac_list=None, shuffle=False, random_state: int = 42):
     if frac_list is None:
         frac_list = [0.8, 0.1, 0.1]
     num_graphs = len(self)
     num_train = int(frac_list[0] * num_graphs)
     num_val = int(frac_list[1] * num_graphs)
 
-    indices = torch.randperm(num_graphs) if shuffle else torch.arange(num_graphs)
+    indices = (
+        torch.randperm(num_graphs, generator=torch.Generator().manual_seed(random_state))
+        if shuffle
+        else torch.arange(num_graphs)
+    )
     train_idx = indices[:num_train]
     val_idx = indices[num_train : num_train + num_val]
     test_idx = indices[num_train + num_val :]
@@ -138,10 +142,10 @@ def MGLDataLoader(
     Returns:
         Tuple[DataLoader, ...]: Train, validation, and test data loaders. Test data loader is None if test_data is None.
     """
-    train_loader: DataLoader = DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
-    val_loader: DataLoader = DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+    train_loader = DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
+    val_loader = DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
     if test_data is not None:
-        test_loader: DataLoader = DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+        test_loader = DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
         return train_loader, val_loader, test_loader
     return train_loader, val_loader
 

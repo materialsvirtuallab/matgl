@@ -91,7 +91,7 @@ def test_megnet_block():
 
 class TestGraphConv:
     def test_m3gnet_graph_conv(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_dist = g1.edata["bond_dist"]
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
         bond_basis = bond_expansion(bond_dist)
@@ -136,7 +136,7 @@ class TestGraphConv:
         assert [state_feat_new.size(dim=0), state_feat_new.size(dim=1)] == [1, 32]
 
     def test_m3gnet_block(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         g1.edata["rbf"] = bond_basis
@@ -190,7 +190,7 @@ class TestGraphConv:
         assert [node_feat_new.size(dim=0), node_feat_new.size(dim=1)] == [2, 16]
 
     def test_tensornet_interaction(self, graph_Mo):
-        s, g1, state = graph_Mo
+        _, g1, state = graph_Mo
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
         g1.edata["edge_attr"] = bond_expansion(g1.edata["bond_dist"])
 
@@ -198,7 +198,7 @@ class TestGraphConv:
             units=64, degree_rbf=3, activation=nn.SiLU(), ntypes_node=1, cutoff=5.0, dtype=matgl.float_th
         )
 
-        X, edge_feat, state_feat = tensor_embedding(g1, state)
+        X, _, _ = tensor_embedding(g1, state)
         interaction = TensorNetInteraction(
             num_rbf=3,
             units=64,
@@ -224,7 +224,7 @@ class TestGraphConv:
         assert [X.shape[0], X.shape[1], X.shape[2], X.shape[3]] == [2, 64, 3, 3]
 
     def test_chgnet_graph_conv(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_dist = g1.edata["bond_dist"]
         bond_expansion = RadialBesselFunction(max_n=9, cutoff=5.0, learnable=True)
         threebody_expansion = RadialBesselFunction(max_n=9, cutoff=5.0, learnable=True)

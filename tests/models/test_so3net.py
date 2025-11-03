@@ -12,7 +12,7 @@ from matgl.models import SO3Net
 
 class TestSO3Net:
     def test_model(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        _, graph, _ = graph_MoS
         for act in ["swish", "tanh", "sigmoid", "softplus2", "softexp"]:
             model = SO3Net(is_intensive=False, activation_type=act)
             output = model(g=graph)
@@ -26,11 +26,11 @@ class TestSO3Net:
     def test_exceptions(self):
         with pytest.raises(ValueError, match="Invalid activation type"):
             _ = SO3Net(element_types=None, is_intensive=False, activation_type="whatever")
-        with pytest.raises(ValueError, match="Classification task cannot be extensive."):
+        with pytest.raises(ValueError, match=r"Classification task cannot be extensive."):
             _ = SO3Net(element_types=["Mo", "S"], is_intensive=False, task_type="classification")
 
     def test_model_intensive(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -39,7 +39,7 @@ class TestSO3Net:
         assert torch.numel(output) == 2
 
     def test_model_intensive_reduce_atom_classification(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -50,7 +50,7 @@ class TestSO3Net:
         assert torch.numel(output) == 1
 
     def test_model_intensive_weighted_atom_classification(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -61,7 +61,7 @@ class TestSO3Net:
         assert torch.numel(output) == 1
 
     def test_model_intensive_set2set_classification(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -76,7 +76,7 @@ class TestSO3Net:
         assert torch.numel(output) == 1
 
     def test_model_dipole_moment(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        _, graph, _ = graph_MoS
         model = SO3Net(element_types=["Mo", "S"], target_property="dipole_moment", return_vector_representation=True)
         charges, dipole_moment = model(g=graph)
         assert torch.numel(charges) == 2
@@ -93,7 +93,7 @@ class TestSO3Net:
         assert dipole_moment.shape == torch.Size([2, 3])
 
     def test_model_dipole_moment_including_use_vector_representation(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        _, graph, _ = graph_MoS
         model = SO3Net(
             element_types=["Mo", "S"],
             target_property="dipole_moment",
@@ -117,7 +117,7 @@ class TestSO3Net:
         assert torch.numel(dipole_moment) == 1
 
     def test_model_polarizability(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        _, graph, _ = graph_MoS
         model = SO3Net(
             element_types=["Mo", "S"],
             target_property="polarizability",

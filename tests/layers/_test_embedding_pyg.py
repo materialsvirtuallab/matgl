@@ -11,7 +11,7 @@ from matgl.layers._embedding_pyg import (
 
 class TestCoreAndEmbedding:
     def test_tensor_embedding(self, graph_Mo_pyg):
-        s1, g1, state1 = graph_Mo_pyg
+        _, g1, state1 = graph_Mo_pyg
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
         g1.edge_attr = bond_expansion(g1.bond_dist)
         # without state

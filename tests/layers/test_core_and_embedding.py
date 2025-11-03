@@ -130,7 +130,7 @@ class TestCoreAndEmbedding:
         assert torch.squeeze(output_vector).shape == (4, 3)
 
     def test_embedding(self, graph_Mo):
-        s1, g1, state1 = graph_Mo
+        _, g1, _ = graph_Mo
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         # include state features
@@ -203,7 +203,7 @@ class TestCoreAndEmbedding:
         assert [state_feat.size(dim=0), state_feat.size(dim=1)] == [1, 16]
 
     def test_tensor_embedding(self, graph_Mo):
-        s1, g1, state1 = graph_Mo
+        _, g1, state1 = graph_Mo
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
         g1.edata["edge_attr"] = bond_expansion(g1.edata["bond_dist"])
         # without state
@@ -257,7 +257,7 @@ class TestCoreAndEmbedding:
         assert [state_feat.shape[0], state_feat.shape[1]] == [1, 16]
 
     def test_neighbor_embedding(self, graph_Mo):
-        s1, g1, state1 = graph_Mo
+        _, g1, _ = graph_Mo
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
         g1.edata["edge_attr"] = bond_expansion(g1.edata["bond_dist"])
 

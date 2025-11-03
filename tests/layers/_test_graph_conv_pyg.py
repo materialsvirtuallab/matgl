@@ -14,7 +14,7 @@ from matgl.layers._graph_convolution_pyg import (
 
 class TestGraphConv:
     def test_tensornet_interaction(self, graph_Mo_pyg):
-        s, g1, state = graph_Mo_pyg
+        _, g1, state = graph_Mo_pyg
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
         g1.edge_attr = bond_expansion(g1.bond_dist)
 
@@ -22,7 +22,7 @@ class TestGraphConv:
             units=64, degree_rbf=3, activation=nn.SiLU(), ntypes_node=1, cutoff=5.0, dtype=matgl.float_th
         )
 
-        X, state_feat = tensor_embedding(g1, state)
+        X, _ = tensor_embedding(g1, state)
         interaction = TensorNetInteractionPYG(
             num_rbf=3,
             units=64,

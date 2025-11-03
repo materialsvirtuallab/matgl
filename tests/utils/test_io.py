@@ -60,7 +60,7 @@ def test_load_model():
     model = load_model(this_dir / ".." / ".." / "pretrained_models" / "CHGNet-MPtrj-2024.2.13-11M-PES")
     assert issubclass(model.__class__, torch.nn.Module)
 
-    with pytest.raises(ValueError, match="Bad serialized model or bad model name."):
+    with pytest.raises(ValueError, match=r"Bad serialized model or bad model name."):
         load_model("badbadmodelname")
 
     try:
