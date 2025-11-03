@@ -32,7 +32,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         structure,
         src_id: list[int],
         dst_id: list[int],
-        images: list[list[int]],
+        images: np.ndarray,
         lattice_matrix: np.ndarray,
         element_types: tuple[str, ...],
         frac_coords: np.ndarray,

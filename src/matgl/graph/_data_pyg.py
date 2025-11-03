@@ -49,9 +49,9 @@ def split_dataset(self, frac_list=None, shuffle=False, random_state: int = 42):
         if shuffle
         else torch.arange(num_graphs)
     )
-    train_idx = indices[:num_train]
-    val_idx = indices[num_train : num_train + num_val]
-    test_idx = indices[num_train + num_val :]
+    train_idx = indices[:num_train].tolist()
+    val_idx = indices[num_train : num_train + num_val].tolist()
+    test_idx = indices[num_train + num_val :].tolist()
 
     return (Subset(self, train_idx), Subset(self, val_idx), Subset(self, test_idx))
 
@@ -125,7 +125,7 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
 def MGLDataLoader(
     train_data: MGLDataset,
     val_data: MGLDataset,
-    collate_fn: Callable | None = None,
+    collate_fn: Callable,
     test_data: MGLDataset | None = None,
     **kwargs,
 ) -> tuple[DataLoader, ...]:
@@ -142,10 +142,10 @@ def MGLDataLoader(
     Returns:
         Tuple[DataLoader, ...]: Train, validation, and test data loaders. Test data loader is None if test_data is None.
     """
-    train_loader = DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
-    val_loader = DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+    train_loader: DataLoader = DataLoader(train_data, shuffle=True, collate_fn=collate_fn, **kwargs)
+    val_loader: DataLoader = DataLoader(val_data, shuffle=False, collate_fn=collate_fn, **kwargs)
     if test_data is not None:
-        test_loader = DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
+        test_loader: DataLoader = DataLoader(test_data, shuffle=False, collate_fn=collate_fn, **kwargs)
         return train_loader, val_loader, test_loader
     return train_loader, val_loader
 

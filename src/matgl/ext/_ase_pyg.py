@@ -113,12 +113,13 @@ class Atoms2Graph(GraphConverter):
             adj = adj.tocoo()
             src_id = adj.row
             dst_id = adj.col
+
         g, lat, state_attr = super().get_graph_from_processed_structure(
             atoms,
             src_id,
             dst_id,
-            images if atoms.pbc.all() else np.zeros((len(adj.row), 3)),
-            [lattice_matrix] if atoms.pbc.all() else lattice_matrix,
+            images if atoms.pbc.all() else np.zeros((len(adj.row), 3), dtype=int),
+            lattice_matrix,
             element_types,
             atoms.get_scaled_positions(False) if atoms.pbc.all() else cart_coords,
             is_atoms=True,

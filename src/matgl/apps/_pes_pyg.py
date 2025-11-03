@@ -143,8 +143,7 @@ class Potential(nn.Module, IOMixIn):
 
         grad_vars = [g.pos, st] if self.calc_stresses else [g.pos]
 
-        #        grads = None
-        grads: list[torch.Tensor] | None = None
+        grads: tuple[torch.Tensor, ...] | None = None
         if self.calc_forces:
             grads = grad(
                 total_energies,
@@ -156,7 +155,7 @@ class Potential(nn.Module, IOMixIn):
             forces = -grads[0]
 
         if self.calc_hessian and grads is not None:
-            r = -grads[0].view(-1)
+            r = grads[0].view(-1)
             s = r.size(0)
             hessian = total_energies.new_zeros((s, s))
             for iatom in range(s):
@@ -170,8 +169,8 @@ class Potential(nn.Module, IOMixIn):
                 if matgl.float_th == torch.float16
                 else torch.abs(torch.det(lattice))
             )
-            sts = -grads[1]
-            scale = 1.0 / volume * -160.21766208
+            sts = grads[1]
+            scale = 1.0 / volume * 160.21766208
             sts = [i * j for i, j in zip(sts, scale, strict=False)] if sts.dim() == 3 else [sts * scale]  # type:ignore[assignment]
             stresses = torch.cat(sts)  # type:ignore[call-overload]
 
