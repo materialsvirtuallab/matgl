@@ -18,7 +18,7 @@ class TestMEGNet:
         lat = th.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = th.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
-        bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
+        _, bond_dist = compute_pair_vector_and_distance(graph)
         graph.edata["bond_dist"] = bond_dist
         for act in ["tanh", "sigmoid", "softplus2", "softexp", "swish"]:
             model = MEGNet(

@@ -12,7 +12,7 @@ from matgl.models import M3GNet
 
 class TestM3GNet:
     def test_model(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        _, graph, _ = graph_MoS
         for act in ["swish", "tanh", "sigmoid", "softplus2", "softexp"]:
             model = M3GNet(is_intensive=False, activation_type=act)
             output = model(g=graph)
@@ -26,11 +26,11 @@ class TestM3GNet:
     def test_exceptions(self):
         with pytest.raises(ValueError, match="Invalid activation type"):
             _ = M3GNet(element_types=None, is_intensive=False, activation_type="whatever")
-        with pytest.raises(ValueError, match="Classification task cannot be extensive."):
+        with pytest.raises(ValueError, match=r"Classification task cannot be extensive."):
             _ = M3GNet(element_types=["Mo", "S"], is_intensive=False, task_type="classification")
 
     def test_model_intensive(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -39,7 +39,7 @@ class TestM3GNet:
         assert torch.numel(output) == 1
 
     def test_model_intensive_reduced_atom(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -48,7 +48,7 @@ class TestM3GNet:
         assert torch.numel(output) == 1
 
     def test_model_intensive_with_classification(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -61,7 +61,7 @@ class TestM3GNet:
         assert torch.numel(output) == 1
 
     def test_model_intensive_set2set_classification(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]
@@ -70,7 +70,7 @@ class TestM3GNet:
         assert torch.numel(output) == 1
 
     def test_predict_structure(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, _, _ = graph_MoS
         model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
         model_extensive = M3GNet(is_intensive=False)
         for model in [model_extensive, model_intensive]:
@@ -78,7 +78,7 @@ class TestM3GNet:
             assert torch.numel(output_final) == 1
 
     def test_featurize_structure(self, graph_MoS):
-        structure, graph, state = graph_MoS
+        structure, _, _ = graph_MoS
         model_intensive = M3GNet(element_types=["Mo", "S"], is_intensive=True)
         model_extensive = M3GNet(is_intensive=False)
         for model in [model_extensive, model_intensive]:

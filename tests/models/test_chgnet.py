@@ -21,7 +21,7 @@ class TestCHGNet:
     @pytest.mark.parametrize("angle_dim", [None, (16,)])
     @pytest.mark.parametrize("activation", ["swish", "softplus2"])
     def test_model(self, graph_MoS, threebody_cutoff, activation, angle_dim, bond_dim, learn_basis, dropout):
-        structure, graph, state = graph_MoS
+        structure, graph, _ = graph_MoS
         lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
         graph.edata["pbc_offshift"] = torch.matmul(graph.edata["pbc_offset"], lat[0])
         graph.ndata["pos"] = graph.ndata["frac_coords"] @ lat[0]

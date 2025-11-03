@@ -14,7 +14,7 @@ from matgl.utils.cutoff import polynomial_cutoff
 
 
 def test_three_body_interactions(graph_MoS):
-    s1, g1, state = graph_MoS
+    _, g1, _ = graph_MoS
     l_g1 = create_line_graph(g1, threebody_cutoff=4.0)
     l_g1.apply_edges(compute_theta_and_phi)
     bond_expansion = BondExpansion(max_l=3, max_n=3, cutoff=5.0, rbf_type="SphericalBessel", smooth=False)
@@ -38,7 +38,7 @@ def test_three_body_interactions(graph_MoS):
 
     node_attr = g1.ndata["node_type"]
     edge_attr = g1.edata["rbf"]
-    node_feat, edge_feat, state_feat = embedding(node_attr, edge_attr, state_attr)
+    node_feat, edge_feat, _ = embedding(node_attr, edge_attr, state_attr)
     degree = max_n * max_l
     three_body_interactions = ThreeBodyInteractions(
         update_network_atom=MLP(dims=[num_node_feats, degree], activation=nn.Sigmoid(), activate_last=True),

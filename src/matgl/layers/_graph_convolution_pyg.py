@@ -7,7 +7,12 @@ import torch.nn as nn
 from torch_geometric.nn import MessagePassing
 
 from matgl.utils.cutoff import cosine_cutoff
-from matgl.utils.maths import decompose_tensor, new_radial_tensor, scatter_add, tensor_norm
+from matgl.utils.maths import (
+    decompose_tensor,
+    new_radial_tensor,
+    scatter_add,
+    tensor_norm,
+)
 
 if TYPE_CHECKING:
     from torch_geometric.data import Data

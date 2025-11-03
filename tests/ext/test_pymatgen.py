@@ -13,7 +13,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 class TestPmg2Graph:
     def test_get_graph_from_molecule(self, graph_CH4):
-        mol, graph, state = graph_CH4
+        _, graph, state = graph_CH4
         # check the number of nodes
         assert np.allclose(graph.num_nodes(), 5)
         # check the number of edges

@@ -19,7 +19,7 @@ from matgl.layers._readout import (
 
 class TestReadOut:
     def test_weighted_readout(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         embed = EmbeddingBlock(
@@ -32,7 +32,7 @@ class TestReadOut:
         )
         node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        node_feat, edge_feat, _ = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         read_out = WeightedReadOut(in_feats=16, dims=[32, 32], num_targets=4)
@@ -40,7 +40,7 @@ class TestReadOut:
         assert [atomic_properties.size(dim=0), atomic_properties.size(dim=1)] == [2, 4]
 
     def test_weighted_atom_readout(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         embed = EmbeddingBlock(
@@ -53,7 +53,7 @@ class TestReadOut:
         )
         node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        node_feat, edge_feat, _ = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         read_out = WeightedAtomReadOut(in_feats=16, dims=[32, 32], activation=nn.SiLU())
@@ -61,7 +61,7 @@ class TestReadOut:
         assert [graph_properties.size(dim=0), graph_properties.size(dim=1)] == [1, 32]
 
     def test_readout_pair(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         node_attr = g1.ndata["node_type"]
@@ -74,7 +74,7 @@ class TestReadOut:
             activation=nn.SiLU(),
             ntypes_node=2,
         )
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        node_feat, edge_feat, _ = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         read_out = WeightedReadOutPair(in_feats=16, dims=[32, 32], num_targets=1)
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
@@ -82,7 +82,7 @@ class TestReadOut:
         assert [pair_properties.size(dim=0), pair_properties.size(dim=1), pair_properties.size(dim=2)] == [2, 2, 1]
 
     def test_reduce_readout(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         embed = EmbeddingBlock(
@@ -95,7 +95,7 @@ class TestReadOut:
         )
         node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        node_feat, edge_feat, _ = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         read_out = ReduceReadOut(op="mean", field="node_feat")
@@ -106,7 +106,7 @@ class TestReadOut:
         assert [output2.size(dim=0), output2.size(dim=1)] == [1, 16]
 
     def test_set2set_readout(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         embed = EmbeddingBlock(
@@ -119,7 +119,7 @@ class TestReadOut:
         )
         node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        node_feat, edge_feat, _ = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         read_out = Set2SetReadOut(
@@ -143,7 +143,7 @@ class TestReadOut:
             Set2SetReadOut(1, 2, 3, field="nonsense")
 
     def test_global_pool(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         embed = EmbeddingBlock(
@@ -156,7 +156,7 @@ class TestReadOut:
         )
         node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        node_feat, edge_feat, _ = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         g_attr = torch.zeros((1, 16), dtype=matgl.float_th)
@@ -170,7 +170,7 @@ class TestReadOut:
         assert [g_feat.shape[0], g_feat.shape[1]] == [1, 16]
 
     def test_attentive_fp(self, graph_MoS):
-        s, g1, state = graph_MoS
+        _, g1, _ = graph_MoS
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=False)
         bond_basis = bond_expansion(g1.edata["bond_dist"])
         embed = EmbeddingBlock(
@@ -183,7 +183,7 @@ class TestReadOut:
         )
         node_attr = g1.ndata["node_type"]
         edge_attr = bond_basis
-        node_feat, edge_feat, state_feat = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
+        node_feat, edge_feat, _ = embed(node_attr, edge_attr, torch.tensor([1.0, 2.0]))
         g1.ndata["node_feat"] = node_feat
         g1.edata["edge_feat"] = edge_feat
         pool = AttentiveFPReadout(feat_size=16, num_timesteps=2)

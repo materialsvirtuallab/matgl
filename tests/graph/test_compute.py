@@ -63,11 +63,11 @@ def _calculate_cos_loop(graph, threebody_cutoff=4.0):
 
 class TestCompute:
     def test_compute_pair_vector(self, graph_Mo):
-        s1, g1, state1 = graph_Mo
+        s1, g1, _ = graph_Mo
         lattice = torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
         g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
         g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
-        bv, bd = compute_pair_vector_and_distance(g1)
+        bv, _ = compute_pair_vector_and_distance(g1)
         g1.edata["bond_vec"] = bv
         d = torch.linalg.norm(g1.edata["bond_vec"], axis=1)
 
@@ -76,11 +76,11 @@ class TestCompute:
         np.testing.assert_array_almost_equal(np.sort(d), np.sort(d2))
 
     def test_compute_pair_vector_for_molecule(self, graph_CH4):
-        s2, g2, state2 = graph_CH4
+        _, g2, _ = graph_CH4
         lattice = torch.tensor(np.identity(3), dtype=matgl.float_th).unsqueeze(dim=0)
         g2.edata["pbc_offshift"] = torch.matmul(g2.edata["pbc_offset"], lattice[0])
         g2.ndata["pos"] = g2.ndata["frac_coords"] @ lattice[0]
-        bv, bd = compute_pair_vector_and_distance(g2)
+        bv, _ = compute_pair_vector_and_distance(g2)
         g2.edata["bond_vec"] = bv
         d = torch.linalg.norm(g2.edata["bond_vec"], axis=1)
 
@@ -112,7 +112,7 @@ class TestCompute:
         np.testing.assert_array_almost_equal(np.sort(d), np.sort(d2))
 
     def test_compute_angle(self, graph_Mo, graph_CH4):
-        s1, g1, state1 = graph_Mo
+        s1, g1, _ = graph_Mo
         lattice = torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
         g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
         g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
@@ -139,7 +139,7 @@ class TestCompute:
             np.sort(np.array(cos_loop)), np.sort(np.array(line_graph.edata["cos_theta"]))
         )
 
-        s2, g2, state2 = graph_CH4
+        _, g2, _ = graph_CH4
         lattice = torch.tensor(np.identity(3), dtype=matgl.float_th).unsqueeze(dim=0)
         g2.edata["pbc_offshift"] = torch.matmul(g2.edata["pbc_offset"], lattice[0])
         g2.ndata["pos"] = g2.ndata["frac_coords"] @ lattice[0]
@@ -168,7 +168,7 @@ class TestCompute:
         )
 
     def test_compute_three_body(self, graph_AcAla3NHMe):
-        mol1, g1, _ = graph_AcAla3NHMe
+        _, g1, _ = graph_AcAla3NHMe
         lattice = torch.tensor(np.identity(3), dtype=matgl.float_th).unsqueeze(dim=0)
         g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
         g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
@@ -213,7 +213,7 @@ def test_line_graph_extensive():
 @pytest.mark.parametrize("keep_ndata", [True, False])
 @pytest.mark.parametrize("keep_edata", [True, False])
 def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
-    s1, g1, state1 = graph_Mo
+    s1, g1, _ = graph_Mo
     lattice = torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
     g1.edata["pbc_offshift"] = torch.matmul(g1.edata["pbc_offset"], lattice[0])
     g1.ndata["pos"] = g1.ndata["frac_coords"] @ lattice[0]
@@ -223,7 +223,7 @@ def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
 
     new_cutoff = 3.0
     converter = Structure2Graph(element_types=get_element_list([s1]), cutoff=new_cutoff)
-    g2, lat2, state2 = converter.get_graph(s1)
+    g2, lat2, _ = converter.get_graph(s1)
     g2.edata["pbc_offshift"] = torch.matmul(g2.edata["pbc_offset"], lat2[0])
     g2.ndata["pos"] = g2.ndata["frac_coords"] @ lat2[0]
     # remove edges by features
@@ -248,7 +248,7 @@ def test_remove_edges_by_features(graph_Mo, keep_ndata, keep_edata):
 @pytest.mark.parametrize("cutoff", [2.0, 3.0, 4.0])
 @pytest.mark.parametrize("graph_data", ["graph_Mo", "graph_CH4", "graph_MoS", "graph_LiFePO4", "graph_MoSH"])
 def test_directed_line_graph(graph_data, cutoff, request):
-    s1, g1, state1 = request.getfixturevalue(graph_data)
+    s1, g1, _ = request.getfixturevalue(graph_data)
     lattice = (
         torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
         if graph_data != "graph_CH4"
@@ -271,7 +271,7 @@ def test_directed_line_graph(graph_data, cutoff, request):
 
 @pytest.mark.parametrize("graph_data", ["graph_Mo", "graph_CH4", "graph_LiFePO4", "graph_MoSH"])
 def test_ensure_directed_line_graph_compat(graph_data, request):
-    s, g, state = request.getfixturevalue(graph_data)
+    s, g, _ = request.getfixturevalue(graph_data)
     lattice = (
         torch.tensor(s.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
         if graph_data != "graph_CH4"

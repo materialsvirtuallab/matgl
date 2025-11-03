@@ -135,8 +135,8 @@ class IOMixIn:
         _check_ver(cls, model_data)
 
         map_location = torch.device("cpu") if not torch.cuda.is_available() else None
-        state = torch.load(fpaths["state.pt"], map_location=map_location)
-        d = torch.load(fpaths["model.pt"], map_location=map_location)
+        state = torch.load(fpaths["state.pt"], map_location=map_location, weights_only=False)
+        d = torch.load(fpaths["model.pt"], map_location=map_location, weights_only=False)
 
         # Deserialize any args that are IOMixIn subclasses.
         for k, v in d.items():
