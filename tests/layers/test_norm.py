@@ -8,7 +8,7 @@ from matgl.layers import GraphNorm
 
 
 def test_graph_norm(graph_MoS):
-    s, g1, state = graph_MoS
+    _, g1, _ = graph_MoS
     gn = GraphNorm(64)
 
     # set learnable parameters to constant values

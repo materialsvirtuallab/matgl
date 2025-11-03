@@ -16,11 +16,11 @@ import pandas as pd
 import scipy.sparse as sp
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
+from ase.constraints import ExpCellFilter
 from ase.filters import FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
 from ase.md.bussi import Bussi
-from ase.md.nose_hoover_chain import IsotropicMTKNPT, NoseHooverChainNVT
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
@@ -31,16 +31,16 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
-from matgl.graph.converters import GraphConverter
+from matgl.graph._converters_pyg import GraphConverter
 
 if TYPE_CHECKING:
     from typing import Any
 
-    import dgl
     import torch
     from ase.optimize.optimize import Optimizer
+    from torch_geometric.data import Data
 
-    from matgl.apps.pes import Potential
+    from matgl.apps._pes_pyg import Potential
 
 
 class OPTIMIZERS(Enum):
@@ -74,7 +74,7 @@ class Atoms2Graph(GraphConverter):
         self.element_types = tuple(element_types)
         self.cutoff = cutoff
 
-    def get_graph(self, atoms: Atoms) -> tuple[dgl.DGLGraph, torch.Tensor, list | np.ndarray]:
+    def get_graph(self, atoms: Atoms) -> tuple[Data, torch.Tensor, list | np.ndarray]:
         """Get a DGL graph from an input Atoms.
 
         Args:
@@ -113,12 +113,13 @@ class Atoms2Graph(GraphConverter):
             adj = adj.tocoo()
             src_id = adj.row
             dst_id = adj.col
+
         g, lat, state_attr = super().get_graph_from_processed_structure(
             atoms,
             src_id,
             dst_id,
-            images if atoms.pbc.all() else np.zeros((len(adj.row), 3)),
-            [lattice_matrix] if atoms.pbc.all() else lattice_matrix,
+            images if atoms.pbc.all() else np.zeros((len(adj.row), 3), dtype=int),
+            lattice_matrix,
             element_types,
             atoms.get_scaled_positions(False) if atoms.pbc.all() else cart_coords,
             is_atoms=True,
@@ -159,8 +160,6 @@ class PESCalculator(Calculator):
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
 
-        self.graph_converter = Atoms2Graph(potential.model.element_types, potential.model.cutoff)
-
         # Handle stress unit conversion
         if stress_unit == "eV/A3":
             conversion_factor = units.GPa / (units.eV / units.Angstrom**3)  # Conversion factor from GPa to eV/A^3
@@ -194,7 +193,7 @@ class PESCalculator(Calculator):
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
-        graph, lattice, state_attr_default = self.graph_converter.get_graph(atoms)
+        graph, lattice, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)
         # type: ignore
         if self.state_attr is not None:
             calc_result = self.potential(graph, lattice, self.state_attr)
@@ -296,7 +295,7 @@ class Relaxer:
             interval (int): the step interval for saving the trajectories
             verbose (bool): Whether to have verbose output.
             ase_cellfilter (literal): which filter is used for variable cell relaxation. Default is Frechet.
-            params_asecellfilter (dict): Parameters to be passed to FrechetCellFilter. Allows
+            params_asecellfilter (dict): Parameters to be passed to ExpCellFilter or FrechetCellFilter. Allows
                 setting of constant pressure or constant volume relaxations, for example. Refer to
                 https://wiki.fysik.dtu.dk/ase/ase/filters.html#FrechetCellFilter for more information.
             **kwargs: Kwargs pass-through to optimizer.
@@ -309,7 +308,11 @@ class Relaxer:
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
-                atoms = FrechetCellFilter(atoms, **params_asecellfilter)  # type:ignore[assignment]
+                atoms = (
+                    FrechetCellFilter(atoms, **params_asecellfilter)  # type:ignore[assignment]
+                    if ase_cellfilter == "Frechet"
+                    else ExpCellFilter(atoms, **params_asecellfilter)
+                )
 
             optimizer = self.optimizer(atoms, **kwargs)  # type:ignore[operator]
             optimizer.attach(obs, interval=interval)
@@ -318,22 +321,11 @@ class Relaxer:
         if traj_file is not None:
             obs.save(traj_file)
 
-        if isinstance(atoms, FrechetCellFilter):
+        if isinstance(atoms, FrechetCellFilter | ExpCellFilter):
             atoms = atoms.atoms
 
-        final_structure: Structure | Molecule
-        if isinstance(atoms, Atoms):
-            if np.array(atoms.pbc).any():
-                final_structure = self.ase_adaptor.get_structure(atoms)
-            else:
-                final_structure = self.ase_adaptor.get_molecule(atoms)
-        elif isinstance(atoms, Structure | Molecule):
-            final_structure = atoms
-        else:
-            raise TypeError(f"Unsupported atoms type: {type(atoms)}")
-
         return {
-            "final_structure": final_structure,  # type:ignore[arg-type]
+            "final_structure": self.ase_adaptor.get_structure(atoms),  # type:ignore[arg-type]
             "trajectory": obs,
         }
 
@@ -361,11 +353,9 @@ class TrajectoryObserver(collections.abc.Sequence):
         """The logic for saving the properties of an Atoms during the relaxation."""
         self.energies.append(float(self.atoms.get_potential_energy()))
         self.forces.append(self.atoms.get_forces())
-        if self.atoms.calc.compute_stress:
-            self.stresses.append(self.atoms.get_stress())
+        self.stresses.append(self.atoms.get_stress())
         self.atom_positions.append(self.atoms.get_positions())
-        if self.atoms.pbc.any():
-            self.cells.append(self.atoms.get_cell()[:])
+        self.cells.append(self.atoms.get_cell()[:])
 
     def __getitem__(self, item):
         return self.energies[item], self.forces[item], self.stresses[item], self.cells[item], self.atom_positions[item]
@@ -413,23 +403,14 @@ class MolecularDynamics:
         state_attr: torch.Tensor | None = None,
         stress_weight: float = 1.0,
         ensemble: Literal[
-            "nve",
-            "nvt",
-            "nvt_langevin",
-            "nvt_andersen",
-            "nvt_bussi",
-            "nvt_nose_hoover_chain",
-            "npt",
-            "npt_berendsen",
-            "npt_nose_hoover",
-            "npt_nose_hoover_chain",
+            "nve", "nvt", "nvt_langevin", "nvt_andersen", "nvt_bussi", "npt", "npt_berendsen", "npt_nose_hoover"
         ] = "nvt",
         temperature: int = 300,
         timestep: float = 1.0,
         pressure: float = 1.01325 * units.bar,
         taut: float | None = None,
         taup: float | None = None,
-        friction: float = 1.0e-2,
+        friction: float = 1.0e-3,
         andersen_prob: float = 1.0e-2,
         ttime: float = 25.0,
         pfactor: float = 75.0**2.0,
@@ -455,7 +436,7 @@ class MolecularDynamics:
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
-            taut (float): time constant for temperature coupling
+            taut (float): time constant for Berendsen temperature coupling
             taup (float): time constant for pressure coupling
             friction (float): friction coefficient for nvt_langevin, typically set to 1e-4 to 1e-2
             andersen_prob (float): random collision probability for nvt_andersen, typically set to 1e-4 to 1e-1
@@ -482,14 +463,10 @@ class MolecularDynamics:
             taut = 100 * timestep * units.fs
         if taup is None:
             taup = 1000 * timestep * units.fs
-
         if mask is None:
             mask = np.array([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
         if external_stress is None:
             external_stress = 0.0
-
-        if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
-            MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
 
         if ensemble.lower() == "nvt":
             self.dyn = NVTBerendsen(
@@ -518,7 +495,7 @@ class MolecularDynamics:
                 self.atoms,
                 timestep * units.fs,
                 temperature_K=temperature,
-                friction=friction / units.fs,
+                friction=friction,
                 trajectory=trajectory,
                 logfile=logfile,
                 loginterval=loginterval,
@@ -538,6 +515,8 @@ class MolecularDynamics:
             )
 
         elif ensemble.lower() == "nvt_bussi":
+            if np.isclose(self.atoms.get_kinetic_energy(), 0.0, rtol=0, atol=1e-12):
+                MaxwellBoltzmannDistribution(self.atoms, temperature_K=temperature)
             self.dyn = Bussi(  # type:ignore[assignment]
                 self.atoms,
                 timestep * units.fs,
@@ -549,17 +528,6 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
-        elif ensemble.lower() == "nvt_nose_hoover_chain":
-            self.dyn = NoseHooverChainNVT(  # type:ignore[assignment]
-                self.atoms,
-                timestep * units.fs,
-                temperature_K=temperature,
-                tdamp=taut,
-                trajectory=trajectory,
-                logfile=logfile,
-                loginterval=loginterval,
-                append_trajectory=append_trajectory,
-            )
         elif ensemble.lower() == "npt":
             """
             NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
@@ -619,19 +587,6 @@ class MolecularDynamics:
                 loginterval=loginterval,
                 append_trajectory=append_trajectory,
                 mask=mask,
-            )
-        elif ensemble.lower() == "npt_nose_hoover_chain":
-            self.dyn = IsotropicMTKNPT(  # type:ignore[assignment]
-                self.atoms,
-                timestep * units.fs,
-                temperature_K=temperature,
-                tdamp=taut,
-                pdamp=taup,
-                pressure_au=pressure,
-                trajectory=trajectory,
-                logfile=logfile,
-                loginterval=loginterval,
-                append_trajectory=append_trajectory,
             )
 
         else:

@@ -37,17 +37,21 @@ def ensure_batch_attribute(data: Data) -> Data:
     return data
 
 
-def split_dataset(self, frac_list=None, shuffle=False, random_state=None):
+def split_dataset(self, frac_list=None, shuffle=False, random_state: int = 42):
     if frac_list is None:
         frac_list = [0.8, 0.1, 0.1]
     num_graphs = len(self)
     num_train = int(frac_list[0] * num_graphs)
     num_val = int(frac_list[1] * num_graphs)
 
-    indices = torch.randperm(num_graphs) if shuffle else torch.arange(num_graphs)
-    train_idx = indices[:num_train]
-    val_idx = indices[num_train : num_train + num_val]
-    test_idx = indices[num_train + num_val :]
+    indices = (
+        torch.randperm(num_graphs, generator=torch.Generator().manual_seed(random_state))
+        if shuffle
+        else torch.arange(num_graphs)
+    )
+    train_idx = indices[:num_train].tolist()
+    val_idx = indices[num_train : num_train + num_val].tolist()
+    test_idx = indices[num_train + num_val :].tolist()
 
     return (Subset(self, train_idx), Subset(self, val_idx), Subset(self, test_idx))
 
@@ -121,7 +125,7 @@ def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool 
 def MGLDataLoader(
     train_data: MGLDataset,
     val_data: MGLDataset,
-    collate_fn: Callable | None = None,
+    collate_fn: Callable,
     test_data: MGLDataset | None = None,
     **kwargs,
 ) -> tuple[DataLoader, ...]:

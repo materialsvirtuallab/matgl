@@ -13,7 +13,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 class TestPmg2Graph:
     def test_get_graph_from_molecule(self, graph_CH4_pyg):
-        mol, graph, state = graph_CH4_pyg
+        _, graph, state = graph_CH4_pyg
         # check the number of nodes
         assert np.allclose(graph.num_nodes, 5)
         # check the number of edges
@@ -40,6 +40,7 @@ class TestPmg2Graph:
         # check the atomic feature of atom 0
         assert np.allclose(graph.node_type.detach().numpy()[0], 0)
         # check the atomic feature of atom 4
+        print("debug by kenko", graph.node_type)
         assert np.allclose(graph.node_type.detach().numpy()[4], 3)
         # check the number of bonds
         assert np.allclose(graph.num_edges, 704)

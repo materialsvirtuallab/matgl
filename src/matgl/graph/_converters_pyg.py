@@ -32,7 +32,7 @@ class GraphConverter(metaclass=abc.ABCMeta):
         structure,
         src_id: list[int],
         dst_id: list[int],
-        images: list[list[int]],
+        images: np.ndarray,
         lattice_matrix: np.ndarray,
         element_types: tuple[str, ...],
         frac_coords: np.ndarray,
@@ -71,9 +71,8 @@ class GraphConverter(metaclass=abc.ABCMeta):
         lattice = torch.tensor(np.array(lattice_matrix), dtype=matgl.float_th)
 
         # Create node features (node_type based on element indices)
-        element_to_index = {elem: idx for idx, elem in enumerate(set(element_types))}
         if is_atoms:
-            node_type = np.array([element_to_index[elem] for elem in structure.get_chemical_symbols()])
+            node_type = np.array([element_types.index(elem) for elem in structure.get_chemical_symbols()])
         else:
             node_type = np.array([element_types.index(site.specie.symbol) for site in structure])
         graph.node_type = torch.tensor(node_type, dtype=torch.long)  # Node features

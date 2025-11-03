@@ -29,8 +29,8 @@ class TestDataset:
             clear_processed=True,
             save_cache=False,
         )
-        g1, lat1, state1, label1 = dataset[0]
-        g2, lat2, state2, label2 = dataset[1]
+        g1, lat1, _, label1 = dataset[0]
+        g2, lat2, _, _ = dataset[1]
         assert label1["label"] == label[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -55,8 +55,8 @@ class TestDataset:
             save_cache=False,
             graph_labels=graph_label,
         )
-        g1, lat1, state1, label1 = dataset_with_graph_label[0]
-        g2, lat2, state2, label2 = dataset_with_graph_label[1]
+        _, _, state1, _ = dataset_with_graph_label[0]
+        _, _, state2, _ = dataset_with_graph_label[1]
 
         assert state1.detach().numpy() == graph_label[0]
         assert state2.detach().numpy() == graph_label[1]
@@ -75,8 +75,8 @@ class TestDataset:
             graph_labels=graph_label,
             directory_name="MGLDataset_megnet",
         )
-        g1, lat1, state1, label1 = dataset_with_graph_label[0]
-        g2, lat2, state2, label2 = dataset_with_graph_label[1]
+        _, _, state1, _ = dataset_with_graph_label[0]
+        _, _, state2, _ = dataset_with_graph_label[1]
 
         assert state1.detach().numpy().tolist() == graph_label[0]
         assert state2.detach().numpy().tolist() == graph_label[1]
@@ -87,7 +87,7 @@ class TestDataset:
         element_types = get_element_list(structures)
         cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(directory_name="MGLDataset_megnet")
-        g1, lat1, state1, label1 = dataset[0]
+        g1, lat1, _, label1 = dataset[0]
         assert label1["label"] == label[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -105,8 +105,8 @@ class TestDataset:
             labels={"label": label},
             save_cache=False,
         )
-        g1, lat1, state1, label1 = dataset[0]
-        g2, lat2, state2, label2 = dataset[1]
+        g1, lat1, _, label1 = dataset[0]
+        g2, _, _, _ = dataset[1]
         assert label1["label"] == label[0]
         assert g1.num_edges() == mol_graph.get_graph(CH4)[0].num_edges()
         assert g1.num_nodes() == mol_graph.get_graph(CH4)[0].num_nodes()
@@ -130,8 +130,8 @@ class TestDataset:
             clear_processed=True,
             directory_name="MGLDataset_pes",
         )
-        g1, lat1, l_g1, state1, pes1 = dataset[0]
-        g2, lat2, l_g2, state2, pes2 = dataset[1]
+        g1, lat1, _, _, pes1 = dataset[0]
+        g2, lat2, _, _, pes2 = dataset[1]
         assert pes1["energies"] == energies[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -153,8 +153,8 @@ class TestDataset:
             include_line_graph=True,
         )
         dataset.load()
-        g1, lat1, l_g1, state1, pes1 = dataset[0]
-        g2, lat2, l_g2, state2, pes2 = dataset[1]
+        g1, lat1, _, _, pes1 = dataset[0]
+        g2, lat2, _, _, pes2 = dataset[1]
         assert pes1["energies"] == -1.0
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -179,8 +179,8 @@ class TestDataset:
             include_line_graph=True,
             labels={"Eform_per_atom": labels},
         )
-        g1, lat1, l_g1, state1, label1 = dataset[0]
-        g2, lat2, l_g2, state2, label2 = dataset[1]
+        g1, lat1, _, _, label1 = dataset[0]
+        g2, lat2, _, _, _ = dataset[1]
         assert label1["Eform_per_atom"] == labels[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -193,8 +193,8 @@ class TestDataset:
             filename_labels="eform.json",
             include_line_graph=True,
         )
-        g1, lat1, l_g1, state1, label1 = dataset[0]
-        g2, lat2, l_g2, state2, label2 = dataset[1]
+        g1, lat1, _, _, label1 = dataset[0]
+        g2, lat2, _, _, _ = dataset[1]
         assert label1["Eform_per_atom"] == labels[0]
         assert g1.num_edges() == cry_graph.get_graph(LiFePO4)[0].num_edges()
         assert g1.num_nodes() == cry_graph.get_graph(LiFePO4)[0].num_nodes()
@@ -218,8 +218,8 @@ class TestDataset:
             graph_labels=graph_label,
             save_cache=False,
         )
-        g1, lat1, l_g1, state1, label1 = dataset[0]
-        g2, lat2, l_g2, state2, label2 = dataset[1]
+        _, _, _, state1, _ = dataset[0]
+        _, _, _, state2, _ = dataset[1]
         assert state1.detach().numpy() == graph_label[0]
         assert state2.detach().numpy() == graph_label[1]
 
@@ -427,8 +427,8 @@ class TestDataset:
             clear_processed=True,
             save_cache=False,
         )
-        g1, lat1, l_g1, state1, label1 = dataset[0]
-        g2, lat2, l_g2, state2, label2 = dataset[1]
+        _, _, _, _, label1 = dataset[0]
+        _, _, _, _, label2 = dataset[1]
         assert np.allclose(label1["magmoms"].detach().numpy(), [1] * len(LiFePO4))
         assert np.allclose(label2["magmoms"].detach().numpy(), [2] * len(BaNiO3))
 
