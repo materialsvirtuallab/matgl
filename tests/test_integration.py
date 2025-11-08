@@ -9,6 +9,7 @@ import pytest
 import matgl
 
 
+@pytest.mark.skipif(matgl.config.BACKEND != "DGL", reason="Only works with DGL.")
 def test_form_e(LiFePO4):
     model = matgl.load_model("M3GNet-MP-2018.6.1-Eform")
     for _i in range(3):
