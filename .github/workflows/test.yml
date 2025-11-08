@@ -54,11 +54,15 @@ jobs:
         run: |
           uv run python -c "import dgl; print(dgl.__version__)"
           uv run python -c "import torch; print(torch.__version__)"
-          uv run pytest --cov=matgl tests --color=yes
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-dgl
+          path: |
+            .coverage
+            coverage.xml
+          if-no-files-found: ignore
   test_pyg:
     strategy:
       max-parallel: 20
@@ -92,11 +96,68 @@ jobs:
       - name: pytest
         run: |
           uv run python -c "import torch; print(torch.__version__)"
-          uv run pytest --cov=matgl tests --color=yes
+          uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
+      - name: Upload coverage artifacts
+        if: matrix.config.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-pyg
+          path: |
+            .coverage
+            coverage.xml
+          if-no-files-found: ignore
+
+  coverage:
+    needs: [test_dgl, test_pyg]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download coverage from test_dgl
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-dgl
+          path: coverage-dgl/
+      - name: Download coverage from test_pyg
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-pyg
+          path: coverage-pyg/
+      - name: Combine coverage reports
+        run: |
+          pip install coverage
+          # Collect all .coverage files from both test jobs (only ubuntu runs)
+          counter=1
+          if [ -d coverage-dgl ]; then
+            for f in $(find coverage-dgl -name ".coverage" -type f); do
+              cp "$f" ".coverage.dgl.$counter"
+              counter=$((counter + 1))
+            done
+          fi
+          if [ -d coverage-pyg ]; then
+            for f in $(find coverage-pyg -name ".coverage" -type f); do
+              cp "$f" ".coverage.pyg.$counter"
+              counter=$((counter + 1))
+            done
+          fi
+          # Combine all coverage files
+          if ls .coverage.* 1> /dev/null 2>&1; then
+            coverage combine .coverage.*
+            coverage xml -o coverage.xml
+          else
+            echo "No coverage files found"
+            exit 1
+          fi
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   release:
     if: github.event_name == 'release' || inputs.task == 'release'
-    needs: test_dgl
+    needs: [test_dgl, test_pyg]
     runs-on: ubuntu-latest
     permissions:
       # For pypi trusted publishing
@@ -108,7 +169,6 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install latest DGL
-        if: matrix.config.os == 'ubuntu-latest'
         run: |
           pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Build
