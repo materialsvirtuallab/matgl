@@ -10,8 +10,8 @@ import numpy as np
 from dgl.data.utils import split_dataset
 from pymatgen.core import Molecule
 
-from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes
+from matgl.ext._pymatgen_dgl import Molecule2Graph, Structure2Graph, get_element_list
+from matgl.graph._data_dgl import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

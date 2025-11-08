@@ -6,7 +6,7 @@ from torch import nn
 
 import matgl
 from matgl.layers import BondExpansion, EmbeddingBlock
-from matgl.layers._readout import (
+from matgl.layers._readout_dgl import (
     AttentiveFPReadout,
     GlobalPool,
     ReduceReadOut,

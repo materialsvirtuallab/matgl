@@ -5,7 +5,7 @@ import pytest
 import torch
 from torch.testing import assert_close
 
-from matgl.graph.compute import (
+from matgl.graph._compute_dgl import (
     compute_theta_and_phi,
     create_line_graph,
 )

@@ -9,7 +9,7 @@ import scipy.sparse as sp
 from pymatgen.core.periodic_table import Element
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
-from matgl.graph.converters import GraphConverter
+from matgl.graph._converters_dgl import GraphConverter
 
 if TYPE_CHECKING:
     import dgl

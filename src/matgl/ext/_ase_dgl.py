@@ -31,7 +31,7 @@ from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
 
-from matgl.graph.converters import GraphConverter
+from matgl.graph._converters_dgl import GraphConverter
 
 if TYPE_CHECKING:
     from typing import Any
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     import torch
     from ase.optimize.optimize import Optimizer
 
-    from matgl.apps.pes import Potential
+    from matgl.apps._pes_dgl import Potential
 
 
 class OPTIMIZERS(Enum):

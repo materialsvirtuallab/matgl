@@ -9,7 +9,7 @@ from ase.build import molecule
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from matgl import load_model
-from matgl.ext.ase import Atoms2Graph, M3GNetCalculator, MolecularDynamics, PESCalculator, Relaxer
+from matgl.ext._ase_dgl import Atoms2Graph, M3GNetCalculator, MolecularDynamics, PESCalculator, Relaxer
 
 
 def test_PESCalculator_and_M3GNetCalculator(MoS):

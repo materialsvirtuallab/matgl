@@ -8,8 +8,8 @@ import torch
 from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
-from matgl.ext.ase import PESCalculator
-from matgl.ext.pymatgen import Structure2Graph
+from matgl.ext._ase_dgl import PESCalculator
+from matgl.ext._pymatgen_dgl import Structure2Graph
 from matgl.models import CHGNet
 
 

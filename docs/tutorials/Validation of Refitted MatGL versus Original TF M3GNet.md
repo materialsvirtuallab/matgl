@@ -17,7 +17,6 @@ In this notebook, we validate the refitted MatGL implementation of the M3GNet un
 # !pip install --upgrade mp-api
 ```
 
-
 ```python
 from __future__ import annotations
 
@@ -34,7 +33,7 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 import matgl
-from matgl.ext.ase import M3GNetCalculator as M3GNetCalculator_matgl
+from matgl.ext._ase_dgl import M3GNetCalculator as M3GNetCalculator_matgl
 
 warnings.filterwarnings("ignore")
 ```

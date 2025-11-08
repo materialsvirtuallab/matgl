@@ -9,8 +9,8 @@ import torch.testing as tt
 from pymatgen.core import Lattice, Structure
 
 import matgl
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.compute import (
+from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
+from matgl.graph._compute_dgl import (
     compute_pair_vector_and_distance,
     compute_theta,
     compute_theta_and_phi,

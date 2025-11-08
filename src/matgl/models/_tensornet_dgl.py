@@ -19,7 +19,7 @@ from torch import nn
 
 import matgl
 from matgl.config import DEFAULT_ELEMENTS
-from matgl.graph.compute import (
+from matgl.graph._compute_dgl import (
     compute_pair_vector_and_distance,
 )
 from matgl.layers import (
@@ -31,14 +31,14 @@ from matgl.layers import (
     WeightedAtomReadOut,
     WeightedReadOut,
 )
-from matgl.layers._embedding import TensorEmbedding
-from matgl.layers._graph_convolution import TensorNetInteraction
+from matgl.layers._embedding_dgl import TensorEmbedding
+from matgl.layers._graph_convolution_dgl import TensorNetInteraction
 from matgl.utils.maths import decompose_tensor, tensor_norm
 
 from ._core import MatGLModel
 
 if TYPE_CHECKING:
-    from matgl.graph.converters import GraphConverter
+    from matgl.graph._converters_dgl import GraphConverter
 
 logger = logging.getLogger(__file__)
 
@@ -276,7 +276,7 @@ class TensorNet(MatGLModel):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
+            from matgl.ext._pymatgen_dgl import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
         g, lat, state_feats_default = graph_converter.get_graph(structure)

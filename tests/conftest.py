@@ -17,13 +17,13 @@ from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
 import matgl
+from matgl.ext._pymatgen_dgl import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.ext._pymatgen_pyg import Molecule2GraphPYG, Structure2GraphPYG
-from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
+from matgl.graph._compute_dgl import (
+    compute_pair_vector_and_distance,
+)
 from matgl.graph._compute_pyg import (
     compute_pair_vector_and_distance_pyg,
-)
-from matgl.graph.compute import (
-    compute_pair_vector_and_distance,
 )
 
 matgl.clear_cache(confirm=False)

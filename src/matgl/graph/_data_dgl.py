@@ -16,12 +16,12 @@ from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
 import matgl
-from matgl.graph.compute import compute_pair_vector_and_distance, create_line_graph
+from matgl.graph._compute_dgl import compute_pair_vector_and_distance, create_line_graph
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from matgl.graph.converters import GraphConverter
+    from matgl.graph._converters_dgl import GraphConverter
 
 
 def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_per_target: bool = False):

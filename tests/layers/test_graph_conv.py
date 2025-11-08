@@ -7,7 +7,7 @@ import torch
 from torch import nn
 
 import matgl
-from matgl.graph.compute import compute_theta, create_line_graph
+from matgl.graph._compute_dgl import compute_theta, create_line_graph
 from matgl.layers import (
     BondExpansion,
     EmbeddingBlock,
@@ -16,7 +16,7 @@ from matgl.layers import (
     RadialBesselFunction,
     TensorEmbedding,
 )
-from matgl.layers._graph_convolution import (
+from matgl.layers._graph_convolution_dgl import (
     MLP,
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,

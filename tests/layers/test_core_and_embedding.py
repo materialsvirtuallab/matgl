@@ -6,7 +6,7 @@ from pymatgen.core import Lattice, Structure
 from torch import nn
 
 import matgl
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
+from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
 from matgl.layers import (
     BondExpansion,
     EmbeddingBlock,

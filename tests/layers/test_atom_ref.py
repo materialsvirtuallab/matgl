@@ -4,7 +4,7 @@ import dgl
 import numpy as np
 import torch
 
-from matgl.layers._atom_ref import AtomRef
+from matgl.layers._atom_ref_dgl import AtomRef
 
 
 class TestAtomRef:
