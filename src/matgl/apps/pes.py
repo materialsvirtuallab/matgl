@@ -15,4 +15,4 @@ else:
         import torch_geometric  # noqa
     except ImportError as err:
         raise ImportError("Please install torch_geometric to use this backend.") from err
-    from ._pes_pyg import Potential  # noqa
+    from ._pes_pyg import Potential  # noqa  # type: ignore[assignment]
