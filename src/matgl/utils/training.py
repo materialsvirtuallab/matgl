@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 class MatglLightningModuleMixin:
     """Mix-in class implementing common functions for training."""
 
-    def training_step(self, batch: tuple, batch_idx: int):
+    def training_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         """Training step.
 
         Args:
@@ -45,12 +45,12 @@ class MatglLightningModuleMixin:
 
         return results["Total_Loss"]
 
-    def on_train_epoch_end(self):
+    def on_train_epoch_end(self) -> None:
         """Step scheduler every epoch."""
         sch = self.lr_schedulers()
         sch.step()
 
-    def validation_step(self, batch: tuple, batch_idx: int):
+    def validation_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         """Validation step.
 
         Args:
@@ -68,7 +68,7 @@ class MatglLightningModuleMixin:
         )
         return results["Total_Loss"]
 
-    def test_step(self, batch: tuple, batch_idx: int):
+    def test_step(self, batch: tuple, batch_idx: int) -> dict[str, Any]:
         """Test step.
 
         Args:
@@ -87,7 +87,7 @@ class MatglLightningModuleMixin:
         )
         return results
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> tuple[list[torch.optim.Optimizer], list[torch.optim.lr_scheduler.LRScheduler]]:
         """Configure optimizers."""
         if self.optimizer is None:
             optimizer = torch.optim.Adam(
@@ -111,7 +111,7 @@ class MatglLightningModuleMixin:
             scheduler,
         ]
 
-    def on_test_model_eval(self, *args, **kwargs):
+    def on_test_model_eval(self, *args: Any, **kwargs: Any) -> None:
         """
         Executed on model testing.
 
@@ -121,7 +121,7 @@ class MatglLightningModuleMixin:
         """
         super().on_test_model_eval(*args, **kwargs)
 
-    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+    def predict_step(self, batch: tuple, batch_idx: int, dataloader_idx: int = 0) -> Any:
         """
         Prediction step.
 
@@ -224,7 +224,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
         return self.model(g, state_attr=state_attr)
 
-    def step(self, batch: tuple):
+    def step(self, batch: tuple) -> tuple[dict[str, Any], int]:
         """Args:
             batch: Batch of training data.
 
@@ -241,7 +241,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         batch_size = preds.numel()
         return results, batch_size
 
-    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor):
+    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor) -> dict[str, Any]:
         """Args:
             loss: Loss function.
             labels: Labels to compute the loss.
