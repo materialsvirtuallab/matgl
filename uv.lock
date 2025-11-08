@@ -1657,8 +1657,6 @@ source = { editable = "." }
 dependencies = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", version = "2.1.0", source = { registry = "https://pypi.org/simple/" }, marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
-    { name = "dgl", version = "2.4.0", source = { registry = "https://data.dgl.ai/wheels/torch-2.4/repo.html" }, marker = "sys_platform == 'linux'" },
     { name = "lightning" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -1666,6 +1664,12 @@ dependencies = [
     { name = "torch" },
     { name = "torch-geometric" },
     { name = "torchdata" },
+]
+
+[package.optional-dependencies]
+dgl = [
+    { name = "dgl", version = "2.1.0", source = { registry = "https://pypi.org/simple/" }, marker = "sys_platform == 'darwin' or sys_platform == 'win32'" },
+    { name = "dgl", version = "2.4.0", source = { registry = "https://data.dgl.ai/wheels/torch-2.4/repo.html" }, marker = "sys_platform == 'linux'" },
 ]
 
 [package.dev-dependencies]
@@ -1692,19 +1696,18 @@ lint = [
 requires-dist = [
     { name = "ase" },
     { name = "boto3" },
-    { name = "dgl", marker = "sys_platform == 'darwin'", specifier = "<=2.2.0", index = "https://pypi.org/simple/" },
-    { name = "dgl", marker = "sys_platform == 'linux'", specifier = "<=2.4.0", index = "https://data.dgl.ai/wheels/torch-2.4/repo.html" },
-    { name = "dgl", marker = "sys_platform == 'win32'", specifier = "<=2.1.0", index = "https://pypi.org/simple/" },
+    { name = "dgl", marker = "sys_platform == 'darwin' and extra == 'dgl'", specifier = "<=2.2.0", index = "https://pypi.org/simple/" },
+    { name = "dgl", marker = "sys_platform == 'linux' and extra == 'dgl'", specifier = "<=2.4.0", index = "https://data.dgl.ai/wheels/torch-2.4/repo.html" },
+    { name = "dgl", marker = "sys_platform == 'win32' and extra == 'dgl'", specifier = "<=2.1.0", index = "https://pypi.org/simple/" },
     { name = "lightning", specifier = "<=2.6.0.dev20251102" },
     { name = "numpy", specifier = "<2.0" },
     { name = "pydantic" },
     { name = "pymatgen" },
-    { name = "torch", marker = "sys_platform != 'linux'", specifier = "<=2.2.0" },
-    { name = "torch", marker = "sys_platform == 'linux'", specifier = "<=2.4.0" },
+    { name = "torch", specifier = "<=2.4.0" },
     { name = "torch-geometric", specifier = ">=2.6.1" },
-    { name = "torchdata", marker = "sys_platform != 'linux'", specifier = "<=0.7.1" },
-    { name = "torchdata", marker = "sys_platform == 'linux'", specifier = "<=0.8.0" },
+    { name = "torchdata", specifier = "<=0.8.0" },
 ]
+provides-extras = ["dgl"]
 
 [package.metadata.requires-dev]
 dev = [
