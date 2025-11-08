@@ -10,7 +10,7 @@ import pytest
 import torch.backends.mps
 from pymatgen.core import Lattice, Structure
 
-from matgl.ext._pymatgen_pyg import Structure2GraphPYG, get_element_list
+from matgl.ext._pymatgen_pyg import Structure2Graph, get_element_list
 from matgl.graph._data_pyg import MGLDataLoader, MGLDataset, collate_fn_pes, split_dataset
 from matgl.models._tensornet_pyg import TensorNet
 from matgl.utils._training_pyg import PotentialLightningModule, xavier_init
@@ -32,7 +32,7 @@ class TestModelTrainer:
         forces = [np.zeros((len(s), 3)).tolist() for s in structures]
         stresses = [np.zeros((3, 3)).tolist()] * len(structures)
         element_types = get_element_list([LiFePO4, BaNiO3])
-        converter = Structure2GraphPYG(element_types=element_types, cutoff=5.0)
+        converter = Structure2Graph(element_types=element_types, cutoff=5.0)
         dataset = MGLDataset(
             structures=structures,
             converter=converter,

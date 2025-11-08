@@ -9,7 +9,7 @@ from functools import partial
 import numpy as np
 from pymatgen.core import Molecule
 
-from matgl.ext._pymatgen_pyg import Molecule2GraphPYG, Structure2GraphPYG, get_element_list
+from matgl.ext._pymatgen_pyg import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph._data_pyg import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes, split_dataset
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +22,7 @@ class TestDataset:
         forces = [np.zeros((28, 3)).tolist(), np.zeros((10, 3)).tolist()]
         stresses = [np.zeros((3, 3)).tolist(), np.zeros((3, 3)).tolist()]
         element_types = get_element_list(structures)
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
@@ -47,7 +47,7 @@ class TestDataset:
     def test_load_mgl_dataset(self, LiFePO4, BaNiO3):
         structures = [LiFePO4, BaNiO3]
         element_types = get_element_list(structures)
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             root="MGLDataset_pes",
         )
@@ -69,7 +69,7 @@ class TestDataset:
         structures = [LiFePO4, BaNiO3]
         labels = [1.0, -2.0]
         element_types = get_element_list(structures)
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             filename_labels="eform.json",
             structures=structures,
@@ -104,7 +104,7 @@ class TestDataset:
         labels = [1.0, -2.0]
         graph_label = [0, 1]
         element_types = get_element_list(structures)
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             filename_labels="eform.json",
             structures=structures,
@@ -122,7 +122,7 @@ class TestDataset:
         structures = [LiFePO4] * 10 + [BaNiO3] * 10
         label = np.zeros(20).tolist()
         element_types = get_element_list([LiFePO4, BaNiO3])
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
@@ -169,7 +169,7 @@ class TestDataset:
         structures = [m1, m1, m1, m1, m1, m1, m1, m1, m1, m1]
         label = np.zeros(10).tolist()
         element_types = get_element_list([m1])
-        mol_graph = Molecule2GraphPYG(element_types=element_types, cutoff=1.5)
+        mol_graph = Molecule2Graph(element_types=element_types, cutoff=1.5)
         dataset = MGLDataset(
             structures=structures,
             converter=mol_graph,
@@ -203,7 +203,7 @@ class TestDataset:
         forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
         stresses = [s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s, s]
         element_types = get_element_list([LiFePO4, BaNiO3])
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
@@ -236,7 +236,7 @@ class TestDataset:
         np.zeros((3, 3)).tolist()
         forces = [f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2, f1, f2]
         element_types = get_element_list([LiFePO4, BaNiO3])
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
@@ -266,7 +266,7 @@ class TestDataset:
         structures = [LiFePO4, BaNiO3] * 10
         e_form = np.zeros(20)
         element_types = get_element_list([LiFePO4, BaNiO3])
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=4.0)
         dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
@@ -306,7 +306,7 @@ class TestDataset:
             "magmoms": magmoms,
         }
         element_types = get_element_list(structures)
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=5.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=5.0)
         dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,
@@ -339,7 +339,7 @@ class TestDataset:
             "magmoms": magmoms,
         }
         element_types = get_element_list(structures)
-        cry_graph = Structure2GraphPYG(element_types=element_types, cutoff=5.0)
+        cry_graph = Structure2Graph(element_types=element_types, cutoff=5.0)
         dataset = MGLDataset(
             structures=structures,
             converter=cry_graph,

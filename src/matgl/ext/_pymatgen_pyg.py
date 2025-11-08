@@ -30,7 +30,7 @@ def get_element_list(train_structures: list[Structure | Molecule]) -> tuple[str,
     return tuple(sorted(elements, key=lambda el: Element(el).Z))
 
 
-class Molecule2GraphPYG(GraphConverter):
+class Molecule2Graph(GraphConverter):
     """Construct a DGL graph from Pymatgen Molecules."""
 
     def __init__(
@@ -79,7 +79,7 @@ class Molecule2GraphPYG(GraphConverter):
         return g, lat, state_attr
 
 
-class Structure2GraphPYG(GraphConverter):
+class Structure2Graph(GraphConverter):
     """Construct a DGL graph from Pymatgen Structure."""
 
     def __init__(

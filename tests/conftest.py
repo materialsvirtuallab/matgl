@@ -17,14 +17,17 @@ from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
 import matgl
-from matgl.ext._pymatgen_dgl import Molecule2Graph, Structure2Graph, get_element_list
-from matgl.ext._pymatgen_pyg import Molecule2GraphPYG, Structure2GraphPYG
-from matgl.graph._compute_dgl import (
-    compute_pair_vector_and_distance,
-)
-from matgl.graph._compute_pyg import (
-    compute_pair_vector_and_distance_pyg,
-)
+
+if matgl.config.BACKEND == "DGL":
+    from matgl.ext._pymatgen_dgl import Molecule2Graph, Structure2Graph, get_element_list
+    from matgl.graph._compute_dgl import (
+        compute_pair_vector_and_distance,
+    )
+else:
+    from matgl.ext._pymatgen_pyg import Molecule2Graph, Structure2Graph  # type: ignore[assignment]
+    from matgl.graph._compute_pyg import (
+        compute_pair_vector_and_distance_pyg,
+    )
 
 matgl.clear_cache(confirm=False)
 
@@ -59,9 +62,9 @@ def get_graph_pyg(structure, cutoff):
     """
     element_types = get_element_list([structure])
     if isinstance(structure, Structure):
-        converter = Structure2GraphPYG(element_types=element_types, cutoff=cutoff)  # type: ignore
+        converter = Structure2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
     else:
-        converter = Molecule2GraphPYG(element_types=element_types, cutoff=cutoff)  # type: ignore
+        converter = Molecule2Graph(element_types=element_types, cutoff=cutoff)  # type: ignore
 
     graph, lattice, state = converter.get_graph(structure)
 

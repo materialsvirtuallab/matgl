@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from pymatgen.core import Lattice, Structure
 
-from matgl.ext._pymatgen_pyg import Structure2GraphPYG, get_element_list
+from matgl.ext._pymatgen_pyg import Structure2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -48,7 +48,7 @@ class TestPmg2Graph:
         assert np.allclose(state, [0.0, 0.0])
         structure_BaTiO3 = Structure.from_prototype("perovskite", ["Ba", "Ti", "O"], a=4.04)
         element_types = get_element_list([structure_BaTiO3])
-        p2g = Structure2GraphPYG(element_types=element_types, cutoff=4.0)
+        p2g = Structure2Graph(element_types=element_types, cutoff=4.0)
         graph, lattice, state = p2g.get_graph(structure_BaTiO3)
         graph.pbc_offshift = torch.matmul(graph.pbc_offset, lattice[0])
         graph.pos = graph.frac_coords @ lattice[0]
