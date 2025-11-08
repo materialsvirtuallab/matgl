@@ -299,9 +299,9 @@ class MGLDataset(Dataset):
 
     def load(self):
         """Load PyG graphs from files."""
-        self.graphs = torch.load(os.path.join(self.root, self.filename))
-        self.lattices = torch.load(os.path.join(self.root, self.filename_lattice))
-        self.state_attr = torch.load(os.path.join(self.root, self.filename_state_attr))
+        self.graphs = torch.load(os.path.join(self.root, self.filename), weights_only=False)
+        self.lattices = torch.load(os.path.join(self.root, self.filename_lattice), weights_only=False)
+        self.state_attr = torch.load(os.path.join(self.root, self.filename_state_attr), weights_only=False)
         with open(os.path.join(self.root, self.filename_labels)) as f:
             self.labels = json.load(f)
 

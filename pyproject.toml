@@ -50,16 +50,16 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "torch<=2.4.0",
-    "torchdata<=0.8.0",
+    "torch<=2.7.0",  # TODO: Remove this pin. For some reason, torch 2.9 gives different results.
+    "torchdata",
     "pymatgen",
     "lightning<=2.6.0.dev20251102",
     "pydantic",
     "boto3",
     "numpy<2.0",
-    "torch-geometric>=2.6.1"
+    "torch-geometric"
 ]
-version = "1.3.0"
+version = "2.0.0"
 
 [tool.uv.sources]
 dgl = [
