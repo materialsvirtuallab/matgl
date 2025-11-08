@@ -11,7 +11,6 @@ This notebook demonstrates the use of the pre-trained universal potentials to pe
 Author: Tsz Wai Ko (Kenko)
 Email: t1ko@ucsd.edu
 
-
 ```python
 from __future__ import annotations
 
@@ -22,7 +21,7 @@ from pymatgen.core import Lattice, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
-from matgl.ext.ase import MolecularDynamics, PESCalculator, Relaxer
+from matgl.ext._ase_dgl import MolecularDynamics, PESCalculator, Relaxer
 
 # To suppress warnings for clearer output
 warnings.simplefilter("ignore")

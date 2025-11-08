@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 import torch
 
+import matgl
 from matgl.utils.io import IOMixIn, get_available_pretrained_models, load_model
 
 this_dir = Path(os.path.abspath(os.path.dirname(__file__)))
@@ -49,8 +50,10 @@ def test_get_available_pretrained_models():
     assert "M3GNet-MP-2021.2.8-PES" in model_names
 
 
+@pytest.mark.skipif(matgl.config.BACKEND != "DGL", reason="Only works with DGL.")
 def test_load_model():
     # Load model from name.
+
     model = load_model("M3GNet-MP-2021.2.8-DIRECT-PES")
     assert issubclass(model.__class__, torch.nn.Module)
 
@@ -60,6 +63,8 @@ def test_load_model():
     model = load_model(this_dir / ".." / ".." / "pretrained_models" / "CHGNet-MPtrj-2024.2.13-11M-PES")
     assert issubclass(model.__class__, torch.nn.Module)
 
+
+def test_load_bad_model():
     with pytest.raises(ValueError, match=r"Bad serialized model or bad model name."):
         load_model("badbadmodelname")
 

@@ -50,13 +50,8 @@ classifiers = [
 ]
 dependencies = [
     "ase",
-    "dgl<=2.1.0; sys.platform == 'win32'",
-    "dgl<=2.2.0; sys.platform == 'darwin'",
-    "torch<=2.2.0; sys.platform != 'linux'",
-    "torchdata<=0.7.1; sys.platform != 'linux'",
-    "dgl<=2.4.0; sys.platform == 'linux'",
-    "torch<=2.4.0; sys.platform == 'linux'",
-    "torchdata<=0.8.0; sys.platform == 'linux'",
+    "torch<=2.4.0",
+    "torchdata<=0.8.0",
     "pymatgen",
     "lightning<=2.6.0.dev20251102",
     "pydantic",
@@ -83,6 +78,13 @@ url = "https://pypi.org/simple/"
 
 [project.scripts]
 mgl = "matgl.cli:main"
+
+[project.optional-dependencies]
+dgl = [
+    "dgl<=2.1.0; sys.platform == 'win32'",
+    "dgl<=2.2.0; sys.platform == 'darwin'",
+    "dgl<=2.4.0; sys.platform == 'linux'",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

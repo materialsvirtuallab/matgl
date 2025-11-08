@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from torch_geometric.data import Data
 
 
-class TensorEmbeddingPYG(MessagePassing):
+class TensorEmbedding(MessagePassing):
     """Embedding block for TensorNet to generate node, edge, and optional state features using PyG.
     Adapted from the DGL implementation in https://github.com/torchmd/torchmd-net.
     """

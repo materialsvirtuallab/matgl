@@ -16,7 +16,6 @@ If you are running this notebook from Google Colab, uncomment the next code box 
 # !pip install matgl
 ```
 
-
 ```python
 from __future__ import annotations
 
@@ -30,7 +29,7 @@ from pymatgen.ext.matproj import MPRester
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 import matgl
-from matgl.ext.ase import Relaxer
+from matgl.ext._ase_dgl import Relaxer
 
 warnings.filterwarnings("ignore")
 ```

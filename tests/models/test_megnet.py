@@ -8,7 +8,10 @@ import torch as th
 from pymatgen.core import Lattice, Structure
 
 import matgl
-from matgl.graph.compute import compute_pair_vector_and_distance
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
+from matgl.graph._compute_dgl import compute_pair_vector_and_distance
 from matgl.models import MEGNet
 
 

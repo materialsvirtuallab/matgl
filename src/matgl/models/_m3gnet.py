@@ -19,7 +19,7 @@ import torch
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENTS
-from matgl.graph.compute import (
+from matgl.graph._compute_dgl import (
     compute_pair_vector_and_distance,
     compute_theta_and_phi,
     create_line_graph,
@@ -44,7 +44,7 @@ from matgl.utils.cutoff import polynomial_cutoff
 from ._core import MatGLModel
 
 if TYPE_CHECKING:
-    from matgl.graph.converters import GraphConverter
+    from matgl.graph._converters_dgl import GraphConverter
 
 logger = logging.getLogger(__file__)
 
@@ -337,7 +337,7 @@ class M3GNet(MatGLModel):
             raise ValueError(f"Invalid output_layers, it must be a sublist of {allowed_output_layers}.")
 
         if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
+            from matgl.ext._pymatgen_dgl import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
 

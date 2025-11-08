@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from torch_geometric.data import Data
 
 
-class TensorNetInteractionPYG(MessagePassing):
+class TensorNetInteraction(MessagePassing):
     """A Graph Convolution block for TensorNet adapted for PyTorch Geometric."""
 
     def __init__(

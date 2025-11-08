@@ -11,7 +11,7 @@ from torch_geometric.data import Batch, Data
 
 import matgl
 from matgl.layers._atom_ref_pyg import AtomRefPYG
-from matgl.layers._zbl_pyg import NuclearRepulsionPyG
+from matgl.layers._zbl_pyg import NuclearRepulsion
 from matgl.utils.io import IOMixIn
 
 if TYPE_CHECKING:
@@ -64,7 +64,7 @@ class Potential(nn.Module, IOMixIn):
         self.calc_repuls = calc_repuls
 
         if calc_repuls:
-            self.repuls = NuclearRepulsionPyG(self.model.cutoff, trainable=zbl_trainable)
+            self.repuls = NuclearRepulsion(self.model.cutoff, trainable=zbl_trainable)
 
         if element_refs is not None:
             if not isinstance(element_refs, torch.Tensor):

@@ -16,7 +16,7 @@ on:
         description: Only run tests or release a new version to PyPI after tests pass.
 
 jobs:
-  test:
+  test_dgl:
     strategy:
       max-parallel: 20
       matrix:
@@ -31,6 +31,7 @@ jobs:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
       DGLBACKEND: "pytorch"
+      MATGL_BACKEND: "DGL"
 
     steps:
       - uses: actions/checkout@v4
@@ -47,7 +48,7 @@ jobs:
         run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
-          uv pip install -e .
+          uv pip install -e '.[dgl]'
           uv pip install pytest pytest-cov
       - name: pytest
         run: |
@@ -58,10 +59,44 @@ jobs:
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  test_pyg:
+    strategy:
+      max-parallel: 20
+      matrix:
+        config:
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: macos-latest
+            python: "3.10"
+
+    runs-on: ${{ matrix.config.os }}
+    env:
+      PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
+      PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
+      MATGL_BACKEND: "PYG"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          python-version: ${{ matrix.config.python }}
+      - name: Virtual env
+        run: uv venv --python ${{ matrix.config.python }}
+      - name: Install dependencies
+        run: |
+          uv pip install -e .
+          uv pip install pytest pytest-cov
+      - name: pytest
+        run: |
+          uv run python -c "import torch; print(torch.__version__)"
+          uv run pytest --cov=matgl tests --color=yes
 
   release:
     if: github.event_name == 'release' || inputs.task == 'release'
-    needs: test
+    needs: test_dgl
     runs-on: ubuntu-latest
     permissions:
       # For pypi trusted publishing
