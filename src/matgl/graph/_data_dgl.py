@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from matgl.graph._converters_dgl import GraphConverter
 
 
-def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_per_target: bool = False):
+def collate_fn_graph(batch: list, include_line_graph: bool = False, multiple_values_per_target: bool = False) -> tuple:
     """Merge a list of dgl graphs to form a batch."""
     line_graphs = None
     if include_line_graph:
@@ -48,7 +48,9 @@ def collate_fn_graph(batch, include_line_graph: bool = False, multiple_values_pe
     return g, lat, state_attr, labels
 
 
-def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False):
+def collate_fn_pes(
+    batch: list, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False
+) -> tuple:
     """Merge a list of dgl graphs to form a batch."""
     l_g = None
     if include_line_graph:
@@ -206,7 +208,7 @@ class MGLDataset(DGLDataset):
             files_to_check.append(self.filename_line_graph)
         return all(os.path.exists(os.path.join(self.save_path, f)) for f in files_to_check)
 
-    def process(self):
+    def process(self) -> tuple:
         """Convert Pymatgen structure into dgl graphs."""
         num_graphs = len(self.structures)  # type: ignore
         graphs, lattices, line_graphs, state_attrs = [], [], [], []
@@ -229,10 +231,12 @@ class MGLDataset(DGLDataset):
                 line_graphs.append(line_graph)
             graph.ndata.pop("pos")
             graph.edata.pop("pbc_offshift")
-        if self.graph_labels is not None:
-            state_attrs = torch.tensor(self.graph_labels).long()
-        else:
-            state_attrs = torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+
+        state_attrs_tensor: torch.Tensor = (
+            torch.tensor(self.graph_labels).long()
+            if self.graph_labels is not None
+            else torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+        )
 
         if self.clear_processed:
             del self.structures
@@ -240,13 +244,13 @@ class MGLDataset(DGLDataset):
 
         self.graphs = graphs
         self.lattices = lattices
-        self.state_attr = state_attrs
+        self.state_attr = state_attrs_tensor
         if self.include_line_graph:
             self.line_graphs = line_graphs
             return self.graphs, self.lattices, self.line_graphs, self.state_attr
         return self.graphs, self.lattices, self.state_attr
 
-    def save(self):
+    def save(self) -> None:
         """Save dgl graphs and labels to self.save_path."""
         if self.save_cache is False:
             return
@@ -263,7 +267,7 @@ class MGLDataset(DGLDataset):
         if self.include_line_graph:
             save_graphs(os.path.join(self.save_path, self.filename_line_graph), self.line_graphs)
 
-    def load(self):
+    def load(self) -> None:
         """Load dgl graphs from files."""
         self.graphs, _ = load_graphs(os.path.join(self.save_path, self.filename))
         self.lattices = torch.load(os.path.join(self.save_path, self.filename_lattice))

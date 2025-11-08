@@ -11,9 +11,9 @@ from .config import clear_cache
 from .utils.io import get_available_pretrained_models, load_model
 
 try:
-    __version__ = version("matgl")
+    __version__: str = version("matgl")
 except PackageNotFoundError:
-    pass  # package not installed
+    __version__ = "unknown"  # package not installed
 
 
 # Default datatypes definitions
@@ -25,7 +25,7 @@ int_np = np.int32
 int_th = torch.int32
 
 
-def set_default_dtype(type_: str = "float", size: int = 32):
+def set_default_dtype(type_: str = "float", size: int = 32) -> None:
     """
     Set the default dtype size (16, 32 or 64) for int or float used throughout matgl.
 

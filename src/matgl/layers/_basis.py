@@ -409,4 +409,7 @@ class ExpNormalFunction(nn.Module):
             torch.Tensor: Smearing function applied to the input distances.
         """
         r = r.unsqueeze(-1)
-        return cosine_cutoff(r, self.cutoff) * torch.exp(-self.betas * (torch.exp(self.alpha * (-r)) - self.means) ** 2)
+        cutoff = torch.as_tensor(self.cutoff).item()  # type: ignore[assignment]
+        betas = torch.as_tensor(self.betas)  # type: ignore[assignment]
+        means = torch.as_tensor(self.means)  # type: ignore[assignment]
+        return cosine_cutoff(r, cutoff) * torch.exp(-betas * (torch.exp(self.alpha * (-r)) - means) ** 2)

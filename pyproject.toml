@@ -204,6 +204,6 @@ dev = [
     "sphinx-markdown-builder>=0.6.8",
 ]
 lint = [
-    "mypy>=1.15.0",
+    "mypy>=1.18.0",
     "ruff>=0.11.2",
 ]

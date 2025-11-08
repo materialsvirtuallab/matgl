@@ -13,14 +13,9 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
-      - name: Virtual env
-        run: uv venv
-      - name: Install latest DGL for Linux
-        run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
-          uv pip install -e .
-          uv pip install ruff mypy
+          uv sync --group lint
 
       - name: ruff
         run: |

@@ -3,8 +3,14 @@ name: Test
 on:
   push:
     branches: ["*"]
+    paths:
+      - "src/**"
+      - "tests/**"
   pull_request:
     branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
   release:
     types: [published]
   workflow_dispatch:
@@ -126,6 +132,7 @@ jobs:
         run: |
           pip install coverage
           # Collect all .coverage files from both test jobs (only ubuntu runs)
+          # Find and copy all .coverage files to current directory with unique names
           counter=1
           if [ -d coverage-dgl ]; then
             for f in $(find coverage-dgl -name ".coverage" -type f); do
