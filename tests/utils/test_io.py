@@ -51,6 +51,10 @@ def test_get_available_pretrained_models():
 
 def test_load_model():
     # Load model from name.
+    import matgl
+
+    matgl.config.BACKEND = "DGL"
+
     model = load_model("M3GNet-MP-2021.2.8-DIRECT-PES")
     assert issubclass(model.__class__, torch.nn.Module)
 

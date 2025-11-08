@@ -5,8 +5,12 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pymatgen.core.periodic_table import Element
+
+if TYPE_CHECKING:
+    from typing import Literal
 
 # Default set of elements supported by universal matgl models. Excludes radioactive and most artificial elements.
 DEFAULT_ELEMENTS = tuple(el.symbol for el in Element if el.symbol not in ["Po", "At", "Rn", "Fr", "Ra"] and el.Z < 95)
@@ -18,6 +22,9 @@ os.makedirs(MATGL_CACHE, exist_ok=True)
 
 # Download url for pre-trained models.
 PRETRAINED_MODELS_BASE_URL = "http://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
+
+# Set the backend. Note that not all models are available for all backends.
+BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "PYG")  # type: ignore[assignment]
 
 
 def clear_cache(confirm: bool = True):
