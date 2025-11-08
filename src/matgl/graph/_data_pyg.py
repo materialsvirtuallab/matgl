@@ -37,7 +37,9 @@ def ensure_batch_attribute(data: Data) -> Data:
     return data
 
 
-def split_dataset(self, frac_list: list[float] | None = None, shuffle: bool = False, random_state: int = 42) -> tuple[Subset, Subset, Subset]:
+def split_dataset(
+    self, frac_list: list[float] | None = None, shuffle: bool = False, random_state: int = 42
+) -> tuple[Subset, Subset, Subset]:
     if frac_list is None:
         frac_list = [0.8, 0.1, 0.1]
     num_graphs = len(self)
@@ -56,7 +58,9 @@ def split_dataset(self, frac_list: list[float] | None = None, shuffle: bool = Fa
     return (Subset(self, train_idx), Subset(self, val_idx), Subset(self, test_idx))
 
 
-def collate_fn_graph(batch: list, multiple_values_per_target: bool = False) -> tuple[Batch | Data, torch.Tensor, torch.Tensor, torch.Tensor]:
+def collate_fn_graph(
+    batch: list, multiple_values_per_target: bool = False
+) -> tuple[Batch | Data, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Merge a list of PyG graphs to form a batch.
 
@@ -85,7 +89,9 @@ def collate_fn_graph(batch: list, multiple_values_per_target: bool = False) -> t
     return g, lat, state_attr, labels
 
 
-def collate_fn_pes(batch: list, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False) -> tuple:
+def collate_fn_pes(
+    batch: list, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False
+) -> tuple:
     """Merge a list of PyG Data objects to form a batch.
 
     Args:
