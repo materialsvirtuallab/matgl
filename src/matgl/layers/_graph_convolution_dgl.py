@@ -11,7 +11,8 @@ from torch import Tensor, nn
 from torch.nn import Dropout, Identity, Module
 
 import matgl
-from matgl.layers._core import MLP, GatedMLP, GatedMLP_norm
+from matgl.layers import GatedMLP_norm
+from matgl.layers._core import MLP, GatedMLP
 from matgl.layers._norm import GraphNorm, LayerNorm
 from matgl.utils.cutoff import cosine_cutoff
 from matgl.utils.maths import decompose_tensor, new_radial_tensor, tensor_norm

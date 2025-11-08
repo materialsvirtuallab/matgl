@@ -7,12 +7,15 @@ import os
 from functools import partial
 from typing import TYPE_CHECKING
 
-import dgl
+try:
+    import dgl
+    from dgl.data import DGLDataset
+    from dgl.data.utils import load_graphs, save_graphs
+    from dgl.dataloading import GraphDataLoader
+except ImportError:
+    dgl = None
 import numpy as np
 import torch
-from dgl.data import DGLDataset
-from dgl.data.utils import load_graphs, save_graphs
-from dgl.dataloading import GraphDataLoader
 from tqdm import trange
 
 import matgl

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import dgl
 import pytest
 import torch
 
@@ -10,6 +9,8 @@ import matgl
 
 if matgl.config.BACKEND != "DGL":
     pytest.skip("Skipping DGL tests", allow_module_level=True)
+import dgl
+
 from matgl.layers import NuclearRepulsion
 
 

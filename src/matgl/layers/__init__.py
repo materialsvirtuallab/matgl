@@ -4,22 +4,19 @@ from __future__ import annotations
 
 from matgl.config import BACKEND
 from matgl.layers._activations import ActivationFunction
-from matgl.layers._atom_ref_dgl import AtomRef
-from matgl.layers._basis import FourierExpansion, RadialBesselFunction, SphericalBesselWithHarmonics
 from matgl.layers._bond import BondExpansion
 from matgl.layers._core import (
     MLP,
-    EdgeSet2Set,
     GatedEquivariantBlock,
     GatedMLP,
-    GatedMLP_norm,
-    MLP_norm,
     build_gated_equivariant_mlp,
 )
 from matgl.layers._norm import GraphNorm
-from matgl.layers._three_body import ThreeBodyInteractions
 
 if BACKEND == "DGL":
+    from matgl.layers._atom_ref_dgl import AtomRef
+    from matgl.layers._basis import FourierExpansion, RadialBesselFunction, SphericalBesselWithHarmonics
+    from matgl.layers._core_dgl import EdgeSet2Set, GatedMLP_norm, MLP_norm
     from matgl.layers._embedding_dgl import EmbeddingBlock, NeighborEmbedding, TensorEmbedding
     from matgl.layers._graph_convolution_dgl import (
         CHGNetAtomGraphBlock,
@@ -41,6 +38,7 @@ if BACKEND == "DGL":
         WeightedReadOut,
         WeightedReadOutPair,
     )
+    from matgl.layers._three_body import ThreeBodyInteractions
     from matgl.layers._zbl_dgl import NuclearRepulsion
 else:
     from matgl.layers._embedding_pyg import TensorEmbedding  # type: ignore[assignment]

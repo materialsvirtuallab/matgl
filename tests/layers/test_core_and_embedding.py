@@ -15,11 +15,13 @@ from matgl.layers import (
     BondExpansion,
     EmbeddingBlock,
     GatedEquivariantBlock,
+    GatedMLP_norm,
+    MLP_norm,
     NeighborEmbedding,
     TensorEmbedding,
     build_gated_equivariant_mlp,
 )
-from matgl.layers._core import MLP, GatedMLP, GatedMLP_norm, MLP_norm
+from matgl.layers._core import MLP, GatedMLP
 
 
 @pytest.fixture
