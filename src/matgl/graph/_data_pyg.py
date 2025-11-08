@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -60,7 +60,7 @@ def split_dataset(
 
 def collate_fn_graph(
     batch: list, multiple_values_per_target: bool = False
-) -> tuple[Batch | Data, torch.Tensor | Any, torch.Tensor, torch.Tensor]:
+) -> tuple[Batch | Data, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Merge a list of PyG graphs to form a batch.
 
@@ -78,15 +78,15 @@ def collate_fn_graph(
     graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
 
     g = Batch.from_data_list(graphs)  # Batch main graphs
-    labels = (
+    labels_tensor: torch.Tensor = (
         torch.vstack([next(iter(d.values())) for d in labels])  # type:ignore[assignment]
         if multiple_values_per_target
         else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)
     )
-    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
-    lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
+    state_attr_tensor: torch.Tensor = torch.stack(state_attr)  # type:ignore[assignment]
+    lat: torch.Tensor = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))  # type: ignore[assignment]
 
-    return g, lat, state_attr, labels
+    return g, lat, state_attr_tensor, labels_tensor
 
 
 def collate_fn_pes(
