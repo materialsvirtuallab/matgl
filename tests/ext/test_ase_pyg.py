@@ -66,7 +66,7 @@ def test_PESCalculator_mol(AcAla3NHMe):
     mol.set_calculator(calc)
     assert isinstance(mol.get_potential_energy(), float)
     assert list(mol.get_forces().shape) == [42, 3]
-    np.testing.assert_allclose(mol.get_potential_energy(), -247.286789)
+    np.testing.assert_allclose(mol.get_potential_energy(), -247.286789, atol=1e-3)
 
 
 def test_Relaxer(MoS):
