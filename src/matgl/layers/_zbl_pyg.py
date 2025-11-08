@@ -14,7 +14,7 @@ from matgl.layers._activations import softplus_inverse
 from matgl.utils.cutoff import polynomial_cutoff
 
 
-class NuclearRepulsionPyG(MessagePassing):
+class NuclearRepulsion(MessagePassing):
     """
     Ziegler-Biersack-Littmark style repulsion energy.
 

@@ -7,7 +7,7 @@ import torch
 from torch_geometric.data import Data
 
 import matgl
-from matgl.layers._zbl_pyg import NuclearRepulsionPyG
+from matgl.layers._zbl_pyg import NuclearRepulsion
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def test_nuclear_repulsion(example_data):
     element_types, graph = example_data
 
     r_cut = 3.0
-    nuclear_repulsion = NuclearRepulsionPyG(r_cut=r_cut, trainable=True)
+    nuclear_repulsion = NuclearRepulsion(r_cut=r_cut, trainable=True)
 
     energy = nuclear_repulsion(element_types, graph)
 

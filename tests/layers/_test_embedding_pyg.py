@@ -5,7 +5,7 @@ from torch import nn
 import matgl
 from matgl.layers import BondExpansion
 from matgl.layers._embedding_pyg import (
-    TensorEmbeddingPYG,
+    TensorEmbedding,
 )
 
 
@@ -15,7 +15,7 @@ class TestCoreAndEmbedding:
         bond_expansion = BondExpansion(rbf_type="SphericalBessel", max_n=3, max_l=3, cutoff=4.0, smooth=True)
         g1.edge_attr = bond_expansion(g1.bond_dist)
         # without state
-        tensor_embedding = TensorEmbeddingPYG(
+        tensor_embedding = TensorEmbedding(
             units=64,
             degree_rbf=3,
             activation=nn.SiLU(),

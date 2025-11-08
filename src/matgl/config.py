@@ -24,7 +24,7 @@ os.makedirs(MATGL_CACHE, exist_ok=True)
 PRETRAINED_MODELS_BASE_URL = "http://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 # Set the backend. Note that not all models are available for all backends.
-BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "PYG")  # type: ignore[assignment]
+BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "DGL")  # type: ignore[assignment]
 
 
 def clear_cache(confirm: bool = True):
