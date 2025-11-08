@@ -114,7 +114,9 @@ class Potential(nn.Module, IOMixIn):
 
         total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
 
-        total_energies = self.data_std * total_energies + self.data_mean
+        data_std = torch.as_tensor(self.data_std)  # type: ignore[assignment]
+        data_mean = torch.as_tensor(self.data_mean)  # type: ignore[assignment]
+        total_energies = data_std * total_energies + data_mean
 
         if self.calc_repuls:
             total_energies += self.repuls(self.model.element_types, g)

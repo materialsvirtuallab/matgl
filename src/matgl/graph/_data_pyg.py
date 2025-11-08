@@ -159,6 +159,11 @@ def MGLDataLoader(
 class MGLDataset(Dataset):
     """Create a dataset including PyTorch Geometric graphs."""
 
+    graphs: list[Data]
+    lattices: list[torch.Tensor]
+    state_attr: torch.Tensor
+    labels: dict[str, list]
+
     def __init__(
         self,
         filename: str = "pyg_graph.pt",
@@ -215,12 +220,19 @@ class MGLDataset(Dataset):
         self.save_cache = save_cache
         self.root = root
 
+        # Initialize attributes that will be set in process() or load()
+        self.graphs = []
+        self.lattices = []
+        self.state_attr = torch.tensor([])
+
         super().__init__(root, transform, pre_transform, pre_filter)
 
         # Load or process data
 
         if self.has_cache():
             self.load()
+        else:
+            self.process()
 
         shutil.rmtree(self.root + "/processed/")
 
@@ -307,11 +319,11 @@ class MGLDataset(Dataset):
 
     def load(self) -> None:
         """Load PyG graphs from files."""
-        self.graphs = torch.load(os.path.join(self.root, self.filename), weights_only=False)
-        self.lattices = torch.load(os.path.join(self.root, self.filename_lattice), weights_only=False)
-        self.state_attr = torch.load(os.path.join(self.root, self.filename_state_attr), weights_only=False)
+        self.graphs = torch.load(os.path.join(self.root, self.filename), weights_only=False)  # type: ignore[assignment]
+        self.lattices = torch.load(os.path.join(self.root, self.filename_lattice), weights_only=False)  # type: ignore[assignment]
+        self.state_attr = torch.load(os.path.join(self.root, self.filename_state_attr), weights_only=False)  # type: ignore[assignment]
         with open(os.path.join(self.root, self.filename_labels)) as f:
-            self.labels = json.load(f)
+            self.labels = json.load(f)  # type: ignore[assignment]
 
     def __getitem__(self, idx: int) -> tuple:
         """Get graph and associated data with idx."""

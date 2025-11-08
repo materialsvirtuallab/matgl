@@ -66,11 +66,16 @@ class NuclearRepulsion(MessagePassing):
         r_ij = graph.bond_dist
 
         # Construct screening function
-        a = z ** F.softplus(self.a_pow)
-        a_ij = (a[idx_i] + a[idx_j]) * F.softplus(self.a_div)
+        a_pow = torch.as_tensor(self.a_pow)  # type: ignore[assignment]
+        a_div = torch.as_tensor(self.a_div)  # type: ignore[assignment]
+        exponents_param = torch.as_tensor(self.exponents)  # type: ignore[assignment]
+        coefficients_param = torch.as_tensor(self.coefficients)  # type: ignore[assignment]
+
+        a = z ** F.softplus(a_pow)
+        a_ij = (a[idx_i] + a[idx_j]) * F.softplus(a_div)
         # Get exponents and coefficients, normalize the latter
-        exponents = a_ij[..., None] * F.softplus(self.exponents)[None, ...]
-        coefficients = F.softplus(self.coefficients)[None, ...]
+        exponents = a_ij[..., None] * F.softplus(exponents_param)[None, ...]
+        coefficients = F.softplus(coefficients_param)[None, ...]
         coefficients = F.normalize(coefficients, p=1.0, dim=1)
 
         screening = torch.sum(coefficients * torch.exp(-exponents * r_ij[:, None]), dim=1)
@@ -82,7 +87,7 @@ class NuclearRepulsion(MessagePassing):
         e_repuls = scatter(eij_repuls, idx_i.to(torch.long))
 
         # Global summation of node energies
-        energy = 0.5 * self.ke * global_add_pool(e_repuls, graph.batch)
+        energy = 0.5 * torch.as_tensor(self.ke) * global_add_pool(e_repuls, graph.batch)  # type: ignore[operator]
 
         return torch.squeeze(energy)
 

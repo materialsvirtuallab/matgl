@@ -66,17 +66,19 @@ class AtomRef(nn.Module):
             offset_per_graph
         """
         one_hot = torch.as_tensor(self.onehot)[g.ndata["node_type"]]  # type: ignore[index]
-        if self.property_offset.ndim > 1:
+        property_offset = torch.as_tensor(self.property_offset)  # type: ignore[assignment]
+
+        if property_offset.ndim > 1:
             offset_batched_with_state = []
-            for i in range(self.property_offset.size(dim=0)):
-                property_offset_batched = self.property_offset[i].repeat(g.num_nodes(), 1)
+            for i in range(property_offset.size(dim=0)):
+                property_offset_batched = property_offset[i].repeat(g.num_nodes(), 1)
                 offset = property_offset_batched * one_hot
                 g.ndata["atomic_offset"] = torch.sum(offset, 1)
                 offset_batched = dgl.readout_nodes(g, "atomic_offset")
                 offset_batched_with_state.append(offset_batched)
             offset_batched_with_state = torch.stack(offset_batched_with_state)  # type: ignore
             return offset_batched_with_state[state_attr]  # type: ignore
-        property_offset_batched = self.property_offset.repeat(g.num_nodes(), 1).to(one_hot.device)
+        property_offset_batched = property_offset.repeat(g.num_nodes(), 1).to(one_hot.device)
         offset = property_offset_batched * one_hot
         g.ndata["atomic_offset"] = torch.sum(offset, 1)
         offset_batched = dgl.readout_nodes(g, "atomic_offset")
