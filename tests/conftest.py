@@ -24,7 +24,7 @@ if matgl.config.BACKEND == "DGL":
         compute_pair_vector_and_distance,
     )
 else:
-    from matgl.ext._pymatgen_pyg import Molecule2Graph, Structure2Graph  # type: ignore[assignment]
+    from matgl.ext._pymatgen_pyg import Molecule2Graph, Structure2Graph, get_element_list  # type: ignore[assignment]
     from matgl.graph._compute_pyg import (
         compute_pair_vector_and_distance_pyg,
     )
