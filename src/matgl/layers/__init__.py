@@ -45,9 +45,9 @@ if BACKEND == "DGL":
 else:
     from matgl.layers._embedding_pyg import TensorEmbedding  # type: ignore[assignment]
     from matgl.layers._graph_convolution_pyg import TensorNetInteraction  # type: ignore[assignment]
-    from matgl.layers._readout_pyg import (
-        ReduceReadOut,  # type: ignore[assignment]
-        WeightedAtomReadOut,  # type: ignore[assignment]
-        WeightedReadOut,  # type: ignore[assignment]
+    from matgl.layers._readout_pyg import (  # type: ignore[assignment]
+        ReduceReadOut,
+        WeightedAtomReadOut,
+        WeightedReadOut,
     )
     from matgl.layers._zbl_pyg import NuclearRepulsion  # type: ignore[assignment]
