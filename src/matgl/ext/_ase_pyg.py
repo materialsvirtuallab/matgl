@@ -193,8 +193,9 @@ class PESCalculator(Calculator):
         properties = properties or ["energy"]
         system_changes = system_changes or all_changes
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
-        graph, lattice, state_attr_default = Atoms2Graph(self.element_types, self.cutoff).get_graph(atoms)
-        # type: ignore
+        element_types: tuple[str, ...] = self.element_types  # type: ignore[assignment]
+        cutoff: float = self.cutoff  # type: ignore[assignment]
+        graph, lattice, state_attr_default = Atoms2Graph(element_types, cutoff).get_graph(atoms)
         if self.state_attr is not None:
             calc_result = self.potential(graph, lattice, self.state_attr)
         else:

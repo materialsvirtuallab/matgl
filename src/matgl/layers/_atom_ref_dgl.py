@@ -65,7 +65,7 @@ class AtomRef(nn.Module):
         Returns:
             offset_per_graph
         """
-        one_hot = self.onehot[g.ndata["node_type"]]
+        one_hot = torch.as_tensor(self.onehot)[g.ndata["node_type"]]  # type: ignore[index]
         if self.property_offset.ndim > 1:
             offset_batched_with_state = []
             for i in range(self.property_offset.size(dim=0)):

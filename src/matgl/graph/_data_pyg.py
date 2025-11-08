@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import torch
@@ -60,7 +60,7 @@ def split_dataset(
 
 def collate_fn_graph(
     batch: list, multiple_values_per_target: bool = False
-) -> tuple[Batch | Data, torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[Batch | Data, torch.Tensor | Any, torch.Tensor, torch.Tensor]:
     """
     Merge a list of PyG graphs to form a batch.
 
@@ -271,17 +271,18 @@ class MGLDataset(Dataset):
                 if hasattr(data, "pbc_offshift"):
                     del data.pbc_offshift
 
-            if self.graph_labels is not None:
-                state_attrs = torch.tensor(self.graph_labels, dtype=torch.long)
-            else:
-                state_attrs = torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+            state_attrs_tensor: torch.Tensor = (
+                torch.tensor(self.graph_labels, dtype=torch.long)
+                if self.graph_labels is not None
+                else torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+            )
 
             if self.clear_processed:
                 del self.structures
                 self.structures = []
             self.graphs = graphs
             self.lattices = lattices
-            self.state_attr = state_attrs
+            self.state_attr = state_attrs_tensor
 
             # Validate loaded or processed data
             if not self.graphs:

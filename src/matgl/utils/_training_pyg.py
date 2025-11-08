@@ -340,8 +340,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             element_refs=element_refs,
             calc_stresses=stress_weight != 0,
             calc_magmom=magmom_weight != 0,
-            data_std=self.data_std,
-            data_mean=self.data_mean,
+            data_std=torch.as_tensor(self.data_std),  # type: ignore[arg-type]
+            data_mean=torch.as_tensor(self.data_mean),  # type: ignore[arg-type]
         )
         if loss == "mse_loss":
             self.loss = F.mse_loss

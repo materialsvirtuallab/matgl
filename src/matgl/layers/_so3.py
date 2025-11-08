@@ -125,22 +125,31 @@ class RealSphericalHarmonics(nn.Module):
         Returns:
             real spherical harmonics up to angular momentum `lmax`.
         """
+        powers = torch.as_tensor(self.powers)  # type: ignore[assignment]
+        zpow = torch.as_tensor(self.zpow)  # type: ignore[assignment]
+        cAm = torch.as_tensor(self.cAm)  # type: ignore[assignment]
+        cBm = torch.as_tensor(self.cBm)  # type: ignore[assignment]
+        cPi = torch.as_tensor(self.cPi)  # type: ignore[assignment]
+        flidx = torch.as_tensor(self.flidx)  # type: ignore[assignment]
+        lidx = torch.as_tensor(self.lidx)  # type: ignore[assignment]
+        midx = torch.as_tensor(self.midx)  # type: ignore[assignment]
+
         target_shape = [
             directions.shape[0],
-            self.powers.shape[0],
-            self.powers.shape[1],
+            powers.shape[0],
+            powers.shape[1],
             2,
         ]
         Rs = torch.broadcast_to(directions[:, None, None, :2], target_shape)
-        pows = torch.broadcast_to(self.powers[None], target_shape)
+        pows = torch.broadcast_to(powers[None], target_shape)
 
         Rs = torch.where(pows == 0, torch.ones_like(Rs), Rs)
 
-        temp = Rs**self.powers
+        temp = Rs**powers
         monomials_xy = torch.prod(temp, dim=-1)
 
-        Am = torch.sum(monomials_xy * self.cAm[None], 2)
-        Bm = torch.sum(monomials_xy * self.cBm[None], 2)
+        Am = torch.sum(monomials_xy * cAm[None], 2)
+        Bm = torch.sum(monomials_xy * cBm[None], 2)
         ABm = torch.cat(
             [
                 torch.flip(Bm, (1,)),
@@ -149,22 +158,22 @@ class RealSphericalHarmonics(nn.Module):
             ],
             dim=1,
         )
-        ABm = ABm[:, self.midx + self.lmax]
+        ABm = ABm[:, midx + self.lmax]
 
         target_shape = [
             directions.shape[0],
-            self.zpow.shape[0],
-            self.zpow.shape[1],
-            self.zpow.shape[2],
+            zpow.shape[0],
+            zpow.shape[1],
+            zpow.shape[2],
         ]
         z = torch.broadcast_to(directions[:, 2, None, None, None], target_shape)
-        zpows = torch.broadcast_to(self.zpow[None], target_shape)
+        zpows = torch.broadcast_to(zpow[None], target_shape)
         z = torch.where(zpows == 0, torch.ones_like(z), z)
         zk = z**zpows
 
-        Pi = torch.sum(zk * self.cPi, dim=-1)  # batch x L x M
-        Pi_lm = Pi[:, self.lidx, abs(self.midx)]
-        sphharm = torch.sqrt((2 * self.flidx + 1) / (2 * math.pi)) * Pi_lm * ABm
+        Pi = torch.sum(zk * cPi, dim=-1)  # batch x L x M
+        Pi_lm = Pi[:, lidx, abs(midx)]
+        sphharm = torch.sqrt((2 * flidx + 1) / (2 * math.pi)) * Pi_lm * ABm
         return sphharm
 
 
@@ -235,10 +244,15 @@ class SO3TensorProduct(nn.Module):
             y: product of SO3 features.
 
         """
-        x1 = x1[:, self.idx_in_1, :]
-        x2 = x2[:, self.idx_in_2, :]
-        y = x1 * x2 * self.clebsch_gordan[None, :, None]
-        y = scatter_add(y, self.idx_out, dim_size=int((self.lmax + 1) ** 2), dim=1)
+        idx_in_1 = torch.as_tensor(self.idx_in_1)  # type: ignore[assignment]
+        idx_in_2 = torch.as_tensor(self.idx_in_2)  # type: ignore[assignment]
+        idx_out = torch.as_tensor(self.idx_out)  # type: ignore[assignment]
+        clebsch_gordan = torch.as_tensor(self.clebsch_gordan)  # type: ignore[assignment]
+
+        x1 = x1[:, idx_in_1, :]
+        x2 = x2[:, idx_in_2, :]
+        y = x1 * x2 * clebsch_gordan[None, :, None]
+        y = scatter_add(y, idx_out, dim_size=int((self.lmax + 1) ** 2), dim=1)
         return y
 
 
@@ -283,7 +297,7 @@ class SO3Convolution(nn.Module):
         )
 
         lidx, _ = sh_indices(lmax)
-        self.register_buffer("Widx", lidx[self.idx_in_1])
+        self.register_buffer("Widx", lidx[idx_in_1])
 
     def _compute_radial_filter(self, radial_ij: torch.Tensor, cutoff_ij: torch.Tensor) -> torch.Tensor:
         """
@@ -298,7 +312,8 @@ class SO3Convolution(nn.Module):
         """
         Wij = self.filternet(radial_ij) * cutoff_ij
         Wij = torch.reshape(Wij, (-1, self.lmax + 1, self.n_atom_basis))
-        Wij = Wij[:, self.Widx]
+        Widx = torch.as_tensor(self.Widx)  # type: ignore[assignment]
+        Wij = Wij[:, Widx]
         return Wij
 
     def forward(
@@ -324,10 +339,15 @@ class SO3Convolution(nn.Module):
             y: convolved SO3 features.
 
         """
-        xj = x[idx_j[:, None], self.idx_in_2[None, :], :]
+        idx_in_1 = torch.as_tensor(self.idx_in_1)  # type: ignore[assignment]
+        idx_in_2 = torch.as_tensor(self.idx_in_2)  # type: ignore[assignment]
+        idx_out = torch.as_tensor(self.idx_out)  # type: ignore[assignment]
+        clebsch_gordan = torch.as_tensor(self.clebsch_gordan)  # type: ignore[assignment]
+
+        xj = x[idx_j[:, None], idx_in_2[None, :], :]
         Wij = self._compute_radial_filter(radial_ij, cutoff_ij)
-        v = Wij * dir_ij[:, self.idx_in_1, None] * self.clebsch_gordan[None, :, None] * xj
-        yij = scatter_add(v, self.idx_out, dim_size=int((self.lmax + 1) ** 2), dim=1)
+        v = Wij * dir_ij[:, idx_in_1, None] * clebsch_gordan[None, :, None] * xj
+        yij = scatter_add(v, idx_out, dim_size=int((self.lmax + 1) ** 2), dim=1)
         y = scatter_add(yij, idx_i, dim_size=x.shape[0])
         return y
 

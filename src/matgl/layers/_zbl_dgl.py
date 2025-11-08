@@ -80,6 +80,6 @@ class NuclearRepulsion(nn.Module):
 
         graph.update_all(fn.copy_e("eij_repuls", "m_repuls"), fn.sum("m_repuls", "e_repuls"))
 
-        energy = 0.5 * self.ke * dgl.readout_nodes(graph, "e_repuls", op="sum")
+        energy = 0.5 * torch.as_tensor(self.ke) * dgl.readout_nodes(graph, "e_repuls", op="sum")  # type: ignore[operator]
 
         return torch.squeeze(energy)

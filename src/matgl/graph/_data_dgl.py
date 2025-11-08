@@ -231,10 +231,12 @@ class MGLDataset(DGLDataset):
                 line_graphs.append(line_graph)
             graph.ndata.pop("pos")
             graph.edata.pop("pbc_offshift")
-        if self.graph_labels is not None:
-            state_attrs = torch.tensor(self.graph_labels).long()
-        else:
-            state_attrs = torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+
+        state_attrs_tensor: torch.Tensor = (
+            torch.tensor(self.graph_labels).long()
+            if self.graph_labels is not None
+            else torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+        )
 
         if self.clear_processed:
             del self.structures
@@ -242,7 +244,7 @@ class MGLDataset(DGLDataset):
 
         self.graphs = graphs
         self.lattices = lattices
-        self.state_attr = state_attrs
+        self.state_attr = state_attrs_tensor
         if self.include_line_graph:
             self.line_graphs = line_graphs
             return self.graphs, self.lattices, self.line_graphs, self.state_attr

@@ -64,7 +64,8 @@ class Potential(nn.Module, IOMixIn):
         self.calc_repuls = calc_repuls
 
         if calc_repuls:
-            self.repuls = NuclearRepulsion(self.model.cutoff, trainable=zbl_trainable)
+            cutoff: float = self.model.cutoff  # type: ignore[assignment]
+            self.repuls = NuclearRepulsion(cutoff, trainable=zbl_trainable)
 
         if element_refs is not None:
             if not isinstance(element_refs, torch.Tensor):
