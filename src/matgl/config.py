@@ -6,12 +6,9 @@ import importlib
 import os
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Literal
 
 from pymatgen.core.periodic_table import Element
-
-if TYPE_CHECKING:
-    from typing import Literal
 
 # Default set of elements supported by universal matgl models. Excludes radioactive and most artificial elements.
 DEFAULT_ELEMENTS = tuple(el.symbol for el in Element if el.symbol not in ["Po", "At", "Rn", "Fr", "Ra"] and el.Z < 95)
@@ -25,7 +22,7 @@ os.makedirs(MATGL_CACHE, exist_ok=True)
 PRETRAINED_MODELS_BASE_URL = "http://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 # Set the backend. Note that not all models are available for all backends.
-BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "PYG")  # type: ignore[assignment]
+BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "PYG")  # type: ignore[assignment,return-value]
 
 
 if BACKEND == "DGL":
@@ -40,7 +37,7 @@ else:
         raise RuntimeError("Please install torch_geometric to use this backend.") from err
 
 
-def clear_cache(confirm: bool = True):
+def clear_cache(confirm: bool = True) -> None:
     """Deletes all files in the matgl.cache. This is used to clean out downloaded models.
 
     Args:

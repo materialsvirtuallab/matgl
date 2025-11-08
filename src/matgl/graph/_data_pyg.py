@@ -37,7 +37,9 @@ def ensure_batch_attribute(data: Data) -> Data:
     return data
 
 
-def split_dataset(self, frac_list=None, shuffle=False, random_state: int = 42):
+def split_dataset(
+    self, frac_list: list[float] | None = None, shuffle: bool = False, random_state: int = 42
+) -> tuple[Subset, Subset, Subset]:
     if frac_list is None:
         frac_list = [0.8, 0.1, 0.1]
     num_graphs = len(self)
@@ -56,7 +58,9 @@ def split_dataset(self, frac_list=None, shuffle=False, random_state: int = 42):
     return (Subset(self, train_idx), Subset(self, val_idx), Subset(self, test_idx))
 
 
-def collate_fn_graph(batch, multiple_values_per_target: bool = False):
+def collate_fn_graph(
+    batch: list, multiple_values_per_target: bool = False
+) -> tuple[Batch | Data, torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Merge a list of PyG graphs to form a batch.
 
@@ -74,18 +78,20 @@ def collate_fn_graph(batch, multiple_values_per_target: bool = False):
     graphs, lattices, state_attr, labels = map(list, zip(*batch, strict=False))
 
     g = Batch.from_data_list(graphs)  # Batch main graphs
-    labels = (
+    labels_tensor: torch.Tensor = (
         torch.vstack([next(iter(d.values())) for d in labels])  # type:ignore[assignment]
         if multiple_values_per_target
         else torch.tensor([next(iter(d.values())) for d in labels], dtype=matgl.float_th)
     )
-    state_attr = torch.stack(state_attr)  # type:ignore[assignment]
-    lat = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))
+    state_attr_tensor: torch.Tensor = torch.stack(state_attr)  # type:ignore[assignment]
+    lat: torch.Tensor = lattices[0] if g.batch_size == 1 else torch.squeeze(torch.stack(lattices))  # type: ignore[assignment]
 
-    return g, lat, state_attr, labels
+    return g, lat, state_attr_tensor, labels_tensor
 
 
-def collate_fn_pes(batch, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False):
+def collate_fn_pes(
+    batch: list, include_stress: bool = True, include_line_graph: bool = False, include_magmom: bool = False
+) -> tuple:
     """Merge a list of PyG Data objects to form a batch.
 
     Args:
@@ -228,7 +234,7 @@ class MGLDataset(Dataset):
         ]
         return all(os.path.exists(os.path.join(self.root, f)) for f in files_to_check)
 
-    def process(self):
+    def process(self) -> None:
         """Convert Pymatgen structures into PyG Data objects."""
         if self.has_cache():
             pass
@@ -239,6 +245,7 @@ class MGLDataset(Dataset):
             for idx in trange(num_graphs):
                 structure = self.structures[idx]
                 # Converter returns (Data, lattice, state_attr)
+                assert self.converter is not None, "converter must be provided"
                 data, lattice, state_attr = self.converter.get_graph(structure)
 
                 # Add position coordinates
@@ -264,24 +271,25 @@ class MGLDataset(Dataset):
                 if hasattr(data, "pbc_offshift"):
                     del data.pbc_offshift
 
-            if self.graph_labels is not None:
-                state_attrs = torch.tensor(self.graph_labels, dtype=torch.long)
-            else:
-                state_attrs = torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+            state_attrs_tensor: torch.Tensor = (
+                torch.tensor(self.graph_labels, dtype=torch.long)
+                if self.graph_labels is not None
+                else torch.tensor(np.array(state_attrs), dtype=matgl.float_th)
+            )
 
             if self.clear_processed:
                 del self.structures
                 self.structures = []
             self.graphs = graphs
             self.lattices = lattices
-            self.state_attr = state_attrs
+            self.state_attr = state_attrs_tensor
 
             # Validate loaded or processed data
             if not self.graphs:
                 raise ValueError("Dataset is empty after loading or processing")
             self.save()
 
-    def save(self):
+    def save(self) -> None:
         """Save PyG graphs and labels to processed_dir."""
         if not self.save_cache:
             return
@@ -297,7 +305,7 @@ class MGLDataset(Dataset):
         torch.save(self.lattices, os.path.join(self.root, self.filename_lattice))
         torch.save(self.state_attr, os.path.join(self.root, self.filename_state_attr))
 
-    def load(self):
+    def load(self) -> None:
         """Load PyG graphs from files."""
         self.graphs = torch.load(os.path.join(self.root, self.filename), weights_only=False)
         self.lattices = torch.load(os.path.join(self.root, self.filename_lattice), weights_only=False)

@@ -2056,7 +2056,7 @@ dev = [
     { name = "sphinx-markdown-builder", specifier = ">=0.6.8" },
 ]
 lint = [
-    { name = "mypy", specifier = ">=1.15.0" },
+    { name = "mypy", specifier = ">=1.18.0" },
     { name = "ruff", specifier = ">=0.11.2" },
 ]
 

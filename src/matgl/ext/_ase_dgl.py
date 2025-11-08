@@ -159,7 +159,9 @@ class PESCalculator(Calculator):
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
 
-        self.graph_converter = Atoms2Graph(potential.model.element_types, potential.model.cutoff)
+        element_types: tuple[str, ...] = potential.model.element_types  # type: ignore[assignment]
+        cutoff: float = potential.model.cutoff  # type: ignore[assignment]
+        self.graph_converter = Atoms2Graph(element_types, cutoff)
 
         # Handle stress unit conversion
         if stress_unit == "eV/A3":
@@ -326,7 +328,7 @@ class Relaxer:
             if np.array(atoms.pbc).any():
                 final_structure = self.ase_adaptor.get_structure(atoms)
             else:
-                final_structure = self.ase_adaptor.get_molecule(atoms)  # type ignore[assignment]
+                final_structure = self.ase_adaptor.get_molecule(atoms)  # type: ignore[assignment]
         elif isinstance(atoms, Structure | Molecule):
             final_structure = atoms
         else:

@@ -71,7 +71,9 @@ class MLP(nn.Module):
     @property
     def in_features(self) -> int:
         """Return input features of MLP."""
-        return self.layers[0].in_features
+        first_layer = self.layers[0]
+        assert isinstance(first_layer, Linear), "First layer must be Linear"
+        return first_layer.in_features
 
     @property
     def out_features(self) -> int:

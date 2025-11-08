@@ -11,13 +11,13 @@ import torch.nn.functional as F
 import torchmetrics
 from torch import nn
 
-from matgl.apps._pes_pyg import Potential
+from matgl.apps._pes_dgl import Potential
 
 if TYPE_CHECKING:
+    import dgl
     import numpy as np
     from torch.optim import Optimizer
     from torch.optim.lr_scheduler import LRScheduler
-    from torch_geometric.data import Data
 
 
 class MatglLightningModuleMixin:
@@ -201,9 +201,9 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
     def forward(
         self,
-        g: Data,
+        g: dgl.DGLGraph,
         lat: torch.Tensor | None = None,
-        l_g: Data | None = None,
+        l_g: dgl.DGLGraph | None = None,
         state_attr: torch.Tensor | None = None,
     ):
         """Args:
@@ -369,9 +369,9 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
 
     def forward(
         self,
-        g: Data,
+        g: dgl.DGLGraph,
         lat: torch.Tensor,
-        l_g: Data | None = None,
+        l_g: dgl.DGLGraph | None = None,
         state_attr: torch.Tensor | None = None,
     ) -> tuple:
         """Args:
@@ -430,7 +430,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
                 preds = (e, f, s)
                 labels = (energies, forces, stresses)
 
-        num_atoms = torch.bincount(g.batch)
+        num_atoms = g.batch_num_nodes()
         results = self.loss_fn(
             loss=self.loss,  # type: ignore
             preds=preds,
@@ -447,7 +447,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         labels: tuple,
         preds: tuple,
         num_atoms: torch.Tensor | None = None,
-    ) -> dict[str, Any]:
+    ):
         """Compute losses for EFS.
 
         Args:
@@ -488,8 +488,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         else:
             valid_labels, valid_preds = list(labels), list(preds)
             valid_num_atoms = num_atoms
-        # TODO: We should get rid of this dirty fix
-        #        valid_labels[0] = valid_labels[0].squeeze()
+
         e_loss = self.loss(valid_labels[0] / valid_num_atoms, valid_preds[0] / valid_num_atoms, **self.loss_params)
         f_loss = self.loss(valid_labels[1], valid_preds[1], **self.loss_params)
 
