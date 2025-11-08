@@ -2,6 +2,12 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+import pytest
+
+import matgl
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
 import dgl
 import torch
 from torch import nn

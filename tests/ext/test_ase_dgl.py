@@ -8,7 +8,11 @@ import torch
 from ase.build import molecule
 from pymatgen.io.ase import AseAtomsAdaptor
 
+import matgl
 from matgl import load_model
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
 from matgl.ext._ase_dgl import Atoms2Graph, M3GNetCalculator, MolecularDynamics, PESCalculator, Relaxer
 
 

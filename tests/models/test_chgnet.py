@@ -8,6 +8,9 @@ import torch
 from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
 from matgl.ext._ase_dgl import PESCalculator
 from matgl.ext._pymatgen_dgl import Structure2Graph
 from matgl.models import CHGNet

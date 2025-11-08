@@ -3,9 +3,14 @@ from __future__ import annotations
 import os
 
 import numpy as np
+import pytest
 import torch
 from pymatgen.core import Lattice, Structure
 
+import matgl
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
 from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))

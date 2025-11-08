@@ -9,6 +9,11 @@ from functools import partial
 import lightning as pl
 import numpy as np
 import pytest
+
+import matgl
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
 import torch.backends.mps
 from dgl.data.utils import split_dataset
 from pymatgen.core import Lattice, Structure

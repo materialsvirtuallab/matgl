@@ -7,7 +7,10 @@ import pytest
 import torch
 
 import matgl
-from matgl.models import TensorNet
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
+from matgl.models._tensornet_dgl import TensorNet
 
 
 class TestTensorNet:

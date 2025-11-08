@@ -6,6 +6,9 @@ import torch
 from pymatgen.core import Lattice, Structure
 
 import matgl
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
 from matgl.apps._pes_dgl import Potential
 from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
 from matgl.models import CHGNet, M3GNet, SO3Net, TensorNet
