@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import os
 import shutil
 from pathlib import Path
@@ -25,6 +26,18 @@ PRETRAINED_MODELS_BASE_URL = "http://github.com/materialsvirtuallab/matgl/raw/ma
 
 # Set the backend. Note that not all models are available for all backends.
 BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "DGL")  # type: ignore[assignment]
+
+
+if BACKEND == "DGL":
+    try:
+        importlib.util.find_spec("dgl")  # type: ignore[attr-defined]
+    except ImportError as err:
+        raise RuntimeError("Please install DGL to use this backend.") from err
+else:
+    try:
+        importlib.util.find_spec("torch_geometric")  # type: ignore[attr-defined]
+    except ImportError as err:
+        raise RuntimeError("Please install torch_geometric to use this backend.") from err
 
 
 def clear_cache(confirm: bool = True):
