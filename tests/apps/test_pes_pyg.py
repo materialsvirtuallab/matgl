@@ -3,6 +3,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import torch
+
+import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from pymatgen.core import Lattice, Structure
 from torch_geometric.data import Batch
 

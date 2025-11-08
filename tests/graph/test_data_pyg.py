@@ -7,8 +7,13 @@ import shutil
 from functools import partial
 
 import numpy as np
+import pytest
 from pymatgen.core import Molecule
 
+import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.ext._pymatgen_pyg import Molecule2Graph, Structure2Graph, get_element_list
 from matgl.graph._data_pyg import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes, split_dataset
 

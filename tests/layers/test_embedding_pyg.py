@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import pytest
 from torch import nn
 
 import matgl
 from matgl.layers import BondExpansion
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.layers._embedding_pyg import (
     TensorEmbedding,
 )

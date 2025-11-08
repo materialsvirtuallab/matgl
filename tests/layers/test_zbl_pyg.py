@@ -7,6 +7,10 @@ import torch
 from torch_geometric.data import Data
 
 import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
+import matgl
 from matgl.layers._zbl_pyg import NuclearRepulsion
 
 

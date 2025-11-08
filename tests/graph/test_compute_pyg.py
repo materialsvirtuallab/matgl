@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import torch
 
 import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.graph._compute_pyg import (
     compute_pair_vector_and_distance_pyg,
 )

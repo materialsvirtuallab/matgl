@@ -10,6 +10,10 @@ import pytest
 import torch.backends.mps
 from pymatgen.core import Lattice, Structure
 
+import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.ext._pymatgen_pyg import Structure2Graph, get_element_list
 from matgl.graph._data_pyg import MGLDataLoader, MGLDataset, collate_fn_pes, split_dataset
 from matgl.models._tensornet_pyg import TensorNet

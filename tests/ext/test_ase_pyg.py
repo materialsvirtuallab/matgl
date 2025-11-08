@@ -4,6 +4,11 @@ import os.path
 
 import numpy as np
 import pytest
+
+import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 import torch
 from ase.build import molecule
 from pymatgen.io.ase import AseAtomsAdaptor

@@ -7,6 +7,9 @@ import pytest
 import torch
 
 import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.models._tensornet_pyg import TensorNet
 
 

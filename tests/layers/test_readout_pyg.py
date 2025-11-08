@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import pytest
 import torch
 import torch.nn as nn
 
+import matgl
+
+if matgl.config.BACKEND != "PYG":
+    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.layers._readout_pyg import (
     ReduceReadOut,
     WeightedAtomReadOut,
