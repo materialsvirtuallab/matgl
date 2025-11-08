@@ -47,7 +47,7 @@ class MatglLightningModuleMixin:
 
     def on_train_epoch_end(self) -> None:
         """Step scheduler every epoch."""
-        sch = self.lr_schedulers()
+        sch = self.lr_schedulers()  # type: ignore[attr-defined]
         sch.step()
 
     def validation_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
@@ -89,22 +89,22 @@ class MatglLightningModuleMixin:
 
     def configure_optimizers(self) -> tuple[list[torch.optim.Optimizer], list[torch.optim.lr_scheduler.LRScheduler]]:
         """Configure optimizers."""
-        if self.optimizer is None:
+        if self.optimizer is None:  # type: ignore[attr-defined]
             optimizer = torch.optim.Adam(
-                self.parameters(),
-                lr=self.lr,
+                self.parameters(),  # type: ignore[attr-defined]
+                lr=self.lr,  # type: ignore[attr-defined]
                 eps=1e-8,
             )
         else:
-            optimizer = self.optimizer
-        if self.scheduler is None:
+            optimizer = self.optimizer  # type: ignore[attr-defined]
+        if self.scheduler is None:  # type: ignore[attr-defined]
             scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
                 optimizer,
-                T_max=self.decay_steps,
-                eta_min=self.lr * self.decay_alpha,
+                T_max=self.decay_steps,  # type: ignore[attr-defined]
+                eta_min=self.lr * self.decay_alpha,  # type: ignore[attr-defined]
             )
         else:
-            scheduler = self.scheduler
+            scheduler = self.scheduler  # type: ignore[attr-defined]
         return [
             optimizer,
         ], [
@@ -119,7 +119,7 @@ class MatglLightningModuleMixin:
             *args: Pass-through
             **kwargs: Pass-through.
         """
-        super().on_test_model_eval(*args, **kwargs)
+        super().on_test_model_eval(*args, **kwargs)  # type: ignore[misc]
 
     def predict_step(self, batch: tuple, batch_idx: int, dataloader_idx: int = 0) -> Any:
         """
@@ -134,7 +134,7 @@ class MatglLightningModuleMixin:
             Prediction
         """
         torch.set_grad_enabled(True)
-        return self.step(batch)
+        return self.step(batch)  # type: ignore[attr-defined]
 
 
 class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
@@ -241,7 +241,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         batch_size = preds.numel()
         return results, batch_size
 
-    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor):
+    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor) -> dict[str, Any]:
         """Args:
             loss: Loss function.
             labels: Labels to compute the loss.
@@ -359,7 +359,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.magmom_target = magmom_target
         self.save_hyperparameters(ignore=["model"])
 
-    def on_load_checkpoint(self, checkpoint: dict[str, Any]):
+    def on_load_checkpoint(self, checkpoint: dict[str, Any]) -> None:
         """# noqa: D200
         hacky hacky hack to add missing keys to the state dict when changes are made.
         """
@@ -373,7 +373,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         lat: torch.Tensor,
         l_g: Data | None = None,
         state_attr: torch.Tensor | None = None,
-    ):
+    ) -> tuple:
         """Args:
             g: dgl Graph
             lat: lattice

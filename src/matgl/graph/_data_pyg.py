@@ -234,7 +234,7 @@ class MGLDataset(Dataset):
         ]
         return all(os.path.exists(os.path.join(self.root, f)) for f in files_to_check)
 
-    def process(self):
+    def process(self) -> None:
         """Convert Pymatgen structures into PyG Data objects."""
         if self.has_cache():
             pass
@@ -245,6 +245,7 @@ class MGLDataset(Dataset):
             for idx in trange(num_graphs):
                 structure = self.structures[idx]
                 # Converter returns (Data, lattice, state_attr)
+                assert self.converter is not None, "converter must be provided"
                 data, lattice, state_attr = self.converter.get_graph(structure)
 
                 # Add position coordinates
@@ -287,7 +288,7 @@ class MGLDataset(Dataset):
                 raise ValueError("Dataset is empty after loading or processing")
             self.save()
 
-    def save(self):
+    def save(self) -> None:
         """Save PyG graphs and labels to processed_dir."""
         if not self.save_cache:
             return
@@ -303,7 +304,7 @@ class MGLDataset(Dataset):
         torch.save(self.lattices, os.path.join(self.root, self.filename_lattice))
         torch.save(self.state_attr, os.path.join(self.root, self.filename_state_attr))
 
-    def load(self):
+    def load(self) -> None:
         """Load PyG graphs from files."""
         self.graphs = torch.load(os.path.join(self.root, self.filename), weights_only=False)
         self.lattices = torch.load(os.path.join(self.root, self.filename_lattice), weights_only=False)
