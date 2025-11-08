@@ -17,7 +17,7 @@ def test_form_e(LiFePO4):
         assert model.predict_structure(LiFePO4) == pytest.approx(-2.5489, 3)
 
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
+@pytest.mark.skipif(os.getenv("CI") == "true" or matgl.config.BACKEND != "DGL", reason="Unreliable in CI environments.")
 def test_loading_all_models():
     """
     Test that all pre-trained models at least load.

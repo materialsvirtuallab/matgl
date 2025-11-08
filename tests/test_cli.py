@@ -5,8 +5,10 @@ from pathlib import Path
 
 import pytest
 
+import matgl
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
+
+@pytest.mark.skipif(os.getenv("CI") == "true" or matgl.config.BACKEND != "DGL", reason="Unreliable in CI environments.")
 def test_entrypoint(Mo):
     Mo.to(filename="Mo.cif")
     exit_status = os.system("mgl relax -i Mo.cif -o Mo_relaxed.cif")
