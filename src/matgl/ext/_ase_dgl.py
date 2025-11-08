@@ -326,7 +326,7 @@ class Relaxer:
             if np.array(atoms.pbc).any():
                 final_structure = self.ase_adaptor.get_structure(atoms)
             else:
-                final_structure = self.ase_adaptor.get_molecule(atoms)
+                final_structure = self.ase_adaptor.get_molecule(atoms)  # type ignore[assignment]
         elif isinstance(atoms, Structure | Molecule):
             final_structure = atoms
         else:

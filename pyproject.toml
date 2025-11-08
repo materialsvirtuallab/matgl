@@ -56,25 +56,10 @@ dependencies = [
     "lightning<=2.6.0.dev20251102",
     "pydantic",
     "boto3",
-    "numpy<2.0",
+    "numpy<3.0",
     "torch-geometric"
 ]
 version = "2.0.0"
-
-[tool.uv.sources]
-dgl = [
-  { index = "dgl-linux", marker = "sys_platform == 'linux'" },
-  { index = "dgl-non-linux", marker = "sys_platform != 'linux'" },
-]
-
-[[tool.uv.index]]
-name = "dgl-linux"
-url = "https://data.dgl.ai/wheels/torch-2.4/repo.html"
-format = "flat"
-
-[[tool.uv.index]]
-name = "dgl-non-linux"
-url = "https://pypi.org/simple/"
 
 [project.scripts]
 mgl = "matgl.cli:main"
