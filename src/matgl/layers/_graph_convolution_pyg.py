@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING
 import torch
 import torch.nn as nn
 from torch_geometric.nn import MessagePassing
+from torch_geometric.utils import scatter
 
+from matgl.layers._core import GatedMLP, MLP
 from matgl.utils.cutoff import cosine_cutoff
 from matgl.utils.maths import (
     decompose_tensor,
@@ -156,3 +158,424 @@ class TensorNetInteraction(MessagePassing):
         skew_matrices_agg = scatter_add(skew_matrices, index, dim_size=dim_size)
         traceless_tensors_agg = scatter_add(traceless_tensors, index, dim_size=dim_size)
         return scalars_agg, skew_matrices_agg, traceless_tensors_agg
+
+
+class MEGNetGraphConv(MessagePassing):
+    """A MEGNet graph convolution layer in PyG."""
+
+    def __init__(
+        self,
+        edge_func: nn.Module,
+        node_func: nn.Module,
+        state_func: nn.Module,
+    ) -> None:
+        """
+        Args:
+            edge_func: Edge update function.
+            node_func: Node update function.
+            state_func: Global state update function.
+        """
+        super().__init__(aggr="mean")  # Aggregate messages by mean
+        self.edge_func = edge_func
+        self.node_func = node_func
+        self.state_func = state_func
+
+    @staticmethod
+    def from_dims(
+        edge_dims: list[int],
+        node_dims: list[int],
+        state_dims: list[int],
+        activation: nn.Module,
+    ) -> "MEGNetGraphConv":
+        """Create a MEGNet graph convolution layer from dimensions.
+
+        Args:
+            edge_dims (list[int]): Edge dimensions.
+            node_dims (list[int]): Node dimensions.
+            state_dims (list[int]): State dimensions.
+            activation (nn.Module): Activation function.
+
+        Returns:
+            MEGNetGraphConv: MEGNet graph convolution layer.
+        """
+        edge_update = MLP(edge_dims, activation, activate_last=True)
+        node_update = MLP(node_dims, activation, activate_last=True)
+        state_update = MLP(state_dims, activation, activate_last=True)
+        return MEGNetGraphConv(edge_update, node_update, state_update)
+
+    def forward(
+        self,
+        graph: Data,
+        edge_feat: torch.Tensor,
+        node_feat: torch.Tensor,
+        state_feat: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Perform sequence of edge->node->attribute updates.
+
+        Args:
+            graph: Input graph
+            edge_feat: Edge features
+            node_feat: Node features
+            state_feat: Graph attributes (global state)
+
+        Returns:
+            (edge features, node features, graph attributes)
+        """
+        edge_index = graph.edge_index
+        src, dst = edge_index
+
+        # Broadcast state features to nodes
+        if hasattr(graph, "batch") and graph.batch is not None:
+            # For batched graphs, broadcast state_feat to each node based on batch
+            num_graphs = graph.batch.max().item() + 1
+            if state_feat.dim() == 1:
+                state_feat = state_feat.unsqueeze(0)
+            if state_feat.size(0) == 1:
+                state_feat = state_feat.expand(num_graphs, -1)
+            node_state = state_feat[graph.batch]
+        else:
+            # Single graph case
+            if state_feat.dim() == 1:
+                state_feat = state_feat.unsqueeze(0)
+            node_state = state_feat.expand(node_feat.size(0), -1)
+
+        # Edge update
+        vi = node_feat[src]
+        vj = node_feat[dst]
+        u_edge = node_state[src]  # State for edge context
+        edge_inputs = torch.hstack([vi, vj, edge_feat, u_edge])
+        edge_update = self.edge_func(edge_inputs)
+
+        # Node update - aggregate edge messages
+        edge_messages = scatter(edge_update, dst, dim=0, dim_size=node_feat.size(0), reduce="mean")
+        ve = edge_messages
+        node_inputs = torch.hstack([node_feat, ve, node_state])
+        node_update = self.node_func(node_inputs)
+
+        # State update
+        if hasattr(graph, "batch") and graph.batch is not None:
+            num_graphs = graph.batch.max().item() + 1
+            u_edge_mean = scatter(edge_update, graph.batch[src], dim=0, dim_size=num_graphs, reduce="mean")
+            u_vertex_mean = scatter(node_update, graph.batch, dim=0, dim_size=num_graphs, reduce="mean")
+            if state_feat.size(0) == 1:
+                state_inputs = torch.hstack([state_feat.squeeze(0), u_edge_mean.squeeze(0), u_vertex_mean.squeeze(0)])
+            else:
+                state_inputs = torch.hstack([state_feat, u_edge_mean, u_vertex_mean])
+        else:
+            u_edge_mean = edge_update.mean(dim=0, keepdim=True)
+            u_vertex_mean = node_update.mean(dim=0, keepdim=True)
+            state_inputs = torch.hstack([state_feat.squeeze(0), u_edge_mean.squeeze(0), u_vertex_mean.squeeze(0)])
+        state_update = self.state_func(state_inputs)
+
+        return edge_update, node_update, state_update
+
+
+class MEGNetBlock(nn.Module):
+    """A MEGNet block comprising a sequence of update operations."""
+
+    def __init__(
+        self, dims: list[int], conv_hiddens: list[int], act: nn.Module, dropout: float | None = None, skip: bool = True
+    ) -> None:
+        """
+        Init the MEGNet block with key parameters.
+
+        Args:
+            dims: Dimension of dense layers before graph convolution.
+            conv_hiddens: Architecture of hidden layers of graph convolution.
+            act: Activation type.
+            dropout: Randomly zeroes some elements in the input tensor with given probability (0 < x < 1) according
+                to a Bernoulli distribution.
+            skip: Residual block.
+        """
+        super().__init__()
+        self.has_dense = len(dims) > 1
+        self.activation = act
+        conv_dim = dims[-1]
+        out_dim = conv_hiddens[-1]
+
+        mlp_kwargs = {
+            "dims": dims,
+            "activation": self.activation,
+            "activate_last": True,
+            "bias_last": True,
+        }
+        self.edge_func = MLP(**mlp_kwargs) if self.has_dense else nn.Identity()  # type: ignore
+        self.node_func = MLP(**mlp_kwargs) if self.has_dense else nn.Identity()  # type: ignore
+        self.state_func = MLP(**mlp_kwargs) if self.has_dense else nn.Identity()  # type: ignore
+
+        # compute input sizes
+        edge_in = 2 * conv_dim + conv_dim + conv_dim  # 2*NDIM+EDIM+GDIM
+        node_in = out_dim + conv_dim + conv_dim  # EDIM+NDIM+GDIM
+        state_in = out_dim + out_dim + conv_dim  # EDIM+NDIM+GDIM
+        self.conv = MEGNetGraphConv.from_dims(
+            edge_dims=[edge_in, *conv_hiddens],
+            node_dims=[node_in, *conv_hiddens],
+            state_dims=[state_in, *conv_hiddens],
+            activation=self.activation,
+        )
+
+        self.dropout = nn.Dropout(dropout) if dropout else None
+        self.skip = skip
+
+    def forward(
+        self,
+        graph: Data,
+        edge_feat: torch.Tensor,
+        node_feat: torch.Tensor,
+        state_feat: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """MEGNetBlock forward pass.
+
+        Args:
+            graph (Data): A PyG Data object.
+            edge_feat (Tensor): Edge features.
+            node_feat (Tensor): Node features.
+            state_feat (Tensor): Graph attributes (global state).
+
+        Returns:
+            tuple[Tensor, Tensor, Tensor]: Updated (edge features,
+                node features, graph attributes)
+        """
+        inputs = (edge_feat, node_feat, state_feat)
+        edge_feat = self.edge_func(edge_feat)
+        node_feat = self.node_func(node_feat)
+        state_feat = self.state_func(state_feat)
+
+        edge_feat, node_feat, state_feat = self.conv(graph, edge_feat, node_feat, state_feat)
+
+        if self.dropout:
+            edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102
+            node_feat = self.dropout(node_feat)  # pylint: disable=E1102
+            state_feat = self.dropout(state_feat)  # pylint: disable=E1102
+
+        if self.skip:
+            edge_feat = edge_feat + inputs[0]
+            node_feat = node_feat + inputs[1]
+            state_feat = state_feat + inputs[2]
+
+        return edge_feat, node_feat, state_feat
+
+
+class M3GNetGraphConv(MessagePassing):
+    """A M3GNet graph convolution layer in PyG."""
+
+    def __init__(
+        self,
+        include_state: bool,
+        edge_update_func: nn.Module,
+        edge_weight_func: nn.Module,
+        node_update_func: nn.Module,
+        node_weight_func: nn.Module,
+        state_update_func: nn.Module | None,
+    ):
+        """Parameters:
+        include_state (bool): Whether including state
+        edge_update_func (nn.Module): Update function for edges (Eq. 4)
+        edge_weight_func (nn.Module): Weight function for radial basis functions (Eq. 4)
+        node_update_func (nn.Module): Update function for nodes (Eq. 5)
+        node_weight_func (nn.Module): Weight function for radial basis functions (Eq. 5)
+        state_update_func (nn.Module): Update function for state feats (Eq. 6).
+        """
+        super().__init__(aggr="sum")  # Aggregate messages by summation
+        self.include_state = include_state
+        self.edge_update_func = edge_update_func
+        self.edge_weight_func = edge_weight_func
+        self.node_update_func = node_update_func
+        self.node_weight_func = node_weight_func
+        self.state_update_func = state_update_func
+
+    @staticmethod
+    def from_dims(
+        degree,
+        include_state,
+        edge_dims: list[int],
+        node_dims: list[int],
+        state_dims: list[int] | None,
+        activation: nn.Module,
+    ) -> "M3GNetGraphConv":
+        """M3GNetGraphConv initialization.
+
+        Args:
+            degree (int): max_n*max_l
+            include_state (bool): whether including state or not
+            edge_dims (list): NN architecture for edge update function
+            node_dims (list): NN architecture for node update function
+            state_dims (list): NN architecture for state update function
+            activation (nn.Module): activation function
+
+        Returns:
+        M3GNetGraphConv (class)
+        """
+        edge_update_func = GatedMLP(in_feats=edge_dims[0], dims=edge_dims[1:])
+        edge_weight_func = nn.Linear(in_features=degree, out_features=edge_dims[-1], bias=False)
+
+        node_update_func = GatedMLP(in_feats=node_dims[0], dims=node_dims[1:])
+        node_weight_func = nn.Linear(in_features=degree, out_features=node_dims[-1], bias=False)
+        state_update_func = MLP(state_dims, activation, activate_last=True) if include_state else None  # type: ignore
+        return M3GNetGraphConv(
+            include_state, edge_update_func, edge_weight_func, node_update_func, node_weight_func, state_update_func
+        )
+
+    def forward(
+        self,
+        graph: Data,
+        edge_feat: torch.Tensor,
+        node_feat: torch.Tensor,
+        state_feat: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Perform sequence of edge->node->states updates.
+
+        Args:
+            graph: Input graph
+            edge_feat: Edge features
+            node_feat: Node features
+            state_feat: Graph attributes (global state).
+
+        Returns:
+            (edge features, node features, graph attributes)
+        """
+        edge_index = graph.edge_index
+        src, dst = edge_index
+        rbf = graph.rbf  # Radial basis functions stored in graph
+
+        # Broadcast state features to nodes
+        if self.include_state:
+            if hasattr(graph, "batch") and graph.batch is not None:
+                num_graphs = graph.batch.max().item() + 1
+                if state_feat.dim() == 1:
+                    state_feat = state_feat.unsqueeze(0)
+                if state_feat.size(0) == 1:
+                    state_feat = state_feat.expand(num_graphs, -1)
+                node_state = state_feat[graph.batch]
+            else:
+                if state_feat.dim() == 1:
+                    state_feat = state_feat.unsqueeze(0)
+                node_state = state_feat.expand(node_feat.size(0), -1)
+        else:
+            node_state = None
+
+        # Edge update
+        vi = node_feat[src]
+        vj = node_feat[dst]
+        if self.include_state:
+            u = node_state[src]
+            edge_inputs = torch.hstack([vi, vj, edge_feat, u])
+        else:
+            edge_inputs = torch.hstack([vi, vj, edge_feat])
+        edge_update = self.edge_update_func(edge_inputs) * self.edge_weight_func(rbf)
+
+        # Node update
+        if self.include_state:
+            u = node_state[dst]
+            node_inputs = torch.hstack([vi, vj, edge_feat, u])
+        else:
+            node_inputs = torch.hstack([vi, vj, edge_feat])
+        messages = self.node_update_func(node_inputs) * self.node_weight_func(rbf)
+
+        # Aggregate messages
+        node_update = scatter(messages, dst, dim=0, dim_size=node_feat.size(0), reduce="sum")
+
+        # State update
+        if self.include_state and self.state_update_func is not None:
+            if hasattr(graph, "batch") and graph.batch is not None:
+                num_graphs = graph.batch.max().item() + 1
+                uv = scatter(node_feat, graph.batch, dim=0, dim_size=num_graphs, reduce="mean")
+                if state_feat.size(0) == 1:
+                    state_inputs = torch.hstack([state_feat.squeeze(0), uv.squeeze(0)])
+                else:
+                    state_inputs = torch.hstack([state_feat, uv])
+            else:
+                uv = node_feat.mean(dim=0, keepdim=True)
+                state_inputs = torch.hstack([state_feat.squeeze(0), uv.squeeze(0)])
+            state_update = self.state_update_func(state_inputs)
+        else:
+            state_update = state_feat
+
+        return edge_feat + edge_update, node_feat + node_update, state_update
+
+
+class M3GNetBlock(nn.Module):
+    """A M3GNet block comprising a sequence of update operations."""
+
+    def __init__(
+        self,
+        degree: int,
+        activation: nn.Module,
+        conv_hiddens: list[int],
+        dim_node_feats: int,
+        dim_edge_feats: int,
+        dim_state_feats: int = 0,
+        include_state: bool = False,
+        dropout: float | None = None,
+    ) -> None:
+        """
+
+        Args:
+            degree: Number of radial basis functions
+            activation: activation
+            dim_node_feats: Number of node features
+            dim_edge_feats: Number of edge features
+            dim_state_feats: Number of state features
+            conv_hiddens: Dimension of hidden layers
+            activation: Activation type
+            include_state: Including state features or not
+            dropout: Probability of an element to be zero in dropout layer.
+        """
+        super().__init__()
+
+        self.activation = activation
+
+        # compute input sizes
+        if include_state:
+            edge_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
+            node_in = 2 * dim_node_feats + dim_edge_feats + dim_state_feats  # type: ignore
+            state_in = dim_node_feats + dim_state_feats  # type: ignore
+            self.conv = M3GNetGraphConv.from_dims(
+                degree,
+                include_state,
+                edge_dims=[edge_in, *conv_hiddens, dim_edge_feats],
+                node_dims=[node_in, *conv_hiddens, dim_node_feats],
+                state_dims=[state_in, *conv_hiddens, dim_state_feats],  # type: ignore
+                activation=self.activation,
+            )
+        else:
+            edge_in = 2 * dim_node_feats + dim_edge_feats  # 2*NDIM+EDIM
+            node_in = 2 * dim_node_feats + dim_edge_feats  # 2*NDIM+EDIM
+            self.conv = M3GNetGraphConv.from_dims(
+                degree,
+                include_state,
+                edge_dims=[edge_in, *conv_hiddens, dim_edge_feats],
+                node_dims=[node_in, *conv_hiddens, dim_node_feats],
+                state_dims=None,  # type: ignore
+                activation=self.activation,
+            )
+
+        self.dropout = nn.Dropout(dropout) if dropout else None
+
+    def forward(
+        self,
+        graph: Data,
+        edge_feat: torch.Tensor,
+        node_feat: torch.Tensor,
+        state_feat: torch.Tensor,
+    ) -> tuple:
+        """
+        Args:
+            graph: PyG graph
+            edge_feat: Edge features
+            node_feat: Node features
+            state_feat: State features.
+
+        Returns:
+            A tuple of updated features
+        """
+        edge_feat, node_feat, state_feat = self.conv(graph, edge_feat, node_feat, state_feat)
+
+        if self.dropout:
+            edge_feat = self.dropout(edge_feat)  # pylint: disable=E1102
+            node_feat = self.dropout(node_feat)  # pylint: disable=E1102
+            if state_feat is not None:
+                state_feat = self.dropout(state_feat)  # pylint: disable=E1102
+
+        return edge_feat, node_feat, state_feat
