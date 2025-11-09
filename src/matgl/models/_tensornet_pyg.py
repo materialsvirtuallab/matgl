@@ -71,10 +71,6 @@ def compose_tensor(I_tensor: torch.Tensor, A: torch.Tensor, S: torch.Tensor) -> 
 
     # A is already 3x3 skew-symmetric, shape (num_nodes, 3, 3, units)
     # S is already 3x3 traceless symmetric, shape (num_nodes, 3, 3, units)
-    # Verify shapes before addition
-    assert I_expanded.shape[-1] == A.shape[-1] == S.shape[-1], (
-        f"Shape mismatch: I_expanded {I_expanded.shape}, A {A.shape}, S {S.shape}"
-    )
     return I_expanded + A + S
 
 
@@ -349,11 +345,6 @@ class TensorEmbedding(nn.Module):
         # Compose initial tensor to get proper shape for norm computation
         X = compose_tensor(I_tensor, A, S)  # (num_nodes, 3, 3, units)
 
-        # Verify X has correct shape before tensor_norm
-        assert X.shape[-1] == self.units, (
-            f"X shape {X.shape} should have units={self.units} in last dim, got {X.shape[-1]}"
-        )
-
         # Normalize and process
         # Following original: norm = tensor_norm(scalars + skew_matrices + traceless_tensors)
         # For X with shape (num_nodes, 3, 3, units), we need to sum over (-3, -2)
@@ -361,12 +352,6 @@ class TensorEmbedding(nn.Module):
         # tensor_norm sums over (-2, -1), but we need (-3, -2) for our tensor shape
         # So we compute the norm manually: sum over the spatial (3, 3) dimensions
         norm = (X**2).sum((-3, -2))  # (num_nodes, units)
-
-        # Verify norm has correct shape before LayerNorm
-        assert norm.shape[-1] == self.units, (
-            f"norm shape {norm.shape} should have units={self.units} in last dim, got {norm.shape[-1]}"
-        )
-
         norm = self.init_norm(norm)  # (num_nodes, units)
 
         # Apply tensor linear transformations
@@ -526,11 +511,9 @@ class TensorNetInteraction(nn.Module):
         # Apply group action
         if self.equivariance_invariance_group == "O(3)":
             C = tensor_matmul_o3(Y, msg)  # (num_nodes, 3, 3, units)
-        elif self.equivariance_invariance_group == "SO(3)":
+        else:  # SO(3)
             C = tensor_matmul_so3(Y, msg)  # (num_nodes, 3, 3, units)
             C = 2 * C
-        else:
-            raise ValueError("equivariance_invariance_group must be 'O(3)' or 'SO(3)'")
 
         # decompose_tensor expects (..., 3, 3), so permute to (num_nodes, units, 3, 3)
         C_permuted = C.permute(0, 3, 1, 2)  # (num_nodes, units, 3, 3)
@@ -870,12 +853,7 @@ class TensorNet(MatGLModel):
             num_graphs = g.get("num_graphs", None)
         else:
             # PyG Data object - extract tensors
-            # Type narrowing: check that g has required attributes
-            if not hasattr(g, "pos") or not hasattr(g, "edge_index"):
-                raise ValueError("Graph object must have 'pos' and 'edge_index' attributes")
             z = getattr(g, "node_type", getattr(g, "z", None))
-            if z is None:
-                raise ValueError("Graph must have 'node_type' or 'z' attribute")
             pos = g.pos  # type: ignore[union-attr]
             edge_index = g.edge_index  # type: ignore[union-attr]
             pbc_offshift = getattr(g, "pbc_offshift", None)
