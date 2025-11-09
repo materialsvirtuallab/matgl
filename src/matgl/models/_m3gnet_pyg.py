@@ -251,11 +251,28 @@ class M3GNet(MatGLModel):
         if l_g is None:
             l_g = create_line_graph_pyg(g, self.threebody_cutoff)
         # Compute theta and phi for line graph
-        cos_theta, phi = compute_theta_and_phi_pyg(g, l_g)
-        l_g.cos_theta = cos_theta
-        l_g.phi = phi
+        if l_g.edge_index.size(1) > 0:
+            cos_theta, phi, triple_bond_lengths = compute_theta_and_phi_pyg(g, l_g)
+        else:
+            # Empty line graph - create empty tensors
+            cos_theta = torch.empty(0, device=g.bond_dist.device)
+            phi = torch.empty(0, device=g.bond_dist.device)
+            triple_bond_lengths = torch.empty(0, device=g.bond_dist.device)
+
+        # Store as edge attributes for compatibility with SphericalBesselWithHarmonics
+        # Create a simple wrapper to make PyG Data compatible with DGL-style access
+        class LineGraphWrapper:
+            def __init__(self, lg, cos_theta, phi, triple_bond_lengths):
+                self.lg = lg
+                self.edata = {
+                    "cos_theta": cos_theta,
+                    "phi": phi,
+                    "triple_bond_lengths": triple_bond_lengths,
+                }
+
+        l_g_wrapped = LineGraphWrapper(l_g, cos_theta, phi, triple_bond_lengths)
         g.rbf = expanded_dists
-        three_body_basis = self.basis_expansion(l_g)
+        three_body_basis = self.basis_expansion(l_g_wrapped)
         three_body_cutoff = polynomial_cutoff(g.bond_dist, self.threebody_cutoff)
         node_feat, edge_feat, state_feat = self.embedding(node_types, g.rbf, state_attr)
         fea_dict = {
@@ -286,7 +303,10 @@ class M3GNet(MatGLModel):
         g.edge_feat = edge_feat
         if self.is_intensive:
             field_vec = self.readout(g)
-            readout_vec = torch.hstack([field_vec, state_feat]) if self.include_state else field_vec  # type: ignore
+            if self.include_state and state_feat is not None:
+                readout_vec = torch.hstack([field_vec, state_feat])  # type: ignore
+            else:
+                readout_vec = field_vec
             fea_dict["readout"] = readout_vec
             output = self.final_layer(readout_vec)
             if self.task_type == "classification":
@@ -364,4 +384,3 @@ class M3GNet(MatGLModel):
             return model_output["final"].detach()
 
         return {k: v for k, v in model_output.items() if k in output_layers}
-

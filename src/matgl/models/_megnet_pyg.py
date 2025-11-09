@@ -14,15 +14,14 @@ from typing import TYPE_CHECKING
 
 import torch
 from torch import nn
-from torch_geometric.data import Batch, Data
+from torch_geometric.data import Data
 
 from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph._compute_pyg import compute_pair_vector_and_distance_pyg
 from matgl.layers import MLP, ActivationFunction, BondExpansion
 from matgl.layers._embedding_pyg import EmbeddingBlock
 from matgl.layers._graph_convolution_pyg import MEGNetBlock
-from matgl.layers._readout_pyg import EdgeSet2Set, Set2SetReadOut
-from matgl.utils.maths import scatter_add
+from matgl.layers._readout_pyg import EdgeSet2Set
 
 from ._core import MatGLModel
 
@@ -117,6 +116,7 @@ class MEGNet(MatGLModel):
         self.edge_encoder = MLP(edge_dims, activation, activate_last=True)
         self.node_encoder = MLP(node_dims, activation, activate_last=True)
         self.state_encoder = MLP(state_dims, activation, activate_last=True)
+        self.state_dim = state_dims[-1]  # Store for use in forward
 
         dim_blocks_in = hidden_layer_sizes_input[-1]
         dim_blocks_out = hidden_layer_sizes_conv[-1]
@@ -171,13 +171,28 @@ class MEGNet(MatGLModel):
         node_feat, edge_feat, state_feat = self.embedding(node_attr, edge_attr, state_attr)
         edge_feat = self.edge_encoder(edge_feat)
         node_feat = self.node_encoder(node_feat)
-        state_feat = self.state_encoder(state_feat)
+        if state_feat is not None:
+            state_feat = self.state_encoder(state_feat)
+        else:
+            # Create dummy state_feat if not included
+            if hasattr(g, "batch") and g.batch is not None:
+                num_graphs = g.batch.max().item() + 1
+            else:
+                num_graphs = 1
+            # Get output dimension from stored state_dim
+            state_feat = torch.zeros((num_graphs, self.state_dim), device=node_feat.device)
 
         for block in self.blocks:
             output = block(g, edge_feat, node_feat, state_feat)
             edge_feat, node_feat, state_feat = output
 
-        node_vec = self.node_s2s(node_feat, g.batch)
+        # Handle batch for single graphs
+        if not hasattr(g, "batch") or g.batch is None:
+            batch = torch.zeros(node_feat.size(0), dtype=torch.long, device=node_feat.device)
+        else:
+            batch = g.batch
+
+        node_vec = self.node_s2s(node_feat, batch)
         edge_vec = self.edge_s2s(g, edge_feat)
 
         node_vec = torch.squeeze(node_vec)
@@ -224,4 +239,3 @@ class MEGNet(MatGLModel):
         g.bond_dist = bond_dist
         g.edge_attr = self.bond_expansion(bond_dist)
         return self(g=g, state_attr=state_attr).detach()
-

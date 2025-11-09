@@ -2,13 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import torch
 from torch_geometric.data import Data
-
-if TYPE_CHECKING:
-    pass
 
 
 def compute_pair_vector_and_distance_pyg(graph: Data) -> tuple[torch.Tensor, torch.Tensor]:
@@ -76,7 +71,7 @@ def separate_node_edge_keys(graph: Data) -> tuple[list[str], list[str], list[str
     return node_keys, edge_keys, other_keys
 
 
-def compute_theta_and_phi_pyg(graph: Data, line_graph: Data) -> tuple[torch.Tensor, torch.Tensor]:
+def compute_theta_and_phi_pyg(graph: Data, line_graph: Data) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Calculate bond angle Theta and Phi using PyG graphs.
 
     Args:
@@ -86,6 +81,7 @@ def compute_theta_and_phi_pyg(graph: Data, line_graph: Data) -> tuple[torch.Tens
     Returns:
         cos_theta: torch.Tensor
         phi: torch.Tensor
+        triple_bond_lengths: torch.Tensor (bond distances of destination bonds in line graph)
     """
     # Get bond vectors from the line graph nodes (which represent bonds)
     # In line graph, nodes are edges from original graph
@@ -101,7 +97,10 @@ def compute_theta_and_phi_pyg(graph: Data, line_graph: Data) -> tuple[torch.Tens
     cross = torch.cross(vec1, vec2)
     phi = torch.atan2(torch.norm(cross, dim=1), torch.sum(vec1 * vec2, dim=1))
 
-    return cos_theta, phi
+    # triple_bond_lengths is the bond distance of the destination bond
+    triple_bond_lengths = line_graph.bond_dist[line_graph.edge_index[1]]
+
+    return cos_theta, phi, triple_bond_lengths
 
 
 def create_line_graph_pyg(

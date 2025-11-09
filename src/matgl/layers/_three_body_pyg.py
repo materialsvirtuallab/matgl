@@ -52,9 +52,15 @@ class ThreeBodyInteractions(nn.Module):
         """
         # Get the indices of the end atoms for each bond in the line graph
         # In line graph, nodes represent edges in original graph
-        # We need to get the destination node of each edge in the original graph
-        line_node_indices = line_graph.edge_index[1]  # Destination nodes in line graph
-        original_edge_indices = line_graph.edge_ids[line_node_indices]  # Map to original edge indices
+        # line_graph.edge_index[1] gives destination nodes in line graph (which are edge indices in original graph)
+        # We need to get the destination atom of those edges in the original graph
+        line_dst_nodes = line_graph.edge_index[1]  # Destination nodes in line graph (edge indices in original graph)
+        # Map line graph nodes to original edge indices
+        if hasattr(line_graph, "edge_ids"):
+            original_edge_indices = line_graph.edge_ids[line_dst_nodes]
+        else:
+            # If edge_ids not available, assume line graph nodes are in order
+            original_edge_indices = line_dst_nodes
         end_atom_indices = graph.edge_index[1][original_edge_indices].to(matgl.int_th)
 
         # Update node features using the atom update network
@@ -68,9 +74,16 @@ class ThreeBodyInteractions(nn.Module):
 
         # Reshape and compute weights based on the three-cutoff tensor
         three_cutoff = three_cutoff.unsqueeze(1)
-        line_edge_src = line_graph.edge_index[0]
-        line_edge_dst = line_graph.edge_index[1]
-        edge_indices = torch.stack([line_edge_src, line_edge_dst], dim=0)
+        line_edge_src = line_graph.edge_index[0]  # Source nodes in line graph
+        line_edge_dst = line_graph.edge_index[1]  # Destination nodes in line graph
+        # Map line graph nodes to original edge indices
+        if hasattr(line_graph, "edge_ids"):
+            src_edge_indices = line_graph.edge_ids[line_edge_src]
+            dst_edge_indices = line_graph.edge_ids[line_edge_dst]
+        else:
+            src_edge_indices = line_edge_src
+            dst_edge_indices = line_edge_dst
+        edge_indices = torch.stack([src_edge_indices, dst_edge_indices], dim=0)
         weights = three_cutoff[edge_indices].view(-1, 2)
         weights = weights.prod(dim=-1)
 
@@ -79,11 +92,21 @@ class ThreeBodyInteractions(nn.Module):
 
         # Aggregate the new bonds using scatter_sum
         # We need to map line graph edges back to original graph edges
-        segment_ids = get_segment_indices_from_n(line_graph.n_triple_ij)
+        # segment_ids maps each line graph edge to its corresponding original graph edge
+        if hasattr(line_graph, "n_triple_ij"):
+            segment_ids = get_segment_indices_from_n(line_graph.n_triple_ij)
+        else:
+            # Fallback: assume each line graph node corresponds to an original edge
+            segment_ids = line_graph.edge_index[1]  # Use destination nodes as segment IDs
+        num_segments = (
+            graph.edge_index.size(1)
+            if hasattr(graph, "edge_index") and graph.edge_index.numel() > 0
+            else len(edge_feat)
+        )
         new_bonds = scatter_sum(
             basis.to(matgl.float_th),
             segment_ids=segment_ids,
-            num_segments=graph.num_edges,
+            num_segments=num_segments,
             dim=0,
         )
 
@@ -95,4 +118,3 @@ class ThreeBodyInteractions(nn.Module):
         updated_edge_feat = edge_feat + self.update_network_bond(new_bonds)
 
         return updated_edge_feat
-

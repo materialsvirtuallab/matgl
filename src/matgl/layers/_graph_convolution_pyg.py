@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import scatter
 
-from matgl.layers._core import GatedMLP, MLP
+from matgl.layers._core import MLP, GatedMLP
 from matgl.utils.cutoff import cosine_cutoff
 from matgl.utils.maths import (
     decompose_tensor,
@@ -186,7 +186,7 @@ class MEGNetGraphConv(MessagePassing):
         node_dims: list[int],
         state_dims: list[int],
         activation: nn.Module,
-    ) -> "MEGNetGraphConv":
+    ) -> MEGNetGraphConv:
         """Create a MEGNet graph convolution layer from dimensions.
 
         Args:
@@ -257,14 +257,20 @@ class MEGNetGraphConv(MessagePassing):
             num_graphs = graph.batch.max().item() + 1
             u_edge_mean = scatter(edge_update, graph.batch[src], dim=0, dim_size=num_graphs, reduce="mean")
             u_vertex_mean = scatter(node_update, graph.batch, dim=0, dim_size=num_graphs, reduce="mean")
-            if state_feat.size(0) == 1:
+            if state_feat.size(0) == 1 and num_graphs > 1:
+                state_feat_expanded = state_feat.expand(num_graphs, -1)
+                state_inputs = torch.hstack([state_feat_expanded, u_edge_mean, u_vertex_mean])
+            elif state_feat.size(0) == 1:
                 state_inputs = torch.hstack([state_feat.squeeze(0), u_edge_mean.squeeze(0), u_vertex_mean.squeeze(0)])
             else:
                 state_inputs = torch.hstack([state_feat, u_edge_mean, u_vertex_mean])
         else:
-            u_edge_mean = edge_update.mean(dim=0, keepdim=True)
-            u_vertex_mean = node_update.mean(dim=0, keepdim=True)
-            state_inputs = torch.hstack([state_feat.squeeze(0), u_edge_mean.squeeze(0), u_vertex_mean.squeeze(0)])
+            u_edge_mean = edge_update.mean(dim=0, keepdim=True).squeeze(0)
+            u_vertex_mean = node_update.mean(dim=0, keepdim=True).squeeze(0)
+            if state_feat.dim() == 1:
+                state_inputs = torch.hstack([state_feat, u_edge_mean, u_vertex_mean])
+            else:
+                state_inputs = torch.hstack([state_feat.squeeze(0), u_edge_mean, u_vertex_mean])
         state_update = self.state_func(state_inputs)
 
         return edge_update, node_update, state_update
@@ -392,7 +398,7 @@ class M3GNetGraphConv(MessagePassing):
         node_dims: list[int],
         state_dims: list[int] | None,
         activation: nn.Module,
-    ) -> "M3GNetGraphConv":
+    ) -> M3GNetGraphConv:
         """M3GNetGraphConv initialization.
 
         Args:
