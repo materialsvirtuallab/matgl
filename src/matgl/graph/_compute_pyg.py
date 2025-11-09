@@ -144,10 +144,10 @@ def create_line_graph_pyg(
     # Two edges are connected ONLY if they share the same SOURCE atom (matching DGL _compute_3body)
     # This creates n * (n - 1) edges for each atom with n bonds
     num_line_nodes = valid_edges.size(1)
-    line_edge_list = []
+    line_edge_list: list[list[int]] = []
 
     # Group edges by source atom
-    edge_groups = {}
+    edge_groups: dict[int, list[int]] = {}
     for i in range(num_line_nodes):
         src = valid_edges[0, i].item()
         if src not in edge_groups:
@@ -155,14 +155,11 @@ def create_line_graph_pyg(
         edge_groups[src].append(i)
 
     # For each source atom, create edges between all pairs of its bonds
-    for src, edge_indices in edge_groups.items():
+    for edge_indices in edge_groups.values():
         n = len(edge_indices)
         if n > 1:
             # Create all pairs (i, j) where i != j, in one direction only
-            for i in range(n):
-                for j in range(n):
-                    if i != j:
-                        line_edge_list.append([edge_indices[i], edge_indices[j]])
+            line_edge_list.extend([edge_indices[i], edge_indices[j]] for i in range(n) for j in range(n) if i != j)
 
     if len(line_edge_list) == 0:
         line_edge_index = torch.empty((2, 0), dtype=torch.long, device=graph.edge_index.device)
