@@ -137,8 +137,8 @@ def create_line_graph_pyg(
     src_nodes = valid_edges[0].cpu().numpy()
     n_atoms = graph.num_nodes
     n_bond_per_atom = np.bincount(src_nodes, minlength=n_atoms)
-    n_triple_ij = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
-    n_triple_ij = torch.tensor(n_triple_ij, dtype=torch.long, device=graph.edge_index.device)
+    n_triple_ij_np = np.repeat(n_bond_per_atom - 1, n_bond_per_atom)
+    n_triple_ij = torch.tensor(n_triple_ij_np, dtype=torch.long, device=graph.edge_index.device)
 
     # Create line graph: nodes are edges in original graph
     # Two edges are connected ONLY if they share the same SOURCE atom (matching DGL _compute_3body)

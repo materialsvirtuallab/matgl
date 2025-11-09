@@ -474,6 +474,7 @@ class M3GNetGraphConv(MessagePassing):
         vi = node_feat[src]
         vj = node_feat[dst]
         if self.include_state:
+            assert node_state is not None  # Type narrowing for type checker
             u = node_state[src]
             edge_inputs = torch.hstack([vi, vj, edge_feat, u])
         else:
@@ -482,6 +483,7 @@ class M3GNetGraphConv(MessagePassing):
 
         # Node update
         if self.include_state:
+            assert node_state is not None  # Type narrowing for type checker
             u = node_state[dst]
             node_inputs = torch.hstack([vi, vj, edge_feat, u])
         else:
