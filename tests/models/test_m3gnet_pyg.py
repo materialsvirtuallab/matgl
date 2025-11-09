@@ -102,4 +102,3 @@ class TestM3GNet:
             assert list(model.predict_structure(structure, output_layers=["gc_1"], return_features=True).keys()) == [
                 "gc_1"
             ]
-

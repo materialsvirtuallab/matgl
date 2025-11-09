@@ -87,4 +87,3 @@ class TestMEGNet:
         os.remove("model.pt")
         os.remove("model.json")
         os.remove("state.pt")
-
