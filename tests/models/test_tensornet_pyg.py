@@ -10,7 +10,9 @@ import matgl
 
 if matgl.config.BACKEND != "PYG":
     pytest.skip("Skipping PYG tests", allow_module_level=True)
-from matgl.models._tensornet_pyg import TensorNet
+from matgl.layers import ActivationFunction, BondExpansion
+from matgl.layers._embedding_pyg import TensorEmbedding as TensorEmbeddingPyG
+from matgl.models._tensornet_pyg import TensorEmbedding, TensorNet
 
 
 class TestTensorNet:
@@ -73,3 +75,94 @@ class TestTensorNet:
         )
         output = model(g=graph)
         assert torch.numel(output) == 1
+
+    def test_tensor_embedding_comparison(self, graph_MoS_pyg):
+        """Test that pure PyTorch TensorEmbedding produces same output as PyG version."""
+        structure, graph, _ = graph_MoS_pyg
+        lat = torch.tensor(np.array([structure.lattice.matrix]), dtype=matgl.float_th)
+        graph.pbc_offshift = torch.matmul(graph.pbc_offset, lat[0])
+        graph.pos = graph.frac_coords @ lat[0]
+
+        # Extract graph attributes
+        z = graph.node_type
+        edge_index = graph.edge_index
+        edge_weight = graph.bond_dist
+        edge_vec = graph.bond_vec
+
+        # Model parameters
+        units = 64
+        num_rbf = 32  # Standard number of RBF features
+        ntypes_node = len(torch.unique(z))
+        cutoff = 5.0
+        activation = ActivationFunction["swish"].value()
+
+        # Compute edge_attr using BondExpansion (same as TensorNet does)
+        bond_expansion = BondExpansion(
+            rbf_type="Gaussian",
+            num_centers=num_rbf,
+            cutoff=cutoff,
+            final=cutoff + 1.0,
+        )
+        edge_attr = bond_expansion(edge_weight)
+        degree_rbf = edge_attr.shape[1]
+
+        # Set edge_attr on graph for PyG version
+        graph.edge_attr = edge_attr
+
+        # Create both embedding layers
+        embedding_pyg = TensorEmbeddingPyG(
+            units=units,
+            degree_rbf=degree_rbf,
+            activation=activation,
+            ntypes_node=ntypes_node,
+            cutoff=cutoff,
+            dtype=matgl.float_th,
+        )
+
+        embedding_pure = TensorEmbedding(
+            units=units,
+            degree_rbf=degree_rbf,
+            activation=activation,
+            ntypes_node=ntypes_node,
+            cutoff=cutoff,
+            dtype=matgl.float_th,
+        )
+
+        # Copy weights from PyG version to pure version to ensure equivalence
+        embedding_pure.distance_proj1.load_state_dict(embedding_pyg.distance_proj1.state_dict())
+        embedding_pure.distance_proj2.load_state_dict(embedding_pyg.distance_proj2.state_dict())
+        embedding_pure.distance_proj3.load_state_dict(embedding_pyg.distance_proj3.state_dict())
+        embedding_pure.emb.load_state_dict(embedding_pyg.emb.state_dict())
+        embedding_pure.emb2.load_state_dict(embedding_pyg.emb2.state_dict())
+        for i in range(3):
+            embedding_pure.linears_tensor[i].load_state_dict(embedding_pyg.linears_tensor[i].state_dict())
+        for i in range(2):
+            embedding_pure.linears_scalar[i].load_state_dict(embedding_pyg.linears_scalar[i].state_dict())
+        embedding_pure.init_norm.load_state_dict(embedding_pyg.init_norm.state_dict())
+
+        # Set both to eval mode for consistent behavior
+        embedding_pyg.eval()
+        embedding_pure.eval()
+
+        # Forward pass through PyG version
+        with torch.no_grad():
+            X_pyg, state_feat_pyg = embedding_pyg(graph, state_attr=None)
+
+        # Forward pass through pure PyTorch version
+        with torch.no_grad():
+            X_pure = embedding_pure(z, edge_index, edge_weight, edge_vec, edge_attr)
+
+        # Compare outputs
+        # Note: PyG version returns (num_nodes, units, 3, 3) while pure version returns (num_nodes, 3, 3, units)
+        # Permute PyG output to match pure version: (num_nodes, units, 3, 3) -> (num_nodes, 3, 3, units)
+        X_pyg_permuted = X_pyg.permute(0, 2, 3, 1)  # (num_nodes, 3, 3, units)
+
+        # Note: There may be small numerical differences due to implementation details,
+        # so we use a reasonable tolerance
+        assert X_pyg_permuted.shape == X_pure.shape, (
+            f"Shape mismatch: PyG {X_pyg_permuted.shape} vs Pure {X_pure.shape}"
+        )
+        assert torch.allclose(X_pyg_permuted, X_pure, rtol=1e-4, atol=1e-5), (
+            f"Output mismatch: max diff = {torch.max(torch.abs(X_pyg_permuted - X_pure)).item()}"
+        )
+        assert state_feat_pyg is None, "State features should be None"
