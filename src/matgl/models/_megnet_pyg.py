@@ -14,15 +14,14 @@ from typing import TYPE_CHECKING
 
 import torch
 from torch import nn
-from torch_geometric.data import Batch, Data
+from torch_geometric.data import Data
 
 from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph._compute_pyg import compute_pair_vector_and_distance_pyg
 from matgl.layers import MLP, ActivationFunction, BondExpansion
 from matgl.layers._embedding_pyg import EmbeddingBlock
 from matgl.layers._graph_convolution_pyg import MEGNetBlock
-from matgl.layers._readout_pyg import EdgeSet2Set, Set2SetReadOut
-from matgl.utils.maths import scatter_add
+from matgl.layers._readout_pyg import EdgeSet2Set
 
 from ._core import MatGLModel
 
@@ -224,4 +223,3 @@ class MEGNet(MatGLModel):
         g.bond_dist = bond_dist
         g.edge_attr = self.bond_expansion(bond_dist)
         return self(g=g, state_attr=state_attr).detach()
-

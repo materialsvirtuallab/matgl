@@ -2,13 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import torch
 from torch_geometric.data import Data
-
-if TYPE_CHECKING:
-    pass
 
 
 def compute_pair_vector_and_distance_pyg(graph: Data) -> tuple[torch.Tensor, torch.Tensor]:

@@ -95,4 +95,3 @@ class ThreeBodyInteractions(nn.Module):
         updated_edge_feat = edge_feat + self.update_network_bond(new_bonds)
 
         return updated_edge_feat
-

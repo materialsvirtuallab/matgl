@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import scatter
 
-from matgl.layers._core import GatedMLP, MLP
+from matgl.layers._core import MLP, GatedMLP
 from matgl.utils.cutoff import cosine_cutoff
 from matgl.utils.maths import (
     decompose_tensor,
@@ -186,7 +186,7 @@ class MEGNetGraphConv(MessagePassing):
         node_dims: list[int],
         state_dims: list[int],
         activation: nn.Module,
-    ) -> "MEGNetGraphConv":
+    ) -> MEGNetGraphConv:
         """Create a MEGNet graph convolution layer from dimensions.
 
         Args:
@@ -392,7 +392,7 @@ class M3GNetGraphConv(MessagePassing):
         node_dims: list[int],
         state_dims: list[int] | None,
         activation: nn.Module,
-    ) -> "M3GNetGraphConv":
+    ) -> M3GNetGraphConv:
         """M3GNetGraphConv initialization.
 
         Args:

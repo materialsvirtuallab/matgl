@@ -223,7 +223,6 @@ class Set2SetReadOut(nn.Module):
             if not hasattr(graph, "node_feat") or graph.node_feat is None:
                 raise ValueError("Data object must contain node features (graph.node_feat)")
             return self.set2set(graph.node_feat, graph.batch)
-        else:
-            if not hasattr(graph, "edge_feat") or graph.edge_feat is None:
-                raise ValueError("Data object must contain edge features (graph.edge_feat)")
-            return self.set2set(graph, graph.edge_feat)
+        if not hasattr(graph, "edge_feat") or graph.edge_feat is None:
+            raise ValueError("Data object must contain edge features (graph.edge_feat)")
+        return self.set2set(graph, graph.edge_feat)

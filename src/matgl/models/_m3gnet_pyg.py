@@ -364,4 +364,3 @@ class M3GNet(MatGLModel):
             return model_output["final"].detach()
 
         return {k: v for k, v in model_output.items() if k in output_layers}
-
