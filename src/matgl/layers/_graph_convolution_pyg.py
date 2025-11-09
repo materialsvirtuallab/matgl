@@ -507,6 +507,10 @@ class M3GNetGraphConv(MessagePassing):
                 uv = node_feat.mean(dim=0, keepdim=True)
                 state_inputs = torch.hstack([state_feat.squeeze(0), uv.squeeze(0)])
             state_update = self.state_update_func(state_inputs)
+            # Ensure state_update is 2D [1, num_state_feats] for single graph to match DGL behavior
+            if not hasattr(graph, "batch") or graph.batch is None:
+                if state_update.dim() == 1:
+                    state_update = state_update.unsqueeze(0)
         else:
             state_update = state_feat
 
