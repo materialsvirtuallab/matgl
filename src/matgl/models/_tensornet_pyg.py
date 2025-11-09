@@ -129,15 +129,6 @@ def radial_message_passing(
     dst = edge_index[1]
 
     # Create radial tensors from edge vectors
-    # Following the original PyG implementation pattern
-    # new_radial_tensor does: f_I[..., None, None] * scalars
-    # So f_I (num_edges, units) -> (num_edges, units, 1, 1)
-    # The original uses: eye (1, 1, 3, 3) which broadcasts with f_I (num_edges, units, 1, 1)
-    # Result: (num_edges, units, 3, 3) - we transpose to (num_edges, 3, 3, units)
-
-    # Get units dimension from edge_attr
-    units = edge_attr.shape[-1]
-
     # For scalars: use (1, 1, 1, 1) which will broadcast with f_I
     eye_scalar_base = torch.ones(1, 1, 1, 1, device=edge_vec_norm.device, dtype=edge_vec_norm.dtype)
     A_skew_base = vector_to_skewtensor(edge_vec_norm).unsqueeze(-3)  # (num_edges, 1, 3, 3)
@@ -148,11 +139,11 @@ def radial_message_passing(
     edge_attr_A = edge_attr[:, 1, :]  # (num_edges, units)
     edge_attr_S = edge_attr[:, 2, :]  # (num_edges, units)
 
-    # Call new_radial_tensor with original pattern
-    # new_radial_tensor will multiply f_I[..., None, None] * scalars
+    # Call new_radial_tensor
+    # new_radial_tensor multiplies f_I[..., None, None] * scalars
     # f_I: (num_edges, units) -> (num_edges, units, 1, 1)
     # scalars: (1, 1, 1, 1) -> broadcasts to (num_edges, units, 1, 1)
-    # Result: (num_edges, units, 1, 1)
+    # Result: I_ij (num_edges, units, 1, 1), A_ij (num_edges, units, 3, 3), S_ij (num_edges, units, 3, 3)
     I_ij, A_ij, S_ij = new_radial_tensor(
         eye_scalar_base,
         A_skew_base,
@@ -162,71 +153,12 @@ def radial_message_passing(
         edge_attr_S,
     )
 
-    # Debug: Check shapes after new_radial_tensor
-    # Expected: I_ij (num_edges, units, 1, 1), A_ij (num_edges, units, 3, 3), S_ij (num_edges, units, 3, 3)
-    if I_ij.shape[1] != units or A_ij.shape[1] != units or S_ij.shape[1] != units:
-        # If units is not in position 1, something went wrong with new_radial_tensor
-        # This might happen if the broadcasting didn't work as expected
-        raise RuntimeError(
-            f"new_radial_tensor returned unexpected shapes: "
-            f"I_ij {I_ij.shape} (expected units={units} in pos 1), "
-            f"A_ij {A_ij.shape} (expected units={units} in pos 1), "
-            f"S_ij {S_ij.shape} (expected units={units} in pos 1)"
-        )
-
-    # new_radial_tensor returns shapes based on input shapes
-    # f_I[..., None, None] * scalars where scalars is (1, 1, 1, 1) and f_I is (num_edges, units)
-    # Result: (num_edges, units, 1, 1)
-    # f_A[..., None, None] * skew where skew is (num_edges, 1, 3, 3) and f_A is (num_edges, units)
-    # Result: (num_edges, units, 3, 3)
-    # We need: (num_edges, 1, 1, units) for I, (num_edges, 3, 3, units) for A and S
-    # Transpose: move units dimension from position 1 to position -1
-
-    # After new_radial_tensor, units should be in position 1
-    # Always transpose to move units from position 1 to position -1
-    # Check actual shapes and transpose accordingly
-    if I_ij.dim() == 4:
-        if I_ij.shape[1] == units and I_ij.shape[-1] != units:
-            # I_ij is (num_edges, units, 1, 1), transpose to (num_edges, 1, 1, units)
-            I_ij = I_ij.permute(0, 2, 3, 1)
-        elif I_ij.shape[-1] == units and I_ij.shape[1] != units:
-            # Already in correct shape (num_edges, 1, 1, units)
-            pass
-        else:
-            # Unexpected shape - try to fix it
-            if I_ij.shape[1] == units:
-                I_ij = I_ij.permute(0, 2, 3, 1)
-    if A_ij.dim() == 4:
-        if A_ij.shape[1] == units and A_ij.shape[-1] != units:
-            # A_ij is (num_edges, units, 3, 3), transpose to (num_edges, 3, 3, units)
-            A_ij = A_ij.permute(0, 2, 3, 1)
-        elif A_ij.shape[-1] == units and A_ij.shape[1] != units:
-            # Already in correct shape (num_edges, 3, 3, units)
-            pass
-        else:
-            # Unexpected shape - try to fix it
-            if A_ij.shape[1] == units:
-                A_ij = A_ij.permute(0, 2, 3, 1)
-    if S_ij.dim() == 4:
-        if S_ij.shape[1] == units and S_ij.shape[-1] != units:
-            # S_ij is (num_edges, units, 3, 3), transpose to (num_edges, 3, 3, units)
-            S_ij = S_ij.permute(0, 2, 3, 1)
-        elif S_ij.shape[-1] == units and S_ij.shape[1] != units:
-            # Already in correct shape (num_edges, 3, 3, units)
-            pass
-        else:
-            # Unexpected shape - try to fix it
-            if S_ij.shape[1] == units:
-                S_ij = S_ij.permute(0, 2, 3, 1)
-
-    # Ensure final shapes are correct before aggregation
-    # I_ij should be (num_edges, 1, 1, units)
-    # A_ij should be (num_edges, 3, 3, units)
-    # S_ij should be (num_edges, 3, 3, units)
-    # Verify shapes have units in the last dimension
-    assert I_ij.shape[-1] == units, f"I_ij shape {I_ij.shape} should have units={units} in last dim"
-    assert A_ij.shape[-1] == units, f"A_ij shape {A_ij.shape} should have units={units} in last dim"
-    assert S_ij.shape[-1] == units, f"S_ij shape {S_ij.shape} should have units={units} in last dim"
+    # new_radial_tensor returns with units in position 1, we need units in position -1
+    # Transpose: (num_edges, units, 1, 1) -> (num_edges, 1, 1, units)
+    # Transpose: (num_edges, units, 3, 3) -> (num_edges, 3, 3, units)
+    I_ij = I_ij.permute(0, 2, 3, 1)  # (num_edges, 1, 1, units)
+    A_ij = A_ij.permute(0, 2, 3, 1)  # (num_edges, 3, 3, units)
+    S_ij = S_ij.permute(0, 2, 3, 1)  # (num_edges, 3, 3, units)
 
     # Aggregate to nodes
     I_tensor = scatter_add(I_ij, dst, dim_size=num_nodes, dim=0)
@@ -266,27 +198,23 @@ def message_passing(
     A_j = A[dst]
     S_j = S[dst]
 
-    # Create radial tensors from edge attributes
-    # edge_attr has shape (num_edges, units, 3) where the last dim is (I, A, S) components
-    # We need to extract each component and expand to match node feature shapes
-    edge_attr_I = edge_attr[..., 0]  # (num_edges, units)
-    edge_attr_A = edge_attr[..., 1]  # (num_edges, units)
-    edge_attr_S = edge_attr[..., 2]  # (num_edges, units)
+    # Extract edge attribute components
+    # edge_attr has shape (num_edges, 3, units) where dim 1 is (I, A, S) components
+    edge_attr_I = edge_attr[:, 0, :]  # (num_edges, units)
+    edge_attr_A = edge_attr[:, 1, :]  # (num_edges, units)
+    edge_attr_S = edge_attr[:, 2, :]  # (num_edges, units)
 
-    # After linear transformations, I, A, S all have shape (num_nodes, 3, 3, units)
+    # After linear transformations, I_tensor, A, S all have shape (num_nodes, 3, 3, units)
     # So I_j, A_j, S_j have shape (num_edges, 3, 3, units)
-    # Apply edge attributes directly: multiply edge_attr with the last dimension (units)
-    # edge_attr_I: (num_edges, units) -> (num_edges, 1, 1, units) for broadcasting
-    # edge_attr_A: (num_edges, units) -> (num_edges, 1, 1, units) for broadcasting
-    # edge_attr_S: (num_edges, units) -> (num_edges, 1, 1, units) for broadcasting
-    edge_attr_I_expanded = edge_attr_I.unsqueeze(1).unsqueeze(1)  # (num_edges, 1, 1, units)
-    edge_attr_A_expanded = edge_attr_A.unsqueeze(1).unsqueeze(1)  # (num_edges, 1, 1, units)
-    edge_attr_S_expanded = edge_attr_S.unsqueeze(1).unsqueeze(1)  # (num_edges, 1, 1, units)
+    # Expand edge attributes for broadcasting: (num_edges, units) -> (num_edges, 1, 1, units)
+    edge_attr_I = edge_attr_I.unsqueeze(1).unsqueeze(1)  # (num_edges, 1, 1, units)
+    edge_attr_A = edge_attr_A.unsqueeze(1).unsqueeze(1)  # (num_edges, 1, 1, units)
+    edge_attr_S = edge_attr_S.unsqueeze(1).unsqueeze(1)  # (num_edges, 1, 1, units)
 
     # Apply edge attributes to node features
-    I_m = I_j * edge_attr_I_expanded  # (num_edges, 3, 3, units)
-    A_m = A_j * edge_attr_A_expanded  # (num_edges, 3, 3, units)
-    S_m = S_j * edge_attr_S_expanded  # (num_edges, 3, 3, units)
+    I_m = I_j * edge_attr_I  # (num_edges, 3, 3, units)
+    A_m = A_j * edge_attr_A  # (num_edges, 3, 3, units)
+    S_m = S_j * edge_attr_S  # (num_edges, 3, 3, units)
 
     # Aggregate messages
     Im = scatter_add(I_m, dst, dim_size=num_nodes, dim=0)
@@ -555,8 +483,8 @@ class TensorNetInteraction(nn.Module):
         for linear_scalar in self.linears_scalar:
             edge_attr_processed = self.act(linear_scalar(edge_attr_processed))
         edge_attr_processed = (edge_attr_processed * C.view(-1, 1)).reshape(
-            edge_attr.shape[0], self.units, 3
-        )  # (num_edges, units, 3)
+            edge_attr.shape[0], 3, self.units
+        )  # (num_edges, 3, units)
 
         # Normalize input tensor
         # For X with shape (num_nodes, 3, 3, units), we need to sum over (-3, -2)
