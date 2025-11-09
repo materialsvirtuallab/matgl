@@ -222,17 +222,21 @@ class MEGNetGraphConv(MessagePassing):
             (edge features, node features, graph attributes)
         """
         edge_index = graph.edge_index
-        src, dst = edge_index
+        # Ensure edge_index is long dtype for indexing and scatter operations
+        src = edge_index[0].to(torch.long)
+        dst = edge_index[1].to(torch.long)
 
         # Broadcast state features to nodes
         if hasattr(graph, "batch") and graph.batch is not None:
             # For batched graphs, broadcast state_feat to each node based on batch
-            num_graphs = graph.batch.max().item() + 1
+            # Ensure batch is long dtype
+            batch = graph.batch.to(torch.long)
+            num_graphs = batch.max().item() + 1
             if state_feat.dim() == 1:
                 state_feat = state_feat.unsqueeze(0)
             if state_feat.size(0) == 1:
                 state_feat = state_feat.expand(num_graphs, -1)
-            node_state = state_feat[graph.batch]
+            node_state = state_feat[batch]
         else:
             # Single graph case
             if state_feat.dim() == 1:
@@ -254,9 +258,10 @@ class MEGNetGraphConv(MessagePassing):
 
         # State update
         if hasattr(graph, "batch") and graph.batch is not None:
-            num_graphs = graph.batch.max().item() + 1
-            u_edge_mean = scatter(edge_update, graph.batch[src], dim=0, dim_size=num_graphs, reduce="mean")
-            u_vertex_mean = scatter(node_update, graph.batch, dim=0, dim_size=num_graphs, reduce="mean")
+            batch = graph.batch.to(torch.long)
+            num_graphs = batch.max().item() + 1
+            u_edge_mean = scatter(edge_update, batch[src], dim=0, dim_size=num_graphs, reduce="mean")
+            u_vertex_mean = scatter(node_update, batch, dim=0, dim_size=num_graphs, reduce="mean")
             if state_feat.size(0) == 1 and num_graphs > 1:
                 state_feat_expanded = state_feat.expand(num_graphs, -1)
                 state_inputs = torch.hstack([state_feat_expanded, u_edge_mean, u_vertex_mean])
@@ -442,18 +447,22 @@ class M3GNetGraphConv(MessagePassing):
             (edge features, node features, graph attributes)
         """
         edge_index = graph.edge_index
-        src, dst = edge_index
+        # Ensure edge_index is long dtype for indexing and scatter operations
+        src = edge_index[0].to(torch.long)
+        dst = edge_index[1].to(torch.long)
         rbf = graph.rbf  # Radial basis functions stored in graph
 
         # Broadcast state features to nodes
         if self.include_state:
             if hasattr(graph, "batch") and graph.batch is not None:
-                num_graphs = graph.batch.max().item() + 1
+                # Ensure batch is long dtype
+                batch = graph.batch.to(torch.long)
+                num_graphs = batch.max().item() + 1
                 if state_feat.dim() == 1:
                     state_feat = state_feat.unsqueeze(0)
                 if state_feat.size(0) == 1:
                     state_feat = state_feat.expand(num_graphs, -1)
-                node_state = state_feat[graph.batch]
+                node_state = state_feat[batch]
             else:
                 if state_feat.dim() == 1:
                     state_feat = state_feat.unsqueeze(0)
@@ -485,8 +494,9 @@ class M3GNetGraphConv(MessagePassing):
         # State update
         if self.include_state and self.state_update_func is not None:
             if hasattr(graph, "batch") and graph.batch is not None:
-                num_graphs = graph.batch.max().item() + 1
-                uv = scatter(node_feat, graph.batch, dim=0, dim_size=num_graphs, reduce="mean")
+                batch = graph.batch.to(torch.long)
+                num_graphs = batch.max().item() + 1
+                uv = scatter(node_feat, batch, dim=0, dim_size=num_graphs, reduce="mean")
                 if state_feat.size(0) == 1:
                     state_inputs = torch.hstack([state_feat.squeeze(0), uv.squeeze(0)])
                 else:

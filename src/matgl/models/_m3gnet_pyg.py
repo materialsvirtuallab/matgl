@@ -319,7 +319,9 @@ class M3GNet(MatGLModel):
                     atomic_properties = atomic_properties.squeeze(-1)
                 else:
                     atomic_properties = atomic_properties.squeeze()
-                output = scatter_add(atomic_properties, g.batch, dim_size=g.num_graphs)
+                # Ensure batch is long dtype for scatter_add
+                batch = g.batch.to(torch.long)
+                output = scatter_add(atomic_properties, batch, dim_size=g.num_graphs)
             else:
                 output = torch.sum(atomic_properties, dim=0, keepdim=True).squeeze()
             fea_dict["readout"] = atomic_properties

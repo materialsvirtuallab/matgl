@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 
 import torch
 from torch import nn
-from torch_geometric.data import Data
 
 from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph._compute_pyg import compute_pair_vector_and_distance_pyg
@@ -26,6 +25,8 @@ from matgl.layers._readout_pyg import EdgeSet2Set
 from ._core import MatGLModel
 
 if TYPE_CHECKING:
+    from torch_geometric.data import Data
+
     from matgl.graph._converters_pyg import GraphConverter
 
 logger = logging.getLogger(__file__)
@@ -134,11 +135,10 @@ class MEGNet(MatGLModel):
 
         self.blocks = nn.ModuleList(blocks)
 
-        s2s_kwargs = {"n_iters": niters_set2set, "n_layers": nlayers_set2set}
-        self.edge_s2s = EdgeSet2Set(dim_blocks_out, **s2s_kwargs)
         from torch_geometric.nn import Set2Set
 
-        self.node_s2s = Set2Set(dim_blocks_out, **s2s_kwargs)
+        self.edge_s2s = EdgeSet2Set(dim_blocks_out, niters_set2set, nlayers_set2set)
+        self.node_s2s = Set2Set(in_channels=dim_blocks_out, processing_steps=niters_set2set)
 
         self.output_proj = MLP(
             # S2S cats q_star to output producing double the dim
@@ -175,10 +175,7 @@ class MEGNet(MatGLModel):
             state_feat = self.state_encoder(state_feat)
         else:
             # Create dummy state_feat if not included
-            if hasattr(g, "batch") and g.batch is not None:
-                num_graphs = g.batch.max().item() + 1
-            else:
-                num_graphs = 1
+            num_graphs = g.batch.max().item() + 1 if hasattr(g, "batch") and g.batch is not None else 1
             # Get output dimension from stored state_dim
             state_feat = torch.zeros((num_graphs, self.state_dim), device=node_feat.device)
 
@@ -187,10 +184,11 @@ class MEGNet(MatGLModel):
             edge_feat, node_feat, state_feat = output
 
         # Handle batch for single graphs
+        # Ensure batch is long dtype for Set2Set
         if not hasattr(g, "batch") or g.batch is None:
             batch = torch.zeros(node_feat.size(0), dtype=torch.long, device=node_feat.device)
         else:
-            batch = g.batch
+            batch = g.batch.to(torch.long)
 
         node_vec = self.node_s2s(node_feat, batch)
         edge_vec = self.edge_s2s(g, edge_feat)

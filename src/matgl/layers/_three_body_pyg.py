@@ -98,6 +98,8 @@ class ThreeBodyInteractions(nn.Module):
         else:
             # Fallback: assume each line graph node corresponds to an original edge
             segment_ids = line_graph.edge_index[1]  # Use destination nodes as segment IDs
+        # Ensure segment_ids is long dtype for scatter_sum
+        segment_ids = segment_ids.to(torch.long)
         num_segments = (
             graph.edge_index.size(1)
             if hasattr(graph, "edge_index") and graph.edge_index.numel() > 0

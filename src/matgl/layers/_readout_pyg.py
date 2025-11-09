@@ -156,8 +156,10 @@ class EdgeSet2Set(nn.Module):
         if hasattr(graph, "batch") and graph.batch is not None:
             # For edge features, we need to get the batch for each edge
             # In PyG, edges don't have a direct batch attribute, so we use the destination node's batch
-            edge_batch = graph.batch[graph.edge_index[1]]
-            batch_size = graph.batch.max().item() + 1
+            # Ensure batch is long dtype for scatter operations
+            batch = graph.batch.to(torch.long)
+            edge_batch = batch[graph.edge_index[1].to(torch.long)]
+            batch_size = batch.max().item() + 1
         else:
             edge_batch = torch.zeros(feat.size(0), dtype=torch.long, device=feat.device)
             batch_size = 1
@@ -212,7 +214,7 @@ class Set2SetReadOut(nn.Module):
         self.n_iters = n_iters
         self.n_layers = n_layers
         if field == "node_feat":
-            self.set2set = Set2Set(in_feats, n_iters, n_layers)
+            self.set2set = Set2Set(in_channels=in_feats, processing_steps=n_iters)
         elif field == "edge_feat":
             self.set2set = EdgeSet2Set(in_feats, n_iters, n_layers)
         else:
@@ -222,7 +224,9 @@ class Set2SetReadOut(nn.Module):
         if self.field == "node_feat":
             if not hasattr(graph, "node_feat") or graph.node_feat is None:
                 raise ValueError("Data object must contain node features (graph.node_feat)")
-            return self.set2set(graph.node_feat, graph.batch)
+            # Ensure batch is long dtype for Set2Set
+            batch = graph.batch.to(torch.long) if hasattr(graph, "batch") and graph.batch is not None else None
+            return self.set2set(graph.node_feat, batch)
         if not hasattr(graph, "edge_feat") or graph.edge_feat is None:
             raise ValueError("Data object must contain edge features (graph.edge_feat)")
         return self.set2set(graph, graph.edge_feat)

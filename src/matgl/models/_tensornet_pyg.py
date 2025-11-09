@@ -254,7 +254,9 @@ class TensorNet(MatGLModel):
             else:
                 atomic_energies = atomic_energies.squeeze()
             # Batch case: Use scatter_add with batch tensor
-            return scatter_add(atomic_energies, g.batch, dim_size=g.num_graphs)
+            # Ensure batch is long dtype for scatter_add
+            batch = g.batch.to(torch.long)
+            return scatter_add(atomic_energies, batch, dim_size=g.num_graphs)
         # Single graph case: Sum all energies (equivalent to scatter_add with all nodes in one graph)
         return torch.sum(atomic_energies, dim=0, keepdim=True).squeeze()
 
