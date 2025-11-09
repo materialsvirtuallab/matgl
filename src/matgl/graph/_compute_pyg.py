@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import torch
 from torch_geometric.data import Data
 
@@ -117,8 +118,6 @@ def create_line_graph_pyg(
     Returns:
         l_g: PyG Data object containing three body information from graph
     """
-    import numpy as np
-
     edge_index = graph.edge_index
     bond_dist = graph.bond_dist
 
@@ -134,7 +133,7 @@ def create_line_graph_pyg(
         return empty_graph
 
     # Compute n_triple_ij: number of three-body angles for each bond
-    # Count bonds per atom
+    # Count bonds per atom (only source atoms, matching DGL behavior)
     src_nodes = valid_edges[0].cpu().numpy()
     n_atoms = graph.num_nodes
     n_bond_per_atom = np.bincount(src_nodes, minlength=n_atoms)
@@ -142,20 +141,28 @@ def create_line_graph_pyg(
     n_triple_ij = torch.tensor(n_triple_ij, dtype=torch.long, device=graph.edge_index.device)
 
     # Create line graph: nodes are edges in original graph
-    # Two edges are connected if they share a common node
+    # Two edges are connected ONLY if they share the same SOURCE atom (matching DGL _compute_3body)
+    # This creates n * (n - 1) edges for each atom with n bonds
     num_line_nodes = valid_edges.size(1)
     line_edge_list = []
 
-    # For each pair of edges, check if they share a node
+    # Group edges by source atom
+    edge_groups = {}
     for i in range(num_line_nodes):
-        for j in range(i + 1, num_line_nodes):
-            edge_i = valid_edges[:, i]
-            edge_j = valid_edges[:, j]
-            # Check if edges share a node (form a triangle)
-            if edge_i[0] == edge_j[0] or edge_i[0] == edge_j[1] or edge_i[1] == edge_j[0] or edge_i[1] == edge_j[1]:
-                # They share a node, add edge in line graph
-                line_edge_list.append([i, j])
-                line_edge_list.append([j, i])  # Undirected
+        src = valid_edges[0, i].item()
+        if src not in edge_groups:
+            edge_groups[src] = []
+        edge_groups[src].append(i)
+
+    # For each source atom, create edges between all pairs of its bonds
+    for src, edge_indices in edge_groups.items():
+        n = len(edge_indices)
+        if n > 1:
+            # Create all pairs (i, j) where i != j, in one direction only
+            for i in range(n):
+                for j in range(n):
+                    if i != j:
+                        line_edge_list.append([edge_indices[i], edge_indices[j]])
 
     if len(line_edge_list) == 0:
         line_edge_index = torch.empty((2, 0), dtype=torch.long, device=graph.edge_index.device)
