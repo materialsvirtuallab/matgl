@@ -10,9 +10,15 @@ import matgl
 
 if matgl.config.BACKEND != "PYG":
     pytest.skip("Skipping PYG tests", allow_module_level=True)
+from torch_geometric.data import Data
+
 from matgl.layers import ActivationFunction, BondExpansion
 from matgl.layers._embedding_pyg import TensorEmbedding as TensorEmbeddingPyG
+from matgl.layers._readout_pyg import ReduceReadOut as ReduceReadOutPyG
+from matgl.layers._readout_pyg import WeightedReadOut as WeightedReadOutPyG
+from matgl.models._tensornet_pyg import ReduceReadOut as ReduceReadOutPure
 from matgl.models._tensornet_pyg import TensorEmbedding, TensorNet
+from matgl.models._tensornet_pyg import WeightedReadOut as WeightedReadOutPure
 
 
 class TestTensorNet:
@@ -154,7 +160,7 @@ class TestTensorNet:
 
         # Compare outputs
         # Note: PyG version returns (num_nodes, units, 3, 3) while pure version returns (num_nodes, 3, 3, units)
-        # Permute PyG output to match pure version: (num_nodes, units, 3, 3) -> (num_nodes, 3, 3, units)
+        # Permute PyG output to match pure version: (num_nodes, 3, 3, units) -> (num_nodes, 3, 3, units)
         X_pyg_permuted = X_pyg.permute(0, 2, 3, 1)  # (num_nodes, 3, 3, units)
 
         # Note: There may be small numerical differences due to implementation details,
@@ -166,3 +172,30 @@ class TestTensorNet:
             f"Output mismatch: max diff = {torch.max(torch.abs(X_pyg_permuted - X_pure)).item()}"
         )
         assert state_feat_pyg is None, "State features should be None"
+
+    def test_readout_consistency(self):
+        torch.manual_seed(0)
+        in_feats = 16
+        hidden_dims = [32]
+        num_targets = 3
+        num_nodes = 10
+        node_feat = torch.randn(num_nodes, in_feats, dtype=matgl.float_th)
+        batch = torch.tensor([0, 0, 0, 0, 1, 1, 1, 1, 1, 1], dtype=torch.long)
+        data = Data(node_feat=node_feat.clone(), batch=batch)
+
+        readout_pyg = WeightedReadOutPyG(in_feats=in_feats, dims=hidden_dims, num_targets=num_targets)
+        readout_pure = WeightedReadOutPure(in_feats=in_feats, dims=hidden_dims, num_targets=num_targets)
+        readout_pure.gated.load_state_dict(readout_pyg.gated.state_dict())
+
+        with torch.no_grad():
+            out_pyg_weighted = readout_pyg(data)
+            out_pure_weighted = readout_pure(node_feat)
+        assert torch.allclose(out_pyg_weighted, out_pure_weighted, rtol=1e-5, atol=1e-6)
+
+        for op in ["sum", "mean", "max"]:
+            reduce_pyg = ReduceReadOutPyG(op=op)
+            reduce_pure = ReduceReadOutPure(op=op)
+            with torch.no_grad():
+                out_pyg_reduce = reduce_pyg(data)
+                out_pure_reduce = reduce_pure(node_feat, batch)
+            assert torch.allclose(out_pyg_reduce, out_pure_reduce, rtol=1e-5, atol=1e-6)
