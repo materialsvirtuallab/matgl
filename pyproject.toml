@@ -68,7 +68,7 @@ mgl = "matgl.cli:main"
 dgl = [
     "dgl<=2.1.0; sys.platform == 'win32'",
     "dgl==2.2.0; sys.platform == 'darwin'",
-    "torch==2.3.0; sys.platform == 'darwin'",
+    "torch==2.9.0; sys.platform == 'darwin'",
     "torchdata<=0.8.0",
     "dgl<=2.4.0; sys.platform == 'linux'",
     "torch<=2.4.0; sys.platform == 'linux'",
