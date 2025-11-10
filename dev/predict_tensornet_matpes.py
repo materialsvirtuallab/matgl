@@ -12,6 +12,7 @@ from pathlib import Path
 
 import torch
 from pymatgen.core import Lattice, Structure
+from pymatgen.util.testing import PymatgenTest
 
 
 def main() -> None:
@@ -31,11 +32,8 @@ def main() -> None:
     init_args = d["model"]["init_args"]
     from matgl.models._tensornet_pyg import TensorNet
 
-    model = TensorNet(**init_args)
-    model.load_state_dict(state, strict=False)  # type: ignore
-
-    energy = model.predict_structure(structure)
-    print(f"Predicted energy PYG: {float(energy):.6f} eV")
+    model_pyg = TensorNet(**init_args)
+    model_pyg.load_state_dict(state, strict=False)  # type: ignore
 
     model_path = Path("pretrained_models/TensorNet-MatPES-PBE-v2025.1-PES")
     state = torch.load(model_path / "state.pt", map_location=map_location, weights_only=False)
@@ -44,11 +42,15 @@ def main() -> None:
 
     from matgl.models._tensornet_dgl import TensorNet
 
-    model = TensorNet(**init_args)
-    model.load_state_dict(state, strict=False)  # type: ignore
+    model_dgl = TensorNet(**init_args)
+    model_dgl.load_state_dict(state, strict=False)  # type: ignore
 
-    energy = model.predict_structure(structure)
-    print(f"Predicted energy DGL: {float(energy):.6f} eV")
+    for f in ["Li2O", "Si", "LiFePO4", "CsCl", "SiO2"]:
+        structure = PymatgenTest.get_structure(f)
+        energy = model_pyg.predict_structure(structure)
+        print(f"Predicted energy PYG {f}: {float(energy):.6f} eV")
+        energy = model_dgl.predict_structure(structure)
+        print(f"Predicted energy DGL {f}: {float(energy):.6f} eV")
 
 
 if __name__ == "__main__":
