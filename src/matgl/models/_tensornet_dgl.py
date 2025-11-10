@@ -22,17 +22,17 @@ from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph._compute_dgl import (
     compute_pair_vector_and_distance,
 )
-from matgl.layers import (
-    MLP,
-    ActivationFunction,
-    BondExpansion,
+from matgl.layers._activations import ActivationFunction
+from matgl.layers._bond import BondExpansion
+from matgl.layers._core import MLP
+from matgl.layers._embedding_dgl import TensorEmbedding
+from matgl.layers._graph_convolution_dgl import TensorNetInteraction
+from matgl.layers._readout_dgl import (
     ReduceReadOut,
     Set2SetReadOut,
     WeightedAtomReadOut,
     WeightedReadOut,
 )
-from matgl.layers._embedding_dgl import TensorEmbedding
-from matgl.layers._graph_convolution_dgl import TensorNetInteraction
 from matgl.utils.maths import decompose_tensor, tensor_norm
 
 from ._core import MatGLModel
