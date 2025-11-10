@@ -12,8 +12,8 @@ from torch import nn
 
 from matgl.layers._activations import SoftPlus2
 
-from . import EdgeSet2Set
 from ._core import MLP, GatedMLP
+from ._core_dgl import EdgeSet2Set
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
