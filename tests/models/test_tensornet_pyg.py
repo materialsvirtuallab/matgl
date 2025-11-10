@@ -16,9 +16,9 @@ from matgl.layers import ActivationFunction, BondExpansion
 from matgl.layers._embedding_pyg import TensorEmbedding as TensorEmbeddingPyG
 from matgl.layers._readout_pyg import ReduceReadOut as ReduceReadOutPyG
 from matgl.layers._readout_pyg import WeightedReadOut as WeightedReadOutPyG
-from matgl.models._tensornet_pyg import ReduceReadOut as ReduceReadOutPure
+from matgl.layers._readout_torch import ReduceReadOut as ReduceReadOutPure
+from matgl.layers._readout_torch import WeightedReadOut as WeightedReadOutPure
 from matgl.models._tensornet_pyg import TensorEmbedding, TensorNet
-from matgl.models._tensornet_pyg import WeightedReadOut as WeightedReadOutPure
 
 
 class TestTensorNet:
