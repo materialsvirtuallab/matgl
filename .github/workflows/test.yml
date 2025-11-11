@@ -135,8 +135,8 @@ jobs:
         run: |
           pip install coverage
           ls *
-          # cp coverage-dgl/coverage.dgl .
-          # cp coverage-pyg/coverage.pyg .
+          cp coverage.dgl/coverage.dgl .
+          cp coverage.pyg/coverage.pyg .
           echo "Combining coverage files..."
           coverage combine coverage.* || echo "Warning: coverage combine failed"
           coverage xml -o coverage.xml || echo "Warning: coverage xml failed"
