@@ -66,6 +66,7 @@ mgl = "matgl.cli:main"
 
 [project.optional-dependencies]
 dgl = [
+    "numpy<2.0",
     "dgl<=2.1.0; sys.platform == 'win32'",
     "dgl==2.2.0; sys.platform == 'darwin'",
     "torch==2.3.0; sys.platform == 'darwin'",
