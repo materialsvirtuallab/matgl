@@ -53,6 +53,7 @@ jobs:
         run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
+          uv pip install "numpy<2"
           uv pip install -e '.[dgl]'
           uv pip install "torch<=2.4.0"
           uv pip install "torchdata<=0.8.0"
