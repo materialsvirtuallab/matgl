@@ -137,24 +137,13 @@ jobs:
         run: |
           pip install coverage
 
-          # Also check for coverage files in root of artifact directories
-          if [ -f coverage-dgl/.coverage ]; then
-            echo "Found .coverage in coverage-dgl root"
-            cp coverage-dgl/.coverage ".coverage.dgl.$counter"
-            counter=$((counter + 1))
-            found_files=$((found_files + 1))
-          fi
-
-          if [ -f coverage-pyg/.coverage ]; then
-            echo "Found .coverage in coverage-pyg root"
-            cp coverage-pyg/.coverage ".coverage.pyg.$counter"
-            counter=$((counter + 1))
-            found_files=$((found_files + 1))
-          fi
-          ls *
+          cp coverage-dgl/.coverage .coverage.dgl
+          cp coverage-dgl/coverage.xml coverage.dgl.xml
+          cp coverage-pyg/.coverage .coverage.pyg
+          cp coverage-pyg/coverage.xml coverage.pyg.xml
           echo "Combining coverage files..."
-          coverage combine coverage-*/.coverage* || echo "Warning: coverage combine failed"
-          coverage xml -o coverage-*/coverage.xml || echo "Warning: coverage xml failed"
+          coverage combine .coverage* || echo "Warning: coverage combine failed"
+          coverage xml -o coverage.*.xml || echo "Warning: coverage xml failed"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
