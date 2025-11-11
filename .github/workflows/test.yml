@@ -136,9 +136,6 @@ jobs:
       - name: Combine coverage reports
         run: |
           pip install coverage
-          mv coverage-dgl/* .
-          mv coverage-pyg/* .
-
 
           # Also check for coverage files in root of artifact directories
           if [ -f coverage-dgl/.coverage ]; then
@@ -156,8 +153,8 @@ jobs:
           fi
           ls *
           echo "Combining coverage files..."
-          coverage combine .coverage.* || echo "Warning: coverage combine failed"
-          coverage xml -o coverage.xml || echo "Warning: coverage xml failed"
+          coverage combine coverage-*/.coverage* || echo "Warning: coverage combine failed"
+          coverage xml -o coverage-*/coverage.xml || echo "Warning: coverage xml failed"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
