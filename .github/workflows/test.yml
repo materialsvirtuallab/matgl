@@ -127,13 +127,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: coverage-dgl
-          path: coverage-dgl/
+          path: |
+            .coverage
+            coverage.xml
           merge-multiple: true
       - name: Download coverage from test_pyg
         uses: actions/download-artifact@v4
         with:
           name: coverage-pyg
-          path: coverage-pyg/
+          path: |
+            .coverage
+            coverage.xml
           merge-multiple: true
       - name: Combine coverage reports
         run: |
