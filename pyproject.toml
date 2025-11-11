@@ -49,7 +49,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "ase",
+    "ase>=3.26.0",
     "torch<=2.7.0",  # TODO: Remove this pin. For some reason, torch 2.9 gives different results.
     "torchdata",
     "pymatgen",
