@@ -106,6 +106,8 @@ jobs:
         run: |
           uv run python -c "import torch; print(torch.__version__)"
           uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
+          ls -la .coverage*
+          ls -la *coverage*
       - name: Upload coverage artifacts
         if: matrix.config.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
@@ -136,7 +138,7 @@ jobs:
       - name: Combine coverage reports
         run: |
           pip install coverage
-
+          ls -la coverage-dgl
           cp coverage-dgl/.coverage .coverage.dgl
           cp coverage-dgl/coverage.xml coverage.dgl.xml
           cp coverage-pyg/.coverage .coverage.pyg
