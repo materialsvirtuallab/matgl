@@ -98,6 +98,7 @@ jobs:
         run: uv venv --python ${{ matrix.config.python }}
       - name: Install dependencies
         run: |
+          uv sync --upgrade
           uv pip install -e .
           uv pip install pytest pytest-cov
       - name: pytest
