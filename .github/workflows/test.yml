@@ -63,13 +63,12 @@ jobs:
           uv run python -c "import dgl; print(dgl.__version__)"
           uv run python -c "import torch; print(torch.__version__)"
           uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
+          mv .coverage coverage.dgl
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-dgl
-          path: |
-            .coverage
-            coverage.xml
+          path: coverage.dgl
           if-no-files-found: ignore
   test_pyg:
     strategy:
@@ -106,16 +105,13 @@ jobs:
         run: |
           uv run python -c "import torch; print(torch.__version__)"
           uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
-          ls -la .coverage*
-          ls -la *coverage*
+          mv .coverage coverage.pyg
       - name: Upload coverage artifacts
         if: matrix.config.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pyg
-          path: |
-            .coverage
-            coverage.xml
+          path: coverage.pyg
           if-no-files-found: ignore
 
   coverage:
@@ -127,29 +123,22 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: coverage-dgl
-          path: |
-            .coverage
-            coverage.xml
+          path: coverage.dgl
           merge-multiple: true
       - name: Download coverage from test_pyg
         uses: actions/download-artifact@v4
         with:
           name: coverage-pyg
-          path: |
-            .coverage
-            coverage.xml
+          path: coverage.pyg
           merge-multiple: true
       - name: Combine coverage reports
         run: |
           pip install coverage
-          ls -la coverage-dgl
-          cp coverage-dgl/.coverage .coverage.dgl
-          cp coverage-dgl/coverage.xml coverage.dgl.xml
-          cp coverage-pyg/.coverage .coverage.pyg
-          cp coverage-pyg/coverage.xml coverage.pyg.xml
+          cp coverage-dgl/coverage.dgl .
+          cp coverage-pyg/coverage.pyg .
           echo "Combining coverage files..."
-          coverage combine .coverage* || echo "Warning: coverage combine failed"
-          coverage xml -o coverage.*.xml || echo "Warning: coverage xml failed"
+          coverage combine coverage* || echo "Warning: coverage combine failed"
+          coverage xml -o coverage.xml || echo "Warning: coverage xml failed"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
