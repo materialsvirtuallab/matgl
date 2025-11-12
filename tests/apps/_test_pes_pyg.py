@@ -8,7 +8,7 @@ from torch_geometric.data import Batch
 
 import matgl
 from matgl.apps._pes_pyg import Potential
-from matgl.ext._pymatgen_pyg import Structure2GraphPYG, get_element_list
+from matgl.ext._pymatgen_pyg import Structure2Graph, get_element_list
 from matgl.models._tensornet_pyg import TensorNet
 
 
@@ -100,7 +100,7 @@ class TestPotential:
     def test_potential_two_body(self, model_tensornet):
         structure = Structure(Lattice.cubic(10.0), ["Mo", "Mo"], [[0.0, 0, 0], [0.2, 0.0, 0.0]])
         element_types = get_element_list([structure])
-        p2g = Structure2GraphPYG(element_types=element_types, cutoff=5.0)
+        p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
         graph, lat, state = p2g.get_graph(structure)
         ff = Potential(model=model_tensornet, calc_hessian=True)
         e, f, s, h = ff(graph, lat, torch.tensor(state))
@@ -112,7 +112,7 @@ class TestPotential:
     def test_potential_isolated_atom(self, model_tensornet):
         structure = Structure(Lattice.cubic(10.0), ["Mo"], [[0.0, 0, 0]])
         element_types = get_element_list([structure])
-        p2g = Structure2GraphPYG(element_types=element_types, cutoff=5.0)
+        p2g = Structure2Graph(element_types=element_types, cutoff=5.0)
         graph, lat, state = p2g.get_graph(structure)
         ff = Potential(model=model_tensornet, calc_hessian=True)
         e, f, s, h = ff(graph, lat, torch.tensor(state))
@@ -122,7 +122,7 @@ class TestPotential:
         assert [h.size(dim=0), h.size(dim=1)] == [3, 3]
 
     def test_potential_efsh_with_force_fd(self, graph_MoS_pyg, model_tensornet):
-        p2g = Structure2GraphPYG(element_types=("O", "Zr"), cutoff=5.0)
+        p2g = Structure2Graph(element_types=("O", "Zr"), cutoff=5.0)
         struct_minus = Structure.from_spacegroup(
             "Pm-3m", Lattice.cubic(5.0), ["Zr", "O"], [[0.0, 0, 0], [0.498, 0.5, 0.5]]
         )
@@ -141,7 +141,7 @@ class TestPotential:
         assert np.allclose(fd.detach().numpy(), grad_dx_zero[0][0].detach().numpy(), atol=1e-05)
 
     def test_potential_with_stress_fd(self, graph_MoS, model_tensornet):
-        p2g = Structure2GraphPYG(element_types=("O", "Zr"), cutoff=5.0)
+        p2g = Structure2Graph(element_types=("O", "Zr"), cutoff=5.0)
         struct_minus = Structure.from_spacegroup(
             "Pm-3m", Lattice.cubic(5.99), ["Zr", "O"], [[0, 0, 0], [0.5, 0.5, 0.5]]
         )

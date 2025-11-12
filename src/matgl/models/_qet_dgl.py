@@ -191,6 +191,7 @@ class QET(MatGLModel):
         self.out_norm = nn.LayerNorm(3 * units, dtype=dtype)
         self.linear = nn.Linear(3 * units, units, dtype=dtype)
         # check whether hardness is environment dependent property
+        self.hardness_readout: nn.Parameter | nn.Module
         if is_hardness_envs is False:
             hardness = torch.ones(len(element_types))
             self.hardness_readout = torch.nn.Parameter(data=hardness)

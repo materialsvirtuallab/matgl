@@ -8,7 +8,7 @@ import io
 import pickle
 import sys
 from enum import Enum
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import TYPE_CHECKING, Literal
 
 import ase.optimize as opt
 import numpy as np
@@ -131,16 +131,6 @@ class Atoms2Graph(GraphConverter):
 class PESCalculator(Calculator):
     """Potential calculator for ASE."""
 
-    implemented_properties: ClassVar[list[str]] = [
-        "energy",
-        "free_energy",
-        "forces",
-        "stress",
-        "hessian",
-        "charges",
-        "magmoms",
-    ]
-
     def __init__(
         self,
         potential: Potential,
@@ -167,6 +157,16 @@ class PESCalculator(Calculator):
             **kwargs: Kwargs pass through to super().__init__().
         """
         super().__init__(**kwargs)
+        self.implemented_properties = [
+            "energy",
+            "free_energy",
+            "forces",
+            "stress",
+            "hessian",
+            "charges",
+            "magmoms",
+        ]
+
         self.potential = potential
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
@@ -220,7 +220,7 @@ class PESCalculator(Calculator):
                 device=graph.device,
             ).sum()
         else:
-            total_charge = self.total_charge.to(self.device)
+            total_charge = self.total_charge.to(graph.device)
         # type: ignore
         if self.state_attr is not None:
             calc_result = self.potential(g=graph, lat=lattice, state_attr=self.state_attr)

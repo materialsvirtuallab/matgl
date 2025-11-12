@@ -119,7 +119,7 @@ class MatglLightningModuleMixin:
             *args: Pass-through
             **kwargs: Pass-through.
         """
-        super().on_test_model_eval(*args, **kwargs)
+        super().on_test_model_eval(*args, **kwargs)  # type: ignore[misc]
 
     def predict_step(self, batch: tuple, batch_idx: int, dataloader_idx: int = 0) -> Any:
         """
