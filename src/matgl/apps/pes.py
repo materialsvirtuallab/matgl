@@ -8,6 +8,7 @@ import torch
 from torch import nn
 from torch.autograd import grad
 
+import dgl
 import matgl
 from matgl.layers import AtomRef, NuclearRepulsion
 from matgl.utils.io import IOMixIn
@@ -32,6 +33,7 @@ class Potential(nn.Module, IOMixIn):
         calc_stresses: bool = True,
         calc_hessian: bool = False,
         calc_magmom: bool = False,
+        calc_charge: bool = False,
         calc_repuls: bool = False,
         zbl_trainable: bool = False,
         debug_mode: bool = False,
@@ -46,7 +48,8 @@ class Potential(nn.Module, IOMixIn):
             calc_forces: Enable force calculations.
             calc_stresses: Enable stress calculations.
             calc_hessian: Enable hessian calculations.
-            calc_magmom: Enable site-wise property calculation.
+            calc_site_wise: Enable site-wise property calculation.
+            calc_charge: Enable charge property calculation
             calc_repuls: Whether the ZBL repulsion is included
             zbl_trainable: Whether zbl repulsion is trainable
             debug_mode: Return gradient of total energy with respect to atomic positions and lattices for checking
@@ -61,6 +64,7 @@ class Potential(nn.Module, IOMixIn):
         self.element_refs: AtomRef | None
         self.debug_mode = debug_mode
         self.calc_repuls = calc_repuls
+        self.calc_charge = calc_charge
 
         if calc_repuls:
             self.repuls = NuclearRepulsion(self.model.cutoff, trainable=zbl_trainable)
@@ -88,12 +92,15 @@ class Potential(nn.Module, IOMixIn):
         lat: torch.Tensor,
         state_attr: torch.Tensor | None = None,
         l_g: dgl.DGLGraph | None = None,
+        total_charge: torch.Tensor | None = None,
+        ext_pot: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, ...]:
         """Args:
             g: DGL graph
             lat: lattice
             state_attr: State attrs
             l_g: Line graph.
+            tot_charge: total charge of the system
 
         Returns:
             (energies, forces, stresses, hessian) or (energies, forces, stresses, hessian, site-wise properties)
@@ -110,8 +117,20 @@ class Potential(nn.Module, IOMixIn):
         ).sum(dim=1)
         if self.calc_forces:
             g.ndata["pos"].requires_grad_(True)
+        total_energies = (
+            self.model(
+                g=g,
+                state_attr=state_attr,
+                l_g=l_g,
+                lat=lat,
+                total_charge=total_charge,
+                ext_pot=ext_pot,
+                lattice=lat,
+            )
+            if self.calc_charge is True
+            else self.model(g=g, l_g=l_g, state_attr=state_attr)
+        )
 
-        total_energies = self.model(g=g, state_attr=state_attr, l_g=l_g)
 
         total_energies = self.data_std * total_energies + self.data_mean
 
@@ -162,6 +181,11 @@ class Potential(nn.Module, IOMixIn):
             return total_energies, grads[0], grads[1]
 
         if self.calc_magmom:
+            if self.calc_charge:
+                return total_energies, forces, stresses, hessian, g.ndata["charge"], g.ndata["magmom"]
             return total_energies, forces, stresses, hessian, g.ndata["magmom"]
+
+        if self.calc_charge:
+            return total_energies, forces, stresses, hessian, g.ndata["charge"]
 
         return total_energies, forces, stresses, hessian

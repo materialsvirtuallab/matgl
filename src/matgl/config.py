@@ -8,6 +8,9 @@ from pathlib import Path
 
 from pymatgen.core.periodic_table import Element
 
+# Coulomb conversion
+COULOMB_CONSTANT = 14.399645478425668
+
 # Default set of elements supported by universal matgl models. Excludes radioactive and most artificial elements.
 DEFAULT_ELEMENTS = tuple(el.symbol for el in Element if el.symbol not in ["Po", "At", "Rn", "Fr", "Ra"] and el.Z < 95)
 

@@ -14,6 +14,9 @@ import ase.optimize as opt
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
+import torch
+import matgl
+
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.filters import FrechetCellFilter
@@ -130,7 +133,15 @@ class Atoms2Graph(GraphConverter):
 class PESCalculator(Calculator):
     """Potential calculator for ASE."""
 
-    implemented_properties = ["energy", "free_energy", "forces", "stress", "hessian", "magmoms"]  # noqa:RUF012
+    implemented_properties = [
+        "energy",
+        "free_energy",
+        "forces",
+        "stress",
+        "hessian",
+        "charges",
+        "magmoms",
+    ]  # noqa:RUF012
 
     def __init__(
         self,
@@ -139,6 +150,8 @@ class PESCalculator(Calculator):
         stress_unit: Literal["eV/A3", "GPa"] = "GPa",
         stress_weight: float = 1.0,
         use_voigt: bool = False,
+        ext_pot: torch.Tensor | None = None,
+        total_charge: torch.Tensor | None = None,
         **kwargs,
     ):
         """
@@ -151,6 +164,8 @@ class PESCalculator(Calculator):
             stress_unit (str): stress unit. Default: "GPa"
             stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
             use_voigt (bool): whether the voigt notation is used for stress output
+            ext_pot (tensor): external potential applied to atoms (Natoms,)
+            total_charge (tensor): total charge of the structure
             **kwargs: Kwargs pass through to super().__init__().
         """
         super().__init__(**kwargs)
@@ -158,6 +173,7 @@ class PESCalculator(Calculator):
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
+        self.compute_charge = potential.calc_charge
 
         self.graph_converter = Atoms2Graph(potential.model.element_types, potential.model.cutoff)
 
@@ -174,6 +190,8 @@ class PESCalculator(Calculator):
         self.element_types = potential.model.element_types  # type: ignore
         self.cutoff = potential.model.cutoff
         self.use_voigt = use_voigt
+        self.total_charge = total_charge
+        self.ext_pot = ext_pot
 
     def calculate(  # type:ignore[override]
         self,
@@ -195,11 +213,21 @@ class PESCalculator(Calculator):
         system_changes = system_changes or all_changes
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
         graph, lattice, state_attr_default = self.graph_converter.get_graph(atoms)
+        if self.total_charge is None:
+            total_charge = torch.tensor(
+                atoms.get_initial_charges(),
+                dtype=matgl.float_th,
+                device=graph.device,
+            ).sum()
+        else:
+            total_charge = self.total_charge.to(self.device)
         # type: ignore
         if self.state_attr is not None:
-            calc_result = self.potential(graph, lattice, self.state_attr)
+            calc_result = self.potential(g=graph, lat=lattice, state_attr=self.state_attr)
         else:
-            calc_result = self.potential(graph, lattice, state_attr_default)
+            calc_result = self.potential(
+                g=graph, lat=lattice, state_attr=state_attr_default, total_charge=total_charge, ext_pot=self.ext_pot
+            )
         self.results.update(
             energy=calc_result[0].detach().cpu().numpy().item(),
             free_energy=calc_result[0].detach().cpu().numpy().item(),
@@ -216,6 +244,8 @@ class PESCalculator(Calculator):
             self.results.update(hessian=calc_result[3].detach().cpu().numpy())
         if self.compute_magmom:
             self.results.update(magmoms=calc_result[4].detach().cpu().numpy())
+        if self.compute_charge:
+            self.results.update(charges=calc_result[4].detach().cpu().numpy())
 
 
 # for backward compatibility
