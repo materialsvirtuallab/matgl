@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import torch
 import torch.nn as nn
-from torch_geometric.nn import global_add_pool, global_max_pool, global_mean_pool
+from torch_geometric.nn import Set2Set, global_add_pool, global_max_pool, global_mean_pool
+from torch_geometric.utils import scatter
 
 from matgl.layers import MLP, GatedMLP
 
@@ -117,3 +118,115 @@ class WeightedAtomReadOut(nn.Module):
         h_g_sum = global_add_pool(weighted_h, graph.batch)  # Shape: (num_graphs, output_dim)
 
         return h_g_sum
+
+
+class EdgeSet2Set(nn.Module):
+    """Implementation of Set2Set for edges in PyG."""
+
+    def __init__(self, input_dim: int, n_iters: int, n_layers: int) -> None:
+        """:param input_dim: The size of each input sample.
+        :param n_iters: The number of iterations.
+        :param n_layers: The number of recurrent layers.
+        """
+        super().__init__()
+        self.input_dim = input_dim
+        self.output_dim = 2 * input_dim
+        self.n_iters = n_iters
+        self.n_layers = n_layers
+        self.lstm = nn.LSTM(self.output_dim, self.input_dim, n_layers, batch_first=False)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        """Reinitialize learnable parameters."""
+        for name, param in self.lstm.named_parameters():
+            if "weight_ih" in name:
+                nn.init.xavier_uniform_(param.data)
+            elif "weight_hh" in name:
+                nn.init.orthogonal_(param.data)
+            elif "bias" in name:
+                param.data.fill_(0)
+
+    def forward(self, graph: Data, feat: torch.Tensor):
+        """Defines the computation performed at every call.
+
+        :param graph: Input graph
+        :param feat: Input features (edge features).
+        :return: One hot vector
+        """
+        if hasattr(graph, "batch") and graph.batch is not None:
+            # For edge features, we need to get the batch for each edge
+            # In PyG, edges don't have a direct batch attribute, so we use the destination node's batch
+            # Ensure batch is long dtype for scatter operations
+            batch = graph.batch.to(torch.long)
+            edge_batch = batch[graph.edge_index[1].to(torch.long)]
+            batch_size = batch.max().item() + 1
+        else:
+            edge_batch = torch.zeros(feat.size(0), dtype=torch.long, device=feat.device)
+            batch_size = 1
+
+        h = (
+            feat.new_zeros((self.n_layers, batch_size, self.input_dim)),
+            feat.new_zeros((self.n_layers, batch_size, self.input_dim)),
+        )
+
+        q_star = feat.new_zeros(batch_size, self.output_dim)
+
+        for _ in range(self.n_iters):
+            q, h = self.lstm(q_star.unsqueeze(0), h)
+            q = q.view(batch_size, self.input_dim)
+
+            # Compute attention weights
+            e = (feat * q[edge_batch]).sum(dim=-1, keepdim=True)
+            # Softmax over edges in each graph
+            # Subtract max for numerical stability
+            e_max = scatter(e.squeeze(-1), edge_batch, dim=0, dim_size=batch_size, reduce="max")
+            e_exp = torch.exp(e.squeeze(-1) - e_max[edge_batch])
+            e_sum = scatter(e_exp, edge_batch, dim=0, dim_size=batch_size, reduce="sum")
+            alpha = (e_exp / (e_sum[edge_batch] + 1e-8)).unsqueeze(-1)
+
+            # Weighted sum
+            weighted_feat = feat * alpha
+            readout = scatter(weighted_feat, edge_batch, dim=0, dim_size=batch_size, reduce="sum")
+            q_star = torch.cat([q, readout], dim=-1)
+
+        return q_star
+
+
+class Set2SetReadOut(nn.Module):
+    """The Set2Set readout function for PyG."""
+
+    def __init__(
+        self,
+        in_feats: int,
+        n_iters: int,
+        n_layers: int,
+        field: Literal["node_feat", "edge_feat"],
+    ):
+        """
+        Args:
+            in_feats (int): length of input feature vector
+            n_iters (int): Number of LSTM steps
+            n_layers (int): Number of layers.
+            field (str): Field of graph to perform the readout.
+        """
+        super().__init__()
+        self.field = field
+        self.n_iters = n_iters
+        self.n_layers = n_layers
+        if field == "node_feat":
+            self.set2set = Set2Set(in_channels=in_feats, processing_steps=n_iters)
+        elif field == "edge_feat":
+            self.set2set = EdgeSet2Set(in_feats, n_iters, n_layers)
+        else:
+            raise ValueError("Field must be node_feat or edge_feat")
+
+    def forward(self, graph: Data):
+        if self.field == "node_feat":
+            if not hasattr(graph, "node_feat") or graph.node_feat is None:
+                raise ValueError("Data object must contain node features (graph.node_feat)")
+            # Ensure batch is long dtype for Set2Set
+            batch = graph.batch.to(torch.long) if hasattr(graph, "batch") and graph.batch is not None else None
+            return self.set2set(graph.node_feat, batch)
+        if not hasattr(graph, "edge_feat") or graph.edge_feat is None:
+            raise ValueError("Data object must contain edge features (graph.edge_feat)")
+        return self.set2set(graph, graph.edge_feat)

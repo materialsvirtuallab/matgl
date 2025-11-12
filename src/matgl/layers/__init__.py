@@ -41,11 +41,21 @@ if BACKEND == "DGL":
     from matgl.layers._three_body import ThreeBodyInteractions
     from matgl.layers._zbl_dgl import NuclearRepulsion
 else:
-    from matgl.layers._embedding_pyg import TensorEmbedding  # type: ignore[assignment]
-    from matgl.layers._graph_convolution_pyg import TensorNetInteraction  # type: ignore[assignment]
+    from matgl.layers._basis import SphericalBesselWithHarmonics
+    from matgl.layers._embedding_pyg import EmbeddingBlock, TensorEmbedding  # type: ignore[assignment]
+    from matgl.layers._graph_convolution_pyg import (  # type: ignore[assignment]
+        M3GNetBlock,
+        M3GNetGraphConv,
+        MEGNetBlock,
+        MEGNetGraphConv,
+        TensorNetInteraction,
+    )
     from matgl.layers._readout_pyg import (  # type: ignore[assignment]
+        EdgeSet2Set,
         ReduceReadOut,
+        Set2SetReadOut,
         WeightedAtomReadOut,
         WeightedReadOut,
     )
+    from matgl.layers._three_body_pyg import ThreeBodyInteractions  # type: ignore[assignment]
     from matgl.layers._zbl_pyg import NuclearRepulsion  # type: ignore[assignment]
