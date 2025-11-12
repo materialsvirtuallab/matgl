@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+import pytest
+
+import matgl
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
+
 import dgl
 import numpy as np
 import pytest

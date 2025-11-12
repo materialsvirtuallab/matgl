@@ -27,12 +27,12 @@ from matgl.layers import (
     ActivationFunction,
     BondExpansion,
 )
-from matgl.layers._embedding_pyg import TensorEmbeddingPYG
-from matgl.layers._graph_convolution_pyg import TensorNetInteractionPYG
+from matgl.layers._embedding_pyg import TensorEmbedding
+from matgl.layers._graph_convolution_pyg import TensorNetInteraction
 from matgl.layers._readout_pyg import (
-    ReduceReadOutPYG,
-    WeightedAtomReadOutPYG,
-    WeightedReadOutPYG,
+    ReduceReadOut,
+    WeightedAtomReadOut,
+    WeightedReadOut,
 )
 from matgl.utils.maths import decompose_tensor, scatter_add, tensor_norm
 
@@ -157,7 +157,7 @@ class TensorNet(MatGLModel):
         if rbf_type == "SphericalBessel":
             num_rbf = max_n
 
-        self.tensor_embedding = TensorEmbeddingPYG(
+        self.tensor_embedding = TensorEmbedding(
             units=units,
             degree_rbf=num_rbf,
             activation=activation,
@@ -168,7 +168,7 @@ class TensorNet(MatGLModel):
 
         self.layers = nn.ModuleList(
             {
-                TensorNetInteractionPYG(num_rbf, units, activation, cutoff, equivariance_invariance_group, dtype)
+                TensorNetInteraction(num_rbf, units, activation, cutoff, equivariance_invariance_group, dtype)
                 for _ in range(nblocks)
                 if nblocks != 0
             }
@@ -179,10 +179,10 @@ class TensorNet(MatGLModel):
         if is_intensive:
             input_feats = units
             if readout_type == "weighted_atom":
-                self.readout = WeightedAtomReadOutPYG(in_feats=input_feats, dims=[units, units], activation=activation)  # type:ignore[assignment]
+                self.readout = WeightedAtomReadOut(in_feats=input_feats, dims=[units, units], activation=activation)  # type:ignore[assignment]
                 readout_feats = units
             else:
-                self.readout = ReduceReadOutPYG("mean", field=field)  # type: ignore
+                self.readout = ReduceReadOut("mean", field=field)  # type: ignore
                 readout_feats = input_feats  # type: ignore
 
             dims_final_layer = [readout_feats, units, units, ntargets]
@@ -193,7 +193,7 @@ class TensorNet(MatGLModel):
         else:
             if task_type == "classification":
                 raise ValueError("Classification task cannot be extensive.")
-            self.final_layer = WeightedReadOutPYG(
+            self.final_layer = WeightedReadOut(
                 in_feats=units,
                 dims=[units, units],
                 num_targets=ntargets,  # type: ignore
@@ -275,9 +275,9 @@ class TensorNet(MatGLModel):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext._pymatgen_pyg import Structure2GraphPYG
+            from matgl.ext._pymatgen_pyg import Structure2Graph
 
-            graph_converter = Structure2GraphPYG(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
+            graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
         g, lat, state_feats_default = graph_converter.get_graph(structure)
         g.pbc_offshift = torch.matmul(g.pbc_offset, lat[0])
         g.pos = g.frac_coords @ lat[0]

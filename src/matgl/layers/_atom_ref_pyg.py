@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from torch_geometric.data import Data
 
 
-class AtomRefPYG(nn.Module):
+class AtomRefPyG(nn.Module):
     """Get total property offset for a system."""
 
     def __init__(self, property_offset: torch.Tensor | None = None, max_z: int = 89) -> None:
@@ -68,7 +68,7 @@ class AtomRefPYG(nn.Module):
         Returns:
             offset_per_graph
         """
-        one_hot = self.onehot[g.node_type]
+        one_hot = torch.as_tensor(self.onehot)[g.node_type]  # type: ignore[index]
 
         if self.property_offset.ndim > 1:
             offset_batched_with_state_list: list[torch.Tensor] = []

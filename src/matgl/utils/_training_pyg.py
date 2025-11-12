@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 class MatglLightningModuleMixin:
     """Mix-in class implementing common functions for training."""
 
-    def training_step(self, batch: tuple, batch_idx: int):
+    def training_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         """Training step.
 
         Args:
@@ -45,12 +45,12 @@ class MatglLightningModuleMixin:
 
         return results["Total_Loss"]
 
-    def on_train_epoch_end(self):
+    def on_train_epoch_end(self) -> None:
         """Step scheduler every epoch."""
-        sch = self.lr_schedulers()
+        sch = self.lr_schedulers()  # type: ignore[attr-defined]
         sch.step()
 
-    def validation_step(self, batch: tuple, batch_idx: int):
+    def validation_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
         """Validation step.
 
         Args:
@@ -68,7 +68,7 @@ class MatglLightningModuleMixin:
         )
         return results["Total_Loss"]
 
-    def test_step(self, batch: tuple, batch_idx: int):
+    def test_step(self, batch: tuple, batch_idx: int) -> dict[str, Any]:
         """Test step.
 
         Args:
@@ -87,31 +87,31 @@ class MatglLightningModuleMixin:
         )
         return results
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> tuple[list[torch.optim.Optimizer], list[torch.optim.lr_scheduler.LRScheduler]]:
         """Configure optimizers."""
-        if self.optimizer is None:
+        if self.optimizer is None:  # type: ignore[attr-defined]
             optimizer = torch.optim.Adam(
-                self.parameters(),
-                lr=self.lr,
+                self.parameters(),  # type: ignore[attr-defined]
+                lr=self.lr,  # type: ignore[attr-defined]
                 eps=1e-8,
             )
         else:
-            optimizer = self.optimizer
-        if self.scheduler is None:
+            optimizer = self.optimizer  # type: ignore[attr-defined]
+        if self.scheduler is None:  # type: ignore[attr-defined]
             scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
                 optimizer,
-                T_max=self.decay_steps,
-                eta_min=self.lr * self.decay_alpha,
+                T_max=self.decay_steps,  # type: ignore[attr-defined]
+                eta_min=self.lr * self.decay_alpha,  # type: ignore[attr-defined]
             )
         else:
-            scheduler = self.scheduler
+            scheduler = self.scheduler  # type: ignore[attr-defined]
         return [
             optimizer,
         ], [
             scheduler,
         ]
 
-    def on_test_model_eval(self, *args, **kwargs):
+    def on_test_model_eval(self, *args: Any, **kwargs: Any) -> None:
         """
         Executed on model testing.
 
@@ -121,7 +121,7 @@ class MatglLightningModuleMixin:
         """
         super().on_test_model_eval(*args, **kwargs)
 
-    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+    def predict_step(self, batch: tuple, batch_idx: int, dataloader_idx: int = 0) -> Any:
         """
         Prediction step.
 
@@ -134,7 +134,7 @@ class MatglLightningModuleMixin:
             Prediction
         """
         torch.set_grad_enabled(True)
-        return self.step(batch)
+        return self.step(batch)  # type: ignore[attr-defined]
 
 
 class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
@@ -224,7 +224,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             return self.model(g=g, l_g=l_g, state_attr=state_attr)
         return self.model(g, state_attr=state_attr)
 
-    def step(self, batch: tuple):
+    def step(self, batch: tuple) -> tuple[dict[str, Any], int]:
         """Args:
             batch: Batch of training data.
 
@@ -241,7 +241,7 @@ class ModelLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         batch_size = preds.numel()
         return results, batch_size
 
-    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor):
+    def loss_fn(self, loss: nn.Module, labels: torch.Tensor, preds: torch.Tensor) -> dict[str, Any]:
         """Args:
             loss: Loss function.
             labels: Labels to compute the loss.
@@ -340,8 +340,8 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             element_refs=element_refs,
             calc_stresses=stress_weight != 0,
             calc_magmom=magmom_weight != 0,
-            data_std=self.data_std,
-            data_mean=self.data_mean,
+            data_std=torch.as_tensor(self.data_std),  # type: ignore[arg-type]
+            data_mean=torch.as_tensor(self.data_mean),  # type: ignore[arg-type]
         )
         if loss == "mse_loss":
             self.loss = F.mse_loss
@@ -359,7 +359,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         self.magmom_target = magmom_target
         self.save_hyperparameters(ignore=["model"])
 
-    def on_load_checkpoint(self, checkpoint: dict[str, Any]):
+    def on_load_checkpoint(self, checkpoint: dict[str, Any]) -> None:
         """# noqa: D200
         hacky hacky hack to add missing keys to the state dict when changes are made.
         """
@@ -373,7 +373,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         lat: torch.Tensor,
         l_g: Data | None = None,
         state_attr: torch.Tensor | None = None,
-    ):
+    ) -> tuple:
         """Args:
             g: dgl Graph
             lat: lattice
@@ -396,7 +396,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
             e, f, s, h = self.model(g=g, lat=lat, state_attr=state_attr)
             return e, f, s, h
 
-    def step(self, batch: tuple):
+    def step(self, batch: tuple) -> tuple[dict[str, Any], int]:
         """Args:
             batch: Batch of training data.
 
@@ -447,7 +447,7 @@ class PotentialLightningModule(MatglLightningModuleMixin, pl.LightningModule):
         labels: tuple,
         preds: tuple,
         num_atoms: torch.Tensor | None = None,
-    ):
+    ) -> dict[str, Any]:
         """Compute losses for EFS.
 
         Args:

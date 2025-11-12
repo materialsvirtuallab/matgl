@@ -20,7 +20,7 @@ from dgl import readout_edges, readout_nodes
 from torch import nn
 
 from matgl.config import DEFAULT_ELEMENTS
-from matgl.graph.compute import (
+from matgl.graph._compute_dgl import (
     compute_pair_vector_and_distance,
     compute_theta,
     create_line_graph,
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
     import dgl
 
-    from matgl.graph.converters import GraphConverter
+    from matgl.graph._converters_dgl import GraphConverter
 
 logger = logging.getLogger(__name__)
 
@@ -443,7 +443,7 @@ class CHGNet(MatGLModel):
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext.pymatgen import Structure2Graph
+            from matgl.ext._pymatgen_dgl import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)
 

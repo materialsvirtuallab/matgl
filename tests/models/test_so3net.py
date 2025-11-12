@@ -7,6 +7,9 @@ import pytest
 import torch
 
 import matgl
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
 from matgl.models import SO3Net
 
 

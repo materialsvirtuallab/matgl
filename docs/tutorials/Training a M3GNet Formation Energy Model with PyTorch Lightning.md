@@ -8,7 +8,6 @@ nav_exclude: true
 
 This notebook demonstrates how to refit a MEGNet formation energy model using PyTorch Lightning with MatGL.
 
-
 ```python
 from __future__ import annotations
 
@@ -27,8 +26,8 @@ from pymatgen.core import Structure
 from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
-from matgl.graph.data import MGLDataset, MGLDataLoader, collate_fn_graph
+from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
+from matgl.graph._data_dgl import MGLDataset, MGLDataLoader, collate_fn_graph
 from matgl.models import M3GNet
 from matgl.utils.training import ModelLightningModule
 

@@ -9,6 +9,7 @@ import pytest
 import matgl
 
 
+@pytest.mark.skipif(matgl.config.BACKEND != "DGL", reason="Only works with DGL.")
 def test_form_e(LiFePO4):
     model = matgl.load_model("M3GNet-MP-2018.6.1-Eform")
     for _i in range(3):
@@ -16,7 +17,7 @@ def test_form_e(LiFePO4):
         assert model.predict_structure(LiFePO4) == pytest.approx(-2.5489, 3)
 
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="Unreliable in CI environments.")
+@pytest.mark.skipif(os.getenv("CI") == "true" or matgl.config.BACKEND != "DGL", reason="Unreliable in CI environments.")
 def test_loading_all_models():
     """
     Test that all pre-trained models at least load.

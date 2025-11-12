@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from torch_geometric.data import Data
 
 
-class ReduceReadOutPYG(nn.Module):
+class ReduceReadOut(nn.Module):
     """Reduce node or edge attributes into lower dimensional tensors as readout in PyTorch Geometric.
     This could be summing up the nodes or edges, or taking the mean, etc.
     """
@@ -52,7 +52,7 @@ class ReduceReadOutPYG(nn.Module):
         return self.pool_fn(graph.node_feat, graph.batch)
 
 
-class WeightedReadOutPYG(nn.Module):
+class WeightedReadOut(nn.Module):
     """Feed node features into Gated MLP as readout for atomic properties."""
 
     def __init__(self, in_feats: int, dims: Sequence[int], num_targets: int):
@@ -80,7 +80,7 @@ class WeightedReadOutPYG(nn.Module):
         return atomic_properties
 
 
-class WeightedAtomReadOutPYG(nn.Module):
+class WeightedAtomReadOut(nn.Module):
     """Weighted atom readout for graph properties in PyTorch Geometric."""
 
     def __init__(self, in_feats: int, dims: Sequence[int], activation: nn.Module):

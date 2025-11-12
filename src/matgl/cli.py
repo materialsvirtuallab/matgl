@@ -15,7 +15,7 @@ from pymatgen.ext.matproj import MPRester
 from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
-from matgl.ext.ase import MolecularDynamics, Relaxer
+from matgl.ext._ase_dgl import MolecularDynamics, Relaxer
 
 warnings.simplefilter("ignore")
 logger = logging.getLogger("MGL")

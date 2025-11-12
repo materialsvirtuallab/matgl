@@ -3,8 +3,15 @@ name: Test
 on:
   push:
     branches: ["*"]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/**"
   pull_request:
     branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
   release:
     types: [published]
   workflow_dispatch:
@@ -16,21 +23,20 @@ on:
         description: Only run tests or release a new version to PyPI after tests pass.
 
 jobs:
-  test:
+  test_dgl:
     strategy:
       max-parallel: 20
       matrix:
         config:
           - os: ubuntu-latest
             python: "3.12"
-          - os: macos-latest
-            python: "3.10"
 
     runs-on: ${{ matrix.config.os }}
     env:
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
       DGLBACKEND: "pytorch"
+      MATGL_BACKEND: "DGL"
 
     steps:
       - uses: actions/checkout@v4
@@ -47,21 +53,104 @@ jobs:
         run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
-          uv pip install -e .
+          uv pip install "numpy<2"
+          uv pip install -e '.[dgl]'
+          uv pip install "torch<=2.4.0"
+          uv pip install "torchdata<=0.8.0"
           uv pip install pytest pytest-cov
       - name: pytest
         run: |
           uv run python -c "import dgl; print(dgl.__version__)"
           uv run python -c "import torch; print(torch.__version__)"
-          uv run pytest --cov=matgl tests --color=yes
+          uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
+          mv .coverage coverage.dgl
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-dgl
+          path: coverage.dgl
+          if-no-files-found: ignore
+  test_pyg:
+    strategy:
+      max-parallel: 20
+      matrix:
+        config:
+          - os: ubuntu-latest
+            python: "3.13"
+          - os: macos-latest
+            python: "3.10"
+
+    runs-on: ${{ matrix.config.os }}
+    env:
+      PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: "python"
+      PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
+      MATGL_BACKEND: "PYG"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          python-version: ${{ matrix.config.python }}
+      - name: Virtual env
+        run: uv venv --python ${{ matrix.config.python }}
+      - name: Install dependencies
+        run: |
+          uv sync --upgrade
+          uv pip install -e .
+          uv pip install pytest pytest-cov
+      - name: pytest
+        run: |
+          uv run python -c "import torch; print(torch.__version__)"
+          uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
+          mv .coverage coverage.pyg
+      - name: Upload coverage artifacts
+        if: matrix.config.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-pyg
+          path: coverage.pyg
+          if-no-files-found: ignore
+
+  coverage:
+    needs: [test_dgl, test_pyg]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download coverage from test_dgl
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-dgl
+          path: coverage.dgl
+          merge-multiple: true
+      - name: Download coverage from test_pyg
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-pyg
+          path: coverage.pyg
+          merge-multiple: true
+      - name: Combine coverage reports
+        run: |
+          pip install coverage
+          ls *
+          cp coverage.dgl/coverage.dgl coverage-dgl
+          cp coverage.pyg/coverage.pyg coverage-pyg
+          echo "Combining coverage files..."
+          coverage combine coverage-* || echo "Warning: coverage combine failed"
+          coverage xml -o coverage.xml || echo "Warning: coverage xml failed"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   release:
     if: github.event_name == 'release' || inputs.task == 'release'
-    needs: test
+    needs: [test_dgl, test_pyg]
     runs-on: ubuntu-latest
     permissions:
       # For pypi trusted publishing
@@ -73,7 +162,6 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install latest DGL
-        if: matrix.config.os == 'ubuntu-latest'
         run: |
           pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Build

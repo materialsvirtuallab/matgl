@@ -6,7 +6,7 @@
     "kwargs": {
         "model": {
             "@class": "TensorNet",
-            "@module": "matgl.models._tensornet",
+            "@module": "matgl.models._tensornet_dgl",
             "@model_version": 1,
             "init_args": {
                 "element_types": [

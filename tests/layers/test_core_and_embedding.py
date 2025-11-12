@@ -6,16 +6,22 @@ from pymatgen.core import Lattice, Structure
 from torch import nn
 
 import matgl
-from matgl.ext.pymatgen import Structure2Graph, get_element_list
+
+if matgl.config.BACKEND != "DGL":
+    pytest.skip("Skipping DGL tests", allow_module_level=True)
+
+from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
 from matgl.layers import (
     BondExpansion,
     EmbeddingBlock,
     GatedEquivariantBlock,
+    GatedMLP_norm,
+    MLP_norm,
     NeighborEmbedding,
     TensorEmbedding,
     build_gated_equivariant_mlp,
 )
-from matgl.layers._core import MLP, GatedMLP, GatedMLP_norm, MLP_norm
+from matgl.layers._core import MLP, GatedMLP
 
 
 @pytest.fixture

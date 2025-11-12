@@ -8,7 +8,6 @@ nav_exclude: true
 
 This notebook demonstrates how to fit a M3GNet potential using PyTorch Lightning with MatGL.
 
-
 ```python
 from __future__ import annotations
 
@@ -25,8 +24,8 @@ from pytorch_lightning.loggers import CSVLogger
 
 import matgl
 from matgl.config import DEFAULT_ELEMENTS
-from matgl.ext.pymatgen import Structure2Graph
-from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_pes
+from matgl.ext._pymatgen_dgl import Structure2Graph
+from matgl.graph._data_dgl import MGLDataLoader, MGLDataset, collate_fn_pes
 from matgl.models import M3GNet
 from matgl.utils.training import PotentialLightningModule
 
