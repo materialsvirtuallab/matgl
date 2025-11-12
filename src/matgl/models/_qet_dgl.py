@@ -210,7 +210,6 @@ class QET(MatGLModel):
             self.magmom_readout = MLP(
                 dims=[units, units, units, 1], activation=nn.SiLU(), activate_last=False, bias_last=False
             )
-        #            self.magmom_readout = nn.Linear(units, 1)
 
         self.is_hardness_envs = is_hardness_envs
 
@@ -288,9 +287,9 @@ class QET(MatGLModel):
             g.ndata["magmom"] = torch.squeeze(self.magmom_readout(x))  # (num_nodes, 1)
 
         if self.is_hardness_envs:
-            g.ndata["hardness"] = torch.squeeze(self.hardness_readout(x))
+            g.ndata["hardness"] = torch.squeeze(self.hardness_readout(x))  # type: ignore[operator]
         else:
-            g.ndata["hardness"] = torch.squeeze(self.hardness_readout[g.ndata["node_type"]])
+            g.ndata["hardness"] = torch.squeeze(self.hardness_readout[g.ndata["node_type"]])  # type: ignore[index]
 
         g.ndata["sigma"] = torch.squeeze(self.sigma[g.ndata["node_type"]])
 
