@@ -18,7 +18,7 @@ from matgl.layers import (
     BondExpansion,
     EmbeddingBlock,
     FourierExpansion,
-    MLP_norm,
+    MLPNorm,
     RadialBesselFunction,
     TensorEmbedding,
 )
@@ -236,8 +236,8 @@ class TestGraphConv:
         threebody_expansion = RadialBesselFunction(max_n=9, cutoff=5.0, learnable=True)
         angle_expansion = FourierExpansion(max_f=3, learnable=True)
         atom_embedding = nn.Embedding(2, 64)
-        bond_embedding = MLP_norm([9, 64], activation=nn.SiLU(), activate_last=False, bias_last=False)
-        angle_embedding = MLP_norm(
+        bond_embedding = MLPNorm([9, 64], activation=nn.SiLU(), activate_last=False, bias_last=False)
+        angle_embedding = MLPNorm(
             [2 * 3 + 1, 64],
             activation=nn.SiLU(),
             activate_last=False,

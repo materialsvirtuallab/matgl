@@ -15,8 +15,8 @@ from matgl.layers import (
     BondExpansion,
     EmbeddingBlock,
     GatedEquivariantBlock,
-    GatedMLP_norm,
-    MLP_norm,
+    GatedMLPNorm,
+    MLPNorm,
     NeighborEmbedding,
     TensorEmbedding,
     build_gated_equivariant_mlp,
@@ -55,7 +55,7 @@ class TestCoreAndEmbedding:
 
     @pytest.mark.parametrize("normalization", ["layer", "graph"])
     def test_mlp_norm(self, x, graph, normalization):
-        layer = MLP_norm(dims=[10, 10, 3], normalization=normalization, normalize_hidden=True)
+        layer = MLPNorm(dims=[10, 10, 3], normalization=normalization, normalize_hidden=True)
         out = layer(x, g=graph).double()
         assert [out.size()[0], out.size()[1]] == [4, 3]
         assert out.mean().item() == pytest.approx(0, abs=1e-6)
@@ -63,7 +63,7 @@ class TestCoreAndEmbedding:
     @pytest.mark.parametrize("normalization", ["layer", "graph"])
     def test_gated_mlp_norm(self, x, graph, normalization):
         torch.manual_seed(42)
-        layer = GatedMLP_norm(in_feats=10, dims=[10, 1], normalization=normalization)
+        layer = GatedMLPNorm(in_feats=10, dims=[10, 1], normalization=normalization)
         out = layer(x, graph)
         assert [out.size()[0], out.size()[1]] == [4, 1]
 
