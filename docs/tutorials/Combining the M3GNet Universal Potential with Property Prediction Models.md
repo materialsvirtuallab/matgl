@@ -10,6 +10,7 @@ There may be instances where you do not have access to a DFT relaxed structure. 
 
 This provides a pathway to "DFT-free" property predictions using ML models. It should be cautioned that this is not a substitute for DFT and errors can be expected. But it is sufficiently useful in some cases as a pre-screening tool for massive scale exploration of materials.
 
+
 ```python
 from __future__ import annotations
 

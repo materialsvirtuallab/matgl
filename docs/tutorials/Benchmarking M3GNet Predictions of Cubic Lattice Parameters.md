@@ -16,6 +16,7 @@ If you are running this notebook from Google Colab, uncomment the next code box 
 # !pip install matgl
 ```
 
+
 ```python
 from __future__ import annotations
 

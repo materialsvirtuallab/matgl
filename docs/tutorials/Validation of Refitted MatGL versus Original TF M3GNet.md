@@ -17,6 +17,7 @@ In this notebook, we validate the refitted MatGL implementation of the M3GNet un
 # !pip install --upgrade mp-api
 ```
 
+
 ```python
 from __future__ import annotations
 

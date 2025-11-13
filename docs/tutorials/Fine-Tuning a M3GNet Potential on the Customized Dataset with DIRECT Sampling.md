@@ -1,12 +1,12 @@
 ---
 layout: default
-title: Training a M3GNet Potential with PyTorch Lightning.md
+title: Fine-Tuning a M3GNet Potential on the Customized Dataset with DIRECT Sampling.md
 nav_exclude: true
 ---
 
 # Introduction
 
-This notebook demonstrates how to fit a M3GNet potential using PyTorch Lightning with MatGL.
+This notebook demonstrates how to fine-tune a M3GNet potential combined with DIRECT Sampling in MatGL.
 
 
 ```python
@@ -27,8 +27,14 @@ import matgl
 from matgl.config import DEFAULT_ELEMENTS
 from matgl.ext._pymatgen_dgl import Structure2Graph
 from matgl.graph._data_dgl import MGLDataLoader, MGLDataset, collate_fn_pes
-from matgl.models import M3GNet
 from matgl.utils.training import PotentialLightningModule
+
+try:
+    from maml.sampling.direct import BirchClustering, DIRECTSampler, SelectKFromClusters
+except ImportError:
+    print("MAML is not installed or the import failed.")
+    print("Please install it by running:")
+    print("pip install maml")
 
 # To suppress warnings for clearer output
 warnings.simplefilter("ignore")
@@ -45,26 +51,49 @@ structures = [e.structure for e in entries]
 energies = [e.energy for e in entries]
 forces = [np.zeros((len(s), 3)).tolist() for s in structures]
 stresses = [np.zeros((3, 3)).tolist() for s in structures]
-labels = {
-    "energies": energies,
-    "forces": forces,
-    "stresses": stresses,
-}
+
 
 print(f"{len(structures)} downloaded from MP.")
 ```
 
-We will first setup the M3GNet model and the LightningModule.
+We will set up the DIRECTSampler to select structures with high diversity. Since the number of structures here is relatively small, the number of clusters, n, is set to 20. This parameter, along with the number of structures selected per cluster, k, can be adjusted based on your dataset.
 
 
 ```python
+# Initialize DIRECT sampler
+DIRECT_sampler = DIRECTSampler(
+    clustering=BirchClustering(n=20, threshold_init=0.05), select_k_from_clusters=SelectKFromClusters(k=1)
+)
+# Fit the DIRECT sampler
+DIRECT_selection = DIRECT_sampler.fit_transform(structures)
+```
+We can now select the structures obtained through DIRECT sampling.
+
+```python
+# Select structures from DIRECT sampling
+selected_indexes = DIRECT_selection["selected_indexes"]
+selected_structures = structures[selected_indexes]
+selected_labels = {}
+selected_labels["energies"] = energies[selected_indexes]
+selected_labels["forces"] = forces[selected_indexes]
+selected_labels["stresses"] = stresses[selected_indexes]
+
+print(f"{len(selected_structures)} structures selected from DIRECT")
+```
+
+We can setup the MGLDataset and MGLDataLoader for the selected structures.
+
+
+```python
+# Using DEFAULT_ELEMENTS for element_types to adapt the pretrained models
 element_types = DEFAULT_ELEMENTS
+# Setup the graph converter for periodic systems
 converter = Structure2Graph(element_types=element_types, cutoff=5.0)
 dataset = MGLDataset(
     threebody_cutoff=4.0,
-    structures=structures,
+    structures=selected_structures,
     converter=converter,
-    labels=labels,
+    labels=selected_labels,
     include_line_graph=True,
 )
 train_data, val_data, test_data = split_dataset(
@@ -83,43 +112,10 @@ train_loader, val_loader, test_loader = MGLDataLoader(
     batch_size=2,
     num_workers=0,
 )
-model = M3GNet(
-    element_types=element_types,
-    is_intensive=False,
-)
-# if you are not intended to use stress for training, set stress_weight=0.0!
-lit_module = PotentialLightningModule(model=model, include_line_graph=True, stress_weight=0.01)
-```
-
-Finally, we will initialize the Pytorch Lightning trainer and run the fitting. Here, the max_epochs is set to 2 just for demonstration purposes. In a real fitting, this would be a much larger number. Also, the `accelerator="cpu"` was set just to ensure compatibility with M1 Macs. In a real world use case, please remove the kwarg or set it to cuda for GPU based training.
-
-
-```python
-# If you wish to disable GPU or MPS (M1 mac) training, use the accelerator="cpu" kwarg.
-logger = CSVLogger("logs", name="M3GNet_training")
-# Inference mode = False is required for calculating forces, stress in test mode and prediction mode
-trainer = L.Trainer(max_epochs=1, accelerator="cpu", logger=logger, inference_mode=False)
-trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
-```
-
-
-```python
-# test the model, remember to set inference_mode=False in trainer (see above)
-trainer.test(dataloaders=test_loader)
-```
-
-
-```python
-# save trained model
-model_export_path = "./trained_model/"
-lit_module.model.save(model_export_path)
-
-# load trained model
-model = matgl.load_model(path=model_export_path)
 ```
 
 ## Finetuning a pre-trained M3GNet
-In the previous cells, we demonstrated the process of training an M3GNet from scratch. Next, let's see how to perform additional training on an M3GNet that has already been trained using Materials Project data.
+In the following cells, we demonstrate the fine-tuning of our pretrained model on the customized dataset.
 
 
 ```python
@@ -138,7 +134,7 @@ lit_module_finetune = PotentialLightningModule(
 ```python
 # If you wish to disable GPU or MPS (M1 mac) training, use the accelerator="cpu" kwarg.
 logger = CSVLogger("logs", name="M3GNet_finetuning")
-trainer = L.Trainer(max_epochs=1, accelerator="cpu", logger=logger, inference_mode=False)
+trainer = L.Trainer(max_epochs=10, accelerator="cpu", logger=logger, inference_mode=False)
 trainer.fit(model=lit_module_finetune, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
@@ -162,6 +158,5 @@ for fn in ("dgl_graph.bin", "lattice.pt", "dgl_line_graph.bin", "state_attr.pt",
         pass
 
 shutil.rmtree("logs")
-shutil.rmtree("trained_model")
 shutil.rmtree("finetuned_model")
 ```

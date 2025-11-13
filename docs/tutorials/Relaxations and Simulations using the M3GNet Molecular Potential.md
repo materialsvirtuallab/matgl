@@ -1,12 +1,12 @@
 ---
 layout: default
-title: Relaxations and Simulations using the M3GNet Universal Potential.md
+title: Relaxations and Simulations using the M3GNet Molecular Potential.md
 nav_exclude: true
 ---
 
 # Introduction
 
-This notebook demonstrates the use of the pre-trained universal potentials to perform structural relaxations, molecular dynamics simulations and single-point calculations.
+This notebook demonstrates the use of the pre-trained molecular potentials to perform structural relaxations, molecular dynamics simulations and single-point calculations.
 
 Author: Tsz Wai Ko (Kenko)
 Email: t1ko@ucsd.edu
@@ -17,9 +17,8 @@ from __future__ import annotations
 
 import warnings
 
+from ase.build import molecule
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
-from pymatgen.core import Lattice, Structure
-from pymatgen.io.ase import AseAtomsAdaptor
 
 import matgl
 from matgl.ext._ase_dgl import MolecularDynamics, PESCalculator, Relaxer
@@ -28,15 +27,19 @@ from matgl.ext._ase_dgl import MolecularDynamics, PESCalculator, Relaxer
 warnings.simplefilter("ignore")
 ```
 
+    /Users/kenko/miniconda3/envs/mavrl/lib/python3.11/site-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+      from .autonotebook import tqdm as notebook_tqdm
+
+
 # Loading the pre-trained M3GNet PES model
 
-We will first load the M3GNet PES model, which is trained on the MP-2021.2.8 dataset. This can be done with a single line of code. Here we only use M3GNet for demonstration and users can choose other available models.
+We will first load the M3GNet PES model, which is trained on the subset of ANI-1x dataset. This can be done with a single line of code. Here we only use M3GNet for demonstration and users can choose other available models.
 
 
 ```python
 # You can load any pretrained potentials stored in the 'pretrained_models' directory
 # To see available models, use get_available_pretrained_models()
-pot = matgl.load_model("M3GNet-MP-2021.2.8-PES")
+pot = matgl.load_model("M3GNet-ANI-1x-Subset-PES/")
 ```
 
 # Structure Relaxation
@@ -45,9 +48,9 @@ To perform structure relaxation, we use the Relaxer class. Here, we demonstrate 
 
 
 ```python
-relaxer = Relaxer(potential=pot)
-struct = Structure.from_spacegroup("Pm-3m", Lattice.cubic(4.5), ["Cs", "Cl"], [[0, 0, 0], [0.5, 0.5, 0.5]])
-relax_results = relaxer.relax(struct, fmax=0.01)
+relaxer = Relaxer(potential=pot, relax_cell=False)
+atoms = molecule("H2O")
+relax_results = relaxer.relax(atoms, fmax=0.01)
 # extract results
 final_structure = relax_results["final_structure"]
 final_energy = relax_results["trajectory"].energies[-1]
@@ -57,23 +60,33 @@ print(final_structure)
 print(f"The final energy is {float(final_energy):.3f} eV.")
 ```
 
+    Full Formula (H2 O1)
+    Reduced Formula: H2O
+    Charge = 0, Spin Mult = 1
+    Sites (3)
+    0 O     0.000000    -0.000000     0.116472
+    1 H     0.000000     0.760003    -0.475652
+    2 H     0.000000    -0.760003    -0.475652
+    The final energy is -2078.627 eV.
+
+
 # Molecular Dynamics
 
 MD simulations are performed with the ASE interface.
 
 
 ```python
-ase_adaptor = AseAtomsAdaptor()
-# Create ase atom object
-atoms = ase_adaptor.get_atoms(final_structure)
 # Initialize the velocity according to Maxwell Boltzamnn distribution
 MaxwellBoltzmannDistribution(atoms, temperature_K=300)
 # Create the MD class
 driver = MolecularDynamics(atoms, potential=pot, temperature=300, logfile="md_trial.log")
 # Run
 driver.run(100)
-print(f"The potential energy of CsCl at 300 K after 100 steps is {float(atoms.get_potential_energy()):.3f} eV.")
+print(f"The potential energy of H2O at 300 K after 100 steps is {float(atoms.get_potential_energy()):.3f} eV.")
 ```
+
+    The potential energy of H2O at 300 K after 100 steps is -2078.431 eV.
+
 
 # Single point energy calculation
 
@@ -87,3 +100,5 @@ calc = PESCalculator(pot)
 atoms.set_calculator(calc)
 print(f"The calculated potential energy is {atoms.get_potential_energy():.3f} eV.")
 ```
+
+    The calculated potential energy is -2078.431 eV.
