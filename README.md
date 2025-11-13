@@ -28,6 +28,7 @@ Calculator).
 
 Major milestones are summarized below. Please refer to the [changelog] for details.
 
+- v2.0.0 (Nov 13 2025): QET architecture added. PYG backend is now the default.
 - v1.3.0 (Aug 12 2025): Pretrained molecular potentials and PyG framework added.
 - v1.1.0 (May 7 2024): Implementation of [CHGNet] + pre-trained models.
 - v1.0.0 (Feb 14 2024): Implementation of [TensorNet] and [SO3Net].
@@ -41,12 +42,12 @@ Major milestones are summarized below. Please refer to the [changelog] for detai
 ## Major update: v2.0.0 (Nov 12 2025)
 
 We are in the process of moving away from the Deep Graph Library (DGL) framework to Pytorch Geometric (PyG) or even a
-pure PyTorch framework. This is due to the fact that DGL is no longer actively maintained. For now, both PYG and DGL
+pure PyTorch framework. This is motivated by the fact that DGL is no longer actively maintained. For now, both PYG and DGL
 models are available.
 
 From v2.0.0, MatGL will default to a PyG backend, and DGL is no longer a required dependency. For now, only TensorNet
 has been re-implemented in PYG. To use the DGL-based models, you will need to install the DGL dependencies and set
-the backend either via the environment variable `MATGL_BACKEND=dgl` or by using
+the backend either via the environment variable `MATGL_BACKEND=DGL` or by using
 
 ```
 import matgl
@@ -55,20 +56,26 @@ matgl.set_backend("DGL")
 
 ## Current Architectures
 
-Here, we summarize the currently implemented architectures in MatGL. It should be stressed that this is by no means
-an exhaustive list, and we expect new architectures to be added by the core MatGL team as well as other contributors
-in the future.
-
-<div style="float: left; padding: 10px; width: 300px">
+<div style="float: left; padding: 10px; width: 200px">
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic">
 <p>Figure: Schematic of M3GNet/MEGNet</p>
 </div>
 
-- [TensorNet] is an O(3)-equivariant message-passing neural network architecture that leverages Cartesian tensor
+Here, we summarize the currently implemented architectures in MatGL. It should be stressed that this is by no means
+an exhaustive list, and we expect new architectures to be added by the core MatGL team as well as other contributors
+in the future.
+
+- [QET] (DGL only, PYG coming soon), pronounced as "ket", is a charge-equilibrated TensorNet architecture. It is an
+  equivariant, charge-aware architecture that attains linear scaling with system size via an analytically solvable
+  charge-equilibration scheme. A pre-trained QET-MatQ FP is available, which matches state-of-the-art FPs on standard
+  materials property benchmarks but delivers qualitatively different predictions in systems dominated by charge
+  transfer, e.g., NaCl–\ce{CaCl2} ionic liquid, reactive processes at the Li/\ce{Li6PS5Cl} solid-electrolyte interface,
+  and supports simulations under applied electrochemical potentials.
+- [TensorNet] (PYG and DGL) is an O(3)-equivariant message-passing neural network architecture that leverages Cartesian tensor
   representations. It is a generalization of the [SO3Net] architecture, which is a minimalist SO(3)-equivariant neural
   network. In general, TensorNet has been shown to be much more data and parameter efficient than other equivariant
   architectures. It is currently the default architecture used in the [Materials Virtual Lab].
-- [Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based MLIP. CHGNet involves atom
+- [Crystal Hamiltonian Graph Network (CHGNet)][chgnet] (DGL only) is a graph neural network based MLIP. CHGNet involves atom
   graphs to capture atom bond relations and bond graph to capture angular information. It specializes in
   capturing the atomic charges through learning and predicting DFT atomic magnetic moments.
   See [original implementation][chgnetrepo]
@@ -82,7 +89,7 @@ in the future.
   relaxations performed in the [Materials Project][mp]. Like the previous MEGNet architecture, M3GNet can be used to
   develop surrogate models for property predictions, achieving in many cases accuracies that are better or similar to
   other state-of-the-art ML models.
-- [MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
+- [MatErials Graph Network (MEGNet)][megnet] (DGL only) is an implementation of DeepMind's [graph networks][graphnetwork] for
   machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
   array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
   [multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
@@ -325,6 +332,7 @@ ACI-1548562.
 [tutorials]: https://matgl.ai/tutorials "Tutorials"
 [matgl]: https://www.nature.com/articles/s41524-025-01742-y#citeas "MatGL"
 [tensornet]: https://arxiv.org/abs/2306.06482 "TensorNet"
+[qet]: https://arxiv.org/abs/2511.07249 "QET"
 [so3net]: https://pubs.aip.org/aip/jcp/article-abstract/158/14/144801/2877924/SchNetPack-2-0-A-neural-network-toolbox-for "SO3Net"
 [chgnet]: https://www.nature.com/articles/s42256-023-00716-3 "CHGNet"
 [chgnetrepo]: https://github.com/CederGroupHub/chgnet "CHGNet repo"
