@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import importlib
+import typing
 from importlib.metadata import PackageNotFoundError, version
 
 import numpy as np
 import torch
 
+import matgl
+
 from .config import clear_cache
 from .utils.io import get_available_pretrained_models, load_model
+
+if typing.TYPE_CHECKING:
+    from typing import Literal
 
 try:
     __version__: str = version("matgl")
@@ -44,3 +51,39 @@ def set_default_dtype(type_: str = "float", size: int = 32) -> None:
             "torch.float16 is not supported for M3GNet because addmm_impl_cpu_ is not implemented"
             " for this floating precision, please use size = 32, 64 or using 'cuda' instead !!"
         )
+
+
+def set_backend(backend: Literal["DGL", "PYG"] = "PYG") -> None:
+    """
+    Sets the computational backend for the application.
+
+    This function allows you to set the backend used for computations, which could
+    be either "DGL" (Deep Graph Library) or "PYG" (PyTorch Geometric). The selected
+    backend determines how graph-based computations are implemented in the
+    application. If an invalid backend is provided, a ValueError is raised.
+
+    Parameters:
+    backend: Literal["DGL", "PYG"]
+        A string specifying the desired computational backend. Must be either
+        "DGL" or "PYG".
+
+    Raises:
+    ValueError
+        If the input backend is neither "DGL" nor "PYG".
+
+    Returns:
+    None
+    """
+    if backend not in ("DGL", "PYG"):
+        raise ValueError("Invalid backend")
+    if backend == "DGL":
+        try:
+            importlib.util.find_spec("dgl")  # type: ignore[attr-defined]
+        except ImportError as err:
+            raise RuntimeError("Please install DGL to use this backend.") from err
+    else:
+        try:
+            importlib.util.find_spec("torch_geometric")  # type: ignore[attr-defined]
+        except ImportError as err:
+            raise RuntimeError("Please install torch_geometric to use this backend.") from err
+    matgl.config.BACKEND = backend

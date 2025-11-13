@@ -15,36 +15,36 @@ from typing import TYPE_CHECKING, Literal
 
 import dgl
 import torch
+from ase.data import atomic_numbers, covalent_radii
 from torch import nn
 
 import matgl
 from matgl.config import DEFAULT_ELEMENTS
+from matgl.electrostatics._elec_pot_dgl import ElectrostaticPotential
+from matgl.electrostatics._fast_qeq_dgl import LinearQeq
 from matgl.graph._compute_dgl import (
     compute_pair_vector_and_distance,
 )
-from matgl.layers._activations import ActivationFunction
-from matgl.layers._bond import BondExpansion
-from matgl.layers._core import MLP
+from matgl.layers import (
+    MLP,
+    ActivationFunction,
+    BondExpansion,
+)
 from matgl.layers._embedding_dgl import TensorEmbedding
 from matgl.layers._graph_convolution_dgl import TensorNetInteraction
-from matgl.layers._readout_dgl import (
-    ReduceReadOut,
-    Set2SetReadOut,
-    WeightedAtomReadOut,
-    WeightedReadOut,
-)
+from matgl.layers._readout_dgl import WeightedReadOut
 from matgl.utils.maths import decompose_tensor, tensor_norm
 
 from ._core import MatGLModel
 
 if TYPE_CHECKING:
-    from matgl.graph._converters_dgl import GraphConverter
+    from matgl.graph.converters import GraphConverter
 
 logger = logging.getLogger(__file__)
 
 
-class TensorNet(MatGLModel):
-    """The main TensorNet model. The official implementation can be found in https://github.com/torchmd/torchmd-net."""
+class QET(MatGLModel):
+    """The main QET model."""
 
     __version__ = 1
 
@@ -74,6 +74,10 @@ class TensorNet(MatGLModel):
         field: Literal["node_feat", "edge_feat"] = "node_feat",
         is_intensive: bool = True,
         ntargets: int = 1,
+        is_sigma_train: bool = False,
+        is_hardness_envs: bool = False,
+        include_magmom: bool = False,
+        return_features: bool = False,
         **kwargs,
     ):
         r"""
@@ -110,6 +114,10 @@ class TensorNet(MatGLModel):
             field (str): Using either "node_feat" or "edge_feat" for Set2Set and Reduced readout
             is_intensive (bool): Whether the prediction is intensive
             ntargets (int): Number of target properties
+            include_magmom (bool): Whether the magmom is returned (not implemented yet)
+            is_hardness_envs (bool): Whether the hardness is environment dependent
+            is_sigma_train (bool): Whether the sigma is trainable
+            return_features (bool): Whether the atomic features are returned
             **kwargs: For future flexibility. Not used at the moment.
 
         """
@@ -124,7 +132,10 @@ class TensorNet(MatGLModel):
                 f"Invalid activation type, please try using one of {[af.name for af in ActivationFunction]}"
             ) from None
 
-        self.element_types = element_types  # type: ignore
+        if element_types is None:
+            self.element_types = DEFAULT_ELEMENTS
+        else:
+            self.element_types = element_types  # type: ignore
 
         self.bond_expansion = BondExpansion(
             cutoff=cutoff,
@@ -179,36 +190,40 @@ class TensorNet(MatGLModel):
 
         self.out_norm = nn.LayerNorm(3 * units, dtype=dtype)
         self.linear = nn.Linear(3 * units, units, dtype=dtype)
-        if is_intensive:
-            input_feats = units
-            self.readout: nn.Module
-            if readout_type == "set2set":
-                self.readout = Set2SetReadOut(
-                    in_feats=input_feats, n_iters=niters_set2set, n_layers=nlayers_set2set, field=field
-                )
-                readout_feats = 2 * input_feats  # type: ignore
-            elif readout_type == "weighted_atom":
-                self.readout = WeightedAtomReadOut(in_feats=input_feats, dims=[units, units], activation=activation)
-                readout_feats = units + dim_state_feats if include_state else units  # type: ignore
-            else:
-                self.readout = ReduceReadOut("mean", field=field)  # type: ignore
-                readout_feats = input_feats  # type: ignore
-
-            dims_final_layer = [readout_feats, units, units, ntargets]
-            self.final_layer = MLP(dims_final_layer, activation, activate_last=False)
-            if task_type == "classification":
-                self.sigmoid = nn.Sigmoid()
-
+        # check whether hardness is environment dependent property
+        self.hardness_readout: nn.Parameter | nn.Module
+        if is_hardness_envs is False:
+            hardness = torch.ones(len(element_types))
+            self.hardness_readout = torch.nn.Parameter(data=hardness)
         else:
-            if task_type == "classification":
-                raise ValueError("Classification task cannot be extensive.")
-            self.final_layer = WeightedReadOut(
-                in_feats=units,
-                dims=[units, units],
-                num_targets=ntargets,  # type: ignore
+            self.hardness_readout = MLP(dims=[units, units, units, 1], activation=nn.Softplus(), activate_last=True)
+        if is_sigma_train:
+            sigma = torch.ones(len(element_types))
+            self.sigma = torch.nn.Parameter(data=sigma)
+        else:
+            self.register_buffer(
+                "sigma", torch.tensor([covalent_radii[atomic_numbers[i]] for i in element_types], dtype=matgl.float_th)
             )
 
-        self.is_intensive = is_intensive
+        self.chi_readout = MLP(dims=[units, units, units, 1], activation=nn.SiLU(), activate_last=True)
+        if include_magmom:
+            self.magmom_readout = MLP(
+                dims=[units, units, units, 1], activation=nn.SiLU(), activate_last=False, bias_last=False
+            )
+
+        self.is_hardness_envs = is_hardness_envs
+
+        self.qeq = LinearQeq()
+        self.elec_pot = ElectrostaticPotential(element_types=element_types, cutoff=cutoff)
+        self.norm = nn.LayerNorm(units + 3) if include_magmom else nn.LayerNorm(units + 2)
+        # short-range energy
+        self.final_layer = WeightedReadOut(
+            in_feats=(units + 3 if include_magmom else units + 2),  # 1 for atomic charge, 1  for elec_pot, 1 for magmom
+            dims=[units, units],
+            num_targets=ntargets,  # type: ignore
+        )
+        self.include_magmom = include_magmom
+        self.return_features = return_features
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -217,26 +232,41 @@ class TensorNet(MatGLModel):
             layer.reset_parameters()
         self.out_norm.reset_parameters()
 
-    def forward(self, g: dgl.DGLGraph, state_attr: torch.Tensor | None = None, **kwargs):
+    def forward(
+        self,
+        g: dgl.DGLGraph,
+        total_charge: torch.Tensor | None = None,
+        state_attr: torch.Tensor | None = None,
+        ext_pot: torch.Tensor | None = None,
+        **kwargs,
+    ):
         """
 
         Args:
             g : DGLGraph for a batch of graphs.
+            total_charge: total charge for a batch of graphs.
             state_attr: State attrs for a batch of graphs.
+            ext_pot: External potential for a batch of graphs (N_batch, Natoms).
             **kwargs: For future flexibility. Not used at the moment.
 
         Returns:
             output: output: Output property for a batch of graphs
         """
+        if ext_pot is not None:
+            chi_ext = ext_pot
+            g.ndata["chi_ext"] = chi_ext
         # Obtain graph, with distances and relative position vectors
         bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.edata["bond_vec"] = bond_vec.to(g.device)
         g.edata["bond_dist"] = bond_dist.to(g.device)
 
+        # This asserts convinces TorchScript that edge_vec is a Tensor and not an Optional[Tensor]
+
         # Expand distances with radial basis functions
         edge_attr = self.bond_expansion(g.edata["bond_dist"])
         g.edata["edge_attr"] = edge_attr
-        # Embedding layer
+
+        # Embedding from edge-wise tensors to node-wise tensors
         X, _, _ = self.tensor_embedding(g, state_attr)
         # Interaction layers
         for layer in self.layers:
@@ -247,22 +277,48 @@ class TensorNet(MatGLModel):
         x = self.out_norm(x)
         x = self.linear(x)
 
-        g.ndata["node_feat"] = x
-        if self.is_intensive:
-            node_vec = self.readout(g)
-            vec = node_vec  # type: ignore
-            output = self.final_layer(vec)
-            if self.task_type == "classification":
-                output = self.sigmoid(output)
-            return torch.squeeze(output)
-        g.ndata["atomic_properties"] = self.final_layer(g)
-        output = dgl.readout_nodes(g, "atomic_properties", op="sum")
-        return torch.squeeze(output)
+        g.ndata["chi"] = (
+            torch.squeeze(self.chi_readout(x)) + g.ndata["chi_ext"]
+            if "chi_ext" in g.ndata
+            else torch.squeeze(self.chi_readout(x))
+        )  # (num_nodes, 1)
+
+        if self.include_magmom:
+            g.ndata["magmom"] = torch.squeeze(self.magmom_readout(x))  # (num_nodes, 1)
+
+        if self.is_hardness_envs:
+            g.ndata["hardness"] = torch.squeeze(self.hardness_readout(x))  # type: ignore[operator]
+        else:
+            g.ndata["hardness"] = torch.squeeze(self.hardness_readout[g.ndata["node_type"]])  # type: ignore[index]
+
+        g.ndata["sigma"] = torch.squeeze(self.sigma[g.ndata["node_type"]])
+
+        g = self.qeq(g=g, total_charge=total_charge)
+        g = self.elec_pot(g)
+        combined_node_feat = (
+            torch.hstack(
+                [
+                    x,
+                    g.ndata["charge"].unsqueeze(dim=1),
+                    g.ndata["elec_pot"].unsqueeze(dim=1),
+                    g.ndata["magmom"].unsqueeze(dim=1),
+                ]
+            )
+            if self.include_magmom
+            else torch.hstack([x, g.ndata["charge"].unsqueeze(dim=1), g.ndata["elec_pot"].unsqueeze(dim=1)])
+        )
+        g.ndata["node_feat"] = self.norm(combined_node_feat)
+        g.ndata["atomic_energy"] = self.final_layer(g)
+        if self.return_features:
+            return g.ndata["node_feat"], g.ndata["atomic_energy"]
+        e_total = dgl.readout_nodes(g, "atomic_energy", op="sum")
+        return torch.squeeze(e_total)
 
     def predict_structure(
         self,
         structure,
         state_feats: torch.Tensor | None = None,
+        total_charge: torch.Tensor | None = None,
         graph_converter: GraphConverter | None = None,
     ):
         """Convenience method to directly predict property from structure.
@@ -270,13 +326,14 @@ class TensorNet(MatGLModel):
         Args:
             structure: An input crystal/molecule.
             state_feats (torch.tensor): Graph attributes
+            total_charge: total charge of a structure
             graph_converter: Object that implements a get_graph_from_structure.
 
         Returns:
             output (torch.tensor): output property
         """
         if graph_converter is None:
-            from matgl.ext._pymatgen_dgl import Structure2Graph
+            from matgl.ext.pymatgen import Structure2Graph
 
             graph_converter = Structure2Graph(element_types=self.element_types, cutoff=self.cutoff)  # type: ignore
         g, lat, state_feats_default = graph_converter.get_graph(structure)
@@ -284,4 +341,7 @@ class TensorNet(MatGLModel):
         g.ndata["pos"] = g.ndata["frac_coords"] @ lat[0]
         if state_feats is None:
             state_feats = torch.tensor(state_feats_default)
+        if self.return_features:
+            node_features, atomic_energies = self(g=g, state_attr=state_feats, total_charge=total_charge)
+            return node_features.detach(), atomic_energies.detach()
         return self(g=g, state_attr=state_feats).detach()

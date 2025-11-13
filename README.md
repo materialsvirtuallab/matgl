@@ -15,14 +15,10 @@
 
 MatGL (Materials Graph Library) is a graph deep learning library for materials science. Mathematical graphs are a
 natural representation for a collection of atoms. Graph deep learning models have been shown to consistently deliver
-exceptional performance as surrogate models for the prediction of materials properties.
+exceptional performance as surrogate models for the prediction of materials properties. The goal is for MatGL to serve
+as an extensible platform to develop and share materials graph deep learning models.
 
-MatGL is built on the [Deep Graph Library (DGL)][dgl] and PyTorch, with suitable adaptations for materials-specific
-applications. The goal is for MatGL to serve as an extensible platform to develop and share materials graph deep
-learning models, including the [MatErials 3-body Graph Network (M3GNet)][m3gnet] and its predecessor, [MEGNet].
-
-This effort is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs (Santiago Miret, Marcel
-Nassar, Carmelo Gonzales).
+This first version of MatGL is a collaboration between the [Materials Virtual Lab][mavrl] and Intel Labs.
 
 MatGL is part of the MatML ecosystem, which includes the [MatGL] (Materials Graph Library) and [maml] (MAterials
 Machine Learning) packages, the [MatPES] (Materials Potential Energy Surface) dataset, and the [MatCalc] (Materials
@@ -42,78 +38,71 @@ Major milestones are summarized below. Please refer to the [changelog] for detai
 - v0.1.0 (Feb 16 2023): Initial implementations of M3GNet and MEGNet architectures have been completed. Expect
   bugs!
 
+## Major update: v2.0.0 (Nov 12 2025)
+
+We are in the process of moving away from the Deep Graph Library (DGL) framework to Pytorch Geometric (PyG) or even a
+pure PyTorch framework. This is due to the fact that DGL is no longer actively maintained. For now, both PYG and DGL
+models are available.
+
+From v2.0.0, MatGL will default to a PyG backend, and DGL is no longer a required dependency. For now, only TensorNet
+has been re-implemented in PYG. To use the DGL-based models, you will need to install the DGL dependencies and set
+the backend either via the environment variable `MATGL_BACKEND=dgl` or by using
+
+```
+import matgl
+matgl.set_backend("DGL")
+```
+
 ## Current Architectures
 
 Here, we summarize the currently implemented architectures in MatGL. It should be stressed that this is by no means
 an exhaustive list, and we expect new architectures to be added by the core MatGL team as well as other contributors
-in future.
+in the future.
 
 <div style="float: left; padding: 10px; width: 300px">
 <img src="https://github.com/materialsvirtuallab/matgl/blob/main/assets/MxGNet.png?raw=true" alt="m3gnet_schematic">
 <p>Figure: Schematic of M3GNet/MEGNet</p>
 </div>
 
-### MEGNet
-
-[MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
-machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
-array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
-[multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
-network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating an
-output graph.
-
-### M3GNet
-
-[Materials 3-body Graph Network (M3GNet)][m3gnet] is a new materials graph neural network architecture that
-incorporates 3-body interactions in MEGNet. An additional difference is the addition of the coordinates for atoms and
-the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
-stresses via auto-differentiation. As a framework, M3GNet has diverse applications, including:
-
-- **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
+- [TensorNet] is an O(3)-equivariant message-passing neural network architecture that leverages Cartesian tensor
+  representations. It is a generalization of the [SO3Net] architecture, which is a minimalist SO(3)-equivariant neural
+  network. In general, TensorNet has been shown to be much more data and parameter efficient than other equivariant
+  architectures. It is currently the default architecture used in the [Materials Virtual Lab].
+- [Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based MLIP. CHGNet involves atom
+  graphs to capture atom bond relations and bond graph to capture angular information. It specializes in
+  capturing the atomic charges through learning and predicting DFT atomic magnetic moments.
+  See [original implementation][chgnetrepo]
+- [Materials 3-body Graph Network (M3GNet)][m3gnet] is an invariant graph neural network architecture that
+  incorporates 3-body interactions. An additional difference is the addition of the coordinates for atoms and
+  the 3×3 lattice matrix in crystals, which are necessary for obtaining tensorial quantities such as forces and
+  stresses via auto-differentiation. As a framework, M3GNet has diverse applications, including **Interatomic potential development.** With the same training data, M3GNet performs similarly to state-of-the-art
   machine learning interatomic potentials (MLIPs). However, a key feature of a graph representation is its
   flexibility to scale to diverse chemical spaces. One of the key accomplishments of M3GNet is the development of a
   [*foundation potential*][m3gnet] that can work across the entire periodic table of the elements by training on
-  relaxations performed in the [Materials Project][mp].
-- **Surrogate models for property predictions.** Like the previous MEGNet architecture, M3GNet can be used to develop
-  surrogate models for property predictions, achieving in many cases accuracies that are better or similar to other
-  state-of-the-art ML models.
+  relaxations performed in the [Materials Project][mp]. Like the previous MEGNet architecture, M3GNet can be used to
+  develop surrogate models for property predictions, achieving in many cases accuracies that are better or similar to
+  other state-of-the-art ML models.
+- [MatErials Graph Network (MEGNet)][megnet] is an implementation of DeepMind's [graph networks][graphnetwork] for
+  machine learning in materials science. We have demonstrated its success in achieving low prediction errors in a broad
+  array of properties in both [molecules and crystals][megnet]. New releases have included our recent work on
+  [multi-fidelity materials property modeling][mfimegnet]. Figure 1 shows the sequential update steps of the graph
+  network, whereby bonds, atoms, and global state attributes are updated using information from each other, generating
+  an output graph.
 
 For detailed performance benchmarks, please refer to the publications in the [References](#references) section.
 
-MatGL reimplemennts M3GNet using DGL and Pytorch. Compared to the original Tensorflow implementation, some key
-improvements over the TF implementations are:
-
-- A more intuitive API and class structure based on DGL.
-- Multi-GPU support via PyTorch Lightning.
-
-### CHGNet
-
-[Crystal Hamiltonian Graph Network (CHGNet)][chgnet] is a graph neural network based MLIP. CHGNet involves atom
-graphs to capture atom bond relations and bond graph to capture angular information. It specializes in
-capturing the atomic charges through learning and predicting DFT atomic magnetic moments.
-See [original implementation][chgnetrepo]
-
-### Other models
-
-We have implemented other models in matgl as well. A non-exhaustive list is given below.
-
-- [TensorNet], an O(3)-equivariant message-passing neural network architecture that
-  leverages Cartesian tensor representations.
-- [SO3Net],  a minimalist SO(3)-equivariant neural network.
-
-
 ## Installation
-
-If you are on Linux, it is recommended you install the latest version of DGL before installing matgl.
-
-```bash
-pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
-```
 
 Matgl can be installed via pip:
 
 ```bash
 pip install matgl
+```
+
+If you need to use DGL, it is recommended you install the latest version of DGL before installing matgl.
+
+```bash
+pip install dgl -f https://data.dgl.ai/wheels/torch-2.4/repo.html
 ```
 
 ### CUDA (GPU) installation

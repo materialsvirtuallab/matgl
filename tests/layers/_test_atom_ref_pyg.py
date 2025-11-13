@@ -1,14 +1,9 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 import torch
 from torch_geometric.data import Batch
 
-import matgl
-
-if matgl.config.BACKEND != "PYG":
-    pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.layers._atom_ref_pyg import AtomRefPyG
 
 
