@@ -6,39 +6,70 @@ import argparse
 import logging
 import os
 import warnings
+from typing import TYPE_CHECKING, Callable, Iterable, Sequence
 
-import numpy as np
-import torch
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+import numpy as np
 from pymatgen.core.structure import Structure
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.ase import AseAtomsAdaptor
+import torch
 
 import matgl
 from matgl.ext._ase_dgl import MolecularDynamics, Relaxer
 
-warnings.simplefilter("ignore")
+if TYPE_CHECKING:
+    from matgl.models._core import MatGLModel
+
+warnings.filterwarnings("ignore", category=UserWarning, module="ase")
 logger = logging.getLogger("MGL")
 
 
-def relax_structure(args):
+def _configure_logging(verbose: bool) -> None:
+    """Set up logging configuration once per command execution."""
+    if verbose and not logging.getLogger().handlers:
+        logging.basicConfig(level=logging.INFO)
+
+
+def _load_potential(model_name: str) -> MatGLModel:
+    """Load a MatGL model and emit a consistent log message."""
+    logger.info("Loading model...")
+    return matgl.load_model(model_name)
+
+
+def _format_lattice_delta(old_lattice: object, new_lattice: object) -> Iterable[str]:
+    """Yield formatted lattice-parameter comparisons."""
+    for param in ("a", "b", "c", "alpha", "beta", "gamma"):
+        yield f"{param}: {getattr(old_lattice, param):.3f} -> {getattr(new_lattice, param):.3f}"
+
+
+def _format_site_delta(formatter: Callable[[np.ndarray], str], old_site: object, new_site: object) -> str:
+    """Return a formatted per-site fractional-coordinate change."""
+    return f"{old_site.species}: {formatter(old_site.frac_coords)} -> {formatter(new_site.frac_coords)}"
+
+
+def relax_structure(args: argparse.Namespace) -> int:
     """
-    Relax crystals.
+    Relax one or more crystal structures using a pretrained potential.
 
     Args:
-        args: Args from CLI.
+        args: Parsed CLI arguments carrying `infile`, `model`, and output options.
+
+    Returns:
+        Exit status code where ``0`` indicates success.
+
+    Side Effects:
+        Writes relaxed structures to disk or prints lattice/site comparisons.
     """
+    _configure_logging(args.verbose)
+
     for fn in args.infile:
         structure = Structure.from_file(fn)
 
-        if args.verbose:
-            logging.basicConfig(level=logging.INFO)
-
-        logger.info(f"Initial structure\n{structure}")
-        logger.info("Loading model...")
-        pot = matgl.load_model(args.model)
+        logger.info("Initial structure\n%s", structure)
+        potential = _load_potential(args.model)
         logger.info("Relaxing...")
-        relaxer = Relaxer(potential=pot)
+        relaxer = Relaxer(potential=potential)
         relax_results = relaxer.relax(structure, fmax=0.01)
         final_structure = relax_results["final_structure"]
 
@@ -52,57 +83,72 @@ def relax_structure(args):
             print(f"Structure written to {args.outfile}!")
         else:
             print("Lattice parameters")
-            old_lattice = structure.lattice
-            new_lattice = final_structure.lattice
-            for param in ("a", "b", "c", "alpha", "beta", "gamma"):
-                print(f"{param}: {getattr(old_lattice, param):.3f} -> {getattr(new_lattice, param):.3f}")
+            for line in _format_lattice_delta(structure.lattice, final_structure.lattice):
+                print(line)
             print("Sites (Fractional coordinates)")
 
-            def fmt_fcoords(fc):
+            def fmt_fcoords(fc: np.ndarray) -> str:
                 return np.array2string(fc, formatter={"float_kind": lambda x: f"{x:.5f}"})
 
             for old_site, new_site in zip(structure, final_structure, strict=False):
-                print(f"{old_site.species}: {fmt_fcoords(old_site.frac_coords)} -> {fmt_fcoords(new_site.frac_coords)}")
+                print(_format_site_delta(fmt_fcoords, old_site, new_site))
 
     return 0
 
 
-def predict_structure(args):
+def _resolve_state_attributes(state_attr: Sequence[str | int] | None, expected_count: int) -> Sequence[int]:
+    """Coerce state attributes to integers and validate lengths."""
+    if state_attr is None:
+        raise ValueError("State attributes must be supplied for this model.")
+    if len(state_attr) != expected_count:
+        raise ValueError("Number of state attributes must match the number of input files.")
+    return [int(s) for s in state_attr]
+
+
+def predict_structure(args: argparse.Namespace) -> None:
     """
-    Use MatGL models to perform predictions on structures.
+    Predict scalar properties for structures or Materials Project IDs.
 
     Args:
-        args: Args from CLI.
+        args: Parsed CLI arguments with `model`, `infile`, or `mpids` selections.
+
+    Side Effects:
+        Prints prediction results to stdout.
     """
-    model = matgl.load_model(args.model)
+    model = _load_potential(args.model)
     if args.infile:
         if args.model == "MEGNet-MP-2019.4.1-BandGap-mfi":
             state_dict = ["PBE", "GLLB-SC", "HSE", "SCAN"]
-            for count, f in enumerate(args.infile):
-                s = args.state_attr[count]  # Get the corresponding state attribute
-                structure = Structure.from_file(f)
-                val = model.predict_structure(structure, torch.tensor(int(s)))
-                print(f"{args.model} prediction for {f} with {state_dict[int(s)]} bandgap: {val} eV.")
-
+            attrs = _resolve_state_attributes(args.state_attr, len(args.infile))
+            for file_path, state in zip(args.infile, attrs, strict=False):
+                structure = Structure.from_file(file_path)
+                value = model.predict_structure(structure, torch.tensor(state))
+                print(f"{args.model} prediction for {file_path} with {state_dict[state]} bandgap: {value} eV.")
         else:
-            for f in args.infile:
-                structure = Structure.from_file(f)
-                val = model.predict_structure(structure)
-                print(f"{args.model} prediction for {f}: {val} eV/atom.")
+            for file_path in args.infile:
+                structure = Structure.from_file(file_path)
+                value = model.predict_structure(structure)
+                print(f"{args.model} prediction for {file_path}: {value} eV/atom.")
     if args.mpids:
         mpr = MPRester()
-        for mid in args.mpids:
-            structure = mpr.get_structure_by_material_id(mid)
-            val = model.predict_structure(structure)
-            print(f"{args.model} prediction for {mid} ({structure.composition.reduced_formula}): {val}.")
+        for material_id in args.mpids:
+            structure = mpr.get_structure_by_material_id(material_id)
+            value = model.predict_structure(structure)
+            print(f"{args.model} prediction for {material_id} ({structure.composition.reduced_formula}): {value}.")
 
 
-def molecular_dynamics(args):
+def molecular_dynamics(args: argparse.Namespace) -> int:
     """
-    Use MaGL models to perform MD simulations on structures.
+    Run molecular dynamics trajectories with MatGL potentials.
 
     Args:
-        args: Args from CLI.
+        args: Parsed CLI arguments containing MD configuration.
+
+    Returns:
+        Exit status code where ``0`` indicates success.
+
+    Side Effects:
+        Writes trajectory and log files to the current working directory.
     """
     for file in args.infile:
         name = file.split(".")[0]
@@ -110,14 +156,13 @@ def molecular_dynamics(args):
         adaptor = AseAtomsAdaptor()
         atoms = adaptor.get_atoms(structure)
 
-        logger.info(f"Initial structure\n{structure}")
-        logger.info("Loading model...")
-        pot = matgl.load_model(args.model)
+        logger.info("Initial structure\n%s", structure)
+        potential = _load_potential(args.model)
         logger.info("Running MD...")
         MaxwellBoltzmannDistribution(atoms, temperature_K=args.temp)
         md = MolecularDynamics(
             atoms,
-            potential=pot,
+            potential=potential,
             ensemble=args.ensemble,
             pressure=args.pressure,
             timestep=args.stepsize,
@@ -140,12 +185,12 @@ def molecular_dynamics(args):
     return 0
 
 
-def clear_cache(args):
+def clear_cache(args: argparse.Namespace) -> None:
     """
     Clear cache command.
 
     Args:
-        args: Args from CLI.
+        args: Parsed CLI arguments, honoring the `--yes` confirmation override.
     """
     matgl.clear_cache(not args.yes)
 

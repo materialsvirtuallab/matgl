@@ -44,7 +44,7 @@ class MLP(nn.Module):
                 if activation is not None and activate_last:
                     self.layers.append(activation)  # type: ignore
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         dims = []
 
         for layer in self.layers:
@@ -56,12 +56,13 @@ class MLP(nn.Module):
         return f"MLP({', '.join(dims)})"
 
     @property
-    def last_linear(self) -> Linear | None:
-        """:return: The last linear layer."""
+    def last_linear(self) -> Linear:
+        """Return the last linear layer in the network."""
         for layer in reversed(self.layers):
             if isinstance(layer, Linear):
                 return layer
-        raise RuntimeError
+        msg = "MLP must contain at least one Linear layer."
+        raise RuntimeError(msg)
 
     @property
     def depth(self) -> int:
@@ -83,12 +84,8 @@ class MLP(nn.Module):
                 return layer.out_features
         raise RuntimeError
 
-    def forward(self, inputs):
-        """Applies all layers in turn.
-
-        :param inputs: Input tensor
-        :return: Output tensor
-        """
+    def forward(self, inputs: Tensor) -> Tensor:
+        """Apply each layer in turn."""
         x = inputs
         for layer in self.layers:
             x = layer(x)
@@ -126,21 +123,23 @@ class GatedMLP(nn.Module):
                 self.gates.append(nn.Linear(in_dim, out_dim, bias=use_bias))
                 self.gates.append(nn.Sigmoid())
 
-    def forward(self, inputs: Tensor):
+    def forward(self, inputs: Tensor) -> Tensor:
         return self.layers(inputs) * self.gates(inputs)
 
 
 class GatedEquivariantBlock(nn.Module):
-    """
+    r"""
     Gated equivariant block as used for the prediction of tensorial properties by PaiNN.
-    Transforms scalar and vector representation using gated nonlinearities.
-    The official implementation can be found in https://github.com/atomistic-machine-learning/schnetpack/blob/master/src/schnetpack/nn/equivariant.py.
 
-    References:
-    .. [#painn1] Schütt, Unke, Gastegger:
-       Equivariant message passing for the prediction of tensorial properties and molecular spectra.
-       ICML 2021 (to appear)
+    Transforms scalar and vector representations using gated nonlinearities. The reference
+    implementation is available at
+    https://github.com/atomistic-machine-learning/schnetpack/blob/master/src/schnetpack/nn/equivariant.py.
 
+    References
+    ----------
+    .. [Schuett2021] Schütt, K. T., Unke, O. T., & Gastegger, M. *Equivariant message passing for the
+       prediction of tensorial properties and molecular spectra.* Proceedings of the 38th International
+       Conference on Machine Learning (2021).
     """
 
     def __init__(
@@ -180,7 +179,7 @@ class GatedEquivariantBlock(nn.Module):
         )
         self.sactivation = sactivation
 
-    def forward(self, inputs: tuple[Tensor, Tensor]):
+    def forward(self, inputs: tuple[Tensor, Tensor]) -> tuple[Tensor, Tensor]:
         scalars, vectors = inputs
         vmix = self.mix_vectors(vectors)
         vectors_V, vectors_W = torch.split(vmix, self.n_vout, dim=-1)
@@ -206,28 +205,24 @@ def build_gated_equivariant_mlp(
     n_gating_hidden: int | Sequence[int] | None = None,
     n_layers: int = 2,
 ):
-    """
-    Build neural network analog to MLP with `GatedEquivariantBlock`s instead of dense layers.
-     The official implementation can be found in https://github.com/atomistic-machine-learning/schnetpack/blob/master/src/schnetpack/nn/blocks.py.
+    """Construct a stacked `GatedEquivariantBlock` network.
+
+    The official implementation can be found in
+    https://github.com/atomistic-machine-learning/schnetpack/blob/master/src/schnetpack/nn/blocks.py.
 
     Args:
-        n_in: number of input nodes.
-        n_out: number of output nodes.
-        n_hidden: number hidden layer nodes.
-            If an integer, same number of node is used for all hidden layers resulting
-            in a rectangular network.
-            If None, the number of neurons is divided by two after each layer starting
-            n_in resulting in a pyramidal network.
-        n_gating_hidden: number hidden gated layer nodes
-            If an integer, same number of node is used for all hidden gated layers resulting
-            in a rectangular network.
-            If None, the number of neurons is divided by two after each layer starting
-            n_in resulting in a pyramidal network.
-        n_layers: number of layers.
-        activation: Activation function for gating function.
-        sactivation: Activation function for scalar outputs. All hidden layers would
-            the same activation function except the output layer that does not apply
-            any activation function.
+        n_in: Number of input nodes.
+        n_out: Number of output nodes.
+        activation: Activation function applied inside each block.
+        sactivation: Optional activation function for scalar outputs.
+        n_hidden: Hidden-layer sizes. If an integer, use the same size for all hidden layers.
+            If ``None``, construct a pyramidal network by halving after each layer.
+        n_gating_hidden: Hidden sizes for the gating network. Supports the same conventions
+            as ``n_hidden``.
+        n_layers: Total number of `GatedEquivariantBlock` layers.
+
+    Returns:
+        A sequential module stacking `n_layers` `GatedEquivariantBlock` instances.
     """
     # get list of number of nodes in input, hidden & output layers
     if n_hidden is None:

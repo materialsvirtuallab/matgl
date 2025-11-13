@@ -31,8 +31,8 @@ from matgl.layers import (
     CHGNetAtomGraphBlock,
     CHGNetBondGraphBlock,
     FourierExpansion,
-    GatedMLP_norm,
-    MLP_norm,
+    GatedMLPNorm,
+    MLPNorm,
     RadialBesselFunction,
 )
 from matgl.utils.cutoff import polynomial_cutoff
@@ -219,11 +219,11 @@ class CHGNet(MatGLModel):
         self.include_states = dim_state_feats is not None
         self.state_embedding = nn.Embedding(dim_state_feats, dim_state_embedding) if self.include_states else None  # type: ignore[arg-type]
         self.atom_embedding = nn.Embedding(len(element_types), dim_atom_embedding)
-        self.bond_embedding = MLP_norm(
+        self.bond_embedding = MLPNorm(
             [max_n, dim_bond_embedding], activation=activation, activate_last=non_linear_bond_embedding, bias_last=False
         )
         self.angle_embedding = (
-            MLP_norm(
+            MLPNorm(
                 [2 * max_f + 1, dim_angle_embedding],
                 activation=activation,
                 activate_last=non_linear_angle_embedding,
@@ -295,11 +295,11 @@ class CHGNet(MatGLModel):
 
         input_dim = dim_atom_embedding if readout_field == "atom_feat" else dim_bond_embedding
         if final_mlp_type == "mlp":
-            self.final_layer = MLP_norm(
+            self.final_layer = MLPNorm(
                 dims=[input_dim, *final_hidden_dims, num_targets], activation=activation, activate_last=False
             )
         elif final_mlp_type == "gated":
-            self.final_layer = GatedMLP_norm(  # type: ignore[assignment]
+            self.final_layer = GatedMLPNorm(  # type: ignore[assignment]
                 in_feats=input_dim, dims=[*final_hidden_dims, num_targets], activate_last=False
             )
         else:

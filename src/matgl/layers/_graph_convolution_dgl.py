@@ -12,7 +12,7 @@ from torch.nn import Dropout, Identity, Module
 
 import matgl
 from matgl.layers._core import MLP, GatedMLP
-from matgl.layers._core_dgl import GatedMLP_norm
+from matgl.layers._core_dgl import GatedMLPNorm
 from matgl.layers._norm import GraphNorm, LayerNorm
 from matgl.utils.cutoff import cosine_cutoff
 from matgl.utils.maths import decompose_tensor, new_radial_tensor, tensor_norm
@@ -710,7 +710,7 @@ class CHGNetGraphConv(nn.Module):
         """
         norm_kwargs = {"batched_field": "edge"} if normalization == "graph" else None
 
-        node_update_func = GatedMLP_norm(
+        node_update_func = GatedMLPNorm(
             in_feats=node_dims[0],
             dims=node_dims[1:],
             activation=activation,
@@ -723,7 +723,7 @@ class CHGNetGraphConv(nn.Module):
             nn.Linear(in_features=rbf_order, out_features=node_dims[-1], bias=False) if rbf_order > 0 else None
         )
         edge_update_func = (
-            GatedMLP_norm(
+            GatedMLPNorm(
                 in_feats=edge_dims[0],
                 dims=edge_dims[1:],
                 activation=activation,
@@ -1078,7 +1078,7 @@ class CHGNetLineGraphConv(nn.Module):
         """
         norm_kwargs = {"batched_field": "edge"} if normalization == "graph" else None
 
-        node_update_func = GatedMLP_norm(
+        node_update_func = GatedMLPNorm(
             in_feats=node_dims[0],
             dims=node_dims[1:],
             activation=activation,
@@ -1090,7 +1090,7 @@ class CHGNetLineGraphConv(nn.Module):
 
         node_weight_func = nn.Linear(node_weight_input_dims, node_dims[-1]) if node_weight_input_dims > 0 else None
         edge_update_func = (
-            GatedMLP_norm(
+            GatedMLPNorm(
                 in_feats=edge_dims[0],
                 dims=edge_dims[1:],
                 activation=activation,
