@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
     from pymatgen.core.sites import PeriodicSite
 
-    from matgl.models._core import MatGLModel
+    from matgl.apps.pes import Potential
 
 warnings.filterwarnings("ignore", category=UserWarning, module="ase")
 logger = logging.getLogger("MGL")
@@ -35,7 +35,7 @@ def _configure_logging(verbose: bool) -> None:
         logging.basicConfig(level=logging.INFO)
 
 
-def _load_potential(model_name: str) -> MatGLModel:
+def _load_potential(model_name: str) -> Potential:
     """Load a MatGL model and emit a consistent log message."""
     logger.info("Loading model...")
     return matgl.load_model(model_name)
