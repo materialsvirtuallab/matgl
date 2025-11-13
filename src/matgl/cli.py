@@ -6,14 +6,15 @@ import argparse
 import logging
 import os
 import warnings
-from typing import TYPE_CHECKING, Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
+from typing import TYPE_CHECKING
 
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 import numpy as np
+import torch
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from pymatgen.core.structure import Structure
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.ase import AseAtomsAdaptor
-import torch
 
 import matgl
 from matgl.ext._ase_dgl import MolecularDynamics, Relaxer

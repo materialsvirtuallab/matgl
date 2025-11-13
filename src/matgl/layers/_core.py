@@ -135,7 +135,7 @@ class GatedEquivariantBlock(nn.Module):
     implementation is available at
     https://github.com/atomistic-machine-learning/schnetpack/blob/master/src/schnetpack/nn/equivariant.py.
 
-    References
+    References:
     ----------
     .. [Schuett2021] Schütt, K. T., Unke, O. T., & Gastegger, M. *Equivariant message passing for the
        prediction of tensorial properties and molecular spectra.* Proceedings of the 38th International
