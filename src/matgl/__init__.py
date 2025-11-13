@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import typing
 from importlib.metadata import PackageNotFoundError, version
 
@@ -75,4 +76,14 @@ def set_backend(backend: Literal["DGL", "PYG"] = "PYG") -> None:
     """
     if backend not in ("DGL", "PYG"):
         raise ValueError("Invalid backend")
+    if backend == "DGL":
+        try:
+            importlib.util.find_spec("dgl")  # type: ignore[attr-defined]
+        except ImportError as err:
+            raise RuntimeError("Please install DGL to use this backend.") from err
+    else:
+        try:
+            importlib.util.find_spec("torch_geometric")  # type: ignore[attr-defined]
+        except ImportError as err:
+            raise RuntimeError("Please install torch_geometric to use this backend.") from err
     matgl.config.BACKEND = backend
