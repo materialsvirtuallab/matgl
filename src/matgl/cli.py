@@ -6,19 +6,23 @@ import argparse
 import logging
 import os
 import warnings
-from typing import TYPE_CHECKING, Callable, Iterable, Sequence
+from typing import TYPE_CHECKING
 
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 import numpy as np
+import torch
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
 from pymatgen.core.structure import Structure
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.ase import AseAtomsAdaptor
-import torch
 
 import matgl
 from matgl.ext._ase_dgl import MolecularDynamics, Relaxer
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Sequence
+
+    from pymatgen.core.sites import PeriodicSite
+
     from matgl.models._core import MatGLModel
 
 warnings.filterwarnings("ignore", category=UserWarning, module="ase")
@@ -43,7 +47,7 @@ def _format_lattice_delta(old_lattice: object, new_lattice: object) -> Iterable[
         yield f"{param}: {getattr(old_lattice, param):.3f} -> {getattr(new_lattice, param):.3f}"
 
 
-def _format_site_delta(formatter: Callable[[np.ndarray], str], old_site: object, new_site: object) -> str:
+def _format_site_delta(formatter: Callable[[np.ndarray], str], old_site: PeriodicSite, new_site: PeriodicSite) -> str:
     """Return a formatted per-site fractional-coordinate change."""
     return f"{old_site.species}: {formatter(old_site.frac_coords)} -> {formatter(new_site.frac_coords)}"
 
