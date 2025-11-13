@@ -16,7 +16,7 @@ from matgl.layers._norm import GraphNorm
 if BACKEND == "DGL":
     from matgl.layers._atom_ref_dgl import AtomRef
     from matgl.layers._basis import FourierExpansion, RadialBesselFunction, SphericalBesselWithHarmonics
-    from matgl.layers._core_dgl import EdgeSet2Set, GatedMLP_norm, MLP_norm
+    from matgl.layers._core_dgl import EdgeSet2Set, GatedMLPNorm, MLPNorm
     from matgl.layers._embedding_dgl import EmbeddingBlock, NeighborEmbedding, TensorEmbedding
     from matgl.layers._graph_convolution_dgl import (
         CHGNetAtomGraphBlock,
