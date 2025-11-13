@@ -6,6 +6,11 @@ nav_order: 3
 
 # Change Log
 
+## 2.0.0
+- QET (Charge-Equilibrated TensorNet) architecture and pre-trained weights are added!
+- Begun a migration to Pytorch-Geometric over the now-deprecated DGL. So far, only vanilla TensorNet has been
+  implemented in PYG). DGL models still work but require a manual setup (change of backend and installation of DGL).
+
 ## 1.2.7
 - Use original custom RemoteFile rather than fsspec, which is very finicky with SSL connections.
 - _create_directed_line_graph error handling (@bowen-bd)
