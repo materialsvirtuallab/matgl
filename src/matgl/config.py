@@ -28,16 +28,21 @@ PRETRAINED_MODELS_BASE_URL = "http://github.com/materialsvirtuallab/matgl/raw/ma
 BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "DGL")  # type: ignore[assignment,return-value]
 
 
-if BACKEND == "DGL":
-    try:
-        importlib.util.find_spec("dgl")  # type: ignore[attr-defined]
-    except ImportError as err:
-        raise RuntimeError("Please install DGL to use this backend.") from err
-else:
-    try:
-        importlib.util.find_spec("torch_geometric")  # type: ignore[attr-defined]
-    except ImportError as err:
-        raise RuntimeError("Please install torch_geometric to use this backend.") from err
+def ensure_backend(backend: Literal["DGL", "PYG"]) -> None:
+    """Validate that the requested backend is installed."""
+    if backend == "DGL":
+        try:
+            importlib.util.find_spec("dgl")  # type: ignore[attr-defined]
+        except ImportError as err:
+            raise RuntimeError("Please install DGL to use this backend.") from err
+    else:
+        try:
+            importlib.util.find_spec("torch_geometric")  # type: ignore[attr-defined]
+        except ImportError as err:
+            raise RuntimeError("Please install torch_geometric to use this backend.") from err
+
+
+ensure_backend(BACKEND)
 
 
 def clear_cache(confirm: bool = True) -> None:

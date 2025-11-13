@@ -1,3 +1,5 @@
+"""DGL-specific neural network building blocks mirroring the core MatGL layers."""
+
 from __future__ import annotations
 
 import itertools
@@ -16,8 +18,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class MLP_norm(nn.Module):
-    """Multi-layer perceptron with normalization layer."""
+class MLPNorm(nn.Module):
+    """Multi-layer perceptron with optional normalization."""
 
     def __init__(
         self,
@@ -30,16 +32,17 @@ class MLP_norm(nn.Module):
         normalize_hidden: bool = False,
         norm_kwargs: dict[str, Any] | None = None,
     ) -> None:
-        """
+        """Initialize an MLP with optional normalization layers.
+
         Args:
-            dims: Dimensions of each layer of MLP.
-            activation: activation: Activation function.
-            activate_last: Whether to apply activation to last layer.
-            use_bias: Whether to use bias.
-            bias_last: Whether to apply bias to last layer.
-            normalization: normalization name. "graph" or "layer"
-            normalize_hidden: Whether to normalize output of hidden layers.
-            norm_kwargs: Keyword arguments for normalization layer.
+            dims: Dimensions of each layer of the MLP.
+            activation: Activation function applied after each hidden layer.
+            activate_last: Whether to apply the activation function to the final layer.
+            use_bias: Whether to include biases in intermediate linear layers.
+            bias_last: Whether to include a bias term in the final linear layer.
+            normalization: Name of the normalization strategy, either ``"graph"`` or ``"layer"``.
+            normalize_hidden: Whether to normalize the outputs of hidden layers.
+            norm_kwargs: Additional keyword arguments forwarded to the normalization modules.
         """
         super().__init__()
         self._depth = len(dims) - 1
@@ -68,15 +71,7 @@ class MLP_norm(nn.Module):
                         self.norm_layers.append(LayerNorm(out_dim, **norm_kwargs))
 
     def forward(self, inputs: torch.Tensor, g: dgl.Graph | None = None) -> torch.Tensor:
-        """Applies all layers in turn.
-
-        Args:
-            inputs: input feature tensor.
-            g: graph of model, needed for graph normalization
-
-        Returns:
-            output feature tensor.
-        """
+        """Run the stacked linear, activation, and normalization layers."""
         x = inputs
         for i in range(self._depth - 1):
             x = self.layers[i](x)
@@ -92,8 +87,8 @@ class MLP_norm(nn.Module):
         return x
 
 
-class GatedMLP_norm(nn.Module):
-    """An implementation of a Gated multi-layer perceptron constructed with MLP."""
+class GatedMLPNorm(nn.Module):
+    """Gated multi-layer perceptron constructed with `MLPNorm`."""
 
     def __init__(
         self,
@@ -107,15 +102,18 @@ class GatedMLP_norm(nn.Module):
         normalize_hidden: bool = False,
         norm_kwargs: dict[str, Any] | None = None,
     ):
-        """:param in_feats: Dimension of input features.
-        :param dims: Architecture of neural networks.
-        :param activation: non-linear activation module.
-        :param activate_last: Whether applying activation to last layer or not.
-        :param use_bias: Whether to use a bias in linear layers.
-        :param bias_last: Whether applying bias to last layer or not.
-        :param normalization: normalization name.
-        :param normalize_hidden: Whether to normalize output of hidden layers.
-        :param norm_kwargs: Keyword arguments for normalization layer.
+        """Initialize a gated MLP with normalization-aware branches.
+
+        Args:
+            in_feats: Dimensionality of the input features.
+            dims: Hidden-layer sizes for the gating and value branches.
+            activation: Non-linear activation to use between layers.
+            activate_last: Whether to apply the activation to the final value layer.
+            use_bias: Whether to include biases in intermediate linear layers.
+            bias_last: Whether to include a bias term in the final layer.
+            normalization: Normalization strategy name, ``"graph"`` or ``"layer"``.
+            normalize_hidden: Whether to normalize outputs of hidden layers.
+            norm_kwargs: Additional keyword arguments forwarded to normalization layers.
         """
         super().__init__()
         self.in_feats = in_feats
@@ -125,7 +123,7 @@ class GatedMLP_norm(nn.Module):
         self.activate_last = activate_last
 
         activation = activation if activation is not None else nn.SiLU()
-        self.layers = MLP_norm(
+        self.layers = MLPNorm(
             self.dims,
             activation=activation,
             activate_last=True,
@@ -135,7 +133,7 @@ class GatedMLP_norm(nn.Module):
             normalize_hidden=normalize_hidden,
             norm_kwargs=norm_kwargs,
         )
-        self.gates = MLP_norm(
+        self.gates = MLPNorm(
             self.dims,
             activation,
             activate_last=False,
@@ -155,9 +153,12 @@ class EdgeSet2Set(Module):
     """Implementation of Set2Set."""
 
     def __init__(self, input_dim: int, n_iters: int, n_layers: int) -> None:
-        """:param input_dim: The size of each input sample.
-        :param n_iters: The number of iterations.
-        :param n_layers: The number of recurrent layers.
+        """Create a Set2Set-style readout over edges.
+
+        Args:
+            input_dim: Size of each input sample.
+            n_iters: Number of iterative refinement steps.
+            n_layers: Number of recurrent layers in the internal LSTM.
         """
         super().__init__()
         self.input_dim = input_dim
@@ -167,17 +168,12 @@ class EdgeSet2Set(Module):
         self.lstm = LSTM(self.output_dim, self.input_dim, n_layers)
         self.reset_parameters()
 
-    def reset_parameters(self):
+    def reset_parameters(self) -> None:
         """Reinitialize learnable parameters."""
         self.lstm.reset_parameters()
 
-    def forward(self, g: DGLGraph, feat: torch.Tensor):
-        """Defines the computation performed at every call.
-
-        :param g: Input graph
-        :param feat: Input features.
-        :return: One hot vector
-        """
+    def forward(self, g: DGLGraph, feat: torch.Tensor) -> torch.Tensor:
+        """Aggregate edge features with the Set2Set mechanism."""
         with g.local_scope():
             batch_size = g.batch_size
 
