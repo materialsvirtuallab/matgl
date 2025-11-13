@@ -46,10 +46,18 @@ pure PyTorch framework. This is motivated by the fact that DGL is no longer acti
 models are available.
 
 From v2.0.0, MatGL will default to a PyG backend, and DGL is no longer a required dependency. For now, only TensorNet
-has been re-implemented in PYG. To use the DGL-based models, you will need to install the DGL dependencies and set
-the backend either via the environment variable `MATGL_BACKEND=DGL` or by using
+has been re-implemented in PYG. To use the DGL-based models, you will need to install the DGL dependencies manually:
 
+```bash
+pip install "numpy<2"
+pip install dgl==2.2.0
+pip install torch==2.3.0
+pip install "torchdata<=0.8.0"
 ```
+
+and set the backend either via the environment variable `MATGL_BACKEND=DGL` or by using
+
+```python
 import matgl
 matgl.set_backend("DGL")
 ```
