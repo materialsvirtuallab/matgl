@@ -46,7 +46,7 @@ pure PyTorch framework. This is motivated by the fact that DGL is no longer acti
 models are available.
 
 From v2.0.0, MatGL will default to a PyG backend, and DGL is no longer a required dependency. For now, only TensorNet
-has been re-implemented in PYG. To use the DGL-based models, you will need to install the DGL dependencies manually:
+has been re-implemented in PYG. To use the DGL-based models (which includes the new QET), you will need to install the DGL dependencies manually:
 
 ```bash
 pip install "numpy<2"
