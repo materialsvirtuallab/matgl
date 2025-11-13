@@ -126,18 +126,18 @@ def predict_structure(args: argparse.Namespace) -> None:
             attrs = _resolve_state_attributes(args.state_attr, len(args.infile))
             for file_path, state in zip(args.infile, attrs, strict=False):
                 structure = Structure.from_file(file_path)
-                value = model.predict_structure(structure, torch.tensor(state))
+                value = model.predict_structure(structure, torch.tensor(state))  # type:ignore[operator]
                 print(f"{args.model} prediction for {file_path} with {state_dict[state]} bandgap: {value} eV.")
         else:
             for file_path in args.infile:
                 structure = Structure.from_file(file_path)
-                value = model.predict_structure(structure)
+                value = model.predict_structure(structure)  # type:ignore[operator]
                 print(f"{args.model} prediction for {file_path}: {value} eV/atom.")
     if args.mpids:
         mpr = MPRester()
         for material_id in args.mpids:
             structure = mpr.get_structure_by_material_id(material_id)
-            value = model.predict_structure(structure)
+            value = model.predict_structure(structure)  # type:ignore[operator]
             print(f"{args.model} prediction for {material_id} ({structure.composition.reduced_formula}): {value}.")
 
 
