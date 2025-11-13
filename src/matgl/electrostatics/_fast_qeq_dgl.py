@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 
-class FastQeq(nn.Module):
+class LinearQeq(nn.Module):
     """Charge equilibrium within batches of structures. adapted from https://github.com/choderalab/espaloma-charge/blob/main/espaloma_charge/models.py."""
 
     def __init__(self):

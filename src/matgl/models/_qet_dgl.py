@@ -21,7 +21,7 @@ from torch import nn
 import matgl
 from matgl.config import DEFAULT_ELEMENTS
 from matgl.electrostatics._elec_pot_dgl import ElectrostaticPotential
-from matgl.electrostatics._fast_qeq_dgl import FastQeq
+from matgl.electrostatics._fast_qeq_dgl import LinearQeq
 from matgl.graph._compute_dgl import (
     compute_pair_vector_and_distance,
 )
@@ -213,7 +213,7 @@ class QET(MatGLModel):
 
         self.is_hardness_envs = is_hardness_envs
 
-        self.qeq = FastQeq()
+        self.qeq = LinearQeq()
         self.elec_pot = ElectrostaticPotential(element_types=element_types, cutoff=cutoff)
         self.norm = nn.LayerNorm(units + 3) if include_magmom else nn.LayerNorm(units + 2)
         # short-range energy
