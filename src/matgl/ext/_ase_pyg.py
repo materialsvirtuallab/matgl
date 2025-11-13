@@ -16,7 +16,8 @@ import pandas as pd
 import scipy.sparse as sp
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
-from ase.filters import ExpCellFilter, FrechetCellFilter
+from ase.constraints import ExpCellFilter
+from ase.filters import FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
 from ase.md.bussi import Bussi

@@ -10,6 +10,9 @@ from typing import Literal
 
 from pymatgen.core.periodic_table import Element
 
+# Coulomb conversion
+COULOMB_CONSTANT = 14.399645478425668
+
 # Default set of elements supported by universal matgl models. Excludes radioactive and most artificial elements.
 DEFAULT_ELEMENTS = tuple(el.symbol for el in Element if el.symbol not in ["Po", "At", "Rn", "Fr", "Ra"] and el.Z < 95)
 
@@ -22,7 +25,7 @@ os.makedirs(MATGL_CACHE, exist_ok=True)
 PRETRAINED_MODELS_BASE_URL = "http://github.com/materialsvirtuallab/matgl/raw/main/pretrained_models/"
 
 # Set the backend. Note that not all models are available for all backends.
-BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "PYG")  # type: ignore[assignment,return-value]
+BACKEND: Literal["PYG", "DGL"] = os.environ.get("MATGL_BACKEND", "DGL")  # type: ignore[assignment,return-value]
 
 
 if BACKEND == "DGL":
