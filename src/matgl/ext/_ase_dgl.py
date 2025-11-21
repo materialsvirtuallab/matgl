@@ -17,7 +17,7 @@ import scipy.sparse as sp
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
-from ase.filters import FrechetCellFilter
+from ase.filters import Filter, FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
 from ase.md.bussi import Bussi
@@ -346,7 +346,7 @@ class Relaxer:
         if traj_file is not None:
             obs.save(traj_file)
 
-        if isinstance(atoms, FrechetCellFilter):
+        if isinstance(atoms, Filter):
             atoms = atoms.atoms
 
         final_structure: Structure | Molecule
