@@ -17,7 +17,7 @@ import scipy.sparse as sp
 import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
-from ase.filters import FrechetCellFilter
+from ase.filters import Filter, FrechetCellFilter
 from ase.md import Langevin
 from ase.md.andersen import Andersen
 from ase.md.bussi import Bussi
@@ -310,7 +310,6 @@ class Relaxer:
         traj_file: str | None = None,
         interval: int = 1,
         verbose: bool = False,
-        ase_cellfilter: Literal["Frechet", "Exp"] = "Frechet",
         params_asecellfilter: dict | None = None,
         **kwargs,
     ):
@@ -325,7 +324,6 @@ class Relaxer:
             traj_file (str): the trajectory file for saving
             interval (int): the step interval for saving the trajectories
             verbose (bool): Whether to have verbose output.
-            ase_cellfilter (literal): which filter is used for variable cell relaxation. Default is Frechet.
             params_asecellfilter (dict): Parameters to be passed to FrechetCellFilter. Allows
                 setting of constant pressure or constant volume relaxations, for example. Refer to
                 https://wiki.fysik.dtu.dk/ase/ase/filters.html#FrechetCellFilter for more information.
@@ -348,7 +346,7 @@ class Relaxer:
         if traj_file is not None:
             obs.save(traj_file)
 
-        if isinstance(atoms, FrechetCellFilter):
+        if isinstance(atoms, Filter):
             atoms = atoms.atoms
 
         final_structure: Structure | Molecule
