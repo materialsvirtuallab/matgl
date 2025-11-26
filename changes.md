@@ -6,6 +6,9 @@ nav_order: 3
 
 # Change Log
 
+## 2.0.4
+- Bug fix for matgl.graph.data and matgl.graph.converter imports for different backends.
+
 ## 2.0.3
 - Bug fix for matgl.ext.pymatgen import for different backends.
 
