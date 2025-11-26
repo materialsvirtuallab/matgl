@@ -14,8 +14,8 @@ import matgl
 
 if matgl.config.BACKEND != "PYG":
     pytest.skip("Skipping PYG tests", allow_module_level=True)
-from matgl.ext._pymatgen_pyg import Molecule2Graph, Structure2Graph, get_element_list
-from matgl.graph._data_pyg import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes, split_dataset
+from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
+from matgl.graph.data import MGLDataLoader, MGLDataset, collate_fn_graph, collate_fn_pes, split_dataset
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

@@ -17,9 +17,9 @@ from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.util.testing import PymatgenTest
 
 import matgl
+from matgl.ext.pymatgen import Molecule2Graph, Structure2Graph, get_element_list
 
 if matgl.config.BACKEND == "DGL":
-    from matgl.ext._pymatgen_dgl import Molecule2Graph, Structure2Graph, get_element_list
     from matgl.graph._compute_dgl import (
         compute_pair_vector_and_distance,
     )
@@ -44,10 +44,7 @@ if matgl.config.BACKEND == "DGL":
         graph.edata["bond_vec"] = bond_vec
         return structure, graph, state
 else:
-    from matgl.ext._pymatgen_pyg import Molecule2Graph, Structure2Graph, get_element_list  # type: ignore[assignment]
-    from matgl.graph._compute_pyg import (
-        compute_pair_vector_and_distance_pyg,
-    )
+    from matgl.graph._compute_pyg import compute_pair_vector_and_distance  # type: ignore[assignment]
 
     def get_graph(structure, cutoff):
         """
@@ -66,7 +63,7 @@ else:
 
         graph.pbc_offshift = torch.matmul(graph.pbc_offset, lattice[0])
         graph.pos = graph.frac_coords @ lattice[0]
-        bond_vec, bond_dist = compute_pair_vector_and_distance_pyg(graph)
+        bond_vec, bond_dist = compute_pair_vector_and_distance(graph)
 
         graph.bond_vec = bond_vec
         graph.bond_dist = bond_dist

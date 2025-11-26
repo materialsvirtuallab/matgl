@@ -20,7 +20,7 @@ from torch_geometric.data import Batch, Data
 import matgl
 from matgl.config import DEFAULT_ELEMENTS
 from matgl.graph._compute_pyg import (
-    compute_pair_vector_and_distance_pyg,
+    compute_pair_vector_and_distance,
 )
 from matgl.layers import (
     MLP,
@@ -220,7 +220,7 @@ class TensorNet(MatGLModel):
             output: output: Output property for a batch of graphs
         """
         # Obtain graph, with distances and relative position vectors
-        bond_vec, bond_dist = compute_pair_vector_and_distance_pyg(g)
+        bond_vec, bond_dist = compute_pair_vector_and_distance(g)
         g.bond_vec = bond_vec
         g.bond_dist = bond_dist
 
