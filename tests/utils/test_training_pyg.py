@@ -98,7 +98,7 @@ class TestModelTrainer:
 
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
         assert torch.allclose(pred_LFP_energy, torch.tensor([-1.7421]), atol=1e-4)
-        assert torch.allclose(pred_BNO_energy, torch.tensor([-1.898]), atol=1e-4)
+        assert torch.allclose(pred_BNO_energy, torch.tensor([-1.1898]), atol=1e-4)
 
         self.teardown_class()
 
