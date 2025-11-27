@@ -15,9 +15,9 @@ MatPESv2025.1-PBE: 300K MD simulations and Materials Project ground state calcul
 ## Training and validation errors
 
 MAEs of energies, forces and stresses, respectively
-- Training: 33 meV/atom, 121 meV/A, 0.602 GPa
-- Validation: 36 meV/atom, 138 meV/A, 0.695 GPa
-- Test: 36 meV/atom, 148 meV/A, 0.700 GPa
+- Training: 41 meV/atom, 116 meV/A, 0.526 GPa
+- Validation: 42 meV/atom, 131 meV/A, 0.629 GPa
+- Test: 42 meV/atom, 146 meV/A, 0.627 GPa
 
 # References
 

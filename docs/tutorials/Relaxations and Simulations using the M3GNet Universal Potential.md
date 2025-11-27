@@ -11,6 +11,7 @@ This notebook demonstrates the use of the pre-trained universal potentials to pe
 Author: Tsz Wai Ko (Kenko)
 Email: t1ko@ucsd.edu
 
+
 ```python
 from __future__ import annotations
 
@@ -33,7 +34,7 @@ We will first load the M3GNet PES model, which is trained on the MP-2021.2.8 dat
 
 
 ```python
-# You can load any pretrained potentials such as CHGNet ('CHGNet-MPtrj-2023.12.1-2.7M-PES', 'CHGNet-MPtrj-2024.2.13-PES-11M')
+# You can load any pretrained potentials stored in the 'pretrained_models' directory
 # To see available models, use get_available_pretrained_models()
 pot = matgl.load_model("M3GNet-MP-2021.2.8-PES")
 ```

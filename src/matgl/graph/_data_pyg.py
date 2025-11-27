@@ -1,4 +1,4 @@
-"""Tools to construct a dataset of DGL graphs."""
+"""Tools to construct a dataset of PYG graphs."""
 
 from __future__ import annotations
 
@@ -14,12 +14,12 @@ from torch_geometric.data import Batch, Data, Dataset
 from tqdm import trange
 
 import matgl
-from matgl.graph._compute_pyg import compute_pair_vector_and_distance_pyg
+from matgl.graph._compute_pyg import compute_pair_vector_and_distance
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from matgl.graph._converters_pyg import GraphConverter
+    from matgl.graph.converters import GraphConverter
 
 
 def ensure_batch_attribute(data: Data) -> Data:
@@ -252,7 +252,7 @@ class MGLDataset(Dataset):
                 data.pos = torch.tensor(structure.cart_coords, dtype=matgl.float_th)
 
                 # Compute bond vectors and distances
-                bond_vec, bond_dist = compute_pair_vector_and_distance_pyg(data)
+                bond_vec, bond_dist = compute_pair_vector_and_distance(data)
                 data.bond_vec = bond_vec
                 data.bond_dist = bond_dist
 

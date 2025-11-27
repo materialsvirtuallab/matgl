@@ -61,7 +61,7 @@ def test_PESCalculator_and_M3GNetCalculator(MoS, model_tensornet):
 def test_PESCalculator_mol(AcAla3NHMe):
     adaptor = AseAtomsAdaptor()
     mol = adaptor.get_atoms(AcAla3NHMe)
-    ff = matgl.load_model("pretrained_models/TensorNetPYG-MatPES-PBE-v2025.1-PES/")
+    ff = matgl.load_model("pretrained_models/TensorNet-MatPES-PBE-v2025.1-PES/")
     calc = PESCalculator(potential=ff)
     mol.set_calculator(calc)
     assert isinstance(mol.get_potential_energy(), float)
@@ -70,7 +70,7 @@ def test_PESCalculator_mol(AcAla3NHMe):
 
 
 def test_Relaxer(MoS):
-    pot = matgl.load_model("pretrained_models/TensorNetPYG-MatPES-PBE-v2025.1-PES//")
+    pot = matgl.load_model("pretrained_models/TensorNet-MatPES-PBE-v2025.1-PES//")
     r = Relaxer(pot)
     results = r.relax(MoS, traj_file="MoS_relax.traj")
     s = results["final_structure"]
@@ -117,7 +117,7 @@ def test_get_graph_from_atoms_mol():
 
 
 def test_molecular_dynamics(MoS2):
-    pot = matgl.load_model("pretrained_models/TensorNetPYG-MatPES-PBE-v2025.1-PES//")
+    pot = matgl.load_model("pretrained_models/TensorNet-MatPES-PBE-v2025.1-PES//")
     for ensemble in [
         "nvt",
         "nve",

@@ -11,7 +11,7 @@ import matgl
 
 if matgl.config.BACKEND != "PYG":
     pytest.skip("Skipping PYG tests", allow_module_level=True)
-from matgl.ext._pymatgen_pyg import Structure2Graph, get_element_list
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

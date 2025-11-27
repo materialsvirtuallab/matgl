@@ -11,7 +11,7 @@ import matgl
 
 if matgl.config.BACKEND != "DGL":
     pytest.skip("Skipping DGL tests", allow_module_level=True)
-from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
+from matgl.ext.pymatgen import Structure2Graph, get_element_list
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 

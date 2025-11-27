@@ -53,6 +53,7 @@ jobs:
         run: uv pip install dgl==2.4.0 -f https://data.dgl.ai/wheels/torch-2.4/repo.html
       - name: Install dependencies
         run: |
+          uv pip install "numpy<2"
           uv pip install -e '.[dgl]'
           uv pip install "torch<=2.4.0"
           uv pip install "torchdata<=0.8.0"
@@ -62,17 +63,12 @@ jobs:
           uv run python -c "import dgl; print(dgl.__version__)"
           uv run python -c "import torch; print(torch.__version__)"
           uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
-      - name: List coverage files
-        run: |
-          echo "Coverage files in current directory:"
-          ls -la .coverage* coverage.xml 2>/dev/null || echo "No coverage files found"
+          mv .coverage coverage.dgl
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-dgl
-          path: |
-            .coverage
-            coverage.xml
+          path: coverage.dgl
           if-no-files-found: ignore
   test_pyg:
     strategy:
@@ -102,25 +98,20 @@ jobs:
         run: uv venv --python ${{ matrix.config.python }}
       - name: Install dependencies
         run: |
+          uv sync --upgrade
           uv pip install -e .
           uv pip install pytest pytest-cov
       - name: pytest
         run: |
           uv run python -c "import torch; print(torch.__version__)"
           uv run pytest --cov=matgl --cov-report=xml --cov-report=term tests --color=yes
-      - name: List coverage files
-        if: matrix.config.os == 'ubuntu-latest'
-        run: |
-          echo "Coverage files in current directory:"
-          ls -la .coverage* coverage.xml 2>/dev/null || echo "No coverage files found"
+          mv .coverage coverage.pyg
       - name: Upload coverage artifacts
         if: matrix.config.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-pyg
-          path: |
-            .coverage
-            coverage.xml
+          path: coverage.pyg
           if-no-files-found: ignore
 
   coverage:
@@ -132,79 +123,23 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: coverage-dgl
-          path: coverage-dgl/
+          path: coverage.dgl
           merge-multiple: true
       - name: Download coverage from test_pyg
         uses: actions/download-artifact@v4
         with:
           name: coverage-pyg
-          path: coverage-pyg/
+          path: coverage.pyg
           merge-multiple: true
       - name: Combine coverage reports
         run: |
           pip install coverage
-          # Debug: List what was downloaded
-          echo "Contents of coverage-dgl:"
-          ls -la coverage-dgl/ 2>/dev/null || echo "coverage-dgl directory does not exist"
-          echo "Contents of coverage-pyg:"
-          ls -la coverage-pyg/ 2>/dev/null || echo "coverage-pyg directory does not exist"
-
-          # Collect all .coverage files from both test jobs (only ubuntu runs)
-          # Find and copy all .coverage files to current directory with unique names
-          counter=1
-          found_files=0
-
-          if [ -d coverage-dgl ]; then
-            for f in $(find coverage-dgl -name ".coverage" -type f 2>/dev/null); do
-              echo "Found DGL coverage file: $f"
-              cp "$f" ".coverage.dgl.$counter"
-              counter=$((counter + 1))
-              found_files=$((found_files + 1))
-            done
-          fi
-
-          if [ -d coverage-pyg ]; then
-            for f in $(find coverage-pyg -name ".coverage" -type f 2>/dev/null); do
-              echo "Found PyG coverage file: $f"
-              cp "$f" ".coverage.pyg.$counter"
-              counter=$((counter + 1))
-              found_files=$((found_files + 1))
-            done
-          fi
-
-          # Also check for coverage files in root of artifact directories
-          if [ -f coverage-dgl/.coverage ]; then
-            echo "Found .coverage in coverage-dgl root"
-            cp coverage-dgl/.coverage ".coverage.dgl.$counter"
-            counter=$((counter + 1))
-            found_files=$((found_files + 1))
-          fi
-
-          if [ -f coverage-pyg/.coverage ]; then
-            echo "Found .coverage in coverage-pyg root"
-            cp coverage-pyg/.coverage ".coverage.pyg.$counter"
-            counter=$((counter + 1))
-            found_files=$((found_files + 1))
-          fi
-
-          echo "Total coverage files found: $found_files"
-
-          # Combine all coverage files
-          if [ $found_files -gt 0 ] && ls .coverage.* 1> /dev/null 2>&1; then
-            echo "Combining coverage files..."
-            coverage combine .coverage.* || echo "Warning: coverage combine failed, trying individual files"
-            coverage xml -o coverage.xml || echo "Warning: coverage xml failed"
-            if [ -f coverage.xml ]; then
-              echo "Coverage combination successful"
-            else
-              echo "Warning: coverage.xml not created, creating empty file"
-              echo '<?xml version="1.0" ?><coverage></coverage>' > coverage.xml
-            fi
-          else
-            echo "Warning: No coverage files found. This may be expected if tests were skipped or artifacts failed to upload."
-            echo "Creating empty coverage.xml to prevent failure"
-            echo '<?xml version="1.0" ?><coverage></coverage>' > coverage.xml
-          fi
+          ls *
+          cp coverage.dgl/coverage.dgl coverage-dgl
+          cp coverage.pyg/coverage.pyg coverage-pyg
+          echo "Combining coverage files..."
+          coverage combine coverage-* || echo "Warning: coverage combine failed"
+          coverage xml -o coverage.xml || echo "Warning: coverage xml failed"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:

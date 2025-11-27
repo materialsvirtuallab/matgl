@@ -15,9 +15,9 @@ MatPESv2025.1-r2SCAN: 300K MD simulations and Materials Project ground state cal
 ## Training and validation errors
 
 MAEs of energies, forces and stresses, respectively
-- Training: 32 meV/atom, 139 meV/A, 0.653 GPa
-- Validation: 34 meV/atom, 163 meV/A, 0.754 GPa
-- Test: 34 meV/atom, 163 meV/A, 0.754 GPa
+- Training: 40 meV/atom, 130 meV/A, 0.545 GPa
+- Validation: 41 meV/atom, 147 meV/A, 0.680 GPa
+- Test: 41 meV/atom, 148 meV/A, 0.680 GPa
 
 # References
 

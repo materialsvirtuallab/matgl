@@ -8,6 +8,7 @@ nav_exclude: true
 
 This notebook demonstrates how to refit a MEGNet formation energy model using PyTorch Lightning with MatGL.
 
+
 ```python
 from __future__ import annotations
 
@@ -15,19 +16,19 @@ import os
 import shutil
 import warnings
 import zipfile
-import requests
 from functools import partial
 
+import lightning as L
 import matplotlib.pyplot as plt
 import pandas as pd
-import lightning as pl
+import requests
 from dgl.data.utils import split_dataset
+from lightning.pytorch.loggers import CSVLogger
 from pymatgen.core import Structure
-from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 
 from matgl.ext._pymatgen_dgl import Structure2Graph, get_element_list
-from matgl.graph._data_dgl import MGLDataset, MGLDataLoader, collate_fn_graph
+from matgl.graph._data_dgl import MGLDataLoader, MGLDataset, collate_fn_graph
 from matgl.models import M3GNet
 from matgl.utils.training import ModelLightningModule
 
@@ -50,6 +51,8 @@ def download_file(url: str, filename: str):
     with open(filename, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
+
+
 # define a function to load the dataset
 def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
     """Raw data loading function.
@@ -75,7 +78,7 @@ def load_dataset() -> tuple[list[Structure], list[str], list[float]]:
     structures = []
     mp_ids = []
 
-    for mid, structure_str in tqdm(zip(data["material_id"], data["structure"])):
+    for mid, structure_str in tqdm(zip(data["material_id"], data["structure"], strict=False)):
         struct = Structure.from_str(structure_str, fmt="cif")
         structures.append(struct)
         mp_ids.append(mid)
@@ -158,7 +161,7 @@ We have also initialized the Pytorch Lightning Trainer with a `CSVLogger`, which
 
 ```python
 logger = CSVLogger("logs", name="M3GNet_training")
-trainer = pl.Trainer(max_epochs=20, accelerator="cpu", logger=logger)
+trainer = L.Trainer(max_epochs=20, accelerator="cpu", logger=logger)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 

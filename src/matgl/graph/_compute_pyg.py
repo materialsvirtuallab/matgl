@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from torch_geometric.data import Data
 
 
-def compute_pair_vector_and_distance_pyg(graph: Data) -> tuple[torch.Tensor, torch.Tensor]:
+def compute_pair_vector_and_distance(graph: Data) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Calculate bond vectors and distances using PyTorch Geometric Data object.
 

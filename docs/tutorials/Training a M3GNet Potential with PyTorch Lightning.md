@@ -8,6 +8,7 @@ nav_exclude: true
 
 This notebook demonstrates how to fit a M3GNet potential using PyTorch Lightning with MatGL.
 
+
 ```python
 from __future__ import annotations
 
@@ -16,11 +17,11 @@ import shutil
 import warnings
 from functools import partial
 
-import lightning as pl
+import lightning as L
 import numpy as np
 from dgl.data.utils import split_dataset
+from lightning.pytorch.loggers import CSVLogger
 from mp_api.client import MPRester
-from pytorch_lightning.loggers import CSVLogger
 
 import matgl
 from matgl.config import DEFAULT_ELEMENTS
@@ -97,7 +98,7 @@ Finally, we will initialize the Pytorch Lightning trainer and run the fitting. H
 # If you wish to disable GPU or MPS (M1 mac) training, use the accelerator="cpu" kwarg.
 logger = CSVLogger("logs", name="M3GNet_training")
 # Inference mode = False is required for calculating forces, stress in test mode and prediction mode
-trainer = pl.Trainer(max_epochs=1, accelerator="cpu", logger=logger, inference_mode=False)
+trainer = L.Trainer(max_epochs=1, accelerator="cpu", logger=logger, inference_mode=False)
 trainer.fit(model=lit_module, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
@@ -137,7 +138,7 @@ lit_module_finetune = PotentialLightningModule(
 ```python
 # If you wish to disable GPU or MPS (M1 mac) training, use the accelerator="cpu" kwarg.
 logger = CSVLogger("logs", name="M3GNet_finetuning")
-trainer = pl.Trainer(max_epochs=1, accelerator="cpu", logger=logger, inference_mode=False)
+trainer = L.Trainer(max_epochs=1, accelerator="cpu", logger=logger, inference_mode=False)
 trainer.fit(model=lit_module_finetune, train_dataloaders=train_loader, val_dataloaders=val_loader)
 ```
 
