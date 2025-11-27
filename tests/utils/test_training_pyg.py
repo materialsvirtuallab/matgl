@@ -65,7 +65,7 @@ class TestModelTrainer:
             model=model, stress_weight=0.0001, loss="smooth_l1_loss", loss_params={"beta": 1.0}
         )
         # We will use CPU if MPS is available since there is a serious bug.
-        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+        trainer = pl.Trainer(max_epochs=10, accelerator=device, inference_mode=False)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
         trainer.test(lit_model, dataloaders=test_loader)
@@ -73,9 +73,9 @@ class TestModelTrainer:
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
-        # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
-        assert torch.allclose(pred_LFP_energy, torch.tensor([-4.7291]), atol=1e-4)
-        assert torch.allclose(pred_BNO_energy, torch.tensor([-1.9756]), atol=1e-4)
+        # We are not expecting accuracy with 10 epochs. This just tests that the energy is actually < 0.
+        assert torch.allclose(pred_LFP_energy, torch.tensor([-2.0512]), atol=1e-4)
+        assert torch.allclose(pred_BNO_energy, torch.tensor([-3.2459]), atol=1e-4)
         # specify customize optimizer and scheduler
         from torch.optim.lr_scheduler import CosineAnnealingLR
 
@@ -88,7 +88,7 @@ class TestModelTrainer:
             optimizer=optimizer,
             scheduler=scheduler,
         )
-        trainer = pl.Trainer(max_epochs=2, accelerator=device, inference_mode=False)
+        trainer = pl.Trainer(max_epochs=10, accelerator=device, inference_mode=False)
 
         trainer.fit(model=lit_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
         trainer.test(lit_model, dataloaders=test_loader)
@@ -96,9 +96,9 @@ class TestModelTrainer:
         pred_LFP_energy = model.predict_structure(LiFePO4)
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
-        # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
-        assert torch.allclose(pred_LFP_energy, torch.tensor([-1.7421]), atol=1e-4)
-        assert torch.allclose(pred_BNO_energy, torch.tensor([-1.1898]), atol=1e-4)
+        # We are not expecting accuracy with 10 epochs. This just tests that the energy is actually < 0.
+        assert torch.allclose(pred_LFP_energy, torch.tensor([-2.0237]), atol=1e-4)
+        assert torch.allclose(pred_BNO_energy, torch.tensor([-3.2062]), atol=1e-4)
 
         self.teardown_class()
 
