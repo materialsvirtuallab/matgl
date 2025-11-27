@@ -29,6 +29,8 @@ torch.set_float32_matmul_precision("high")
 
 class TestModelTrainer:
     def test_tensornet_training(self, LiFePO4, BaNiO3):
+        torch.manual_seed(0)
+        torch.use_deterministic_algorithms(True)
         isolated_atom = Structure(Lattice.cubic(10.0), ["Li"], [[0, 0, 0]])
         two_body = Structure(Lattice.cubic(10.0), ["Li", "Li"], [[0, 0, 0], [0.2, 0, 0]])
         structures = [LiFePO4, BaNiO3] * 5 + [isolated_atom, two_body]
@@ -72,8 +74,8 @@ class TestModelTrainer:
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
-        assert pred_LFP_energy < 0
-        assert pred_BNO_energy < 0
+        assert torch.allclose(pred_LFP_energy, -4.7291, atol=1e-4)
+        assert torch.allclose(pred_BNO_energy, -1.9756, atol=1e-4)
         # specify customize optimizer and scheduler
         from torch.optim.lr_scheduler import CosineAnnealingLR
 
@@ -95,8 +97,8 @@ class TestModelTrainer:
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
-        assert pred_LFP_energy < 0
-        assert pred_BNO_energy < 0
+        assert torch.allclose(pred_LFP_energy, -1.741, atol=1e-4)
+        assert torch.allclose(pred_BNO_energy, -1.898, atol=1e-4)
 
         self.teardown_class()
 
