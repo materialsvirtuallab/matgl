@@ -74,8 +74,8 @@ class TestModelTrainer:
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
-        assert torch.allclose(pred_LFP_energy, -4.7291, atol=1e-4)
-        assert torch.allclose(pred_BNO_energy, -1.9756, atol=1e-4)
+        assert torch.allclose(pred_LFP_energy, torch.tensor([-4.7291]), atol=1e-4)
+        assert torch.allclose(pred_BNO_energy, torch.tensor([-1.9756]), atol=1e-4)
         # specify customize optimizer and scheduler
         from torch.optim.lr_scheduler import CosineAnnealingLR
 
@@ -97,8 +97,8 @@ class TestModelTrainer:
         pred_BNO_energy = model.predict_structure(BaNiO3)
 
         # We are not expecting accuracy with 2 epochs. This just tests that the energy is actually < 0.
-        assert torch.allclose(pred_LFP_energy, -1.741, atol=1e-4)
-        assert torch.allclose(pred_BNO_energy, -1.898, atol=1e-4)
+        assert torch.allclose(pred_LFP_energy, torch.tensor([-1.741]), atol=1e-4)
+        assert torch.allclose(pred_BNO_energy, torch.tensor([-1.898]), atol=1e-4)
 
         self.teardown_class()
 
