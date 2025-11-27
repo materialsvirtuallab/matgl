@@ -6,6 +6,12 @@ nav_order: 3
 
 # Change Log
 
+## 2.0.4
+- Bug fix for matgl.graph.data and matgl.graph.converter imports for different backends.
+
+## 2.0.3
+- Bug fix for matgl.ext.pymatgen import for different backends.
+
 ## 2.0.2
 - QET (Charge-Equilibrated TensorNet) architecture and pre-trained weights are added!
 - Begun a migration to Pytorch-Geometric over the now-deprecated DGL. So far, only vanilla TensorNet has been

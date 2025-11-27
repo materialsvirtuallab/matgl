@@ -53,13 +53,13 @@ dependencies = [
     "torch<=2.7.0",  # TODO: Remove this pin. For some reason, torch 2.9 gives different results.
     "torchdata",
     "pymatgen",
-    "lightning<=2.6.0.dev20251116",
+    "lightning<=2.6.0.dev20251123",
     "pydantic",
     "boto3",
     "numpy<3.0",
     "torch-geometric"
 ]
-version = "2.0.2"
+version = "2.0.4"
 
 [project.scripts]
 mgl = "matgl.cli:main"

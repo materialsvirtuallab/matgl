@@ -9,7 +9,7 @@ import matgl
 if matgl.config.BACKEND != "PYG":
     pytest.skip("Skipping PYG tests", allow_module_level=True)
 from matgl.graph._compute_pyg import (
-    compute_pair_vector_and_distance_pyg,
+    compute_pair_vector_and_distance,
 )
 
 
@@ -60,7 +60,7 @@ class TestCompute:
         lattice = torch.tensor(s1.lattice.matrix, dtype=matgl.float_th).unsqueeze(dim=0)
         g1.pbc_offshift = torch.matmul(g1.pbc_offset, lattice[0])
         g1.pos = g1.frac_coords @ lattice[0]
-        bv, _ = compute_pair_vector_and_distance_pyg(g1)
+        bv, _ = compute_pair_vector_and_distance(g1)
         g1.bond_vec = bv
         d = torch.linalg.norm(g1.bond_vec, axis=1)
 
@@ -73,7 +73,7 @@ class TestCompute:
         lattice = torch.tensor(np.identity(3), dtype=matgl.float_th).unsqueeze(dim=0)
         g2.pbc_offshift = torch.matmul(g2.pbc_offset, lattice[0])
         g2.pos = g2.frac_coords @ lattice[0]
-        bv, _ = compute_pair_vector_and_distance_pyg(g2)
+        bv, _ = compute_pair_vector_and_distance(g2)
         g2.bond_vec = bv
         d = torch.linalg.norm(g2.bond_vec, axis=1)
 
