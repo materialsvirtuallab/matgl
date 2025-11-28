@@ -1,7 +1,7 @@
 # Description
 
 This model is a M3GNet cumtomized potential for Na-B-H system. It has broad applications in the
-dynamic simulations of materials. 
+dynamic simulations of materials.
 
 # Training dataset
 
