@@ -14,6 +14,7 @@ import ase.optimize as opt
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
+import torch
 from ase import Atoms, units
 from ase.calculators.calculator import Calculator, all_changes
 from ase.filters import Filter, FrechetCellFilter
@@ -29,7 +30,6 @@ from ase.stress import full_3x3_to_voigt_6_stress
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
-import torch
 
 from matgl.graph._converters_pyg import GraphConverter
 
