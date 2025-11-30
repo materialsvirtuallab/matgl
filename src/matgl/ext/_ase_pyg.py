@@ -29,6 +29,7 @@ from ase.stress import full_3x3_to_voigt_6_stress
 from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.optimization.neighbors import find_points_in_spheres
+import torch
 
 from matgl.graph._converters_pyg import GraphConverter
 
@@ -81,6 +82,7 @@ class Atoms2Graph(GraphConverter):
 
         Returns:
             g: DGL graph
+            lat: lattice
             state_attr: state features
         """
         numerical_tol = 1.0e-8
@@ -124,6 +126,8 @@ class Atoms2Graph(GraphConverter):
             is_atoms=True,
         )
 
+        state_attr = torch.as_tensor(state_attr, dtype=lat.dtype)
+
         return g, lat, state_attr
 
 
@@ -139,6 +143,7 @@ class PESCalculator(Calculator):
         stress_unit: Literal["eV/A3", "GPa"] = "GPa",
         stress_weight: float = 1.0,
         use_voigt: bool = False,
+        device: torch.device = None,
         **kwargs,
     ):
         """
@@ -154,10 +159,11 @@ class PESCalculator(Calculator):
             **kwargs: Kwargs pass through to super().__init__().
         """
         super().__init__(**kwargs)
-        self.potential = potential
+        self.potential = potential.to(device)
         self.compute_stress = potential.calc_stresses
         self.compute_hessian = potential.calc_hessian
         self.compute_magmom = potential.calc_magmom
+        self.device = device
 
         # Handle stress unit conversion
         if stress_unit == "eV/A3":
@@ -195,9 +201,14 @@ class PESCalculator(Calculator):
         element_types: tuple[str, ...] = self.element_types  # type: ignore[assignment]
         cutoff: float = self.cutoff  # type: ignore[assignment]
         graph, lattice, state_attr_default = Atoms2Graph(element_types, cutoff).get_graph(atoms)
+        graph = graph.to(self.device)
+        lattice = lattice.to(self.device)
+
         if self.state_attr is not None:
+            self.state_attr = self.state_attr.to(self.device)
             calc_result = self.potential(graph, lattice, self.state_attr)
         else:
+            state_attr_default = state_attr_default.to(self.device)
             calc_result = self.potential(graph, lattice, state_attr_default)
         self.results.update(
             energy=calc_result[0].detach().cpu().numpy().item(),
@@ -306,9 +317,7 @@ class Relaxer:
         with contextlib.redirect_stdout(stream):
             obs = TrajectoryObserver(atoms)
             if self.relax_cell:
-                atoms = (
-                    FrechetCellFilter(atoms, **params_asecellfilter)  # type:ignore[assignment]
-                )
+                atoms = FrechetCellFilter(atoms, **params_asecellfilter)  # type:ignore[assignment]
 
             optimizer = self.optimizer(atoms, **kwargs)  # type:ignore[operator]
             optimizer.attach(obs, interval=interval)
