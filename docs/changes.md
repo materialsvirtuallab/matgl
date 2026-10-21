@@ -6,6 +6,18 @@ nav_order: 3
 
 # Change Log
 
+## 5.0.0
+- **Breaking: GRACE removed.** `matgl.models.GRACE` and its layers have been deleted, along with the GRACE
+  tests, the `tensorpotential` parity CI job and benchmark script, and `GRACE` as an `mgl train` scratch
+  architecture. Existing GRACE checkpoints can no longer be loaded; pin `matgl<5` to keep using them. (#847)
+- **Fix: float64 inference via `potential.double()`.** M3GNet and CHGNet previously crashed with a
+  float/double mismatch because several forward paths hard-cast to `matgl.float_th` or allocated tensors
+  without a dtype. `Potential.forward` now casts its float inputs (`lat`, `frac_coords`, `pbc_offset`,
+  `state_attr`) to the model dtype, and the embedding, three-body and CHGNet line-graph paths follow their
+  module/input dtype. A global `matgl.set_default_dtype("float", 64)` is no longer required. In float64,
+  batched and single-structure predictions agree to ~1e-14 (vs. ~1e-5 GPa stress drift in float32), so
+  batch-equivalence tests can use tight tolerances. (#846)
+
 ## 4.1.0
 - **Disk-backed PyG training for datasets larger than memory.** `write_mgl_shards` streams records into versioned,
   transactional CPU shards; `MGLDiskDataset` loads one shard per worker on demand; and `ShardBatchSampler` keeps
