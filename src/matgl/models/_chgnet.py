@@ -347,7 +347,9 @@ class CHGNet(MatGLModel):
 
         # --- directed line graph (bond graph) ---
         if self.use_bond_graph:
-            pbc_offset = getattr(g, "pbc_offset", torch.zeros(edge_index.size(1), 3, device=pos.device))
+            pbc_offset = getattr(
+                g, "pbc_offset", torch.zeros(edge_index.size(1), 3, dtype=pos.dtype, device=pos.device)
+            )
             (lg_edge_index, lg_bond_vec, lg_bond_dist, _lg_pbc_offset, lg_src_bond_sign) = create_directed_line_graph(
                 edge_index, pbc_offset, bond_vec, bond_dist, self.three_body_cutoff
             )
@@ -381,7 +383,7 @@ class CHGNet(MatGLModel):
                 cos_theta = torch.clamp(cos_theta, -1.0 + 1e-7, 1.0 - 1e-7)
                 theta = torch.acos(cos_theta)
             else:
-                theta = torch.zeros(0, device=pos.device)
+                theta = torch.zeros(0, dtype=pos.dtype, device=pos.device)
 
             angle_expansion = self.angle_expansion(theta)  # type: ignore[misc]
             angle_features = self.angle_embedding(angle_expansion)  # type: ignore[misc]

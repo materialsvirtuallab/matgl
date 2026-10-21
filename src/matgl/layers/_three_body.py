@@ -17,7 +17,6 @@ import numpy as np
 import torch
 from torch import nn
 
-import matgl
 from matgl.utils.maths import _block_repeat, scatter_sum
 
 
@@ -91,7 +90,7 @@ class ThreeBodyInteractions(nn.Module):
 
         # Aggregate onto the receiving bond i->j
         new_bonds = scatter_sum(
-            basis.to(matgl.float_th),
+            basis.to(edge_feat.dtype),
             segment_ids=bond_ij,
             num_segments=num_bonds,
             dim=0,
