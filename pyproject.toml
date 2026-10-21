@@ -154,6 +154,7 @@ lint.ignore = [
     "PLR0912",  # too-many-branches
     "PLR0913",  # too-many-arguments
     "PLR0915",  # too-many-statements
+    "PLR0917",  # too-many-positional-arguments (stable since ruff 0.17; same rationale as PLR0913)
     "PLR2004",  # magic-value-comparison
 ]
 lint.pydocstyle.convention = "google"
