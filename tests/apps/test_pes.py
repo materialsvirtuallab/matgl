@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 
 import numpy as np
@@ -11,6 +12,7 @@ from torch_geometric.data import Batch
 import matgl
 from matgl.apps.pes import Potential
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
+from matgl.models import CHGNet, M3GNet
 from matgl.models._tensornet import TensorNet
 
 
@@ -156,6 +158,21 @@ class TestPotential:
         assert fields_before == fields_after, (
             f"Potential.forward mutated input graph; added: {fields_after - fields_before}"
         )
+
+    @pytest.mark.parametrize("model_cls", [TensorNet, M3GNet, CHGNet])
+    def test_double_precision_with_float32_inputs(self, graph_MoS, model_cls):
+        """``Potential.double()`` must work on converter (``matgl.float_th``) inputs and agree with float32."""
+        structure, graph, state = graph_MoS
+        lat = torch.tensor(structure.lattice.matrix, dtype=matgl.float_th)
+        torch.manual_seed(0)
+        ff32 = Potential(model=model_cls(element_types=["Mo", "S"], is_intensive=False))
+        ff64 = copy.deepcopy(ff32).double()
+        out32 = ff32(graph, lat, state)
+        out64 = ff64(graph, lat, state)
+        assert graph.frac_coords.dtype == matgl.float_th, "forward must not mutate the caller's graph"
+        for actual, expected in zip(out64[:3], out32[:3], strict=True):
+            assert actual.dtype == torch.float64
+            np.testing.assert_allclose(actual.detach().numpy(), expected.detach().numpy(), rtol=1e-4, atol=1e-4)
 
     def test_potential_with_stress_fd(self, graph_MoS, model_tensornet):
         p2g = Structure2Graph(element_types=("O", "Zr"), cutoff=5.0)

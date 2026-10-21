@@ -259,6 +259,18 @@ class Potential(nn.Module, IOMixIn):
             if l_g is not None:
                 l_g = l_g.to(device)
 
+        # Converters build float inputs as ``matgl.float_th``; follow the model's dtype
+        # instead so ``potential.double()`` works without a global ``set_default_dtype``.
+        dtype = self.data_mean.dtype
+        if lat.dtype != dtype:
+            lat = lat.to(dtype)
+        for key in ("frac_coords", "pbc_offset"):
+            value = getattr(g, key, None)
+            if isinstance(value, torch.Tensor) and value.is_floating_point() and value.dtype != dtype:
+                setattr(g, key, value.to(dtype))
+        if isinstance(state_attr, torch.Tensor) and state_attr.is_floating_point() and state_attr.dtype != dtype:
+            state_attr = state_attr.to(dtype)
+
         batch_size = g.num_graphs if hasattr(g, "num_graphs") else 1
         # st (strain) for stress calculations
         st = lat.new_zeros([batch_size, 3, 3])
