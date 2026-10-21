@@ -6,10 +6,8 @@ nav_order: 3
 
 # Change Log
 
-## 5.0.0
-- **Breaking: GRACE removed.** `matgl.models.GRACE` and its layers have been deleted, along with the GRACE
-  tests, the `tensorpotential` parity CI job and benchmark script, and `GRACE` as an `mgl train` scratch
-  architecture. Existing GRACE checkpoints can no longer be loaded; pin `matgl<5` to keep using them. (#847)
+## 4.1.1
+- **Breaking: Beta GRACE removed.** `matgl.models.GRACE` and its layers have been deleted, along with the tests. Use tensorpotential. (#847)
 - **Fix: float64 inference via `potential.double()`.** M3GNet and CHGNet previously crashed with a
   float/double mismatch because several forward paths hard-cast to `matgl.float_th` or allocated tensors
   without a dtype. `Potential.forward` now casts its float inputs (`lat`, `frac_coords`, `pbc_offset`,
