@@ -1603,7 +1603,7 @@ class MGLPotentialTrainer:
 
         Args:
             model: The graph model to wrap (e.g. ``TensorNet(...)``,
-                ``GRACE(...)``, ``M3GNet(...)``). Must already be configured
+                ``M3GNet(...)``). Must already be configured
                 with the ``element_types`` and ``cutoff`` you want to train.
             energy_weight: Energy loss weight.
             force_weight: Force loss weight.

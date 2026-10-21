@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from ._chgnet import CHGNet
 from ._core import MatGLModel
-from ._grace import GRACE
 from ._m3gnet import M3GNet
 from ._megnet import MEGNet
 from ._qet import QET
@@ -13,7 +12,6 @@ from ._tensornet import TensorNet
 from ._wrappers import TransformedTargetModel
 
 __all__ = [
-    "GRACE",
     "QET",
     "CHGNet",
     "M3GNet",

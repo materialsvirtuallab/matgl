@@ -6,7 +6,7 @@ matgl architecture. The two most-used radial bases are:
 * :class:`SphericalBesselFunction` -- the orthonormal :math:`j_l` basis on
   ``[0, cutoff]`` used by M3GNet, CHGNet and SO3Net.
 * :class:`RadialBesselFunction` -- the simpler :math:`l=0` variant from
-  https://arxiv.org/abs/2003.03123 used by TensorNet and GRACE; supports
+  https://arxiv.org/abs/2003.03123 used by TensorNet; supports
   learnable frequencies.
 
 Alternative radial bases:

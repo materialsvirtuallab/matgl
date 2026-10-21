@@ -1,4 +1,4 @@
-"""Generate the NaCl training-set artifact for GRACE training-parity tests.
+"""Generate the NaCl training-set artifact for the potential-trainer tests.
 
 Builds 10 perturbed copies of rocksalt NaCl (the conventional cubic cell
 matching MP ``mp-22862``: ``a = 5.6402 Å``, 4 Na + 4 Cl) and labels each
@@ -8,9 +8,9 @@ with the ``TensorNet-PES-MatPES-r2SCAN-2025.2`` foundation potential
 The artifact is consumed by
 
 - :data:`tests.conftest.nacl_training_set`
-- :mod:`tests.models.test_grace_training_parity`
+- :mod:`tests.utils.test_matgl_potential_trainer`
 
-so that the parity test does not pay the TensorNet inference cost on
+so that the tests do not pay the TensorNet inference cost on
 every CI run, and so the labels are stable across pytest invocations.
 
 Usage::

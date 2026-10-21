@@ -1,7 +1,7 @@
 """Reusable building blocks for matgl graph neural networks.
 
 Models in :mod:`matgl.models` (M3GNet, CHGNet, MEGNet, TensorNet, SO3Net,
-QET, GRACE) are assembled from the layers exposed here. They fall into
+QET) are assembled from the layers exposed here. They fall into
 roughly seven categories:
 
 ================== =========================================================

@@ -475,7 +475,7 @@ def graph_Li3InCl6(Li3InCl6):
 
 
 # ---------------------------------------------------------------------------
-# NaCl perturbed training set (used by GRACE training-parity tests).
+# NaCl perturbed training set (used by the potential-trainer tests).
 #
 # Built deterministically from the rocksalt NaCl ground state (the Materials
 # Project structure ``mp-22862``: conventional cubic cell, ``a = 5.6402 Å``,

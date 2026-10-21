@@ -358,7 +358,7 @@ def train_potential(args: argparse.Namespace) -> int:
     if any(value <= 0 for value in fractions) or not np.isclose(sum(fractions), 1.0):
         raise ValueError("train, validation, and test ratios must be positive and sum to 1")
 
-    architecture_names = {"CHGNet", "GRACE", "M3GNet", "MEGNet", "QET", "SO3Net", "TensorNet"}
+    architecture_names = {"CHGNet", "M3GNet", "MEGNet", "QET", "SO3Net", "TensorNet"}
     model_source = args.path_load_model or args.model
     is_scratch = model_source in architecture_names
 
