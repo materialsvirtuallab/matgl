@@ -47,7 +47,6 @@ __all__ = [
     "fn_decompose_tensor",
     "fn_message_passing",
     "fn_radial_message_passing",
-    "fn_radial_message_passing",
     "fn_tensor_matmul_o3_3x3",
     "fn_tensor_matmul_so3_3x3",
     "fn_tensor_norm3",

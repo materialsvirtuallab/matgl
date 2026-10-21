@@ -476,6 +476,7 @@ def main(structure_path: str, matgl_main_path: str, seed: int = 42, pretrained_p
     sys.path.insert(0, matgl_main_path)
 
     from matgl.ext._pymatgen import Structure2Graph as RefConverter
+
     from matgl.graph._compute import compute_pair_vector_and_distance as ref_compute_bond
     from matgl.models._tensornet import TensorNet as RefTensorNet
     from matgl.utils.io import load_model as ref_load_model
@@ -507,6 +508,7 @@ def main(structure_path: str, matgl_main_path: str, seed: int = 42, pretrained_p
     clear_matgl_modules()
 
     from matgl.ext._pymatgen import Structure2Graph as CurConverter
+
     from matgl.models._tensornet import TensorNet as CurTensorNet
     from matgl.utils.io import load_model as cur_load_model
 

@@ -20,8 +20,9 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-import matgl  # noqa: E402
 from matcalc import MDCalc  # noqa: E402
+
+import matgl  # noqa: E402
 from matgl.ext.ase import PESCalculator  # noqa: E402
 from matgl.ext.jax import JAXPESCalculator  # noqa: E402
 

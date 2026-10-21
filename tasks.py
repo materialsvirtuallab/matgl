@@ -1,5 +1,4 @@
-"""
-Pyinvoke tasks.py file for automating releases and admin stuff.
+"""Pyinvoke tasks.py file for automating releases and admin stuff.
 """
 
 from __future__ import annotations
@@ -44,8 +43,7 @@ def make_tutorials(ctx):
 
 @task
 def make_docs(ctx):
-    """
-    This new version requires markdown builder.
+    """This new version requires markdown builder.
 
         pip install sphinx-markdown-builder
 

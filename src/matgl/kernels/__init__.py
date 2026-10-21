@@ -46,16 +46,11 @@ wp.init()
 
 __all__ = [
     "add_module",
-    "add_module",
     "convert_to_sparse",
-    "convert_to_sparse",
-    "count_row_col",
     "count_row_col",
     "generate_compose_tensor",
     "generate_decompose_tensor",
     "generate_message_passing",
-    "generate_message_passing",
-    "generate_radial_message_passing",
     "generate_radial_message_passing",
     "generate_tensor_matmul_o3_3x3",
     "generate_tensor_matmul_so3_3x3",
