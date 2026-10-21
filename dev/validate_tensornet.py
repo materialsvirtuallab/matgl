@@ -31,6 +31,7 @@ def main() -> None:
     d = torch.load(model_path / "model.pt", map_location=map_location, weights_only=False)
     init_args = d["model"]["init_args"]
     from matgl.apps._pes import Potential
+
     from matgl.models._tensornet import TensorNet
 
     d["model"] = TensorNet(**init_args)

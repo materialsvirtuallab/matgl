@@ -58,7 +58,7 @@ class GaussianExpansion(nn.Module):
         initial: float = 0.0,
         final: float = 4.0,
         num_centers: int = 20,
-        width: None | float = 0.5,
+        width: float | None = 0.5,
     ):
         """Initialize the GaussianExpansion.
 

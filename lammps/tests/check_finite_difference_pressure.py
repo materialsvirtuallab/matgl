@@ -6,7 +6,6 @@ import argparse
 import math
 from pathlib import Path
 
-
 EV_PER_ANGSTROM3_TO_BAR = 1.602176634e6
 
 
@@ -26,7 +25,7 @@ def read_thermo(path: Path) -> dict[str, float]:
             values = [float(value) for value in fields]
         except ValueError:
             continue
-        result = dict(zip(header, values))
+        result = dict(zip(header, values, strict=True))
 
     if result is None:
         raise ValueError(f"Could not find a pressure thermo row in {path}")
@@ -34,6 +33,7 @@ def read_thermo(path: Path) -> dict[str, float]:
 
 
 def main() -> None:
+    """Compare LAMMPS pressure with -dE/dV from three logs at scales 1-epsilon, 1, 1+epsilon."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("minus", type=Path, help="LAMMPS log at scale 1-epsilon")
     parser.add_argument("zero", type=Path, help="LAMMPS log at scale 1")
@@ -51,9 +51,7 @@ def main() -> None:
     # coordinates.  At lambda=1, dE/dlambda is the trace of dE/dstrain.
     # LAMMPS pressure is -trace(dE/dstrain)/(3V).
     energy_derivative = (plus["PotEng"] - minus["PotEng"]) / (2 * args.epsilon)
-    finite_difference_pressure = (
-        -energy_derivative / (3 * zero["Volume"]) * EV_PER_ANGSTROM3_TO_BAR
-    )
+    finite_difference_pressure = -energy_derivative / (3 * zero["Volume"]) * EV_PER_ANGSTROM3_TO_BAR
     diagonal_pressure = (zero["Pxx"] + zero["Pyy"] + zero["Pzz"]) / 3
 
     print(f"E(1-epsilon) = {minus['PotEng']:.12g} eV")
@@ -68,10 +66,7 @@ def main() -> None:
         rel_tol=1e-10,
         abs_tol=1e-6,
     ):
-        raise AssertionError(
-            f"Press ({zero['Press']}) does not equal mean diagonal pressure "
-            f"({diagonal_pressure})"
-        )
+        raise AssertionError(f"Press ({zero['Press']}) does not equal mean diagonal pressure ({diagonal_pressure})")
 
     if not math.isclose(
         zero["Press"],
