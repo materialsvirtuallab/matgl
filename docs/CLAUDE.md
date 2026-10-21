@@ -56,7 +56,7 @@ Modules prefixed with `_` are private. Public names are re-exported from each su
 
 ### Subpackage roles
 
-- `matgl.models` — graph-network architectures (M3GNet, MEGNet, CHGNet, TensorNet, SO3Net, QET, GRACE) plus `TransformedTargetModel` wrapper.
+- `matgl.models` — graph-network architectures (M3GNet, MEGNet, CHGNet, TensorNet, SO3Net, QET) plus `TransformedTargetModel` wrapper.
 - `matgl.layers` — building blocks (embeddings, graph conv, readout, ZBL, atom-ref, basis functions, activations).
 - `matgl.apps.pes.Potential` — wraps a graph model into an interatomic potential that returns energies/forces/stresses via autograd. Implementation in `_pes.py`.
 - `matgl.graph` — graph construction and `MGLDataset` / data loaders.

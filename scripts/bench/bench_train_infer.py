@@ -1,4 +1,4 @@
-"""Training and inference timing for M3GNet, TensorNet, and GRACE (PYG backend).
+"""Training and inference timing for M3GNet and TensorNet (PYG backend).
 
 Each model is initialised with hyperparameters that put its parameter count
 in the 200K-300K range so the comparison is roughly compute-balanced.
@@ -40,7 +40,7 @@ import matgl
 from matgl.apps.pes import Potential
 from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import MGLDataset, collate_fn_pes
-from matgl.models import GRACE, M3GNet, TensorNet
+from matgl.models import M3GNet, TensorNet
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -64,19 +64,9 @@ def make_tensornet(element_types: tuple[str, ...]) -> nn.Module:
     )
 
 
-def make_grace(element_types: tuple[str, ...]) -> nn.Module:
-    """GRACE with library defaults (~213K params on 8-element table).
-
-    The defaults were picked to sit within ~2% of TensorNet's parameter
-    count for a roughly compute-balanced comparison.
-    """
-    return GRACE(element_types=element_types)
-
-
 MODEL_FACTORIES: dict[str, Callable[[tuple[str, ...]], nn.Module]] = {
     "M3GNet": make_m3gnet,
     "TensorNet": make_tensornet,
-    "GRACE": make_grace,
 }
 
 
@@ -346,7 +336,7 @@ def run(args: argparse.Namespace) -> None:
     print("  - 'train ms' = forward + MSE(E,F,S) + backward + optimizer.step")
     print("  - 'infer ms' = forward + autograd-grad for forces/stress (no loss.backward)")
     print("  - The same batch is reused every step; no DataLoader / disk I/O.")
-    print("  - Run on PYG backend; GRACE is PYG-only so DGL twin is omitted.")
+    print("  - Run on PYG backend.")
     if args.compile:
         print("  - 'compiled' rows compile only the inner graph model (potential.model)")
         print("    via torch.compile(fullgraph=False). Warmup absorbs compile time.")

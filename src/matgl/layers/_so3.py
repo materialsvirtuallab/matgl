@@ -225,8 +225,7 @@ class SO3TensorProduct(nn.Module):
                 Defaults to ``lmax`` (symmetric form). Pass a smaller value
                 when ``x2`` is known to be zero beyond ``lmax_in_2`` — this
                 skips the would-be-zero CG triplets and avoids gathering /
-                multiplying the padded slots, which dominates GRACE's first
-                inter-block tensor product.
+                multiplying the padded slots.
             lmax_out: maximum angular momentum of the output. Defaults to
                 ``lmax``. Provided for symmetry; not currently exercised
                 outside symmetric use.
